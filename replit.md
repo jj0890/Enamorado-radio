@@ -1,0 +1,112 @@
+# Replit.md - Radio Station Web Application
+
+## Overview
+
+This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application features a modern React frontend with a Node.js/Express backend, real-time WebSocket communication, and PostgreSQL database integration.
+
+## System Architecture
+
+### Frontend Architecture
+- **Framework**: React with TypeScript
+- **Build Tool**: Vite for fast development and optimized builds
+- **Styling**: Tailwind CSS with shadcn/ui component library
+- **State Management**: TanStack Query for server state management
+- **Routing**: Wouter for lightweight client-side routing
+- **UI Components**: Radix UI primitives with custom styling
+
+### Backend Architecture
+- **Runtime**: Node.js with Express.js framework
+- **Language**: TypeScript with ES modules
+- **Real-time Communication**: WebSocket server for live updates
+- **API Design**: RESTful API with real-time WebSocket enhancements
+- **Development**: Hot reloading with Vite middleware in development
+
+### Database Architecture
+- **Database**: PostgreSQL with connection pooling
+- **ORM**: Drizzle ORM for type-safe database operations
+- **Migrations**: Drizzle Kit for schema management
+- **Connection**: Neon serverless PostgreSQL for cloud deployment
+
+## Key Components
+
+### Audio System
+- **AudioManager**: Custom audio context management for streaming
+- **AudioPlayer**: Full-featured audio player with controls
+- **CompactPlayer**: Minimized player for background listening
+- **Real-time Updates**: WebSocket integration for live playback information
+
+### Station Management
+- **Station Grid**: Browse available radio stations by genre
+- **Featured Shows**: Curated content discovery
+- **Live Status**: Real-time indication of live broadcasts
+- **Genre Categorization**: Organized content by music genres
+
+### User Interface
+- **Responsive Design**: Mobile-first approach with desktop optimization
+- **Dark Theme**: Default dark theme with CSS custom properties
+- **Component Library**: Comprehensive UI components from shadcn/ui
+- **Accessibility**: ARIA labels and keyboard navigation support
+
+## Data Flow
+
+### Client-Side Flow
+1. User browses stations and shows through React components
+2. TanStack Query manages API requests and caching
+3. Audio player manages stream playback and controls
+4. WebSocket connection provides real-time updates
+
+### Server-Side Flow
+1. Express server handles REST API endpoints
+2. WebSocket server manages real-time connections
+3. Storage layer abstracts database operations
+4. Broadcasting system sends updates to connected clients
+
+### Database Flow
+1. Drizzle ORM handles type-safe database queries
+2. Schema definitions ensure data consistency
+3. Migrations manage database structure changes
+4. Connection pooling optimizes database performance
+
+## External Dependencies
+
+### Core Dependencies
+- **React Ecosystem**: React, React DOM, React Query
+- **UI Framework**: Radix UI primitives, Tailwind CSS
+- **Database**: Drizzle ORM, Neon serverless PostgreSQL
+- **Development**: Vite, TypeScript, ESLint
+
+### Audio Dependencies
+- **Web Audio API**: Native browser audio processing
+- **Streaming**: Direct HTTP stream handling
+- **Real-time**: WebSocket for live updates
+
+### Build Dependencies
+- **Bundling**: Vite with React plugin
+- **Styling**: PostCSS with Tailwind CSS
+- **Development**: Hot module replacement and error overlay
+
+## Deployment Strategy
+
+### Development Environment
+- **Local Development**: Vite dev server with hot reloading
+- **Database**: Local PostgreSQL or Neon cloud database
+- **Environment Variables**: `.env` file for local configuration
+
+### Production Build
+- **Frontend**: Vite build with optimized bundles
+- **Backend**: esbuild compilation for Node.js deployment
+- **Static Assets**: Served from Express with proper caching headers
+
+### Database Deployment
+- **Migrations**: Drizzle Kit push for schema deployment
+- **Connection**: Environment-based database URL configuration
+- **Scaling**: Connection pooling for concurrent requests
+
+## Changelog
+
+Changelog:
+- July 03, 2025. Initial setup
+
+## User Preferences
+
+Preferred communication style: Simple, everyday language.
