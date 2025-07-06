@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Create Show - Enamorado Radio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    
+    body {
+      margin: 0;
+      background: #000;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+    
+    /* Header */
+    .header {
+      background: #111;
+      border-bottom: 1px solid #333;
+      padding: 1.5rem 2rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    .header h1 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin: 0;
+      color: #fff;
+    }
+    
+    .header p {
+      margin: 0.5rem 0 0 0;
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+    
+    /* Show Details Section */
+    .show-details {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .show-details h2 {
+      margin: 0 0 1.5rem 0;
+      font-size: 1.3rem;
+      color: #fff;
+    }
+    
+    .form-grid {
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 2rem;
+      align-items: start;
+    }
+    
+    .cover-upload {
+      position: relative;
+    }
+    
+    .cover-preview {
+      width: 200px;
+      height: 200px;
+      background: #222;
+      border: 2px dashed #444;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      overflow: hidden;
+    }
+    
+    .cover-preview:hover {
+      border-color: #666;
+      background: #333;
+    }
+    
+    .cover-preview img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+    
+    .cover-placeholder {
+      text-align: center;
+      color: #666;
+    }
+    
+    .cover-placeholder i {
+      font-size: 2rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .form-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    .field-group {
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .field-group label {
+      color: #ccc;
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+      font-size: 0.9rem;
+    }
+    
+    .field-group input,
+    .field-group textarea {
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-size: 1rem;
+      transition: border-color 0.3s ease;
+    }
+    
+    .field-group input:focus,
+    .field-group textarea:focus {
+      outline: none;
+      border-color: #0ea5e9;
+    }
+    
+    .field-group textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+    
+    /* Tracklist Section */
+    .tracklist-section {
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    
+    .tracklist-header {
+      display: flex;
+      justify-content: between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .tracklist-header h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      flex: 1;
+    }
+    
+    .add-buttons {
+      display: flex;
+      gap: 1rem;
+    }
+    
+    .btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      transition: all 0.3s ease;
+      font-size: 0.9rem;
+    }
+    
+    .btn-primary {
+      background: #0ea5e9;
+      color: #fff;
+    }
+    
+    .btn-primary:hover {
+      background: #0284c7;
+    }
+    
+    .btn-secondary {
+      background: #374151;
+      color: #fff;
+      border: 1px solid #4b5563;
+    }
+    
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+    
+    /* Tracklist */
+    .tracklist {
+      min-height: 200px;
+    }
+    
+    .track-item {
+      background: #222;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: all 0.3s ease;
+      position: relative;
+    }
+    
+    .track-item:hover {
+      border-color: #555;
+      background: #333;
+    }
+    
+    .track-number {
+      background: #444;
+      color: #ccc;
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+    
+    .track-info {
+      flex: 1;
+    }
+    
+    .track-title {
+      color: #fff;
+      font-weight: 500;
+      margin-bottom: 0.25rem;
+    }
+    
+    .track-artist {
+      color: #aaa;
+      font-size: 0.9rem;
+    }
+    
+    .track-type {
+      background: #ef4444;
+      color: #fff;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 500;
+    }
+    
+    .track-type.music {
+      background: #10b981;
+    }
+    
+    .track-actions {
+      display: flex;
+      gap: 0.5rem;
+    }
+    
+    .track-actions button {
+      background: none;
+      border: 1px solid #444;
+      color: #ccc;
+      padding: 0.5rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .track-actions button:hover {
+      border-color: #666;
+      color: #fff;
+    }
+    
+    .track-actions .delete-btn:hover {
+      border-color: #ef4444;
+      color: #ef4444;
+    }
+    
+    /* Empty State */
+    .empty-tracklist {
+      text-align: center;
+      padding: 3rem 1rem;
+      color: #666;
+    }
+    
+    .empty-tracklist i {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+    }
+    
+    /* Modal */
+    .modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .modal-content {
+      background: #222;
+      border: 1px solid #444;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .modal-header h3 {
+      margin: 0;
+      color: #fff;
+    }
+    
+    .close-btn {
+      background: none;
+      border: none;
+      color: #666;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+    }
+    
+    .close-btn:hover {
+      color: #fff;
+    }
+    
+    /* Tab System for Modal */
+    .tabs {
+      display: flex;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid #333;
+    }
+    
+    .tab {
+      padding: 0.75rem 1rem;
+      background: none;
+      border: none;
+      color: #666;
+      cursor: pointer;
+      font-weight: 500;
+      border-bottom: 2px solid transparent;
+      transition: all 0.3s ease;
+    }
+    
+    .tab.active {
+      color: #0ea5e9;
+      border-bottom-color: #0ea5e9;
+    }
+    
+    .tab-content {
+      display: none;
+    }
+    
+    .tab-content.active {
+      display: block;
+    }
+    
+    /* File Upload Area */
+    .upload-area {
+      border: 2px dashed #444;
+      border-radius: 8px;
+      padding: 2rem;
+      text-align: center;
+      margin-bottom: 1rem;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    
+    .upload-area:hover {
+      border-color: #666;
+      background: #333;
+    }
+    
+    .upload-area.dragover {
+      border-color: #0ea5e9;
+      background: rgba(14, 165, 233, 0.1);
+    }
+    
+    /* Actions */
+    .actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: flex-end;
+      margin-top: 2rem;
+      padding-top: 2rem;
+      border-top: 1px solid #333;
+    }
+    
+    /* Recording Interface */
+    .recording-interface {
+      text-align: center;
+      padding: 2rem 0;
+    }
+    
+    .record-button {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: #ef4444;
+      border: none;
+      color: #fff;
+      font-size: 2rem;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin: 1rem auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .record-button:hover {
+      background: #dc2626;
+      transform: scale(1.05);
+    }
+    
+    .record-button.recording {
+      background: #fbbf24;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.7; }
+    }
+    
+    .recording-status {
+      color: #aaa;
+      margin: 1rem 0;
+    }
+    
+    /* Responsive */
+    @media (max-width: 768px) {
+      .container {
+        padding: 1rem;
+      }
+      
+      .form-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+      }
+      
+      .cover-preview {
+        width: 150px;
+        height: 150px;
+        margin: 0 auto;
+      }
+      
+      .add-buttons {
+        flex-direction: column;
+      }
+      
+      .actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>CREATE YOUR SHOW</h1>
+    <p>Build your radio show — no DJ skills required</p>
+  </div>
+
+  <div class="container">
+    <!-- Show Details -->
+    <div class="show-details">
+      <h2>Show Details</h2>
+      <div class="form-grid">
+        <div class="cover-upload">
+          <div class="cover-preview" onclick="document.getElementById('coverInput').click()">
+            <div class="cover-placeholder">
+              <i data-lucide="image"></i>
+              <div>Upload Cover</div>
+            </div>
+          </div>
+          <input type="file" id="coverInput" accept="image/*" style="display: none;" />
+        </div>
+        
+        <div class="form-fields">
+          <div class="field-group">
+            <label for="showTitle">Show Title</label>
+            <input type="text" id="showTitle" placeholder="e.g. Third Eye Sessions" />
+          </div>
+          
+          <div class="field-group">
+            <label for="hostName">Host Name</label>
+            <input type="text" id="hostName" placeholder="Your name or DJ name" />
+          </div>
+          
+          <div class="field-group">
+            <label for="showDescription">Description</label>
+            <textarea id="showDescription" placeholder="Describe your show, vibe, or what listeners can expect..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tracklist -->
+    <div class="tracklist-section">
+      <div class="tracklist-header">
+        <h2>Build Your Tracklist</h2>
+        <div class="add-buttons">
+          <button class="btn btn-primary" onclick="openSongModal()">
+            <i data-lucide="music"></i>
+            Add Song
+          </button>
+          <button class="btn btn-secondary" onclick="openTalkModal()">
+            <i data-lucide="mic"></i>
+            Add Talk Break
+          </button>
+        </div>
+      </div>
+      
+      <div class="tracklist" id="tracklist">
+        <div class="empty-tracklist">
+          <i data-lucide="list-music"></i>
+          <h3>Start building your show</h3>
+          <p>Add songs and talk breaks to create your radio show</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions">
+      <button class="btn btn-secondary" onclick="saveDraft()">
+        <i data-lucide="save"></i>
+        Save Draft
+      </button>
+      <button class="btn btn-primary" onclick="previewShow()">
+        <i data-lucide="play"></i>
+        Preview Show
+      </button>
+      <button class="btn btn-primary" onclick="publishShow()">
+        <i data-lucide="radio"></i>
+        Publish Show
+      </button>
+    </div>
+  </div>
+
+  <!-- Song Modal -->
+  <div id="songModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Song</h3>
+        <button class="close-btn" onclick="closeSongModal()">&times;</button>
+      </div>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="switchSongTab('upload')">Upload File</button>
+        <button class="tab" onclick="switchSongTab('link')">Paste Link</button>
+      </div>
+      
+      <div id="upload-tab" class="tab-content active">
+        <div class="upload-area" onclick="document.getElementById('songFile').click()">
+          <i data-lucide="upload"></i>
+          <h4>Drop your MP3 here or click to browse</h4>
+          <p>Supports MP3, WAV, M4A files</p>
+        </div>
+        <input type="file" id="songFile" accept="audio/*" style="display: none;" />
+      </div>
+      
+      <div id="link-tab" class="tab-content">
+        <div class="field-group">
+          <label for="songLink">Song Link</label>
+          <input type="url" id="songLink" placeholder="Paste YouTube, SoundCloud, or Spotify link..." />
+        </div>
+        <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
+          We'll handle the audio extraction for you
+        </p>
+      </div>
+      
+      <div style="margin-top: 1.5rem;">
+        <div class="field-group">
+          <label for="songTitle">Song Title</label>
+          <input type="text" id="songTitle" placeholder="Will auto-fill from file metadata" />
+        </div>
+        <div class="field-group" style="margin-top: 1rem;">
+          <label for="songArtist">Artist</label>
+          <input type="text" id="songArtist" placeholder="Will auto-fill from file metadata" />
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="closeSongModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addSong()">Add Song</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Talk Break Modal -->
+  <div id="talkModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Add Talk Break</h3>
+        <button class="close-btn" onclick="closeTalkModal()">&times;</button>
+      </div>
+      
+      <div class="tabs">
+        <button class="tab active" onclick="switchTalkTab('record')">Record Now</button>
+        <button class="tab" onclick="switchTalkTab('upload')">Upload File</button>
+      </div>
+      
+      <div id="record-tab" class="tab-content active">
+        <div class="recording-interface">
+          <button class="record-button" id="recordButton" onclick="toggleRecording()">
+            <i data-lucide="mic"></i>
+          </button>
+          <div class="recording-status" id="recordingStatus">Click to start recording</div>
+          <div id="recordingTimer" style="color: #0ea5e9; font-weight: 600; margin-top: 0.5rem;"></div>
+        </div>
+      </div>
+      
+      <div id="upload-talk-tab" class="tab-content">
+        <div class="upload-area" onclick="document.getElementById('talkFile').click()">
+          <i data-lucide="upload"></i>
+          <h4>Upload your talk audio</h4>
+          <p>Supports MP3, WAV, M4A files</p>
+        </div>
+        <input type="file" id="talkFile" accept="audio/*" style="display: none;" />
+      </div>
+      
+      <div style="margin-top: 1.5rem;">
+        <div class="field-group">
+          <label for="talkTitle">Talk Break Title</label>
+          <input type="text" id="talkTitle" placeholder="e.g. DJ Intro, Song Commentary, Station ID..." />
+        </div>
+      </div>
+      
+      <div class="actions">
+        <button class="btn btn-secondary" onclick="closeTalkModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="addTalkBreak()">Add Talk Break</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // State
+    let tracklist = [];
+    let isRecording = false;
+    let mediaRecorder = null;
+    let recordingTimer = null;
+    let recordingStartTime = null;
+
+    // Initialize
+    document.addEventListener('DOMContentLoaded', function() {
+      lucide.createIcons();
+      setupFileHandlers();
+      renderTracklist();
+    });
+
+    // File handling
+    function setupFileHandlers() {
+      // Cover image
+      document.getElementById('coverInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          const url = URL.createObjectURL(file);
+          const preview = document.querySelector('.cover-preview');
+          preview.innerHTML = `<img src="${url}" alt="Cover" />`;
+        }
+      });
+
+      // Song file
+      document.getElementById('songFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          // Auto-fill metadata if possible
+          document.getElementById('songTitle').value = file.name.replace(/\.[^/.]+$/, "");
+          // You could use a library like jsmediatags to extract metadata
+        }
+      });
+
+      // Talk file
+      document.getElementById('talkFile').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+          document.getElementById('talkTitle').value = file.name.replace(/\.[^/.]+$/, "");
+        }
+      });
+    }
+
+    // Modal functions
+    function openSongModal() {
+      document.getElementById('songModal').style.display = 'flex';
+    }
+
+    function closeSongModal() {
+      document.getElementById('songModal').style.display = 'none';
+      // Reset form
+      document.getElementById('songFile').value = '';
+      document.getElementById('songLink').value = '';
+      document.getElementById('songTitle').value = '';
+      document.getElementById('songArtist').value = '';
+    }
+
+    function openTalkModal() {
+      document.getElementById('talkModal').style.display = 'flex';
+    }
+
+    function closeTalkModal() {
+      document.getElementById('talkModal').style.display = 'none';
+      // Reset form
+      document.getElementById('talkFile').value = '';
+      document.getElementById('talkTitle').value = '';
+      stopRecording();
+    }
+
+    // Tab switching
+    function switchSongTab(tab) {
+      document.querySelectorAll('#songModal .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#songModal .tab-content').forEach(t => t.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      document.getElementById(tab + '-tab').classList.add('active');
+    }
+
+    function switchTalkTab(tab) {
+      document.querySelectorAll('#talkModal .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#talkModal .tab-content').forEach(t => t.classList.remove('active'));
+      
+      event.target.classList.add('active');
+      
+      if (tab === 'upload') {
+        document.getElementById('upload-talk-tab').classList.add('active');
+      } else {
+        document.getElementById('record-tab').classList.add('active');
+      }
+    }
+
+    // Recording functionality
+    async function toggleRecording() {
+      if (!isRecording) {
+        await startRecording();
+      } else {
+        stopRecording();
+      }
+    }
+
+    async function startRecording() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        mediaRecorder = new MediaRecorder(stream);
+        
+        mediaRecorder.ondataavailable = function(e) {
+          // Handle recorded data
+          console.log('Recording data available:', e.data);
+        };
+        
+        mediaRecorder.start();
+        isRecording = true;
+        recordingStartTime = Date.now();
+        
+        // Update UI
+        const button = document.getElementById('recordButton');
+        const status = document.getElementById('recordingStatus');
+        
+        button.classList.add('recording');
+        button.innerHTML = '<i data-lucide="square"></i>';
+        status.textContent = 'Recording... Click to stop';
+        
+        // Start timer
+        recordingTimer = setInterval(updateRecordingTimer, 100);
+        
+        lucide.createIcons();
+        
+      } catch (err) {
+        alert('Could not access microphone. Please check permissions.');
+        console.error('Recording error:', err);
+      }
+    }
+
+    function stopRecording() {
+      if (mediaRecorder && isRecording) {
+        mediaRecorder.stop();
+        mediaRecorder.stream.getTracks().forEach(track => track.stop());
+        
+        isRecording = false;
+        clearInterval(recordingTimer);
+        
+        // Update UI
+        const button = document.getElementById('recordButton');
+        const status = document.getElementById('recordingStatus');
+        const timer = document.getElementById('recordingTimer');
+        
+        button.classList.remove('recording');
+        button.innerHTML = '<i data-lucide="mic"></i>';
+        status.textContent = 'Recording saved! Click to record again';
+        timer.textContent = '';
+        
+        lucide.createIcons();
+      }
+    }
+
+    function updateRecordingTimer() {
+      if (recordingStartTime) {
+        const elapsed = Date.now() - recordingStartTime;
+        const seconds = Math.floor(elapsed / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        
+        document.getElementById('recordingTimer').textContent = 
+          `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+      }
+    }
+
+    // Add items to tracklist
+    function addSong() {
+      const title = document.getElementById('songTitle').value || 'Untitled Song';
+      const artist = document.getElementById('songArtist').value || 'Unknown Artist';
+      const file = document.getElementById('songFile').files[0];
+      const link = document.getElementById('songLink').value;
+      
+      if (!file && !link) {
+        alert('Please upload a file or provide a link');
+        return;
+      }
+      
+      const song = {
+        id: Date.now(),
+        type: 'music',
+        title: title,
+        artist: artist,
+        source: file ? 'file' : 'link',
+        data: file || link
+      };
+      
+      tracklist.push(song);
+      renderTracklist();
+      closeSongModal();
+    }
+
+    function addTalkBreak() {
+      const title = document.getElementById('talkTitle').value || 'Talk Break';
+      const file = document.getElementById('talkFile').files[0];
+      
+      if (!file && !isRecording) {
+        alert('Please record audio or upload a file');
+        return;
+      }
+      
+      const talkBreak = {
+        id: Date.now(),
+        type: 'talk',
+        title: title,
+        source: file ? 'file' : 'recording',
+        data: file || 'recorded_audio'
+      };
+      
+      tracklist.push(talkBreak);
+      renderTracklist();
+      closeTalkModal();
+    }
+
+    // Render tracklist
+    function renderTracklist() {
+      const container = document.getElementById('tracklist');
+      
+      if (tracklist.length === 0) {
+        container.innerHTML = `
+          <div class="empty-tracklist">
+            <i data-lucide="list-music"></i>
+            <h3>Start building your show</h3>
+            <p>Add songs and talk breaks to create your radio show</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+      
+      container.innerHTML = tracklist.map((item, index) => `
+        <div class="track-item">
+          <div class="track-number">${index + 1}</div>
+          <div class="track-info">
+            <div class="track-title">${item.title}</div>
+            ${item.artist ? `<div class="track-artist">${item.artist}</div>` : ''}
+          </div>
+          <div class="track-type ${item.type}">${item.type === 'music' ? 'SONG' : 'TALK'}</div>
+          <div class="track-actions">
+            <button onclick="playPreview(${item.id})" title="Preview">
+              <i data-lucide="play"></i>
+            </button>
+            <button onclick="editItem(${item.id})" title="Edit">
+              <i data-lucide="edit"></i>
+            </button>
+            <button class="delete-btn" onclick="removeItem(${item.id})" title="Delete">
+              <i data-lucide="trash-2"></i>
+            </button>
+          </div>
+        </div>
+      `).join('');
+      
+      lucide.createIcons();
+    }
+
+    // Tracklist actions
+    function removeItem(id) {
+      if (confirm('Remove this item from your show?')) {
+        tracklist = tracklist.filter(item => item.id !== id);
+        renderTracklist();
+      }
+    }
+
+    function playPreview(id) {
+      const item = tracklist.find(item => item.id === id);
+      alert(`Playing preview of: ${item.title}`);
+      // Implement actual audio preview
+    }
+
+    function editItem(id) {
+      // Implement edit functionality
+      alert('Edit functionality coming soon!');
+    }
+
+    // Show actions
+    function saveDraft() {
+      const showData = {
+        title: document.getElementById('showTitle').value,
+        host: document.getElementById('hostName').value,
+        description: document.getElementById('showDescription').value,
+        tracklist: tracklist,
+        savedAt: new Date().toISOString()
+      };
+      
+      localStorage.setItem('enamorado_draft', JSON.stringify(showData));
+      alert('Show draft saved locally!');
+    }
+
+    function previewShow() {
+      if (tracklist.length === 0) {
+        alert('Add some tracks to preview your show');
+        return;
+      }
+      
+      alert('Show preview will play your entire show with auto-generated transitions');
+      // Implement show preview
+    }
+
+    function publishShow() {
+      const title = document.getElementById('showTitle').value;
+      const host = document.getElementById('hostName').value;
+      
+      if (!title || !host) {
+        alert('Please fill in show title and host name');
+        return;
+      }
+      
+      if (tracklist.length === 0) {
+        alert('Add some tracks to your show');
+        return;
+      }
+      
+      alert(`Publishing "${title}" by ${host} with ${tracklist.length} items!`);
+      // Implement show publishing
+    }
+
+    // Drag and drop for file uploads
+    document.addEventListener('dragover', function(e) {
+      e.preventDefault();
+    });
+
+    document.addEventListener('drop', function(e) {
+      e.preventDefault();
+      const files = Array.from(e.dataTransfer.files);
+      
+      files.forEach(file => {
+        if (file.type.startsWith('audio/')) {
+          // Auto-add as song
+          const song = {
+            id: Date.now() + Math.random(),
+            type: 'music',
+            title: file.name.replace(/\.[^/.]+$/, ""),
+            artist: 'Unknown Artist',
+            source: 'file',
+            data: file
+          };
+          
+          tracklist.push(song);
+        }
+      });
+      
+      if (files.some(f => f.type.startsWith('audio/'))) {
+        renderTracklist();
+      }
+    });
+  </script>
+</body>
+</html>
