@@ -735,12 +735,14 @@
     let mediaRecorder = null;
     let recordingTimer = null;
     let recordingStartTime = null;
+    let recordedChunks = [];
+    let editingItemId = null;
 
     // Initialize
     document.addEventListener('DOMContentLoaded', function() {
       lucide.createIcons();
       setupFileHandlers();
-      renderTracklist();
+      loadDraft();
     });
 
     // File handling
@@ -786,6 +788,7 @@
       document.getElementById('songLink').value = '';
       document.getElementById('songTitle').value = '';
       document.getElementById('songArtist').value = '';
+      editingItemId = null;
     }
 
     function openTalkModal() {
@@ -797,6 +800,7 @@
       // Reset form
       document.getElementById('talkFile').value = '';
       document.getElementById('talkTitle').value = '';
+      editingItemId = null;
       stopRecording();
     }
 
@@ -837,8 +841,27 @@
         mediaRecorder = new MediaRecorder(stream);
         
         mediaRecorder.ondataavailable = function(e) {
-          // Handle recorded data
-          console.log('Recording data available:', e.data);
+          recordedChunks.push(e.data);
+        };
+        
+        mediaRecorder.onstop = function() {
+          const blob = new Blob(recordedChunks, { type: 'audio/webm' });
+          recordedChunks = [];
+          
+          // Save blob into the talk break item
+          const talkBreak = {
+            id: Date.now(),
+            type: 'talk',
+            title: document.getElementById('talkTitle').value || 'Talk Break',
+            source: 'recording',
+            platform: 'Recording',
+            duration: '0:30',
+            data: blob
+          };
+          
+          tracklist.push(talkBreak);
+          renderTracklist();
+          closeTalkModal();
         };
         
         mediaRecorder.start();
@@ -952,7 +975,7 @@
       }
       
       const song = {
-        id: Date.now(),
+        id: editingItemId || Date.now(),
         type: 'music',
         title: title,
         artist: artist,
@@ -963,7 +986,15 @@
         data: file || link
       };
       
-      tracklist.push(song);
+      if (editingItemId) {
+        // Update existing item
+        const index = tracklist.findIndex(item => item.id === editingItemId);
+        tracklist[index] = song;
+        editingItemId = null;
+      } else {
+        tracklist.push(song);
+      }
+      
       renderTracklist();
       closeSongModal();
     }
@@ -972,20 +1003,30 @@
       const title = document.getElementById('talkTitle').value || 'Talk Break';
       const file = document.getElementById('talkFile').files[0];
       
-      if (!file && !isRecording) {
+      if (!file && !recordedChunks.length) {
         alert('Please record audio or upload a file');
         return;
       }
       
       const talkBreak = {
-        id: Date.now(),
+        id: editingItemId || Date.now(),
         type: 'talk',
         title: title,
         source: file ? 'file' : 'recording',
+        platform: file ? 'Upload' : 'Recording',
+        duration: '0:30',
         data: file || 'recorded_audio'
       };
       
-      tracklist.push(talkBreak);
+      if (editingItemId) {
+        // Update existing item
+        const index = tracklist.findIndex(item => item.id === editingItemId);
+        tracklist[index] = talkBreak;
+        editingItemId = null;
+      } else {
+        tracklist.push(talkBreak);
+      }
+      
       renderTracklist();
       closeTalkModal();
     }
@@ -1117,13 +1158,53 @@
 
     function playPreview(id) {
       const item = tracklist.find(item => item.id === id);
-      alert(`Playing preview of: ${item.title}`);
-      // Implement actual audio preview
+      if (!item) return;
+
+      if (item.source === 'file') {
+        if (item.data instanceof Blob) {
+          // Handle recorded audio
+          const url = URL.createObjectURL(item.data);
+          const audio = new Audio(url);
+          audio.play().catch(err => {
+            console.error('Playback failed:', err);
+            alert('Could not play audio preview');
+          });
+        } else {
+          // Handle uploaded file
+          const url = URL.createObjectURL(item.data);
+          const audio = new Audio(url);
+          audio.play().catch(err => {
+            console.error('Playback failed:', err);
+            alert('Could not play audio preview');
+          });
+        }
+      } else if (typeof item.data === 'string') {
+        // Handle link - open in new tab
+        window.open(item.data, '_blank');
+      }
     }
 
     function editItem(id) {
-      // Implement edit functionality
-      alert('Edit functionality coming soon!');
+      const item = tracklist.find(i => i.id === id);
+      if (!item) return;
+
+      editingItemId = id;
+
+      if (item.type === 'music') {
+        openSongModal();
+        document.getElementById('songTitle').value = item.title;
+        document.getElementById('songArtist').value = item.artist;
+        if (item.source === 'link') {
+          document.getElementById('songLink').value = item.data;
+          switchSongTab('link');
+        }
+      } else {
+        openTalkModal();
+        document.getElementById('talkTitle').value = item.title;
+        if (item.source === 'file') {
+          switchTalkTab('upload');
+        }
+      }
     }
 
     // Show actions
@@ -1272,8 +1353,49 @@
         return;
       }
       
-      alert(`Publishing "${title}" by ${host} with ${tracklist.length} items!`);
-      // Implement show publishing
+      const showData = {
+        title: title,
+        host: host,
+        description: document.getElementById('showDescription').value,
+        tracklist: tracklist,
+        createdAt: new Date().toISOString()
+      };
+      
+      // For now, save to localStorage as "published"
+      const publishedShows = JSON.parse(localStorage.getItem('enamorado_published') || '[]');
+      publishedShows.push(showData);
+      localStorage.setItem('enamorado_published', JSON.stringify(publishedShows));
+      
+      alert(`"${title}" by ${host} published successfully!\n\nShow contains ${tracklist.length} items and is ready for scheduling.`);
+      
+      // Clear the form
+      document.getElementById('showTitle').value = '';
+      document.getElementById('hostName').value = '';
+      document.getElementById('showDescription').value = '';
+      tracklist = [];
+      renderTracklist();
+      
+      // Remove draft since it's now published
+      localStorage.removeItem('enamorado_draft');
+    }
+    
+    function loadDraft() {
+      const saved = localStorage.getItem('enamorado_draft');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          document.getElementById('showTitle').value = data.title || '';
+          document.getElementById('hostName').value = data.host || '';
+          document.getElementById('showDescription').value = data.description || '';
+          tracklist = data.tracklist || [];
+          renderTracklist();
+        } catch (err) {
+          console.error('Error loading draft:', err);
+          renderTracklist();
+        }
+      } else {
+        renderTracklist();
+      }
     }
 
     // Drag and drop for file uploads
