@@ -219,8 +219,8 @@
     .track-item {
       background: #222;
       border: 1px solid #333;
-      border-radius: 8px;
-      padding: 1rem;
+      border-radius: 12px;
+      padding: 1.25rem;
       margin-bottom: 1rem;
       display: flex;
       align-items: center;
@@ -232,34 +232,86 @@
     .track-item:hover {
       border-color: #555;
       background: #333;
+      transform: translateY(-1px);
     }
     
     .track-number {
       background: #444;
       color: #ccc;
-      width: 32px;
-      height: 32px;
-      border-radius: 6px;
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-weight: 600;
-      font-size: 0.9rem;
+      font-size: 1rem;
+      flex-shrink: 0;
+    }
+    
+    .track-artwork {
+      width: 60px;
+      height: 60px;
+      border-radius: 8px;
+      background: #444;
+      flex-shrink: 0;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .track-artwork img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    
+    .track-artwork i {
+      color: #666;
+      font-size: 1.5rem;
     }
     
     .track-info {
       flex: 1;
+      min-width: 0;
     }
     
     .track-title {
       color: #fff;
       font-weight: 500;
       margin-bottom: 0.25rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     
     .track-artist {
       color: #aaa;
       font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    
+    .track-metadata {
+      display: flex;
+      gap: 0.75rem;
+      font-size: 0.8rem;
+      color: #666;
+    }
+    
+    .track-source {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    
+    .track-duration {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
     }
     
     .track-type {
@@ -601,11 +653,15 @@
       <div id="link-tab" class="tab-content">
         <div class="field-group">
           <label for="songLink">Song Link</label>
-          <input type="url" id="songLink" placeholder="Paste YouTube, SoundCloud, or Spotify link..." />
+          <input type="url" id="songLink" placeholder="Paste YouTube, SoundCloud, Spotify, or Bandcamp link..." />
         </div>
         <p style="color: #666; font-size: 0.9rem; margin-top: 0.5rem;">
-          We'll handle the audio extraction for you
+          We'll extract metadata and create a beautiful show rundown
         </p>
+        <button type="button" onclick="extractMetadata()" class="btn btn-secondary" style="margin-top: 1rem;">
+          <i data-lucide="search"></i>
+          Get Song Info
+        </button>
       </div>
       
       <div style="margin-top: 1.5rem;">
@@ -842,6 +898,37 @@
       }
     }
 
+    // Metadata extraction (simulated for now)
+    function extractMetadata() {
+      const link = document.getElementById('songLink').value;
+      if (!link) {
+        alert('Please paste a link first');
+        return;
+      }
+      
+      // Simulate metadata extraction based on platform
+      let metadata = extractMetadataFromLink(link);
+      
+      if (metadata) {
+        document.getElementById('songTitle').value = metadata.title;
+        document.getElementById('songArtist').value = metadata.artist;
+      }
+    }
+    
+    function extractMetadataFromLink(url) {
+      // Basic URL pattern matching for demo
+      if (url.includes('youtube.com') || url.includes('youtu.be')) {
+        return { title: 'YouTube Track', artist: 'YouTube Artist', platform: 'YouTube' };
+      } else if (url.includes('spotify.com')) {
+        return { title: 'Spotify Track', artist: 'Spotify Artist', platform: 'Spotify' };
+      } else if (url.includes('soundcloud.com')) {
+        return { title: 'SoundCloud Track', artist: 'SoundCloud Artist', platform: 'SoundCloud' };
+      } else if (url.includes('bandcamp.com')) {
+        return { title: 'Bandcamp Track', artist: 'Bandcamp Artist', platform: 'Bandcamp' };
+      }
+      return null;
+    }
+
     // Add items to tracklist
     function addSong() {
       const title = document.getElementById('songTitle').value || 'Untitled Song';
@@ -854,12 +941,25 @@
         return;
       }
       
+      // Determine platform and get metadata
+      let platform = 'Upload';
+      let duration = '3:45'; // Default duration
+      let artwork = null;
+      
+      if (link) {
+        const metadata = extractMetadataFromLink(link);
+        platform = metadata ? metadata.platform : 'Link';
+      }
+      
       const song = {
         id: Date.now(),
         type: 'music',
         title: title,
         artist: artist,
         source: file ? 'file' : 'link',
+        platform: platform,
+        duration: duration,
+        artwork: artwork,
         data: file || link
       };
       
@@ -906,29 +1006,105 @@
         return;
       }
       
-      container.innerHTML = tracklist.map((item, index) => `
-        <div class="track-item">
-          <div class="track-number">${index + 1}</div>
-          <div class="track-info">
-            <div class="track-title">${item.title}</div>
-            ${item.artist ? `<div class="track-artist">${item.artist}</div>` : ''}
+      container.innerHTML = tracklist.map((item, index) => {
+        const artworkHtml = item.artwork 
+          ? `<img src="${item.artwork}" alt="Album art" />`
+          : `<i data-lucide="${item.type === 'music' ? 'disc-3' : 'mic'}"></i>`;
+          
+        const platformIcon = getPlatformIcon(item.platform);
+        
+        return `
+          <div class="track-item">
+            <div class="track-number">${index + 1}</div>
+            <div class="track-artwork">
+              ${artworkHtml}
+            </div>
+            <div class="track-info">
+              <div class="track-title">${item.title}</div>
+              ${item.artist ? `<div class="track-artist">${item.artist}</div>` : ''}
+              <div class="track-metadata">
+                ${item.platform ? `
+                  <div class="track-source">
+                    <i data-lucide="${platformIcon}"></i>
+                    <span>${item.platform}</span>
+                  </div>
+                ` : ''}
+                ${item.duration ? `
+                  <div class="track-duration">
+                    <i data-lucide="clock"></i>
+                    <span>${item.duration}</span>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+            <div class="track-type ${item.type}">${item.type === 'music' ? 'SONG' : 'TALK'}</div>
+            <div class="track-actions">
+              <button onclick="playPreview(${item.id})" title="Preview">
+                <i data-lucide="external-link"></i>
+              </button>
+              <button onclick="editItem(${item.id})" title="Edit">
+                <i data-lucide="edit"></i>
+              </button>
+              <button class="delete-btn" onclick="removeItem(${item.id})" title="Delete">
+                <i data-lucide="trash-2"></i>
+              </button>
+            </div>
           </div>
-          <div class="track-type ${item.type}">${item.type === 'music' ? 'SONG' : 'TALK'}</div>
-          <div class="track-actions">
-            <button onclick="playPreview(${item.id})" title="Preview">
-              <i data-lucide="play"></i>
-            </button>
-            <button onclick="editItem(${item.id})" title="Edit">
-              <i data-lucide="edit"></i>
-            </button>
-            <button class="delete-btn" onclick="removeItem(${item.id})" title="Delete">
-              <i data-lucide="trash-2"></i>
-            </button>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
       
       lucide.createIcons();
+      
+      // Add total show duration
+      updateShowStats();
+    }
+    
+    function getPlatformIcon(platform) {
+      const icons = {
+        'YouTube': 'youtube',
+        'Spotify': 'disc-3',
+        'SoundCloud': 'cloud',
+        'Bandcamp': 'music',
+        'Upload': 'upload',
+        'Link': 'link'
+      };
+      return icons[platform] || 'music';
+    }
+    
+    function updateShowStats() {
+      // Calculate total duration and add to the header
+      const totalTracks = tracklist.length;
+      const musicTracks = tracklist.filter(item => item.type === 'music').length;
+      const talkBreaks = tracklist.filter(item => item.type === 'talk').length;
+      
+      // Add stats display if it doesn't exist
+      let statsElement = document.getElementById('show-stats');
+      if (!statsElement) {
+        statsElement = document.createElement('div');
+        statsElement.id = 'show-stats';
+        statsElement.style.cssText = `
+          background: #333;
+          border-radius: 8px;
+          padding: 1rem;
+          margin-top: 1rem;
+          display: flex;
+          gap: 2rem;
+          font-size: 0.9rem;
+          color: #ccc;
+        `;
+        document.querySelector('.tracklist-section').appendChild(statsElement);
+      }
+      
+      if (totalTracks > 0) {
+        statsElement.innerHTML = `
+          <div><strong>${totalTracks}</strong> total items</div>
+          <div><strong>${musicTracks}</strong> songs</div>
+          <div><strong>${talkBreaks}</strong> talk breaks</div>
+          <div><strong>~${Math.round(totalTracks * 3.5)}</strong> min estimated duration</div>
+        `;
+      } else {
+        statsElement.innerHTML = '';
+      }
     }
 
     // Tracklist actions
@@ -970,8 +1146,116 @@
         return;
       }
       
-      alert('Show preview will play your entire show with auto-generated transitions');
-      // Implement show preview
+      // Generate a beautiful show preview page
+      const showTitle = document.getElementById('showTitle').value || 'Untitled Show';
+      const hostName = document.getElementById('hostName').value || 'Anonymous Host';
+      const description = document.getElementById('showDescription').value || 'No description provided';
+      
+      const previewWindow = window.open('', 'showPreview', 'width=800,height=600,scrollbars=yes');
+      
+      const tracklistHtml = tracklist.map((item, index) => `
+        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: #222; margin-bottom: 0.5rem; border-radius: 8px;">
+          <div style="background: #444; color: #ccc; width: 32px; height: 32px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-weight: 600;">${index + 1}</div>
+          <div style="flex: 1;">
+            <div style="color: #fff; font-weight: 500; margin-bottom: 0.25rem;">${item.title}</div>
+            ${item.artist ? `<div style="color: #aaa; font-size: 0.9rem;">${item.artist}</div>` : ''}
+            ${item.platform ? `<div style="color: #666; font-size: 0.8rem; margin-top: 0.25rem;">📱 ${item.platform}</div>` : ''}
+          </div>
+          <div style="background: ${item.type === 'music' ? '#10b981' : '#ef4444'}; color: #fff; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.75rem; font-weight: 500;">
+            ${item.type === 'music' ? 'SONG' : 'TALK'}
+          </div>
+        </div>
+      `).join('');
+      
+      previewWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${showTitle} - Show Preview</title>
+          <style>
+            body { 
+              background: #000; 
+              color: #fff; 
+              font-family: 'Inter', sans-serif; 
+              margin: 0; 
+              padding: 2rem; 
+              line-height: 1.6;
+            }
+            .header { 
+              text-align: center; 
+              margin-bottom: 2rem; 
+              padding-bottom: 2rem; 
+              border-bottom: 1px solid #333; 
+            }
+            .cover { 
+              width: 200px; 
+              height: 200px; 
+              background: #333; 
+              border-radius: 12px; 
+              margin: 0 auto 1rem; 
+              display: flex; 
+              align-items: center; 
+              justify-content: center; 
+              font-size: 3rem; 
+            }
+            .stats {
+              display: flex;
+              gap: 2rem;
+              justify-content: center;
+              margin: 1rem 0;
+              font-size: 0.9rem;
+              color: #aaa;
+            }
+            .description {
+              background: #111;
+              padding: 1.5rem;
+              border-radius: 12px;
+              margin-bottom: 2rem;
+              border: 1px solid #333;
+            }
+            .tracklist-header {
+              font-size: 1.2rem;
+              font-weight: 600;
+              margin-bottom: 1rem;
+              color: #fff;
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="cover">🎵</div>
+            <h1 style="margin: 0; font-size: 2rem;">${showTitle}</h1>
+            <p style="margin: 0.5rem 0; color: #aaa;">Hosted by ${hostName}</p>
+            <div class="stats">
+              <div><strong>${tracklist.length}</strong> tracks</div>
+              <div><strong>~${Math.round(tracklist.length * 3.5)}</strong> minutes</div>
+              <div><strong>${tracklist.filter(t => t.type === 'music').length}</strong> songs</div>
+              <div><strong>${tracklist.filter(t => t.type === 'talk').length}</strong> talk breaks</div>
+            </div>
+          </div>
+          
+          ${description !== 'No description provided' ? `
+            <div class="description">
+              <h3>About This Show</h3>
+              <p>${description}</p>
+            </div>
+          ` : ''}
+          
+          <div class="tracklist-header">Tracklist</div>
+          <div style="margin-bottom: 2rem;">
+            ${tracklistHtml}
+          </div>
+          
+          <div style="text-align: center; padding: 2rem; background: #111; border-radius: 12px; border: 1px solid #333;">
+            <h3>🎙️ Ready for Radio</h3>
+            <p style="color: #aaa; margin: 1rem 0;">This show is ready to be scheduled and broadcast on Enamorado Radio</p>
+            <p style="color: #666; font-size: 0.9rem;">Audio streaming coming soon - for now we've created your beautiful show rundown</p>
+          </div>
+        </body>
+        </html>
+      `);
+      
+      previewWindow.document.close();
     }
 
     function publishShow() {
