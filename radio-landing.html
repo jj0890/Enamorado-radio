@@ -76,8 +76,8 @@
                     <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red live-glow"></div>
                 </div>
                 <div class="flex items-center space-x-2" id="current-show-info">
-                    <span class="text-white">Third Eye Sessions</span>
-                    <span class="text-white/60">with DJ Luna</span>
+                    <span class="text-white">DJ Amadeezy Mix</span>
+                    <span class="text-white/60">Resident Session</span>
                     <i data-lucide="volume-2" class="w-4 h-4 text-white/60"></i>
                 </div>
             </div>
@@ -134,7 +134,7 @@
                 <div class="flex items-center space-x-4">
                     <div class="flex items-center space-x-2" id="live-indicator">
                         <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red live-glow"></div>
-                        <span class="text-xs font-medium text-white/80">LIVE: Third Eye Sessions</span>
+                        <span class="text-xs font-medium text-white/80">LIVE: DJ Amadeezy Mix</span>
                     </div>
                     <button id="main-listen-btn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded flex items-center transition-all live-glow">
                         <i data-lucide="play" class="w-4 h-4 mr-2"></i>
@@ -274,110 +274,110 @@
         // Data with Texas/San Antonio theming
         const schedule = [
             { time: "12:00 PM", show: "Midday Vibes", host: "Maria Santos", location: "San Antonio", type: "live", current: false },
-            { time: "2:00 PM", show: "Third Eye Sessions", host: "DJ Luna", location: "Austin", type: "live", current: true },
-            { time: "4:00 PM", show: "Desert Frequencies", host: "Carlos Mendez", location: "El Paso", type: "live", current: false },
-            { time: "6:00 PM", show: "Houston Underground", host: "Keisha Williams", location: "Houston", type: "live", current: false },
-            { time: "8:00 PM", show: "Lone Star Electronic", host: "Jake Morrison", location: "Dallas", type: "live", current: false },
-            { time: "10:00 PM", show: "Night Rides", host: "Alex Rivera", location: "San Antonio", type: "live", current: false }
+            { time: "2:00 PM", show: "DJ Amadeezy Mix", host: "DJ Amadeezy", location: "San Antonio", type: "live", current: true },
+            { time: "4:00 PM", show: "SAC Student Sessions", host: "Various Students", location: "San Antonio College", type: "live", current: false },
+            { time: "6:00 PM", show: "Austin Sound Lab", host: "Local Collective", location: "Austin", type: "live", current: false },
+            { time: "8:00 PM", show: "Houston Hip-Hop Hour", host: "DJ Marcus", location: "Houston", type: "live", current: false },
+            { time: "10:00 PM", show: "Night Sessions", host: "Alex Rivera", location: "San Antonio", type: "live", current: false }
         ];
 
         const residents = [
             {
+                name: "DJ AMADEEZY",
+                location: "SAN ANTONIO, TX",
+                bio: "Resident DJ mixing everything from classic hip-hop to electronic, bringing authentic SA sound to the airwaves",
+                showTitle: "DJ Amadeezy Mix",
+                schedule: "Daily 2-4 PM CST",
+                tags: ["HIP-HOP", "ELECTRONIC", "SA-SOUND"]
+            },
+            {
+                name: "SAC STUDENTS", 
+                location: "SAN ANTONIO COLLEGE",
+                bio: "Student-led radio programming showcasing local talent and experimental sounds from the college community",
+                showTitle: "SAC Student Sessions",
+                schedule: "Weekdays 4-6 PM CST",
+                tags: ["STUDENT", "EXPERIMENTAL", "LOCAL"]
+            },
+            {
                 name: "MARIA SANTOS",
                 location: "SAN ANTONIO, TX",
-                bio: "Cumbia and electronic fusion specialist bridging Mexican and Texan sounds",
+                bio: "Local music curator focusing on San Antonio's diverse musical heritage and contemporary scene",
                 showTitle: "Midday Vibes",
                 schedule: "Every weekday 12-2 PM CST",
-                tags: ["CUMBIA", "ELECTRONIC", "FUSION"]
+                tags: ["CURATION", "SA-HERITAGE", "CONTEMPORARY"]
             },
             {
-                name: "DJ LUNA", 
+                name: "AUSTIN SOUND LAB",
                 location: "AUSTIN, TX",
-                bio: "Third eye consciousness through deep house and ambient explorations",
-                showTitle: "Third Eye Sessions",
-                schedule: "Daily 2-4 PM CST",
-                tags: ["DEEP HOUSE", "AMBIENT", "CONSCIOUSNESS"]
-            },
-            {
-                name: "CARLOS MENDEZ",
-                location: "EL PASO, TX",
-                bio: "Desert techno and border sounds - where Mexico meets the American Southwest",
-                showTitle: "Desert Frequencies",
-                schedule: "Every weekday 4-6 PM CST",
-                tags: ["TECHNO", "BORDER", "DESERT"]
-            },
-            {
-                name: "KEISHA WILLIAMS",
-                location: "HOUSTON, TX",
-                bio: "Houston's chopped and screwed legacy meets contemporary trap and hip-hop",
-                showTitle: "Houston Underground",
+                bio: "Collective of Austin musicians and producers sharing new sounds from the Live Music Capital",
+                showTitle: "Austin Sound Lab",
                 schedule: "Every weekday 6-8 PM CST",
-                tags: ["HIP-HOP", "CHOPPED", "TRAP"]
+                tags: ["AUSTIN", "LIVE-MUSIC", "COLLECTIVE"]
             }
         ];
 
         const staffSelections = [
             {
                 date: "JANUARY 08, 2025",
-                title: "Border Crossing Sounds",
-                description: "Exploring the musical dialogue between San Antonio and Monterrey",
-                host: "Maria Santos",
+                title: "DJ Amadeezy's Best of 2024",
+                description: "Year-end mix featuring the tracks that defined DJ Amadeezy's sound this past year",
+                host: "DJ Amadeezy",
                 duration: "2h 00m",
                 location: "San Antonio",
-                tags: ["CUMBIA", "CROSS-BORDER", "FUSION"]
+                tags: ["HIP-HOP", "ELECTRONIC", "YEAR-END"]
             },
             {
                 date: "JANUARY 05, 2025", 
-                title: "Austin Psychedelic Revival",
-                description: "From 13th Floor Elevators to modern psych-rock in the Live Music Capital",
-                host: "DJ Luna",
+                title: "SAC Student Spotlight",
+                description: "Featuring original compositions and mixes from San Antonio College's most talented students",
+                host: "SAC Students",
                 duration: "1h 45m",
-                location: "Austin",
-                tags: ["PSYCHEDELIC", "AUSTIN", "ROCK"]
+                location: "San Antonio College",
+                tags: ["STUDENT", "ORIGINAL", "SPOTLIGHT"]
             },
             {
                 date: "JANUARY 03, 2025",
-                title: "Houston's Electronic Underground", 
-                description: "The city's hidden electronic scene beyond the mainstream rap",
-                host: "Keisha Williams",
+                title: "Austin Sound Lab Sessions", 
+                description: "Live recordings from Austin's underground music scene and experimental collectives",
+                host: "Austin Sound Lab",
                 duration: "2h 15m",
-                location: "Houston",
-                tags: ["ELECTRONIC", "HOUSTON", "UNDERGROUND"]
+                location: "Austin",
+                tags: ["LIVE", "EXPERIMENTAL", "AUSTIN"]
             },
             {
                 date: "DECEMBER 28, 2024",
-                title: "Desert Techno Explorations",
-                description: "Minimalist beats echoing across West Texas landscapes",
-                host: "Carlos Mendez",
+                title: "San Antonio Underground",
+                description: "Showcasing the city's hidden gems - local artists and producers you need to know",
+                host: "Maria Santos",
                 duration: "2h 30m",
-                location: "El Paso",
-                tags: ["TECHNO", "MINIMAL", "WEST-TEXAS"]
+                location: "San Antonio",
+                tags: ["LOCAL", "UNDERGROUND", "SA-ARTISTS"]
             }
         ];
 
         const communityPicks = [
             {
-                title: "San Antonio Indie Revival",
-                submittedBy: "alamo_city_sounds",
+                title: "DJ Amadeezy Fan Mix",
+                submittedBy: "sa_music_lover",
                 votes: 342,
-                description: "Local bands defining the new SA sound",
-                tags: ["INDIE", "SAN-ANTONIO", "LOCAL"],
+                description: "Community remix of DJ Amadeezy's signature style",
+                tags: ["DJ-AMADEEZY", "REMIX", "COMMUNITY"],
                 date: "2 days ago"
             },
             {
-                title: "Austin Festival Memories",
-                submittedBy: "festival_hunter",
+                title: "SAC Student Beats",
+                submittedBy: "college_sounds",
                 votes: 298,
-                description: "Best sets from SXSW and ACL 2024",
-                tags: ["FESTIVAL", "AUSTIN", "LIVE"],
+                description: "Highlighting the best student productions from San Antonio College",
+                tags: ["SAC", "STUDENT", "BEATS"],
                 date: "1 week ago"
             },
             {
-                title: "Texas Country Electronic",
-                submittedBy: "cowboy_techno",
+                title: "San Antonio Local Gems",
+                submittedBy: "local_music_scout",
                 votes: 234,
-                description: "When honky-tonk meets synthesizers",
-                tags: ["COUNTRY", "ELECTRONIC", "FUSION"],
+                description: "Hidden talent from the Alamo City music scene",
+                tags: ["LOCAL", "SAN-ANTONIO", "TALENT"],
                 date: "2 weeks ago"
             }
         ];
@@ -385,50 +385,50 @@
         const archiveShows = [
             {
                 date: "JAN 07, 2025",
-                title: "Tejano Electronic Fusion",
-                host: "Various Artists",
+                title: "DJ Amadeezy's Saturday Night Mix",
+                host: "DJ Amadeezy",
                 location: "San Antonio",
-                tags: ["TEJANO", "ELECTRONIC", "FUSION"],
+                tags: ["HIP-HOP", "ELECTRONIC", "WEEKEND"],
                 duration: "1h 30m"
             },
             {
                 date: "JAN 06, 2025",
-                title: "Austin Ambient Sessions",
-                host: "DJ Luna",
-                location: "Austin", 
-                tags: ["AMBIENT", "SESSIONS", "ATMOSPHERIC"],
+                title: "SAC Student Showcase",
+                host: "SAC Students",
+                location: "San Antonio College", 
+                tags: ["STUDENT", "SHOWCASE", "ORIGINAL"],
                 duration: "2h 00m"
             },
             {
                 date: "JAN 05, 2025",
-                title: "Houston Hip-Hop Chronicles",
-                host: "Keisha Williams",
-                location: "Houston",
-                tags: ["HIP-HOP", "HOUSTON", "CHRONICLES"],
+                title: "Austin Sound Lab Recordings",
+                host: "Austin Sound Lab",
+                location: "Austin",
+                tags: ["LIVE", "EXPERIMENTAL", "AUSTIN"],
                 duration: "1h 45m"
             },
             {
                 date: "JAN 04, 2025",
-                title: "Border Sound Explorations",
-                host: "Carlos Mendez",
-                location: "El Paso",
-                tags: ["BORDER", "EXPERIMENTAL", "CULTURAL"],
+                title: "San Antonio Local Spotlight",
+                host: "Maria Santos",
+                location: "San Antonio",
+                tags: ["LOCAL", "SPOTLIGHT", "SA-ARTISTS"],
                 duration: "2h 15m"
             },
             {
                 date: "JAN 03, 2025",
-                title: "Dallas Underground Techno",
-                host: "Jake Morrison", 
-                location: "Dallas",
-                tags: ["TECHNO", "UNDERGROUND", "INDUSTRIAL"],
+                title: "Houston Hip-Hop Classics",
+                host: "DJ Marcus", 
+                location: "Houston",
+                tags: ["HIP-HOP", "CLASSICS", "HOUSTON"],
                 duration: "2h 30m"
             },
             {
                 date: "JAN 02, 2025",
-                title: "Texas Country Reimagined",
-                host: "Sarah Martinez",
+                title: "Midday Vibes Special",
+                host: "Maria Santos",
                 location: "San Antonio",
-                tags: ["COUNTRY", "REIMAGINED", "MODERN"],
+                tags: ["CURATION", "MIDDAY", "SPECIAL"],
                 duration: "1h 50m"
             }
         ];
