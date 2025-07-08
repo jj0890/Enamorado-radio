@@ -1,505 +1,688 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Enamorado Radio - Digital space dedicated to the things we are enamored with</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-    <style>
-        body { 
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
-            background: #000;
-            color: white;
-        }
-        
-        /* Live indicator animation */
-        @keyframes pulse-red { 
-            0%, 100% { opacity: 1; } 
-            50% { opacity: 0.5; } 
-        }
-        .animate-pulse-red { 
-            animation: pulse-red 2s infinite; 
-        }
-        
-        /* Tab styling */
-        .tab-button {
-            transition: all 0.2s ease;
-            border-bottom: 2px solid transparent;
-        }
-        .tab-button.active {
-            border-bottom-color: rgb(59 130 246);
-            background: rgba(255, 255, 255, 0.1);
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Card hover effects */
-        .card {
-            transition: all 0.3s ease;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .card:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        /* Tag styling */
-        .tag {
-            background: rgba(255, 255, 255, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            transition: all 0.2s ease;
-        }
-        .tag:hover {
-            background: rgba(59, 130, 246, 0.2);
-            border-color: rgb(59, 130, 246);
-        }
-        
-        /* Live Now indicator with glow */
-        .live-glow {
-            box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
-        }
-    </style>
-</head>
-<body class="min-h-screen bg-black text-white">
-    <!-- Live Status Bar -->
-    <div class="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
-        <div class="flex items-center justify-between px-4 py-2 text-sm">
-            <div class="flex items-center space-x-4">
-                <div class="flex items-center space-x-2">
-                    <span class="text-white/80">LIVE NOW</span>
-                    <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red live-glow"></div>
-                </div>
-                <div class="flex items-center space-x-2" id="current-show-info">
-                    <span class="text-white">DJ Amadeezy Mix</span>
-                    <span class="text-white/60">Resident Session</span>
-                    <i data-lucide="volume-2" class="w-4 h-4 text-white/60"></i>
-                </div>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="text-white/60">SAN ANTONIO, TX</span>
-                <button id="live-listen-btn" class="border border-white/20 text-white hover:bg-white/10 h-8 px-3 text-sm rounded flex items-center transition-all">
-                    <i data-lucide="play" class="w-3 h-3 mr-1"></i>
-                    Listen Live
-                </button>
-            </div>
-        </div>
-    </div>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>
+            Enamorado Radio - Digital space dedicated to the things we are
+            enamored with
+        </title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+        <style>
+            body {
+                font-family:
+                    "Inter",
+                    -apple-system,
+                    BlinkMacSystemFont,
+                    sans-serif;
+                background: #000;
+                color: white;
+            }
 
-    <!-- Main Header -->
-    <header class="fixed top-10 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/10">
-        <div class="max-w-7xl mx-auto px-4 py-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-8">
-                    <div class="text-2xl font-bold tracking-tight cursor-pointer hover:text-blue-400 transition-colors" onclick="goHome()">
-                        ENAMORADO
+            /* Live indicator animation */
+            @keyframes pulse-red {
+                0%,
+                100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0.5;
+                }
+            }
+            .animate-pulse-red {
+                animation: pulse-red 2s infinite;
+            }
+
+            /* Tab styling */
+            .tab-button {
+                transition: all 0.2s ease;
+                border-bottom: 2px solid transparent;
+            }
+            .tab-button.active {
+                border-bottom-color: rgb(59 130 246);
+                background: rgba(255, 255, 255, 0.1);
+            }
+            .tab-content {
+                display: none;
+            }
+            .tab-content.active {
+                display: block;
+            }
+
+            /* Card hover effects */
+            .card {
+                transition: all 0.3s ease;
+                background: rgba(255, 255, 255, 0.05);
+                border: 1px solid rgba(255, 255, 255, 0.1);
+            }
+            .card:hover {
+                background: rgba(255, 255, 255, 0.1);
+                transform: translateY(-2px);
+            }
+
+            /* Tag styling */
+            .tag {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                transition: all 0.2s ease;
+            }
+            .tag:hover {
+                background: rgba(59, 130, 246, 0.2);
+                border-color: rgb(59, 130, 246);
+            }
+
+            /* Live Now indicator with glow */
+            .live-glow {
+                box-shadow: 0 0 20px rgba(239, 68, 68, 0.5);
+            }
+        </style>
+    </head>
+    <body class="min-h-screen bg-black text-white">
+        <!-- Live Status Bar -->
+        <div
+            class="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10"
+        >
+            <div class="flex items-center justify-between px-4 py-2 text-sm">
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="text-white/80">LIVE NOW</span>
+                        <div
+                            class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red live-glow"
+                        ></div>
                     </div>
-                    <nav class="hidden md:flex items-center space-x-6 text-sm">
-                        <a href="#" class="text-white/80 hover:text-white transition-colors">LATEST</a>
-                        <a href="#" class="text-white/80 hover:text-white transition-colors" onclick="showExplorePage()">EXPLORE</a>
-                        <a href="#" class="text-white/80 hover:text-white transition-colors">GUIDES</a>
-                        <a href="#" class="text-white/80 hover:text-white transition-colors">SHOP</a>
-                        <a href="#" class="text-white/80 hover:text-white transition-colors">RESIDENTS</a>
-                        <a href="#" class="text-white hover:text-blue-400 transition-colors font-medium">RADIO</a>
-                    </nav>
+                    <div
+                        class="flex items-center space-x-2"
+                        id="current-show-info"
+                    >
+                        <span class="text-white">DJ Amadeezy Mix</span>
+                        <span class="text-white/60">Resident Session</span>
+                        <i
+                            data-lucide="volume-2"
+                            class="w-4 h-4 text-white/60"
+                        ></i>
+                    </div>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button class="p-2 hover:bg-white/10 rounded transition-colors">
-                        <i data-lucide="search" class="w-5 h-5"></i>
-                    </button>
-                    <button class="p-2 hover:bg-white/10 rounded transition-colors">
-                        <i data-lucide="user" class="w-5 h-5"></i>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Content -->
-    <div class="pt-32 pb-32 px-4 max-w-7xl mx-auto">
-        <!-- Radio Header -->
-        <div class="mb-8">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-6">
-                    <h1 class="text-4xl font-bold tracking-tight">RADIO</h1>
-                    <p class="text-white/70 text-lg">
-                        Tune in live or explore our archive of shows and mixes from South Texas and beyond.
-                    </p>
-                </div>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2" id="live-indicator">
-                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red live-glow"></div>
-                        <span class="text-xs font-medium text-white/80">LIVE: DJ Amadeezy Mix</span>
-                    </div>
-                    <button id="main-listen-btn" class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded flex items-center transition-all live-glow">
-                        <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+                    <span class="text-white/60">SAN ANTONIO, TX</span>
+                    <button
+                        id="live-listen-btn"
+                        class="border border-white/20 text-white hover:bg-white/10 h-8 px-3 text-sm rounded flex items-center transition-all"
+                    >
+                        <i data-lucide="play" class="w-3 h-3 mr-1"></i>
                         Listen Live
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- Navigation Tabs -->
-        <div class="mb-8">
-            <div class="grid grid-cols-5 bg-white/5 border border-white/10 rounded-lg p-1">
-                <button class="tab-button active text-white px-4 py-3 rounded text-sm font-medium" onclick="switchTab('schedule')">
-                    SCHEDULE
-                </button>
-                <button class="tab-button text-white px-4 py-3 rounded text-sm font-medium" onclick="switchTab('residents')">
-                    RESIDENTS
-                </button>
-                <button class="tab-button text-white px-4 py-3 rounded text-sm font-medium" onclick="switchTab('staff-selections')">
-                    STAFF SELECTIONS
-                </button>
-                <button class="tab-button text-white px-4 py-3 rounded text-sm font-medium" onclick="switchTab('community')">
-                    COMMUNITY PICKS
-                </button>
-                <button class="tab-button text-white px-4 py-3 rounded text-sm font-medium" onclick="switchTab('archive')">
-                    ARCHIVE
-                </button>
-            </div>
-        </div>
-
-        <!-- Tab Content -->
-        <div id="tab-content">
-            <!-- Schedule Tab -->
-            <div id="schedule" class="tab-content active">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold mb-2">TODAY'S SCHEDULE</h2>
-                    <p class="text-white/70">
-                        Live shows and archived programming from our South Texas studio.
-                    </p>
-                </div>
-                <div class="card rounded-lg p-6">
-                    <div class="space-y-4" id="schedule-content">
-                        <!-- Schedule populated by JS -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- Residents Tab -->
-            <div id="residents" class="tab-content">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold mb-2">RESIDENTS</h2>
-                    <p class="text-white/70">
-                        Meet the voices behind Enamorado Radio - from San Antonio to Austin and beyond.
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="residents-content">
-                    <!-- Residents populated by JS -->
-                </div>
-            </div>
-
-            <!-- Staff Selections Tab -->
-            <div id="staff-selections" class="tab-content">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold mb-2">STAFF SELECTIONS</h2>
-                    <p class="text-white/70">
-                        Recent radio highlights hand-picked by the Enamorado Radio team.
-                    </p>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6" id="staff-selections-content">
-                    <!-- Staff selections populated by JS -->
-                </div>
-            </div>
-
-            <!-- Community Picks Tab -->
-            <div id="community" class="tab-content">
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold mb-2">COMMUNITY PICKS</h2>
-                    <p class="text-white/70">
-                        Listener-submitted shows and sets voted on by the community.
-                    </p>
-                </div>
-                <div class="space-y-4" id="community-content">
-                    <!-- Community picks populated by JS -->
-                </div>
-            </div>
-
-            <!-- Archive Tab -->
-            <div id="archive" class="tab-content">
-                <div class="mb-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h2 class="text-2xl font-bold mb-2">ARCHIVE</h2>
-                            <p class="text-white/70">
-                                Explore our complete catalog of shows, mixes, and special broadcasts.
-                            </p>
+        <!-- Main Header -->
+        <header
+            class="fixed top-10 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/10"
+        >
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-8">
+                        <div
+                            class="text-2xl font-bold tracking-tight cursor-pointer hover:text-blue-400 transition-colors"
+                            onclick="goHome()"
+                        >
+                            ENAMORADO
                         </div>
-                        <button onclick="showExplorePage()" class="text-blue-400 hover:text-blue-300 font-medium">
-                            VIEW ALL TAGS →
+                        <nav
+                            class="hidden md:flex items-center space-x-6 text-sm"
+                        >
+                            <a
+                                href="#"
+                                class="text-white/80 hover:text-white transition-colors"
+                                >LATEST</a
+                            >
+                            <a
+                                href="#"
+                                class="text-white/80 hover:text-white transition-colors"
+                                onclick="showExplorePage()"
+                                >EXPLORE</a
+                            >
+                            <a
+                                href="#"
+                                class="text-white/80 hover:text-white transition-colors"
+                                >GUIDES</a
+                            >
+                            <a
+                                href="#"
+                                class="text-white/80 hover:text-white transition-colors"
+                                >SHOP</a
+                            >
+                            <a
+                                href="#"
+                                class="text-white/80 hover:text-white transition-colors"
+                                >RESIDENTS</a
+                            >
+                            <a
+                                href="#"
+                                class="text-white hover:text-blue-400 transition-colors font-medium"
+                                >RADIO</a
+                            >
+                        </nav>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button
+                            class="p-2 hover:bg-white/10 rounded transition-colors"
+                        >
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </button>
+                        <button
+                            class="p-2 hover:bg-white/10 rounded transition-colors"
+                        >
+                            <i data-lucide="user" class="w-5 h-5"></i>
                         </button>
                     </div>
                 </div>
-                
-                <!-- Tag Filter Section -->
-                <div class="mb-6">
-                    <h3 class="text-lg font-semibold mb-4">BROWSE BY GENRE</h3>
-                    <div class="flex flex-wrap gap-2" id="tag-filter">
-                        <!-- Tags populated by JS -->
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="pt-32 pb-32 px-4 max-w-7xl mx-auto">
+            <!-- Radio Header -->
+            <div class="mb-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-6">
+                        <h1 class="text-4xl font-bold tracking-tight">RADIO</h1>
+                        <p class="text-white/70 text-lg">
+                            Tune in live or explore our archive of shows and
+                            mixes from South Texas and beyond.
+                        </p>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div
+                            class="flex items-center space-x-2"
+                            id="live-indicator"
+                        >
+                            <div
+                                class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red live-glow"
+                            ></div>
+                            <span class="text-xs font-medium text-white/80"
+                                >LIVE: DJ Amadeezy Mix</span
+                            >
+                        </div>
+                        <button
+                            id="main-listen-btn"
+                            class="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded flex items-center transition-all live-glow"
+                        >
+                            <i data-lucide="play" class="w-4 h-4 mr-2"></i>
+                            Listen Live
+                        </button>
                     </div>
                 </div>
-                
-                <!-- Archive Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="archive-content">
-                    <!-- Archive shows populated by JS -->
-                </div>
-                
-                <!-- Pagination -->
-                <div class="flex items-center justify-center space-x-4 mt-8">
-                    <button id="prev-page" class="px-4 py-2 border border-white/20 text-white hover:bg-white/10 rounded transition-colors" disabled>
-                        ← Previous
+            </div>
+
+            <!-- Navigation Tabs -->
+            <div class="mb-8">
+                <div
+                    class="grid grid-cols-5 bg-white/5 border border-white/10 rounded-lg p-1"
+                >
+                    <button
+                        class="tab-button active text-white px-4 py-3 rounded text-sm font-medium"
+                        onclick="switchTab('schedule')"
+                    >
+                        SCHEDULE
                     </button>
-                    <span id="page-info" class="text-white/70">Page 1 of 5</span>
-                    <button id="next-page" class="px-4 py-2 border border-white/20 text-white hover:bg-white/10 rounded transition-colors">
-                        Next →
+                    <button
+                        class="tab-button text-white px-4 py-3 rounded text-sm font-medium"
+                        onclick="switchTab('residents')"
+                    >
+                        RESIDENTS
+                    </button>
+                    <button
+                        class="tab-button text-white px-4 py-3 rounded text-sm font-medium"
+                        onclick="switchTab('staff-selections')"
+                    >
+                        STAFF SELECTIONS
+                    </button>
+                    <button
+                        class="tab-button text-white px-4 py-3 rounded text-sm font-medium"
+                        onclick="switchTab('community')"
+                    >
+                        COMMUNITY PICKS
+                    </button>
+                    <button
+                        class="tab-button text-white px-4 py-3 rounded text-sm font-medium"
+                        onclick="switchTab('archive')"
+                    >
+                        ARCHIVE
                     </button>
                 </div>
             </div>
+
+            <!-- Tab Content -->
+            <div id="tab-content">
+                <!-- Schedule Tab -->
+                <div id="schedule" class="tab-content active">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-2">
+                            TODAY'S SCHEDULE
+                        </h2>
+                        <p class="text-white/70">
+                            Live shows and archived programming from our South
+                            Texas studio.
+                        </p>
+                    </div>
+                    <div class="card rounded-lg p-6">
+                        <div class="space-y-4" id="schedule-content">
+                            <!-- Schedule populated by JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Residents Tab -->
+                <div id="residents" class="tab-content">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-2">RESIDENTS</h2>
+                        <p class="text-white/70">
+                            Meet the voices behind Enamorado Radio - from San
+                            Antonio to Austin and beyond.
+                        </p>
+                    </div>
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                        id="residents-content"
+                    >
+                        <!-- Residents populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Staff Selections Tab -->
+                <div id="staff-selections" class="tab-content">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-2">
+                            STAFF SELECTIONS
+                        </h2>
+                        <p class="text-white/70">
+                            Recent radio highlights hand-picked by the Enamorado
+                            Radio team.
+                        </p>
+                    </div>
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 gap-6"
+                        id="staff-selections-content"
+                    >
+                        <!-- Staff selections populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Community Picks Tab -->
+                <div id="community" class="tab-content">
+                    <div class="mb-6">
+                        <h2 class="text-2xl font-bold mb-2">COMMUNITY PICKS</h2>
+                        <p class="text-white/70">
+                            Listener-submitted shows and sets voted on by the
+                            community.
+                        </p>
+                    </div>
+                    <div class="space-y-4" id="community-content">
+                        <!-- Community picks populated by JS -->
+                    </div>
+                </div>
+
+                <!-- Archive Tab -->
+                <div id="archive" class="tab-content">
+                    <div class="mb-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h2 class="text-2xl font-bold mb-2">ARCHIVE</h2>
+                                <p class="text-white/70">
+                                    Explore our complete catalog of shows,
+                                    mixes, and special broadcasts.
+                                </p>
+                            </div>
+                            <button
+                                onclick="showExplorePage()"
+                                class="text-blue-400 hover:text-blue-300 font-medium"
+                            >
+                                VIEW ALL TAGS →
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Tag Filter Section -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold mb-4">
+                            BROWSE BY GENRE
+                        </h3>
+                        <div class="flex flex-wrap gap-2" id="tag-filter">
+                            <!-- Tags populated by JS -->
+                        </div>
+                    </div>
+
+                    <!-- Archive Grid -->
+                    <div
+                        class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                        id="archive-content"
+                    >
+                        <!-- Archive shows populated by JS -->
+                    </div>
+
+                    <!-- Pagination -->
+                    <div
+                        class="flex items-center justify-center space-x-4 mt-8"
+                    >
+                        <button
+                            id="prev-page"
+                            class="px-4 py-2 border border-white/20 text-white hover:bg-white/10 rounded transition-colors"
+                            disabled
+                        >
+                            ← Previous
+                        </button>
+                        <span id="page-info" class="text-white/70"
+                            >Page 1 of 5</span
+                        >
+                        <button
+                            id="next-page"
+                            class="px-4 py-2 border border-white/20 text-white hover:bg-white/10 rounded transition-colors"
+                        >
+                            Next →
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- Hidden Audio Element -->
-    <audio id="radio-stream" preload="none" crossorigin="anonymous">
-        <source src="https://streams.radio.co/s83b8b3cc6/listen" type="audio/mpeg">
-        Your browser does not support the audio element.
-    </audio>
+        <!-- Hidden Audio Element -->
+        <audio id="radio-stream" preload="none" crossorigin="anonymous">
+            <source
+                src="https://streams.radio.co/s83b8b3cc6/listen"
+                type="audio/mpeg"
+            />
+            Your browser does not support the audio element.
+        </audio>
 
-    <script>
-        // Data with Texas/San Antonio theming
-        const schedule = [
-            { time: "12:00 PM", show: "Midday Vibes", host: "Maria Santos", location: "San Antonio", type: "live", current: false },
-            { time: "2:00 PM", show: "DJ Amadeezy Mix", host: "DJ Amadeezy", location: "San Antonio", type: "live", current: true },
-            { time: "4:00 PM", show: "SAC Student Sessions", host: "Various Students", location: "San Antonio College", type: "live", current: false },
-            { time: "6:00 PM", show: "Austin Sound Lab", host: "Local Collective", location: "Austin", type: "live", current: false },
-            { time: "8:00 PM", show: "Houston Hip-Hop Hour", host: "DJ Marcus", location: "Houston", type: "live", current: false },
-            { time: "10:00 PM", show: "Night Sessions", host: "Alex Rivera", location: "San Antonio", type: "live", current: false }
-        ];
+        <script>
+            // Data with Texas/San Antonio theming
+            const schedule = [
+                {
+                    time: "12:00 PM",
+                    show: "Midday Vibes",
+                    host: "Maria Santos",
+                    location: "San Antonio",
+                    type: "live",
+                    current: false,
+                },
+                {
+                    time: "2:00 PM",
+                    show: "DJ Amadeezy Mix",
+                    host: "DJ Amadeezy",
+                    location: "San Antonio",
+                    type: "live",
+                    current: true,
+                },
+                {
+                    time: "4:00 PM",
+                    show: "SAC Student Sessions",
+                    host: "Various Students",
+                    location: "San Antonio College",
+                    type: "live",
+                    current: false,
+                },
+                {
+                    time: "6:00 PM",
+                    show: "Austin Sound Lab",
+                    host: "Local Collective",
+                    location: "Austin",
+                    type: "live",
+                    current: false,
+                },
+                {
+                    time: "8:00 PM",
+                    show: "Houston Hip-Hop Hour",
+                    host: "DJ Marcus",
+                    location: "Houston",
+                    type: "live",
+                    current: false,
+                },
+                {
+                    time: "10:00 PM",
+                    show: "Night Sessions",
+                    host: "Alex Rivera",
+                    location: "San Antonio",
+                    type: "live",
+                    current: false,
+                },
+            ];
 
-        const residents = [
-            {
-                name: "DJ AMADEEZY",
-                location: "SAN ANTONIO, TX",
-                bio: "Resident DJ mixing everything from classic hip-hop to electronic, bringing authentic SA sound to the airwaves",
-                showTitle: "DJ Amadeezy Mix",
-                schedule: "Daily 2-4 PM CST",
-                tags: ["HIP-HOP", "ELECTRONIC", "SA-SOUND"]
-            },
-            {
-                name: "SAC STUDENTS", 
-                location: "SAN ANTONIO COLLEGE",
-                bio: "Student-led radio programming showcasing local talent and experimental sounds from the college community",
-                showTitle: "SAC Student Sessions",
-                schedule: "Weekdays 4-6 PM CST",
-                tags: ["STUDENT", "EXPERIMENTAL", "LOCAL"]
-            },
-            {
-                name: "MARIA SANTOS",
-                location: "SAN ANTONIO, TX",
-                bio: "Local music curator focusing on San Antonio's diverse musical heritage and contemporary scene",
-                showTitle: "Midday Vibes",
-                schedule: "Every weekday 12-2 PM CST",
-                tags: ["CURATION", "SA-HERITAGE", "CONTEMPORARY"]
-            },
-            {
-                name: "AUSTIN SOUND LAB",
-                location: "AUSTIN, TX",
-                bio: "Collective of Austin musicians and producers sharing new sounds from the Live Music Capital",
-                showTitle: "Austin Sound Lab",
-                schedule: "Every weekday 6-8 PM CST",
-                tags: ["AUSTIN", "LIVE-MUSIC", "COLLECTIVE"]
+            const residents = [
+                {
+                    name: "DJ AMADEEZY",
+                    location: "SAN ANTONIO, TX",
+                    bio: "Resident DJ mixing everything from classic hip-hop to electronic, bringing authentic SA sound to the airwaves",
+                    showTitle: "DJ Amadeezy Mix",
+                    schedule: "Daily 2-4 PM CST",
+                    tags: ["HIP-HOP", "ELECTRONIC", "SA-SOUND"],
+                },
+                {
+                    name: "SAC STUDENTS",
+                    location: "SAN ANTONIO COLLEGE",
+                    bio: "Student-led radio programming showcasing local talent and experimental sounds from the college community",
+                    showTitle: "SAC Student Sessions",
+                    schedule: "Weekdays 4-6 PM CST",
+                    tags: ["STUDENT", "EXPERIMENTAL", "LOCAL"],
+                },
+                {
+                    name: "MARIA SANTOS",
+                    location: "SAN ANTONIO, TX",
+                    bio: "Local music curator focusing on San Antonio's diverse musical heritage and contemporary scene",
+                    showTitle: "Midday Vibes",
+                    schedule: "Every weekday 12-2 PM CST",
+                    tags: ["CURATION", "SA-HERITAGE", "CONTEMPORARY"],
+                },
+                {
+                    name: "AUSTIN SOUND LAB",
+                    location: "AUSTIN, TX",
+                    bio: "Collective of Austin musicians and producers sharing new sounds from the Live Music Capital",
+                    showTitle: "Austin Sound Lab",
+                    schedule: "Every weekday 6-8 PM CST",
+                    tags: ["AUSTIN", "LIVE-MUSIC", "COLLECTIVE"],
+                },
+            ];
+
+            const staffSelections = [
+                {
+                    date: "JANUARY 08, 2025",
+                    title: "DJ Amadeezy's Best of 2024",
+                    description:
+                        "Year-end mix featuring the tracks that defined DJ Amadeezy's sound this past year",
+                    host: "DJ Amadeezy",
+                    duration: "2h 00m",
+                    location: "San Antonio",
+                    tags: ["HIP-HOP", "ELECTRONIC", "YEAR-END"],
+                },
+                {
+                    date: "JANUARY 05, 2025",
+                    title: "SAC Student Spotlight",
+                    description:
+                        "Featuring original compositions and mixes from San Antonio College's most talented students",
+                    host: "SAC Students",
+                    duration: "1h 45m",
+                    location: "San Antonio College",
+                    tags: ["STUDENT", "ORIGINAL", "SPOTLIGHT"],
+                },
+                {
+                    date: "JANUARY 03, 2025",
+                    title: "Austin Sound Lab Sessions",
+                    description:
+                        "Live recordings from Austin's underground music scene and experimental collectives",
+                    host: "Austin Sound Lab",
+                    duration: "2h 15m",
+                    location: "Austin",
+                    tags: ["LIVE", "EXPERIMENTAL", "AUSTIN"],
+                },
+                {
+                    date: "DECEMBER 28, 2024",
+                    title: "San Antonio Underground",
+                    description:
+                        "Showcasing the city's hidden gems - local artists and producers you need to know",
+                    host: "Maria Santos",
+                    duration: "2h 30m",
+                    location: "San Antonio",
+                    tags: ["LOCAL", "UNDERGROUND", "SA-ARTISTS"],
+                },
+            ];
+
+            const communityPicks = [
+                {
+                    title: "DJ Amadeezy Fan Mix",
+                    submittedBy: "sa_music_lover",
+                    votes: 342,
+                    description:
+                        "Community remix of DJ Amadeezy's signature style",
+                    tags: ["DJ-AMADEEZY", "REMIX", "COMMUNITY"],
+                    date: "2 days ago",
+                },
+                {
+                    title: "SAC Student Beats",
+                    submittedBy: "college_sounds",
+                    votes: 298,
+                    description:
+                        "Highlighting the best student productions from San Antonio College",
+                    tags: ["SAC", "STUDENT", "BEATS"],
+                    date: "1 week ago",
+                },
+                {
+                    title: "San Antonio Local Gems",
+                    submittedBy: "local_music_scout",
+                    votes: 234,
+                    description:
+                        "Hidden talent from the Alamo City music scene",
+                    tags: ["LOCAL", "SAN-ANTONIO", "TALENT"],
+                    date: "2 weeks ago",
+                },
+            ];
+
+            const archiveShows = [
+                {
+                    date: "JAN 07, 2025",
+                    title: "DJ Amadeezy's Saturday Night Mix",
+                    host: "DJ Amadeezy",
+                    location: "San Antonio",
+                    tags: ["HIP-HOP", "ELECTRONIC", "WEEKEND"],
+                    duration: "1h 30m",
+                },
+                {
+                    date: "JAN 06, 2025",
+                    title: "SAC Student Showcase",
+                    host: "SAC Students",
+                    location: "San Antonio College",
+                    tags: ["STUDENT", "SHOWCASE", "ORIGINAL"],
+                    duration: "2h 00m",
+                },
+                {
+                    date: "JAN 05, 2025",
+                    title: "Austin Sound Lab Recordings",
+                    host: "Austin Sound Lab",
+                    location: "Austin",
+                    tags: ["LIVE", "EXPERIMENTAL", "AUSTIN"],
+                    duration: "1h 45m",
+                },
+                {
+                    date: "JAN 04, 2025",
+                    title: "San Antonio Local Spotlight",
+                    host: "Maria Santos",
+                    location: "San Antonio",
+                    tags: ["LOCAL", "SPOTLIGHT", "SA-ARTISTS"],
+                    duration: "2h 15m",
+                },
+                {
+                    date: "JAN 03, 2025",
+                    title: "Houston Hip-Hop Classics",
+                    host: "DJ Marcus",
+                    location: "Houston",
+                    tags: ["HIP-HOP", "CLASSICS", "HOUSTON"],
+                    duration: "2h 30m",
+                },
+                {
+                    date: "JAN 02, 2025",
+                    title: "Midday Vibes Special",
+                    host: "Maria Santos",
+                    location: "San Antonio",
+                    tags: ["CURATION", "MIDDAY", "SPECIAL"],
+                    duration: "1h 50m",
+                },
+            ];
+
+            // Get all unique tags
+            const allTags = [
+                ...new Set([
+                    ...staffSelections.flatMap((s) => s.tags),
+                    ...residents.flatMap((r) => r.tags),
+                    ...communityPicks.flatMap((c) => c.tags),
+                    ...archiveShows.flatMap((a) => a.tags),
+                ]),
+            ].sort();
+
+            let currentTag = "all";
+            let currentPage = 1;
+            const itemsPerPage = 6;
+
+            // Navigation functions
+            function goHome() {
+                // Navigate to home page
+                window.location.href = "/";
             }
-        ];
 
-        const staffSelections = [
-            {
-                date: "JANUARY 08, 2025",
-                title: "DJ Amadeezy's Best of 2024",
-                description: "Year-end mix featuring the tracks that defined DJ Amadeezy's sound this past year",
-                host: "DJ Amadeezy",
-                duration: "2h 00m",
-                location: "San Antonio",
-                tags: ["HIP-HOP", "ELECTRONIC", "YEAR-END"]
-            },
-            {
-                date: "JANUARY 05, 2025", 
-                title: "SAC Student Spotlight",
-                description: "Featuring original compositions and mixes from San Antonio College's most talented students",
-                host: "SAC Students",
-                duration: "1h 45m",
-                location: "San Antonio College",
-                tags: ["STUDENT", "ORIGINAL", "SPOTLIGHT"]
-            },
-            {
-                date: "JANUARY 03, 2025",
-                title: "Austin Sound Lab Sessions", 
-                description: "Live recordings from Austin's underground music scene and experimental collectives",
-                host: "Austin Sound Lab",
-                duration: "2h 15m",
-                location: "Austin",
-                tags: ["LIVE", "EXPERIMENTAL", "AUSTIN"]
-            },
-            {
-                date: "DECEMBER 28, 2024",
-                title: "San Antonio Underground",
-                description: "Showcasing the city's hidden gems - local artists and producers you need to know",
-                host: "Maria Santos",
-                duration: "2h 30m",
-                location: "San Antonio",
-                tags: ["LOCAL", "UNDERGROUND", "SA-ARTISTS"]
+            function showExplorePage() {
+                // Navigate to tags/explore page
+                window.location.href = "/explore";
             }
-        ];
 
-        const communityPicks = [
-            {
-                title: "DJ Amadeezy Fan Mix",
-                submittedBy: "sa_music_lover",
-                votes: 342,
-                description: "Community remix of DJ Amadeezy's signature style",
-                tags: ["DJ-AMADEEZY", "REMIX", "COMMUNITY"],
-                date: "2 days ago"
-            },
-            {
-                title: "SAC Student Beats",
-                submittedBy: "college_sounds",
-                votes: 298,
-                description: "Highlighting the best student productions from San Antonio College",
-                tags: ["SAC", "STUDENT", "BEATS"],
-                date: "1 week ago"
-            },
-            {
-                title: "San Antonio Local Gems",
-                submittedBy: "local_music_scout",
-                votes: 234,
-                description: "Hidden talent from the Alamo City music scene",
-                tags: ["LOCAL", "SAN-ANTONIO", "TALENT"],
-                date: "2 weeks ago"
+            // Tab switching
+            function switchTab(tabName) {
+                // Remove active class from all tabs and content
+                document
+                    .querySelectorAll(".tab-button")
+                    .forEach((btn) => btn.classList.remove("active"));
+                document
+                    .querySelectorAll(".tab-content")
+                    .forEach((content) => content.classList.remove("active"));
+
+                // Add active class to clicked tab and corresponding content
+                event.target.classList.add("active");
+                document.getElementById(tabName).classList.add("active");
+
+                // Populate content based on tab
+                populateTabContent(tabName);
             }
-        ];
 
-        const archiveShows = [
-            {
-                date: "JAN 07, 2025",
-                title: "DJ Amadeezy's Saturday Night Mix",
-                host: "DJ Amadeezy",
-                location: "San Antonio",
-                tags: ["HIP-HOP", "ELECTRONIC", "WEEKEND"],
-                duration: "1h 30m"
-            },
-            {
-                date: "JAN 06, 2025",
-                title: "SAC Student Showcase",
-                host: "SAC Students",
-                location: "San Antonio College", 
-                tags: ["STUDENT", "SHOWCASE", "ORIGINAL"],
-                duration: "2h 00m"
-            },
-            {
-                date: "JAN 05, 2025",
-                title: "Austin Sound Lab Recordings",
-                host: "Austin Sound Lab",
-                location: "Austin",
-                tags: ["LIVE", "EXPERIMENTAL", "AUSTIN"],
-                duration: "1h 45m"
-            },
-            {
-                date: "JAN 04, 2025",
-                title: "San Antonio Local Spotlight",
-                host: "Maria Santos",
-                location: "San Antonio",
-                tags: ["LOCAL", "SPOTLIGHT", "SA-ARTISTS"],
-                duration: "2h 15m"
-            },
-            {
-                date: "JAN 03, 2025",
-                title: "Houston Hip-Hop Classics",
-                host: "DJ Marcus", 
-                location: "Houston",
-                tags: ["HIP-HOP", "CLASSICS", "HOUSTON"],
-                duration: "2h 30m"
-            },
-            {
-                date: "JAN 02, 2025",
-                title: "Midday Vibes Special",
-                host: "Maria Santos",
-                location: "San Antonio",
-                tags: ["CURATION", "MIDDAY", "SPECIAL"],
-                duration: "1h 50m"
+            function populateTabContent(tabName) {
+                switch (tabName) {
+                    case "schedule":
+                        populateSchedule();
+                        break;
+                    case "residents":
+                        populateResidents();
+                        break;
+                    case "staff-selections":
+                        populateStaffSelections();
+                        break;
+                    case "community":
+                        populateCommunityPicks();
+                        break;
+                    case "archive":
+                        populateArchive();
+                        break;
+                }
             }
-        ];
 
-        // Get all unique tags
-        const allTags = [...new Set([
-            ...staffSelections.flatMap(s => s.tags),
-            ...residents.flatMap(r => r.tags),
-            ...communityPicks.flatMap(c => c.tags),
-            ...archiveShows.flatMap(a => a.tags)
-        ])].sort();
-
-        let currentTag = 'all';
-        let currentPage = 1;
-        const itemsPerPage = 6;
-
-        // Navigation functions
-        function goHome() {
-            // Navigate to home page
-            window.location.href = '/';
-        }
-
-        function showExplorePage() {
-            // Navigate to tags/explore page
-            window.location.href = '/explore';
-        }
-
-        // Tab switching
-        function switchTab(tabName) {
-            // Remove active class from all tabs and content
-            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            
-            // Add active class to clicked tab and corresponding content
-            event.target.classList.add('active');
-            document.getElementById(tabName).classList.add('active');
-            
-            // Populate content based on tab
-            populateTabContent(tabName);
-        }
-
-        function populateTabContent(tabName) {
-            switch(tabName) {
-                case 'schedule':
-                    populateSchedule();
-                    break;
-                case 'residents':
-                    populateResidents();
-                    break;
-                case 'staff-selections':
-                    populateStaffSelections();
-                    break;
-                case 'community':
-                    populateCommunityPicks();
-                    break;
-                case 'archive':
-                    populateArchive();
-                    break;
-            }
-        }
-
-        function populateSchedule() {
-            const container = document.getElementById('schedule-content');
-            container.innerHTML = schedule.map(item => `
+            function populateSchedule() {
+                const container = document.getElementById("schedule-content");
+                container.innerHTML = schedule
+                    .map(
+                        (item) => `
                 <div class="flex items-center justify-between py-4 border-b border-white/10">
                     <div class="flex items-center space-x-4">
                         <div class="text-lg font-mono text-white/80">${item.time}</div>
                         <div>
                             <div class="flex items-center space-x-2">
                                 <h4 class="font-semibold text-white">${item.show}</h4>
-                                ${item.current ? '<div class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red"></div>' : ''}
+                                ${item.current ? '<div class="w-2 h-2 bg-red-500 rounded-full animate-pulse-red"></div>' : ""}
                             </div>
                             <div class="text-white/70 text-sm">
                                 ${item.host} • ${item.location}
@@ -507,28 +690,36 @@
                         </div>
                     </div>
                     <div class="flex items-center space-x-2">
-                        <span class="text-xs px-2 py-1 border border-white/20 rounded ${item.type === 'live' ? 'text-red-400 border-red-400' : 'text-white/60'}">
+                        <span class="text-xs px-2 py-1 border border-white/20 rounded ${item.type === "live" ? "text-red-400 border-red-400" : "text-white/60"}">
                             ${item.type.toUpperCase()}
                         </span>
-                        ${item.current ? `
+                        ${
+                            item.current
+                                ? `
                             <button class="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center">
                                 <i data-lucide="play" class="w-3 h-3 mr-1"></i>
                                 Listen
                             </button>
-                        ` : `
+                        `
+                                : `
                             <button class="border border-white/20 text-white hover:bg-white/10 px-3 py-1 rounded text-sm">
                                 Preview
                             </button>
-                        `}
+                        `
+                        }
                     </div>
                 </div>
-            `).join('');
-            lucide.createIcons();
-        }
+            `,
+                    )
+                    .join("");
+                lucide.createIcons();
+            }
 
-        function populateResidents() {
-            const container = document.getElementById('residents-content');
-            container.innerHTML = residents.map(resident => `
+            function populateResidents() {
+                const container = document.getElementById("residents-content");
+                container.innerHTML = residents
+                    .map(
+                        (resident) => `
                 <div class="card rounded-lg p-6">
                     <div class="mb-4">
                         <h3 class="text-xl font-bold text-white mb-1">${resident.name}</h3>
@@ -540,19 +731,29 @@
                         <div class="text-white/60 text-sm">${resident.schedule}</div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        ${resident.tags.map(tag => `
+                        ${resident.tags
+                            .map(
+                                (tag) => `
                             <span class="tag px-2 py-1 rounded text-xs cursor-pointer" onclick="filterByTag('${tag}')">
                                 ${tag}
                             </span>
-                        `).join('')}
+                        `,
+                            )
+                            .join("")}
                     </div>
                 </div>
-            `).join('');
-        }
+            `,
+                    )
+                    .join("");
+            }
 
-        function populateStaffSelections() {
-            const container = document.getElementById('staff-selections-content');
-            container.innerHTML = staffSelections.map(selection => `
+            function populateStaffSelections() {
+                const container = document.getElementById(
+                    "staff-selections-content",
+                );
+                container.innerHTML = staffSelections
+                    .map(
+                        (selection) => `
                 <div class="card rounded-lg p-6 cursor-pointer">
                     <div class="text-xs text-white/60 mb-2">${selection.date}</div>
                     <h3 class="text-lg font-semibold mb-2 text-white">${selection.title}</h3>
@@ -564,19 +765,27 @@
                         <span class="text-xs border border-white/20 px-2 py-1 rounded">${selection.duration}</span>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        ${selection.tags.map(tag => `
+                        ${selection.tags
+                            .map(
+                                (tag) => `
                             <span class="tag px-2 py-1 rounded text-xs cursor-pointer" onclick="filterByTag('${tag}')">
                                 ${tag}
                             </span>
-                        `).join('')}
+                        `,
+                            )
+                            .join("")}
                     </div>
                 </div>
-            `).join('');
-        }
+            `,
+                    )
+                    .join("");
+            }
 
-        function populateCommunityPicks() {
-            const container = document.getElementById('community-content');
-            container.innerHTML = communityPicks.map(pick => `
+            function populateCommunityPicks() {
+                const container = document.getElementById("community-content");
+                container.innerHTML = communityPicks
+                    .map(
+                        (pick) => `
                 <div class="card rounded-lg p-6">
                     <div class="flex items-start justify-between mb-4">
                         <div>
@@ -593,42 +802,60 @@
                         </div>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        ${pick.tags.map(tag => `
+                        ${pick.tags
+                            .map(
+                                (tag) => `
                             <span class="tag px-2 py-1 rounded text-xs cursor-pointer" onclick="filterByTag('${tag}')">
                                 ${tag}
                             </span>
-                        `).join('')}
+                        `,
+                            )
+                            .join("")}
                     </div>
                 </div>
-            `).join('');
-        }
+            `,
+                    )
+                    .join("");
+            }
 
-        function populateArchive() {
-            // Populate tag filter
-            const tagContainer = document.getElementById('tag-filter');
-            tagContainer.innerHTML = `
-                <button class="tag px-3 py-1 rounded text-sm cursor-pointer ${currentTag === 'all' ? 'bg-blue-500 border-blue-500' : ''}" onclick="filterByTag('all')">
+            function populateArchive() {
+                // Populate tag filter
+                const tagContainer = document.getElementById("tag-filter");
+                tagContainer.innerHTML = `
+                <button class="tag px-3 py-1 rounded text-sm cursor-pointer ${currentTag === "all" ? "bg-blue-500 border-blue-500" : ""}" onclick="filterByTag('all')">
                     ALL
                 </button>
-                ${allTags.map(tag => `
-                    <button class="tag px-3 py-1 rounded text-sm cursor-pointer ${currentTag === tag ? 'bg-blue-500 border-blue-500' : ''}" onclick="filterByTag('${tag}')">
+                ${allTags
+                    .map(
+                        (tag) => `
+                    <button class="tag px-3 py-1 rounded text-sm cursor-pointer ${currentTag === tag ? "bg-blue-500 border-blue-500" : ""}" onclick="filterByTag('${tag}')">
                         ${tag}
                     </button>
-                `).join('')}
+                `,
+                    )
+                    .join("")}
             `;
-            
-            // Filter and paginate shows
-            const filtered = currentTag === 'all' 
-                ? archiveShows 
-                : archiveShows.filter(show => show.tags.includes(currentTag));
-            
-            const totalPages = Math.ceil(filtered.length / itemsPerPage);
-            const startIndex = (currentPage - 1) * itemsPerPage;
-            const paginatedShows = filtered.slice(startIndex, startIndex + itemsPerPage);
-            
-            // Populate archive content
-            const container = document.getElementById('archive-content');
-            container.innerHTML = paginatedShows.map(show => `
+
+                // Filter and paginate shows
+                const filtered =
+                    currentTag === "all"
+                        ? archiveShows
+                        : archiveShows.filter((show) =>
+                              show.tags.includes(currentTag),
+                          );
+
+                const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const paginatedShows = filtered.slice(
+                    startIndex,
+                    startIndex + itemsPerPage,
+                );
+
+                // Populate archive content
+                const container = document.getElementById("archive-content");
+                container.innerHTML = paginatedShows
+                    .map(
+                        (show) => `
                 <div class="card rounded-lg p-6 cursor-pointer">
                     <div class="text-xs text-white/60 mb-2">${show.date}</div>
                     <h3 class="text-lg font-semibold mb-2 text-white">${show.title}</h3>
@@ -639,75 +866,101 @@
                         <span class="text-xs border border-white/20 px-2 py-1 rounded">${show.duration}</span>
                     </div>
                     <div class="flex flex-wrap gap-2">
-                        ${show.tags.map(tag => `
+                        ${show.tags
+                            .map(
+                                (tag) => `
                             <span class="tag px-2 py-1 rounded text-xs cursor-pointer" onclick="filterByTag('${tag}')">
                                 ${tag}
                             </span>
-                        `).join('')}
+                        `,
+                            )
+                            .join("")}
                     </div>
                 </div>
-            `).join('');
-            
-            // Update pagination
-            document.getElementById('page-info').textContent = `Page ${currentPage} of ${totalPages}`;
-            document.getElementById('prev-page').disabled = currentPage === 1;
-            document.getElementById('next-page').disabled = currentPage === totalPages;
-        }
+            `,
+                    )
+                    .join("");
 
-        function filterByTag(tag) {
-            currentTag = tag;
-            currentPage = 1;
-            populateArchive();
-        }
-
-        // Audio controls
-        function toggleLiveStream() {
-            const audio = document.getElementById('radio-stream');
-            const buttons = document.querySelectorAll('#live-listen-btn, #main-listen-btn');
-            
-            if (audio.paused) {
-                audio.play();
-                buttons.forEach(btn => {
-                    btn.innerHTML = '<i data-lucide="pause" class="w-4 h-4 mr-2"></i>Pause';
-                });
-            } else {
-                audio.pause();
-                buttons.forEach(btn => {
-                    btn.innerHTML = '<i data-lucide="play" class="w-4 h-4 mr-2"></i>Listen Live';
-                });
+                // Update pagination
+                document.getElementById("page-info").textContent =
+                    `Page ${currentPage} of ${totalPages}`;
+                document.getElementById("prev-page").disabled =
+                    currentPage === 1;
+                document.getElementById("next-page").disabled =
+                    currentPage === totalPages;
             }
-            lucide.createIcons();
-        }
 
-        // Event listeners
-        document.addEventListener('DOMContentLoaded', function() {
-            lucide.createIcons();
-            populateSchedule(); // Start with schedule tab
-            
-            // Live stream buttons
-            document.getElementById('live-listen-btn').addEventListener('click', toggleLiveStream);
-            document.getElementById('main-listen-btn').addEventListener('click', toggleLiveStream);
-            
-            // Pagination buttons
-            document.getElementById('prev-page').addEventListener('click', () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    populateArchive();
+            function filterByTag(tag) {
+                currentTag = tag;
+                currentPage = 1;
+                populateArchive();
+            }
+
+            // Audio controls
+            function toggleLiveStream() {
+                const audio = document.getElementById("radio-stream");
+                const buttons = document.querySelectorAll(
+                    "#live-listen-btn, #main-listen-btn",
+                );
+
+                if (audio.paused) {
+                    audio.play();
+                    buttons.forEach((btn) => {
+                        btn.innerHTML =
+                            '<i data-lucide="pause" class="w-4 h-4 mr-2"></i>Pause';
+                    });
+                } else {
+                    audio.pause();
+                    buttons.forEach((btn) => {
+                        btn.innerHTML =
+                            '<i data-lucide="play" class="w-4 h-4 mr-2"></i>Listen Live';
+                    });
                 }
+                lucide.createIcons();
+            }
+
+            // Event listeners
+            document.addEventListener("DOMContentLoaded", function () {
+                lucide.createIcons();
+                populateSchedule(); // Start with schedule tab
+
+                // Live stream buttons
+                document
+                    .getElementById("live-listen-btn")
+                    .addEventListener("click", toggleLiveStream);
+                document
+                    .getElementById("main-listen-btn")
+                    .addEventListener("click", toggleLiveStream);
+
+                // Pagination buttons
+                document
+                    .getElementById("prev-page")
+                    .addEventListener("click", () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            populateArchive();
+                        }
+                    });
+
+                document
+                    .getElementById("next-page")
+                    .addEventListener("click", () => {
+                        const filtered =
+                            currentTag === "all"
+                                ? archiveShows
+                                : archiveShows.filter((show) =>
+                                      show.tags.includes(currentTag),
+                                  );
+                        const totalPages = Math.ceil(
+                            filtered.length / itemsPerPage,
+                        );
+
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            populateArchive();
+                        }
+                    });
             });
-            
-            document.getElementById('next-page').addEventListener('click', () => {
-                const filtered = currentTag === 'all' 
-                    ? archiveShows 
-                    : archiveShows.filter(show => show.tags.includes(currentTag));
-                const totalPages = Math.ceil(filtered.length / itemsPerPage);
-                
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    populateArchive();
-                }
-            });
-        });
-    </script>
-</body>
+        </script>
+    </body>
 </html>
