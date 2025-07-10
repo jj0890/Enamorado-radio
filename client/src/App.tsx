@@ -8,6 +8,7 @@ import DJSubmit from "./pages/DJSubmit";
 import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
 import ZineArchive from "./pages/ZineArchive";
+import ZineSubmit from "./pages/ZineSubmit";
 import Discover from "./pages/Discover";
 
 function Router() {
@@ -21,6 +22,7 @@ function Router() {
       <Route path="/admin" component={ScheduleAdmin} />
       <Route path="/schedule" component={Schedule} />
       <Route path="/zine" component={ZineArchive} />
+      <Route path="/zine/submit" component={ZineSubmit} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">

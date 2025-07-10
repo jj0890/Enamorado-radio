@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, Clock, Users, BarChart3, Plus, Edit, Trash2, Eye, Upload } from "lucide-react";
+import { Calendar, Clock, Users, BarChart3, Plus, Edit, Trash2, Eye, Upload, FileText } from "lucide-react";
 
 interface Show {
   id: string;
@@ -28,7 +28,7 @@ interface DJSubmission {
 }
 
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'analytics'>('add-show');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'zine-submissions' | 'analytics'>('add-show');
   const [showForm, setShowForm] = useState({
     title: '',
     host: '',
@@ -180,6 +180,17 @@ export default function ScheduleAdmin() {
           >
             <Users className="w-4 h-4 inline mr-2" />
             DJ Submissions
+          </button>
+          <button
+            onClick={() => setActiveSection('zine-submissions')}
+            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+              activeSection === 'zine-submissions'
+                ? 'bg-blue-500 text-white'
+                : 'bg-gray-800 text-gray-300 hover:bg-blue-500/20 hover:text-blue-400'
+            }`}
+          >
+            <FileText className="w-4 h-4 inline mr-2" />
+            Zine Submissions
           </button>
           <button
             onClick={() => setActiveSection('analytics')}
@@ -395,6 +406,124 @@ export default function ScheduleAdmin() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Zine Submissions Section */}
+        {activeSection === 'zine-submissions' && (
+          <div className="space-y-6">
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-6">Zine Submissions</h2>
+              <div className="space-y-4">
+                {/* Sample zine submissions - in production, fetch from API */}
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-500/20 text-yellow-400">
+                      PENDING
+                    </span>
+                    <span className="text-gray-400 text-sm">2 days ago</span>
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">The Underground Renaissance</h3>
+                  <p className="text-gray-400 mb-1">Author: Alex Rivera</p>
+                  <p className="text-gray-400 mb-1">Type: Article • Category: Culture</p>
+                  <p className="text-gray-400 mb-2">Email: alex@example.com</p>
+                  <p className="text-gray-300 mb-4 text-sm">
+                    "Exploring the resurgence of underground music scenes and their impact on modern culture..."
+                  </p>
+                  <div className="flex space-x-2">
+                    <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Approve
+                    </button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Reject
+                    </button>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      <Eye className="w-4 h-4 inline mr-1" />
+                      Review
+                    </button>
+                    <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Publish
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-400">
+                      APPROVED
+                    </span>
+                    <span className="text-gray-400 text-sm">5 days ago</span>
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">Frequency Diaries</h3>
+                  <p className="text-gray-400 mb-1">Author: Luna Park</p>
+                  <p className="text-gray-400 mb-1">Type: Mixtape Notes • Category: Music</p>
+                  <p className="text-gray-400 mb-2">Email: luna@example.com</p>
+                  <p className="text-gray-300 mb-4 text-sm">
+                    "Detailed track-by-track notes from my latest ambient mix..."
+                  </p>
+                  <div className="flex space-x-2">
+                    <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Publish
+                    </button>
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      <Eye className="w-4 h-4 inline mr-1" />
+                      Review
+                    </button>
+                    <button className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Archive
+                    </button>
+                  </div>
+                </div>
+
+                <div className="bg-gray-900 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400">
+                      PUBLISHED
+                    </span>
+                    <span className="text-gray-400 text-sm">1 week ago</span>
+                  </div>
+                  <h3 className="font-semibold text-lg mb-2">Digital Vinyl Revolution</h3>
+                  <p className="text-gray-400 mb-1">Author: Sarah Chen</p>
+                  <p className="text-gray-400 mb-1">Type: Article • Category: Technology</p>
+                  <p className="text-gray-400 mb-2">Views: 1,250 • Featured</p>
+                  <p className="text-gray-300 mb-4 text-sm">
+                    "An in-depth look at how streaming platforms are reshaping music discovery..."
+                  </p>
+                  <div className="flex space-x-2">
+                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      <Eye className="w-4 h-4 inline mr-1" />
+                      View Published
+                    </button>
+                    <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Edit
+                    </button>
+                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                      Feature
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Submission Stats */}
+              <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="bg-gray-900 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-yellow-500 mb-1">5</div>
+                  <div className="text-gray-400 text-sm">Pending Review</div>
+                </div>
+                <div className="bg-gray-900 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-green-500 mb-1">12</div>
+                  <div className="text-gray-400 text-sm">Approved</div>
+                </div>
+                <div className="bg-gray-900 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-blue-500 mb-1">8</div>
+                  <div className="text-gray-400 text-sm">Published</div>
+                </div>
+                <div className="bg-gray-900 rounded-lg p-4 text-center">
+                  <div className="text-2xl font-bold text-purple-500 mb-1">3</div>
+                  <div className="text-gray-400 text-sm">Featured</div>
+                </div>
               </div>
             </div>
           </div>

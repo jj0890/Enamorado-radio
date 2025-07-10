@@ -2,7 +2,15 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
-import { insertStationSchema, insertShowSchema, insertCurrentPlaybackSchema } from "@shared/schema";
+import { 
+  insertStationSchema, 
+  insertShowSchema, 
+  insertCurrentPlaybackSchema,
+  insertDjSubmissionSchema,
+  insertAdminSchema,
+  insertZineSubmissionSchema,
+  insertZineContentSchema
+} from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
@@ -244,6 +252,227 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+
+  // DJ Submission API
+  app.get('/api/dj-submissions', async (req, res) => {
+    try {
+      const submissions = await storage.getAllDjSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch submissions' });
+    }
+  });
+
+  app.get('/api/dj-submissions/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const submission = await storage.getDjSubmission(id);
+      if (!submission) {
+        return res.status(404).json({ error: 'Submission not found' });
+      }
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch submission' });
+    }
+  });
+
+  app.post('/api/dj-submissions', async (req, res) => {
+    try {
+      const validatedData = insertDjSubmissionSchema.parse(req.body);
+      const submission = await storage.createDjSubmission(validatedData);
+      res.status(201).json(submission);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid submission data' });
+    }
+  });
+
+  app.patch('/api/dj-submissions/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, reviewedBy, notes } = req.body;
+      
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+      
+      const submission = await storage.updateDjSubmissionStatus(id, status, reviewedBy, notes);
+      if (!submission) {
+        return res.status(404).json({ error: 'Submission not found' });
+      }
+      
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update submission status' });
+    }
+  });
+
+  // Admin Authentication API
+  app.post('/api/admin/login', async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password required' });
+      }
+      
+      const admin = await storage.validateAdmin(username, password);
+      if (!admin) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      // In production, use JWT tokens for authentication
+      res.json({
+        success: true,
+        admin: {
+          id: admin.id,
+          username: admin.username,
+          role: admin.role
+        }
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Login failed' });
+    }
+  });
+
+  app.post('/api/admin/register', async (req, res) => {
+    try {
+      const validatedData = insertAdminSchema.parse(req.body);
+      const admin = await storage.createAdmin(validatedData);
+      res.status(201).json({
+        id: admin.id,
+        username: admin.username,
+        role: admin.role
+      });
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid admin data' });
+    }
+  });
+
+  // Simple middleware to check admin authentication (in production, use proper JWT)
+  function requireAdmin(req: any, res: any, next: any) {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Admin ')) {
+      return res.status(401).json({ error: 'Admin authentication required' });
+    }
+    // In production, verify JWT token here
+    next();
+  }
+
+  // Protected admin routes
+  app.get('/api/admin/submissions', requireAdmin, async (req, res) => {
+    try {
+      const submissions = await storage.getAllDjSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch admin submissions' });
+    }
+  });
+
+  // Zine Submission API routes
+  app.post('/api/zine-submissions', async (req, res) => {
+    try {
+      const validatedData = insertZineSubmissionSchema.parse(req.body);
+      const submission = await storage.createZineSubmission(validatedData);
+      res.status(201).json(submission);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid zine submission data' });
+    }
+  });
+
+  app.get('/api/admin/zine-submissions', requireAdmin, async (req, res) => {
+    try {
+      const submissions = await storage.getAllZineSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch zine submissions' });
+    }
+  });
+
+  app.post('/api/admin/zine-submissions/:id/status', requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status, notes } = req.body;
+      const adminUsername = 'admin'; // In production, get from JWT token
+      
+      const updatedSubmission = await storage.updateZineSubmissionStatus(
+        parseInt(id), 
+        status, 
+        adminUsername, 
+        notes
+      );
+      
+      if (!updatedSubmission) {
+        return res.status(404).json({ error: 'Submission not found' });
+      }
+      
+      res.json(updatedSubmission);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update submission status' });
+    }
+  });
+
+  app.post('/api/admin/zine-submissions/:id/publish', requireAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertZineContentSchema.parse(req.body);
+      
+      const publishedContent = await storage.publishZineSubmission(
+        parseInt(id), 
+        validatedData
+      );
+      
+      res.json(publishedContent);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to publish zine submission' });
+    }
+  });
+
+  // Zine Content API routes
+  app.get('/api/zine', async (req, res) => {
+    try {
+      const content = await storage.getAllZineContent();
+      res.json(content);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch zine content' });
+    }
+  });
+
+  app.get('/api/zine/featured', async (req, res) => {
+    try {
+      const content = await storage.getFeaturedZineContent();
+      res.json(content);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch featured zine content' });
+    }
+  });
+
+  app.get('/api/zine/category/:category', async (req, res) => {
+    try {
+      const { category } = req.params;
+      const content = await storage.getZineContentByCategory(category);
+      res.json(content);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch zine content by category' });
+    }
+  });
+
+  app.get('/api/zine/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const content = await storage.getZineContentBySlug(slug);
+      
+      if (!content) {
+        return res.status(404).json({ error: 'Content not found' });
+      }
+      
+      // Update view count
+      await storage.updateZineContentViews(content.id);
+      
+      res.json(content);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch zine content' });
+    }
+  });
 
   // Simulate live updates (in real app, this would be triggered by audio system)
   setInterval(() => {

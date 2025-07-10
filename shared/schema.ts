@@ -45,6 +45,88 @@ export const currentPlayback = pgTable("current_playback", {
   isLive: boolean("is_live").default(true),
 });
 
+export const djSubmissions = pgTable("dj_submissions", {
+  id: serial("id").primaryKey(),
+  djName: text("dj_name").notNull(),
+  realName: text("real_name").notNull(),
+  email: text("email").notNull(),
+  location: text("location"),
+  showTitle: text("show_title").notNull(),
+  showDescription: text("show_description").notNull(),
+  primaryGenre: text("primary_genre").notNull(),
+  showLength: integer("show_length").notNull(),
+  additionalGenres: text("additional_genres"),
+  djExperience: text("dj_experience"),
+  musicDiscovery: text("music_discovery"),
+  socialMedia: text("social_media"),
+  demoMixTitle: text("demo_mix_title"),
+  demoMixDescription: text("demo_mix_description"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by"),
+  notes: text("notes"),
+});
+
+export const admins = pgTable("admins", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  role: text("role").notNull().default("admin"), // admin, superadmin
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const zineSubmissions = pgTable("zine_submissions", {
+  id: serial("id").primaryKey(),
+  authorName: text("author_name").notNull(),
+  authorEmail: text("author_email").notNull(),
+  authorBio: text("author_bio"),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  contentType: text("content_type").notNull(), // article, interview, review, photo-essay, mixtape-notes
+  category: text("category").notNull(), // music, culture, art, technology, politics
+  content: text("content").notNull(), // main content body
+  excerpt: text("excerpt"), // short description/preview
+  tags: text("tags"), // comma-separated tags
+  imageUrls: text("image_urls"), // comma-separated image URLs
+  audioUrls: text("audio_urls"), // comma-separated audio URLs for mixtapes
+  externalLinks: text("external_links"), // comma-separated related links
+  collaborators: text("collaborators"), // other contributors
+  submissionNotes: text("submission_notes"), // notes to editors
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, published
+  publishedAt: timestamp("published_at"),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by"),
+  editorNotes: text("editor_notes"),
+  featuredOrder: integer("featured_order"), // for featured content ordering
+  isFeatured: boolean("is_featured").default(false),
+  viewCount: integer("view_count").default(0),
+});
+
+export const zineContent = pgTable("zine_content", {
+  id: serial("id").primaryKey(),
+  submissionId: integer("submission_id").references(() => zineSubmissions.id),
+  title: text("title").notNull(),
+  subtitle: text("subtitle"),
+  authorName: text("author_name").notNull(),
+  authorBio: text("author_bio"),
+  contentType: text("content_type").notNull(),
+  category: text("category").notNull(),
+  content: text("content").notNull(),
+  excerpt: text("excerpt"),
+  tags: text("tags"),
+  imageUrls: text("image_urls"),
+  audioUrls: text("audio_urls"),
+  externalLinks: text("external_links"),
+  slug: text("slug").notNull().unique(),
+  publishedAt: timestamp("published_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  isFeatured: boolean("is_featured").default(false),
+  featuredOrder: integer("featured_order"),
+  viewCount: integer("view_count").default(0),
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -65,11 +147,52 @@ export const insertCurrentPlaybackSchema = createInsertSchema(currentPlayback).o
   startTime: true,
 });
 
+export const insertDjSubmissionSchema = createInsertSchema(djSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+});
+
+export const insertAdminSchema = createInsertSchema(admins).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertZineSubmissionSchema = createInsertSchema(zineSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+  publishedAt: true,
+  editorNotes: true,
+  featuredOrder: true,
+  isFeatured: true,
+  viewCount: true,
+});
+
+export const insertZineContentSchema = createInsertSchema(zineContent).omit({
+  id: true,
+  publishedAt: true,
+  updatedAt: true,
+  viewCount: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Station = typeof stations.$inferSelect;
 export type Show = typeof shows.$inferSelect;
 export type CurrentPlayback = typeof currentPlayback.$inferSelect;
+export type DjSubmission = typeof djSubmissions.$inferSelect;
+export type Admin = typeof admins.$inferSelect;
+export type ZineSubmission = typeof zineSubmissions.$inferSelect;
+export type ZineContent = typeof zineContent.$inferSelect;
 export type InsertStation = z.infer<typeof insertStationSchema>;
 export type InsertShow = z.infer<typeof insertShowSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
+export type InsertDjSubmission = z.infer<typeof insertDjSubmissionSchema>;
+export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type InsertZineSubmission = z.infer<typeof insertZineSubmissionSchema>;
+export type InsertZineContent = z.infer<typeof insertZineContentSchema>;
