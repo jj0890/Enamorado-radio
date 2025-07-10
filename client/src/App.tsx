@@ -1,18 +1,34 @@
 import { Switch, Route } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import HomePage from "./pages/HomePage";
 import MobileRadio from "./pages/MobileRadio";
+import RadioLanding from "./pages/RadioLanding";
+import DJSubmit from "./pages/DJSubmit";
+import ScheduleAdmin from "./pages/ScheduleAdmin";
+import Schedule from "./pages/Schedule";
+import ZineArchive from "./pages/ZineArchive";
+import Discover from "./pages/Discover";
 
 function Router() {
   return (
     <Switch>
-      <Route path="/" component={MobileRadio} />
+      <Route path="/" component={HomePage} />
       <Route path="/mobile" component={MobileRadio} />
+      <Route path="/radio" component={RadioLanding} />
+      <Route path="/discover" component={Discover} />
+      <Route path="/dj-submit" component={DJSubmit} />
+      <Route path="/admin" component={ScheduleAdmin} />
+      <Route path="/schedule" component={Schedule} />
+      <Route path="/zine" component={ZineArchive} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">
             <h1 className="text-4xl font-bold mb-4">Enamorado Radio</h1>
-            <p className="text-white/60">Loading...</p>
+            <p className="text-white/60 mb-4">Page not found</p>
+            <a href="/" className="text-blue-400 hover:text-blue-300">
+              Go back home
+            </a>
           </div>
         </div>
       </Route>
