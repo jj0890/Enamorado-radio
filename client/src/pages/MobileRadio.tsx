@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, ChevronLeft, ChevronDown, MoreHorizontal, Heart, Bookmark, List, Share, Radio, Headphones, Search, Layers, User } from 'lucide-react';
+import { Play, Pause, ChevronLeft, ChevronDown, MoreHorizontal, Radio, Headphones, Search, Layers, User, Music, Mic, Disc, Volume2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { getQueryFn } from '@/lib/queryClient';
-import { useWebSocket } from '@/hooks/useWebSocket';
+import { getQueryFn } from '../lib/queryClient';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 interface Track {
   id: string;
@@ -26,6 +26,35 @@ interface Show {
   time: string;
   streamUrl?: string;
 }
+
+// Symbol-based artwork component
+const SymbolArtwork: React.FC<{ type: string; className?: string }> = ({ type, className = "w-full h-full" }) => {
+  const getSymbol = () => {
+    switch (type) {
+      case 'dj':
+        return <Disc className={`${className} text-white/60`} />;
+      case 'student':
+        return <Music className={`${className} text-white/60`} />;
+      case 'collective':
+        return <Volume2 className={`${className} text-white/60`} />;
+      case 'live':
+        return <Radio className={`${className} text-white/60`} />;
+      default:
+        return <Mic className={`${className} text-white/60`} />;
+    }
+  };
+
+  return (
+    <div className={`flex items-center justify-center bg-gradient-to-br ${
+      type === 'dj' ? 'from-purple-900 to-pink-900' :
+      type === 'student' ? 'from-blue-900 to-cyan-900' :
+      type === 'collective' ? 'from-green-900 to-teal-900' :
+      'from-red-900 to-orange-900'
+    } ${className}`}>
+      {getSymbol()}
+    </div>
+  );
+};
 
 export default function MobileRadio() {
   const [currentTrack, setCurrentTrack] = useState<Track | null>(null);
@@ -137,45 +166,12 @@ export default function MobileRadio() {
 
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  const sampleTracklist = [
-    { time: "0:00:20", artist: "Artist 1", title: "Track 1" },
-    { time: "0:02:58", artist: "Artist 2", title: "Track 2" },
-    { time: "0:06:10", artist: "Artist 3", title: "Track 3" },
-    { time: "0:09:45", artist: "Artist 4", title: "Track 4" },
-    { time: "0:13:20", artist: "Artist 5", title: "Track 5" }
-  ];
-
-  const relatedShows = [
-    { 
-      title: "Show 1", 
-      location: "Location 1", 
-      date: "5.3.2024", 
-      tags: ["TAG1", "TAG2"],
-      artwork: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=60&h=60&fit=crop"
-    },
-    { 
-      title: "Show 2", 
-      location: "Location 2", 
-      date: "22.3.2024", 
-      tags: ["TAG3", "TAG4"],
-      artwork: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=60&h=60&fit=crop"
-    }
-  ];
-
-  const upNext = [
-    { 
-      title: "Next Show 1", 
-      location: "Location 1", 
-      date: "5.3.2024",
-      artwork: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=48&h=48&fit=crop"
-    },
-    { 
-      title: "Next Show 2", 
-      location: "Location 2", 
-      date: "22.3.2024",
-      artwork: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=48&h=48&fit=crop"
-    }
-  ];
+  const getArtworkType = (showTitle: string) => {
+    if (showTitle.includes('DJ')) return 'dj';
+    if (showTitle.includes('STUDENT')) return 'student';
+    if (showTitle.includes('COLLECTIVE')) return 'collective';
+    return 'live';
+  };
 
   return (
     <div className="min-h-screen bg-black text-white relative overflow-hidden">
@@ -207,11 +203,9 @@ export default function MobileRadio() {
             onClick={() => openShowModal(show)}
           >
             <div className="relative">
-              <img 
-                src={show.artwork} 
-                alt={show.title} 
-                className="w-full h-64 object-cover"
-              />
+              <div className="w-full h-64">
+                <SymbolArtwork type={getArtworkType(show.title)} />
+              </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
               
               {show.isLive && (
@@ -272,11 +266,9 @@ export default function MobileRadio() {
               
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
-                  <img 
-                    src={currentShow.artwork} 
-                    className="w-10 h-10 rounded-full" 
-                    alt={currentShow.host}
-                  />
+                  <div className="w-10 h-10 rounded-full">
+                    <SymbolArtwork type={getArtworkType(currentShow.title)} className="w-full h-full rounded-full" />
+                  </div>
                   <div>
                     <div className="text-sm font-medium">{currentShow.title}</div>
                     <div className="text-xs text-white/60">See all episodes</div>
@@ -285,66 +277,6 @@ export default function MobileRadio() {
                 <button className="ml-auto bg-white text-black px-4 py-2 rounded-full text-xs font-medium">
                   ♥ FOLLOWING
                 </button>
-              </div>
-            </div>
-
-            {/* You Might Also Like */}
-            <div className="p-4 border-b border-white/10">
-              <h3 className="text-sm font-bold mb-4">YOU MIGHT ALSO LIKE</h3>
-              <div className="space-y-3">
-                {relatedShows.map((related, index) => (
-                  <div key={index} className="flex items-center space-x-3">
-                    <img 
-                      src={related.artwork} 
-                      className="w-15 h-15 rounded object-cover" 
-                      alt={related.title}
-                    />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium">{related.title}</div>
-                      <div className="text-xs text-white/60">{related.location} • {related.date}</div>
-                      <div className="flex space-x-2 mt-1">
-                        {related.tags.map((tag, i) => (
-                          <span key={i} className="text-xs text-white/50">{tag}</span>
-                        ))}
-                      </div>
-                    </div>
-                    <button className="w-10 h-10 flex items-center justify-center">
-                      <Play className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Tracklist */}
-            <div className="flex-1 overflow-y-auto">
-              <div className="p-4">
-                <h3 className="text-sm font-bold mb-4">TRACKLIST</h3>
-                <div className="space-y-3">
-                  {sampleTracklist.map((track, index) => (
-                    <div key={index} className="flex items-center justify-between py-2 border-b border-white/10">
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{track.artist}</div>
-                        <div className="text-xs text-white/60">{track.title}</div>
-                      </div>
-                      <div className="flex items-center space-x-3">
-                        <span className="text-xs text-white/60">{track.time}</span>
-                        <button className="p-1">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Subscribe prompt */}
-                <div className="mt-6 p-4 border border-white/20 rounded-lg">
-                  <h4 className="text-sm font-bold mb-2">UNLOCK TIMESTAMPS</h4>
-                  <p className="text-xs text-white/70 mb-3">Subscribe to get full tracklist timestamps</p>
-                  <button className="w-full bg-white text-black py-2 rounded text-sm font-medium">
-                    SUBSCRIBE
-                  </button>
-                </div>
               </div>
             </div>
           </div>
@@ -364,30 +296,13 @@ export default function MobileRadio() {
                 <div className="text-sm font-bold">{currentTrack.title}</div>
                 <div className="text-xs text-white/60">{currentTrack.artist}</div>
               </div>
-              <div className="flex space-x-2">
-                <button className="p-2">
-                  <Bookmark className="w-5 h-5" />
-                </button>
-                <button className="p-2">
-                  <Heart className="w-5 h-5" />
-                </button>
-                <button className="p-2">
-                  <List className="w-5 h-5" />
-                </button>
-                <button className="p-2 -mr-2">
-                  <Share className="w-5 h-5" />
-                </button>
-              </div>
+              <div className="w-8" />
             </div>
 
             {/* Album Art */}
             <div className="flex-1 flex items-center justify-center p-8">
-              <div className="w-80 h-80 max-w-full max-h-full">
-                <img 
-                  src={currentTrack.artwork} 
-                  className="w-full h-full object-cover rounded-lg" 
-                  alt="Track artwork"
-                />
+              <div className="w-80 h-80 max-w-full max-h-full rounded-lg">
+                <SymbolArtwork type={getArtworkType(currentTrack.title)} className="w-full h-full rounded-lg" />
               </div>
             </div>
 
@@ -407,38 +322,6 @@ export default function MobileRadio() {
                   <span>{formatTime(duration)}</span>
                 </div>
               </div>
-
-              {/* Up Next */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-bold">UP NEXT</h3>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-white/60">AUTO PLAY</span>
-                    <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-white transition-colors">
-                      <span className="inline-block h-4 w-4 transform rounded-full bg-black transition translate-x-6" />
-                    </button>
-                  </div>
-                </div>
-                <div className="text-xs text-white/60 mb-3">Similar to what you are listening to</div>
-                <div className="space-y-3">
-                  {upNext.map((item, index) => (
-                    <div key={index} className="flex items-center space-x-3">
-                      <img 
-                        src={item.artwork} 
-                        className="w-12 h-12 rounded object-cover" 
-                        alt={item.title}
-                      />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium">{item.title}</div>
-                        <div className="text-xs text-white/60">{item.location}, {item.date}</div>
-                      </div>
-                      <button className="w-8 h-8 flex items-center justify-center">
-                        <Play className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -450,11 +333,9 @@ export default function MobileRadio() {
           <div className="px-4 py-3">
             <div className="flex items-center space-x-3">
               <button onClick={() => setPlayerModal(true)} className="flex-1 flex items-center space-x-3">
-                <img 
-                  src={currentTrack.artwork} 
-                  className="w-12 h-12 rounded object-cover" 
-                  alt="Current track"
-                />
+                <div className="w-12 h-12 rounded">
+                  <SymbolArtwork type={getArtworkType(currentTrack.title)} className="w-full h-full rounded" />
+                </div>
                 <div className="flex-1 text-left">
                   <div className="text-sm font-medium">{currentTrack.title}</div>
                   <div className="text-xs text-white/60">{currentTrack.artist} • LIVE</div>
