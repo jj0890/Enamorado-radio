@@ -155,6 +155,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Audio tracks endpoint - SoundCloud-style
+  app.get("/api/tracks", async (req, res) => {
+    try {
+      const tracks = [
+        {
+          id: "1",
+          title: "Midnight Drive",
+          artist: "DJ Amadeezy",
+          artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop",
+          streamUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+          duration: 180,
+          genre: "Hip-Hop"
+        },
+        {
+          id: "2",
+          title: "San Antonio Nights",
+          artist: "SAC Students",
+          artwork: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop",
+          streamUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+          duration: 200,
+          genre: "Experimental"
+        },
+        {
+          id: "3",
+          title: "Austin Frequencies",
+          artist: "Austin Sound Lab",
+          artwork: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=300&h=300&fit=crop",
+          streamUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3",
+          duration: 160,
+          genre: "Electronic"
+        }
+      ];
+      res.json(tracks);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get tracks" });
+    }
+  });
+
+  // Mobile shows endpoint
+  app.get("/api/shows/mobile", async (req, res) => {
+    try {
+      const shows = [
+        {
+          id: 1,
+          title: "DJ AMADEEZY MIX",
+          host: "DJ Amadeezy",
+          location: "SAN ANTONIO",
+          description: "Resident DJ mixing everything from classic hip-hop to electronic, bringing authentic SA sound to the airwaves",
+          tags: ["HIP-HOP", "ELECTRONIC", "SA-SOUND"],
+          isLive: true,
+          artwork: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+          date: "7.7.2025",
+          time: "10:00 - 11:00",
+          streamUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3"
+        },
+        {
+          id: 2,
+          title: "SAC STUDENT SESSIONS",
+          host: "Various Students",
+          location: "SAN ANTONIO COLLEGE",
+          description: "Student-led radio programming showcasing local talent and experimental sounds from the college community",
+          tags: ["STUDENT", "EXPERIMENTAL", "LOCAL"],
+          isLive: false,
+          artwork: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop",
+          date: "7.7.2025",
+          time: "11:00 - 12:00",
+          streamUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3"
+        },
+        {
+          id: 3,
+          title: "AUSTIN SOUND LAB",
+          host: "Local Collective",
+          location: "AUSTIN",
+          description: "Collective of Austin musicians and producers sharing new sounds from the Live Music Capital",
+          tags: ["AUSTIN", "LIVE-MUSIC", "COLLECTIVE"],
+          isLive: false,
+          artwork: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=400&h=400&fit=crop",
+          date: "7.7.2025",
+          time: "12:00 - 13:00",
+          streamUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3"
+        }
+      ];
+      res.json(shows);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to get mobile shows" });
+    }
+  });
+
   // Simulate live updates (in real app, this would be triggered by audio system)
   setInterval(() => {
     broadcast({

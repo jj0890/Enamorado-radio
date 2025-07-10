@@ -6,12 +6,14 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import NotFound from "@/pages/not-found";
 import Home from "@/pages/Home";
 import RadioLanding from "@/pages/RadioLanding";
+import MobileRadio from "@/pages/MobileRadio";
 
 function Router() {
   return (
     <Switch>
       <Route path="/" component={Home} />
       <Route path="/radio" component={RadioLanding} />
+      <Route path="/mobile" component={MobileRadio} />
       <Route component={NotFound} />
     </Switch>
   );
