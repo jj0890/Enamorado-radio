@@ -109,34 +109,51 @@ export default function DJSubmit() {
     e.preventDefault();
     setIsSubmitting(true);
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-
-    setIsSubmitting(false);
-    setShowSuccess(true);
-    
-    // Reset form after success
-    setTimeout(() => {
-      setFormData({
-        djName: "",
-        realName: "",
-        email: "",
-        location: "",
-        showTitle: "",
-        showDescription: "",
-        primaryGenre: "",
-        showLength: "60",
-        additionalGenres: "",
-        djExperience: "",
-        musicDiscovery: "",
-        socialMedia: "",
-        demoMixTitle: "",
-        demoMixDescription: "",
-        agreeTerms: false,
+    try {
+      // Submit to actual API
+      const response = await fetch('/api/dj-submissions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
       });
-      setUploadedFiles([]);
-      setShowSuccess(false);
-    }, 5000);
+
+      if (!response.ok) {
+        throw new Error('Failed to submit application');
+      }
+
+      setIsSubmitting(false);
+      setShowSuccess(true);
+      
+      // Reset form after success
+      setTimeout(() => {
+        setFormData({
+          djName: "",
+          realName: "",
+          email: "",
+          location: "",
+          showTitle: "",
+          showDescription: "",
+          primaryGenre: "",
+          showLength: "60",
+          additionalGenres: "",
+          djExperience: "",
+          musicDiscovery: "",
+          socialMedia: "",
+          demoMixTitle: "",
+          demoMixDescription: "",
+          agreeTerms: false,
+        });
+        setUploadedFiles([]);
+        setTags([]);
+        setShowSuccess(false);
+      }, 5000);
+    } catch (error) {
+      console.error('Error submitting application:', error);
+      setIsSubmitting(false);
+      // Could add error state here
+    }
   };
 
   return (

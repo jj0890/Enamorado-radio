@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Calendar, Clock, Users, BarChart3, Plus, Edit, Trash2, Eye, Upload, FileText } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Calendar, Clock, Users, BarChart3, Plus, Edit, Trash2, Eye, Upload, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Show {
   id: string;
@@ -17,18 +19,39 @@ interface Show {
 }
 
 interface DJSubmission {
-  id: string;
+  id: number;
   djName: string;
   realName: string;
   email: string;
+  location: string;
   showTitle: string;
-  genre: string;
+  showDescription: string;
+  primaryGenre: string;
+  showLength: string;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
+  reviewedBy?: string;
+  notes?: string;
+}
+
+interface ZineSubmission {
+  id: number;
+  authorName: string;
+  authorEmail: string;
+  title: string;
+  subtitle?: string;
+  contentType: string;
+  category: string;
+  content: string;
+  status: 'pending' | 'approved' | 'rejected';
+  submittedAt: string;
+  reviewedBy?: string;
+  notes?: string;
 }
 
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'zine-submissions' | 'analytics'>('add-show');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'zine-submissions' | 'analytics'>('dj-submissions');
+  const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState({
     title: '',
     host: '',
@@ -67,33 +90,49 @@ export default function ScheduleAdmin() {
     }
   ]);
 
-  const [submissions] = useState<DJSubmission[]>([
-    {
-      id: '1',
-      djName: 'Luna Park',
-      realName: 'Luna Martinez',
-      email: 'luna@example.com',
-      showTitle: 'Midnight Sessions',
-      genre: 'ambient',
-      status: 'pending',
-      submittedAt: '2025-01-10T14:30:00'
+  // Fetch DJ submissions
+  const { data: djSubmissions = [], isLoading: djSubmissionsLoading } = useQuery({
+    queryKey: ['/api/dj-submissions'],
+    queryFn: () => apiRequest('/api/dj-submissions'),
+  });
+
+  // Fetch Zine submissions
+  const { data: zineSubmissions = [], isLoading: zineSubmissionsLoading } = useQuery({
+    queryKey: ['/api/zine-submissions'],
+    queryFn: () => apiRequest('/api/zine-submissions'),
+  });
+
+  // Update DJ submission status
+  const updateDjSubmissionStatus = useMutation({
+    mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
+      return await apiRequest(`/api/dj-submissions/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, notes, reviewedBy: 'Admin' }),
+      });
     },
-    {
-      id: '2',
-      djName: 'Vinyl Junkie',
-      realName: 'David Chen',
-      email: 'david@example.com',
-      showTitle: 'Rare Grooves',
-      genre: 'soul',
-      status: 'approved',
-      submittedAt: '2025-01-08T09:15:00'
-    }
-  ]);
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/dj-submissions'] });
+    },
+  });
+
+  // Update Zine submission status
+  const updateZineSubmissionStatus = useMutation({
+    mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
+      return await apiRequest(`/api/zine-submissions/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, notes, reviewedBy: 'Admin' }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/zine-submissions'] });
+    },
+  });
 
   const analytics = {
     totalShows: shows.length,
     liveShows: shows.filter(s => s.isLive).length,
-    pendingSubmissions: submissions.filter(s => s.status === 'pending').length,
+    pendingDjSubmissions: djSubmissions.filter((s: DJSubmission) => s.status === 'pending').length,
+    pendingZineSubmissions: zineSubmissions.filter((s: ZineSubmission) => s.status === 'pending').length,
     totalHours: shows.reduce((acc, show) => acc + show.duration, 0) / 60
   };
 
@@ -386,32 +425,60 @@ export default function ScheduleAdmin() {
             <div className="bg-gray-800 rounded-lg p-6">
               <h2 className="text-2xl font-bold mb-6">DJ Submissions</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {submissions.map((submission) => (
-                  <div key={submission.id} className="bg-gray-900 rounded-lg p-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(submission.status)}`}>
-                        {submission.status.toUpperCase()}
-                      </span>
-                      <span className="text-gray-400 text-sm">{formatDate(submission.submittedAt)}</span>
-                    </div>
-                    <h3 className="font-semibold text-lg mb-2">{submission.showTitle}</h3>
-                    <p className="text-gray-400 mb-1">DJ: {submission.djName} ({submission.realName})</p>
-                    <p className="text-gray-400 mb-1">Genre: {submission.genre}</p>
-                    <p className="text-gray-400 mb-4">{submission.email}</p>
-                    <div className="flex space-x-2">
-                      <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                        Approve
-                      </button>
-                      <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                        Reject
-                      </button>
-                      <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                        <Eye className="w-4 h-4 inline mr-1" />
-                        View
-                      </button>
-                    </div>
+                {djSubmissionsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                   </div>
-                ))}
+                ) : djSubmissions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>No DJ submissions yet</p>
+                  </div>
+                ) : (
+                  djSubmissions.map((submission: DJSubmission) => (
+                    <div key={submission.id} className="bg-gray-900 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(submission.status)}`}>
+                          {submission.status.toUpperCase()}
+                        </span>
+                        <span className="text-gray-400 text-sm">{formatDate(submission.submittedAt)}</span>
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">{submission.showTitle}</h3>
+                      <p className="text-gray-400 mb-1">DJ: {submission.djName} ({submission.realName})</p>
+                      <p className="text-gray-400 mb-1">Genre: {submission.primaryGenre}</p>
+                      <p className="text-gray-400 mb-1">Location: {submission.location}</p>
+                      <p className="text-gray-400 mb-1">Show Length: {submission.showLength} minutes</p>
+                      <p className="text-gray-400 mb-4">{submission.email}</p>
+                      
+                      {submission.showDescription && (
+                        <p className="text-gray-300 mb-4 text-sm italic">"{submission.showDescription}"</p>
+                      )}
+                      
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => updateDjSubmissionStatus.mutate({ id: submission.id, status: 'approved' })}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
+                          disabled={updateDjSubmissionStatus.isPending}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => updateDjSubmissionStatus.mutate({ id: submission.id, status: 'rejected' })}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
+                          disabled={updateDjSubmissionStatus.isPending}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </button>
+                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                          <Eye className="w-4 h-4 inline mr-1" />
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -420,115 +487,138 @@ export default function ScheduleAdmin() {
         {/* Zine Submissions Section */}
         {activeSection === 'zine-submissions' && (
           <div className="space-y-6">
+            {/* Google Docs & Adobe InDesign Integration */}
+            <div className="bg-gradient-to-r from-purple-900/50 to-blue-900/50 rounded-lg p-6 border border-purple-500/30">
+              <h2 className="text-2xl font-bold mb-4 flex items-center">
+                <FileText className="w-6 h-6 mr-2 text-purple-400" />
+                Publishing Tools Integration
+              </h2>
+              <p className="text-gray-300 mb-4">
+                Connect with essential writing and publishing apps to streamline your editorial workflow.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                  <div className="flex items-center mb-3">
+                    <div className="w-8 h-8 bg-blue-500 rounded mr-3 flex items-center justify-center">
+                      <FileText className="w-4 h-4 text-white" />
+                    </div>
+                    <h3 className="font-semibold">Google Docs</h3>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-3">
+                    Import drafts directly from Google Docs with collaborative editing features.
+                  </p>
+                  <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                    Connect Google Docs
+                  </button>
+                </div>
+                
+                <div className="bg-white/10 backdrop-blur-sm rounded-lg p-4">
+                  <div className="flex items-center mb-3">
+                    <div className="w-8 h-8 bg-pink-500 rounded mr-3 flex items-center justify-center">
+                      <Upload className="w-4 h-4 text-white" />
+                    </div>
+                    <h3 className="font-semibold">Adobe InDesign</h3>
+                  </div>
+                  <p className="text-sm text-gray-300 mb-3">
+                    Export layouts and designs directly to magazine production workflow.
+                  </p>
+                  <button className="bg-pink-500 hover:bg-pink-600 text-white px-4 py-2 rounded text-sm transition-colors">
+                    Connect InDesign
+                  </button>
+                </div>
+              </div>
+            </div>
+            
             <div className="bg-gray-800 rounded-lg p-6">
               <h2 className="text-2xl font-bold mb-6">Zine Submissions</h2>
               <div className="space-y-4">
-                {/* Sample zine submissions - in production, fetch from API */}
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-yellow-500/20 text-yellow-400">
-                      PENDING
-                    </span>
-                    <span className="text-gray-400 text-sm">2 days ago</span>
+                {zineSubmissionsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
                   </div>
-                  <h3 className="font-semibold text-lg mb-2">The Underground Renaissance</h3>
-                  <p className="text-gray-400 mb-1">Author: Alex Rivera</p>
-                  <p className="text-gray-400 mb-1">Type: Article • Category: Culture</p>
-                  <p className="text-gray-400 mb-2">Email: alex@example.com</p>
-                  <p className="text-gray-300 mb-4 text-sm">
-                    "Exploring the resurgence of underground music scenes and their impact on modern culture..."
-                  </p>
-                  <div className="flex space-x-2">
-                    <button className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Approve
-                    </button>
-                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Reject
-                    </button>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      <Eye className="w-4 h-4 inline mr-1" />
-                      Review
-                    </button>
-                    <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Publish
-                    </button>
+                ) : zineSubmissions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-400">
+                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>No zine submissions yet</p>
                   </div>
-                </div>
-
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-500/20 text-green-400">
-                      APPROVED
-                    </span>
-                    <span className="text-gray-400 text-sm">5 days ago</span>
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">Frequency Diaries</h3>
-                  <p className="text-gray-400 mb-1">Author: Luna Park</p>
-                  <p className="text-gray-400 mb-1">Type: Mixtape Notes • Category: Music</p>
-                  <p className="text-gray-400 mb-2">Email: luna@example.com</p>
-                  <p className="text-gray-300 mb-4 text-sm">
-                    "Detailed track-by-track notes from my latest ambient mix..."
-                  </p>
-                  <div className="flex space-x-2">
-                    <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Publish
-                    </button>
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      <Eye className="w-4 h-4 inline mr-1" />
-                      Review
-                    </button>
-                    <button className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Archive
-                    </button>
-                  </div>
-                </div>
-
-                <div className="bg-gray-900 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-500/20 text-blue-400">
-                      PUBLISHED
-                    </span>
-                    <span className="text-gray-400 text-sm">1 week ago</span>
-                  </div>
-                  <h3 className="font-semibold text-lg mb-2">Digital Vinyl Revolution</h3>
-                  <p className="text-gray-400 mb-1">Author: Sarah Chen</p>
-                  <p className="text-gray-400 mb-1">Type: Article • Category: Technology</p>
-                  <p className="text-gray-400 mb-2">Views: 1,250 • Featured</p>
-                  <p className="text-gray-300 mb-4 text-sm">
-                    "An in-depth look at how streaming platforms are reshaping music discovery..."
-                  </p>
-                  <div className="flex space-x-2">
-                    <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      <Eye className="w-4 h-4 inline mr-1" />
-                      View Published
-                    </button>
-                    <button className="bg-yellow-500 hover:bg-yellow-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Edit
-                    </button>
-                    <button className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                      Feature
-                    </button>
-                  </div>
-                </div>
+                ) : (
+                  zineSubmissions.map((submission: ZineSubmission) => (
+                    <div key={submission.id} className="bg-gray-900 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(submission.status)}`}>
+                          {submission.status.toUpperCase()}
+                        </span>
+                        <span className="text-gray-400 text-sm">{formatDate(submission.submittedAt)}</span>
+                      </div>
+                      <h3 className="font-semibold text-lg mb-2">{submission.title}</h3>
+                      {submission.subtitle && (
+                        <p className="text-gray-400 mb-2 italic">{submission.subtitle}</p>
+                      )}
+                      <p className="text-gray-400 mb-1">Author: {submission.authorName}</p>
+                      <p className="text-gray-400 mb-1">Type: {submission.contentType} • Category: {submission.category}</p>
+                      <p className="text-gray-400 mb-2">Email: {submission.authorEmail}</p>
+                      
+                      {submission.content && (
+                        <p className="text-gray-300 mb-4 text-sm">
+                          "{submission.content.substring(0, 150)}..."
+                        </p>
+                      )}
+                      
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => updateZineSubmissionStatus.mutate({ id: submission.id, status: 'approved' })}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
+                          disabled={updateZineSubmissionStatus.isPending}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => updateZineSubmissionStatus.mutate({ id: submission.id, status: 'rejected' })}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
+                          disabled={updateZineSubmissionStatus.isPending}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </button>
+                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                          <Eye className="w-4 h-4 inline mr-1" />
+                          Review
+                        </button>
+                        <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm transition-colors">
+                          Publish to Issuu
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
 
               {/* Submission Stats */}
               <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="bg-gray-900 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-yellow-500 mb-1">5</div>
+                  <div className="text-2xl font-bold text-yellow-500 mb-1">
+                    {zineSubmissions.filter((s: ZineSubmission) => s.status === 'pending').length}
+                  </div>
                   <div className="text-gray-400 text-sm">Pending Review</div>
                 </div>
                 <div className="bg-gray-900 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-green-500 mb-1">12</div>
+                  <div className="text-2xl font-bold text-green-500 mb-1">
+                    {zineSubmissions.filter((s: ZineSubmission) => s.status === 'approved').length}
+                  </div>
                   <div className="text-gray-400 text-sm">Approved</div>
                 </div>
                 <div className="bg-gray-900 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-blue-500 mb-1">8</div>
+                  <div className="text-2xl font-bold text-blue-500 mb-1">
+                    {zineSubmissions.filter((s: ZineSubmission) => s.status === 'published').length}
+                  </div>
                   <div className="text-gray-400 text-sm">Published</div>
                 </div>
                 <div className="bg-gray-900 rounded-lg p-4 text-center">
-                  <div className="text-2xl font-bold text-purple-500 mb-1">3</div>
-                  <div className="text-gray-400 text-sm">Featured</div>
+                  <div className="text-2xl font-bold text-purple-500 mb-1">
+                    {zineSubmissions.length}
+                  </div>
+                  <div className="text-gray-400 text-sm">Total Submissions</div>
                 </div>
               </div>
             </div>
@@ -548,8 +638,8 @@ export default function ScheduleAdmin() {
                 <div className="text-gray-400">Live Shows</div>
               </div>
               <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-yellow-500 mb-2">{analytics.pendingSubmissions}</div>
-                <div className="text-gray-400">Pending Submissions</div>
+                <div className="text-3xl font-bold text-yellow-500 mb-2">{analytics.pendingDjSubmissions + analytics.pendingZineSubmissions}</div>
+                <div className="text-gray-400">Total Pending</div>
               </div>
               <div className="bg-gray-800 rounded-lg p-6 text-center">
                 <div className="text-3xl font-bold text-purple-500 mb-2">{analytics.totalHours.toFixed(1)}</div>

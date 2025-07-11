@@ -381,6 +381,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Public endpoints for admin panel (in production, secure with authentication)
+  app.get('/api/zine-submissions', async (req, res) => {
+    try {
+      const submissions = await storage.getAllZineSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch zine submissions' });
+    }
+  });
+
   app.get('/api/admin/zine-submissions', requireAdmin, async (req, res) => {
     try {
       const submissions = await storage.getAllZineSubmissions();
