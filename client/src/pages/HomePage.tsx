@@ -369,6 +369,21 @@ export default function HomePage() {
         </section>
       </main>
 
+      {/* Footer with Admin Access */}
+      <footer className="mt-16 border-t border-white/10 pt-8 pb-4">
+        <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
+          <div className="text-white/60 text-sm">
+            © 2025 Enamorado Radio. Digital space for the things we love.
+          </div>
+          <Link 
+            href="/admin" 
+            className="text-white/60 hover:text-white text-sm underline transition-colors"
+          >
+            Admin Panel
+          </Link>
+        </div>
+      </footer>
+
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
     </div>
