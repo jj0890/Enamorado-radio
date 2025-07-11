@@ -1,12 +1,31 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
-import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
+
+interface FeaturedSubmission {
+  id: number;
+  djName: string;
+  demoMixTitle: string;
+  demoMixDescription: string;
+  primaryGenre: string;
+  showLength: number;
+  soundcloudUrl?: string;
+  mixcloudUrl?: string;
+  audiocomUrl?: string;
+  otherUrl?: string;
+}
 
 export default function HomePage() {
   const [currentShow, setCurrentShow] = useState("Deep Routes");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+
+  // Fetch featured DJ submissions
+  const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
+    queryKey: ['/api/dj-submissions/featured'],
+  });
 
   useEffect(() => {
     // Simulate live updates
@@ -107,6 +126,19 @@ export default function HomePage() {
     }
   ];
 
+  // Transform featured submissions for display
+  const featuredContent = featuredSubmissions.map((submission, index) => ({
+    id: submission.id,
+    title: submission.demoMixTitle || `${submission.djName} Mix`,
+    artist: submission.djName,
+    description: submission.demoMixDescription || "Featured mix from our radio community",
+    genre: submission.primaryGenre,
+    duration: `${submission.showLength} min`,
+    soundcloudUrl: submission.soundcloudUrl || submission.mixcloudUrl || submission.audiocomUrl || submission.otherUrl,
+    isSpotlight: index === 0, // First approved submission gets spotlight
+    background: index === 0 ? "from-purple-900/20 to-blue-900/20" : "from-red-900/20 to-orange-900/20"
+  }));
+
   return (
     <div className="min-h-screen bg-black text-white">
       {/* Live Player Bar */}
@@ -188,53 +220,96 @@ export default function HomePage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {/* Featured Content */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-              <div className="aspect-square bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg mb-4 relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white/80 text-center">
-                    <Music className="w-16 h-16 mx-auto mb-2" />
-                    <div className="text-sm font-medium">FEATURED MIX</div>
+            {featuredContent.length > 0 ? (
+              featuredContent.map((content) => (
+                <div key={content.id} className={`bg-gradient-to-br ${content.background} backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10 ${content.isSpotlight ? 'ring-2 ring-purple-500/50' : ''}`}>
+                  <div className="aspect-square bg-gradient-to-br from-white/10 to-white/5 rounded-lg mb-4 relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white/80 text-center">
+                        <Music className="w-16 h-16 mx-auto mb-2" />
+                        <div className="text-sm font-medium">{content.genre.toUpperCase()}</div>
+                        {content.isSpotlight && (
+                          <div className="text-xs mt-1 text-purple-300 font-bold">SPOTLIGHT</div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-white/60 mb-1">{content.genre} • {content.duration}</div>
+                  <h3 className="text-lg font-semibold mb-2">{content.title}</h3>
+                  <p className="text-white/70 text-sm mb-3">
+                    {content.description}
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60 text-sm">{content.artist}</span>
+                    {content.soundcloudUrl && (
+                      <a 
+                        href={content.soundcloudUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                      >
+                        <Play className="w-3 h-3 mr-1" />
+                        Listen
+                      </a>
+                    )}
                   </div>
                 </div>
-              </div>
-              <div className="text-xs text-white/60 mb-1">DECEMBER 15, 2024</div>
-              <h3 className="text-lg font-semibold mb-2">Post-Punk Revival</h3>
-              <p className="text-white/70 text-sm mb-3">
-                Rediscovering the angular sounds of early 80s UK underground
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60 text-sm">Marcus Rivera</span>
-                <span className="text-xs border border-white/20 px-2 py-1 rounded">2h 15m</span>
-              </div>
-            </div>
-
-            {/* Live Show */}
-            <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-              <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 relative overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-white/80 text-center">
-                    <Radio className="w-16 h-16 mx-auto mb-2" />
-                    <div className="text-sm font-medium">LIVE NOW</div>
+              ))
+            ) : (
+              // Default content when no featured submissions
+              <>
+                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
+                  <div className="aspect-square bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg mb-4 relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white/80 text-center">
+                        <Music className="w-16 h-16 mx-auto mb-2" />
+                        <div className="text-sm font-medium">FEATURED MIX</div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-white/60 mb-1">DECEMBER 15, 2024</div>
+                  <h3 className="text-lg font-semibold mb-2">Submit Your Mix</h3>
+                  <p className="text-white/70 text-sm mb-3">
+                    Be the first to have your mix featured on our homepage
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60 text-sm">Your Name Here</span>
+                    <Link 
+                      href="/dj-submit"
+                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Submit
+                    </Link>
                   </div>
                 </div>
-                <div className="absolute top-3 right-3">
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
+                  <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 relative overflow-hidden">
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white/80 text-center">
+                        <Radio className="w-16 h-16 mx-auto mb-2" />
+                        <div className="text-sm font-medium">LIVE NOW</div>
+                      </div>
+                    </div>
+                    <div className="absolute top-3 right-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+                    </div>
+                  </div>
+                  <div className="text-xs text-white/60 mb-1">LIVE • 8:00 PM GMT</div>
+                  <h3 className="text-lg font-semibold mb-2">Deep Routes</h3>
+                  <p className="text-white/70 text-sm mb-3">
+                    Deep house specialist with 15+ years digging through Detroit's underground
+                  </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-white/60 text-sm">Marcus Rivera</span>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
+                      <Play className="w-3 h-3 mr-1" />
+                      Listen
+                    </button>
+                  </div>
                 </div>
-              </div>
-              <div className="text-xs text-white/60 mb-1">LIVE • 8:00 PM GMT</div>
-              <h3 className="text-lg font-semibold mb-2">Deep Routes</h3>
-              <p className="text-white/70 text-sm mb-3">
-                Deep house specialist with 15+ years digging through Detroit's underground
-              </p>
-              <div className="flex items-center justify-between">
-                <span className="text-white/60 text-sm">Marcus Rivera</span>
-                <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
-                  <Play className="w-3 h-3 mr-1" />
-                  Listen
-                </button>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </section>
 

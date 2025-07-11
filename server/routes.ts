@@ -265,6 +265,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Featured DJ Submissions API (approved submissions for homepage)
+  app.get('/api/dj-submissions/featured', async (req, res) => {
+    try {
+      const submissions = await storage.getAllDjSubmissions();
+      const approvedSubmissions = submissions
+        .filter(submission => submission.status === 'approved')
+        .slice(0, 4); // Get top 4 for homepage
+      res.json(approvedSubmissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch featured DJ submissions' });
+    }
+  });
+
   app.get('/api/dj-submissions/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
