@@ -93,7 +93,7 @@ export const zineSubmissions = pgTable("zine_submissions", {
   externalLinks: text("external_links"), // comma-separated related links
   collaborators: text("collaborators"), // other contributors
   submissionNotes: text("submission_notes"), // notes to editors
-  status: text("status").notNull().default("pending"), // pending, approved, rejected, published
+  status: text("status").notNull().default("submitted"), // submitted, copy_ready, web_ready, published, rejected
   publishedAt: timestamp("published_at"),
   submittedAt: timestamp("submitted_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
@@ -125,6 +125,37 @@ export const zineContent = pgTable("zine_content", {
   isFeatured: boolean("is_featured").default(false),
   featuredOrder: integer("featured_order"),
   viewCount: integer("view_count").default(0),
+});
+
+// Editorial workflow and physical media generation
+export const editorialWorkflow = pgTable("editorial_workflow", {
+  id: serial("id").primaryKey(),
+  submissionId: integer("submission_id").references(() => zineSubmissions.id),
+  workflowStage: text("workflow_stage").notNull().default("submitted"), // submitted, copy_ready, web_ready, published
+  assignedEditor: text("assigned_editor"),
+  copyEditorNotes: text("copy_editor_notes"),
+  webEditorNotes: text("web_editor_notes"),
+  publisherNotes: text("publisher_notes"),
+  estimatedPublishDate: timestamp("estimated_publish_date"),
+  actualPublishDate: timestamp("actual_publish_date"),
+  priority: text("priority").notNull().default("normal"), // urgent, high, normal, low
+  issuuDraftId: text("issuu_draft_id"), // Issuu draft ID for API integration
+  issuuPublicationId: text("issuu_publication_id"), // Issuu publication ID after publishing
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const physicalMedia = pgTable("physical_media", {
+  id: serial("id").primaryKey(),
+  submissionId: integer("submission_id").references(() => zineSubmissions.id),
+  mediaType: text("media_type").notNull(), // mini_cd, nfc_card, qr_sticker
+  nfcData: text("nfc_data"), // JSON data for NFC tags
+  qrCode: text("qr_code"), // QR code content
+  physicalId: text("physical_id").notNull().unique(), // unique identifier for physical object
+  printSpecs: text("print_specs"), // JSON with printing specifications
+  productionStatus: text("production_status").notNull().default("pending"), // pending, in_production, completed, shipped
+  createdAt: timestamp("created_at").defaultNow(),
+  shippedAt: timestamp("shipped_at"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -180,6 +211,18 @@ export const insertZineContentSchema = createInsertSchema(zineContent).omit({
   viewCount: true,
 });
 
+export const insertEditorialWorkflowSchema = createInsertSchema(editorialWorkflow).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertPhysicalMediaSchema = createInsertSchema(physicalMedia).omit({
+  id: true,
+  createdAt: true,
+  shippedAt: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Station = typeof stations.$inferSelect;
@@ -189,6 +232,8 @@ export type DjSubmission = typeof djSubmissions.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
 export type ZineSubmission = typeof zineSubmissions.$inferSelect;
 export type ZineContent = typeof zineContent.$inferSelect;
+export type EditorialWorkflow = typeof editorialWorkflow.$inferSelect;
+export type PhysicalMedia = typeof physicalMedia.$inferSelect;
 export type InsertStation = z.infer<typeof insertStationSchema>;
 export type InsertShow = z.infer<typeof insertShowSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
@@ -196,3 +241,5 @@ export type InsertDjSubmission = z.infer<typeof insertDjSubmissionSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type InsertZineSubmission = z.infer<typeof insertZineSubmissionSchema>;
 export type InsertZineContent = z.infer<typeof insertZineContentSchema>;
+export type InsertEditorialWorkflow = z.infer<typeof insertEditorialWorkflowSchema>;
+export type InsertPhysicalMedia = z.infer<typeof insertPhysicalMediaSchema>;

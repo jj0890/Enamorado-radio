@@ -203,6 +203,12 @@ export default function ScheduleAdmin() {
             <BarChart3 className="w-4 h-4 inline mr-2" />
             Analytics
           </button>
+          <Link href="/admin/editorial-workflow">
+            <button className="px-6 py-3 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-700 transition-all">
+              <FileText className="w-4 h-4 inline mr-2" />
+              Editorial Workflow
+            </button>
+          </Link>
         </div>
 
         {/* Add Show Section */}

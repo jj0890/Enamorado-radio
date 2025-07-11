@@ -41,6 +41,18 @@ This is a full-stack web application for a radio station platform that allows us
 - **Live Status**: Real-time indication of live broadcasts
 - **Genre Categorization**: Organized content by music genres
 
+### Editorial Workflow System
+- **Newsroom-Style Stages**: Submitted → Copy Ready → Web Ready → Published
+- **Issuu.com Integration**: Mock API for publishing zines to Issuu platform
+- **Physical Media Generation**: Creates NFC tags, QR stickers, and mini CDs
+- **NFC Technology**: NTAG213 chips that automatically load Issuu publications
+- **Print Specifications**: Detailed specs for physical magazine production
+
+### Physical Media Types
+- **NFC Cards**: Credit card-sized with embedded NFC chips and magazine artwork
+- **QR Stickers**: Small vinyl stickers with QR codes linking to digital zines
+- **Mini CDs**: 8cm diameter CDs with magazine artwork printed on surface
+
 ### User Interface
 - **Responsive Design**: Mobile-first approach with desktop optimization
 - **Dark Theme**: Default dark theme with CSS custom properties
@@ -106,6 +118,10 @@ This is a full-stack web application for a radio station platform that allows us
 
 Changelog:
 - July 03, 2025. Initial setup
+- July 11, 2025. Added comprehensive editorial workflow system with newsroom-style stages (submitted, copy_ready, web_ready, published)
+- July 11, 2025. Implemented physical media generation system with NFC tags for loading Issuu.com publications
+- July 11, 2025. Created mock Issuu API integration for publication workflow
+- July 11, 2025. Added physical media types: NFC cards, QR stickers, and mini CDs with magazine artwork
 
 ## User Preferences
 

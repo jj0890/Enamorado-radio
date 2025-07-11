@@ -9,6 +9,7 @@ import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
 import ZineArchive from "./pages/ZineArchive";
 import ZineSubmit from "./pages/ZineSubmit";
+import EditorialWorkflow from "./pages/EditorialWorkflow";
 import Discover from "./pages/Discover";
 
 function Router() {
@@ -20,6 +21,7 @@ function Router() {
       <Route path="/discover" component={Discover} />
       <Route path="/dj-submit" component={DJSubmit} />
       <Route path="/admin" component={ScheduleAdmin} />
+      <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
       <Route path="/schedule" component={Schedule} />
       <Route path="/zine" component={ZineArchive} />
       <Route path="/zine/submit" component={ZineSubmit} />

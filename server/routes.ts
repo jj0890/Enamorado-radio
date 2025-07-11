@@ -9,7 +9,9 @@ import {
   insertDjSubmissionSchema,
   insertAdminSchema,
   insertZineSubmissionSchema,
-  insertZineContentSchema
+  insertZineContentSchema,
+  insertEditorialWorkflowSchema,
+  insertPhysicalMediaSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -471,6 +473,151 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(content);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch zine content' });
+    }
+  });
+
+  // Editorial Workflow API
+  app.get('/api/editorial-workflow', async (req, res) => {
+    try {
+      const workflows = await storage.getAllEditorialWorkflow();
+      // Join with submission data to create complete workflow view
+      const workflowsWithSubmissions = await Promise.all(
+        workflows.map(async (workflow) => {
+          const submission = await storage.getZineSubmission(workflow.submissionId);
+          return {
+            ...workflow,
+            title: submission?.title || 'Unknown',
+            authorName: submission?.authorName || 'Unknown',
+            authorEmail: submission?.authorEmail || 'Unknown',
+            contentType: submission?.contentType || 'Unknown',
+            category: submission?.category || 'Unknown',
+            content: submission?.content || '',
+            excerpt: submission?.excerpt || '',
+            tags: submission?.tags || '',
+            submittedAt: submission?.submittedAt || new Date(),
+          };
+        })
+      );
+      res.json(workflowsWithSubmissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch editorial workflows' });
+    }
+  });
+
+  app.post('/api/editorial-workflow', async (req, res) => {
+    try {
+      const validatedData = insertEditorialWorkflowSchema.parse(req.body);
+      const workflow = await storage.createEditorialWorkflow(validatedData);
+      res.status(201).json(workflow);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid workflow data' });
+    }
+  });
+
+  app.patch('/api/editorial-workflow/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { workflowStage, editorNotes } = req.body;
+      
+      const workflow = await storage.updateEditorialWorkflowStage(id, workflowStage, editorNotes);
+      if (!workflow) {
+        return res.status(404).json({ error: 'Workflow not found' });
+      }
+      
+      res.json(workflow);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update workflow' });
+    }
+  });
+
+  app.post('/api/editorial-workflow/:id/issuu-draft', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Mock Issuu API call - in real implementation, this would use ISSUU API
+      const mockDraftId = `draft-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const workflow = await storage.updateIssuuDraftId(id, mockDraftId);
+      if (!workflow) {
+        return res.status(404).json({ error: 'Workflow not found' });
+      }
+      
+      res.json({ message: 'Draft created successfully', draftId: mockDraftId });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create Issuu draft' });
+    }
+  });
+
+  app.post('/api/editorial-workflow/:id/issuu-publish', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Mock Issuu API call - in real implementation, this would use ISSUU API
+      const mockPublicationId = `pub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      
+      const workflow = await storage.updateIssuuPublicationId(id, mockPublicationId);
+      if (!workflow) {
+        return res.status(404).json({ error: 'Workflow not found' });
+      }
+      
+      res.json({ message: 'Published to Issuu successfully', publicationId: mockPublicationId });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to publish to Issuu' });
+    }
+  });
+
+  // Physical Media API
+  app.get('/api/physical-media', async (req, res) => {
+    try {
+      const media = await storage.getAllPhysicalMedia();
+      res.json(media);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch physical media' });
+    }
+  });
+
+  app.post('/api/physical-media', async (req, res) => {
+    try {
+      const validatedData = insertPhysicalMediaSchema.parse(req.body);
+      const media = await storage.createPhysicalMedia(validatedData);
+      res.status(201).json(media);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid physical media data' });
+    }
+  });
+
+  app.patch('/api/physical-media/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { productionStatus } = req.body;
+      
+      const media = await storage.updatePhysicalMediaStatus(id, productionStatus);
+      if (!media) {
+        return res.status(404).json({ error: 'Physical media not found' });
+      }
+      
+      res.json(media);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update physical media status' });
+    }
+  });
+
+  app.get('/api/physical-media/scan/:physicalId', async (req, res) => {
+    try {
+      const { physicalId } = req.params;
+      const media = await storage.getPhysicalMediaByPhysicalId(physicalId);
+      
+      if (!media) {
+        return res.status(404).json({ error: 'Physical media not found' });
+      }
+      
+      // Parse NFC data and return URL to redirect to
+      const nfcData = JSON.parse(media.nfcData || '{}');
+      res.json({
+        redirectUrl: nfcData.url,
+        title: nfcData.title,
+        type: nfcData.type
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to process NFC scan' });
     }
   });
 

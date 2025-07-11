@@ -1,9 +1,11 @@
 import { 
   users, stations, shows, currentPlayback, djSubmissions, admins, zineSubmissions, zineContent,
+  editorialWorkflow, physicalMedia,
   type User, type InsertUser, type Station, type InsertStation, 
   type Show, type InsertShow, type CurrentPlayback, type InsertCurrentPlayback,
   type DjSubmission, type InsertDjSubmission, type Admin, type InsertAdmin,
-  type ZineSubmission, type InsertZineSubmission, type ZineContent, type InsertZineContent
+  type ZineSubmission, type InsertZineSubmission, type ZineContent, type InsertZineContent,
+  type EditorialWorkflow, type InsertEditorialWorkflow, type PhysicalMedia, type InsertPhysicalMedia
 } from "@shared/schema";
 
 export interface IStorage {
@@ -53,6 +55,21 @@ export interface IStorage {
   getZineContentByCategory(category: string): Promise<ZineContent[]>;
   getZineContentBySlug(slug: string): Promise<ZineContent | undefined>;
   updateZineContentViews(id: number): Promise<void>;
+  
+  // Editorial Workflow methods
+  getAllEditorialWorkflow(): Promise<EditorialWorkflow[]>;
+  getEditorialWorkflowBySubmission(submissionId: number): Promise<EditorialWorkflow | undefined>;
+  createEditorialWorkflow(workflow: InsertEditorialWorkflow): Promise<EditorialWorkflow>;
+  updateEditorialWorkflowStage(id: number, stage: string, notes?: string): Promise<EditorialWorkflow | undefined>;
+  updateIssuuDraftId(id: number, draftId: string): Promise<EditorialWorkflow | undefined>;
+  updateIssuuPublicationId(id: number, publicationId: string): Promise<EditorialWorkflow | undefined>;
+  
+  // Physical Media methods
+  getAllPhysicalMedia(): Promise<PhysicalMedia[]>;
+  getPhysicalMediaBySubmission(submissionId: number): Promise<PhysicalMedia[]>;
+  createPhysicalMedia(media: InsertPhysicalMedia): Promise<PhysicalMedia>;
+  updatePhysicalMediaStatus(id: number, status: string): Promise<PhysicalMedia | undefined>;
+  getPhysicalMediaByPhysicalId(physicalId: string): Promise<PhysicalMedia | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -63,6 +80,8 @@ export class MemStorage implements IStorage {
   private admins: Map<number, Admin>;
   private zineSubmissions: Map<number, ZineSubmission>;
   private zineContent: Map<number, ZineContent>;
+  private editorialWorkflow: Map<number, EditorialWorkflow>;
+  private physicalMedia: Map<number, PhysicalMedia>;
   private currentPlayback: CurrentPlayback | undefined;
   private currentId: number;
 
@@ -74,6 +93,8 @@ export class MemStorage implements IStorage {
     this.admins = new Map();
     this.zineSubmissions = new Map();
     this.zineContent = new Map();
+    this.editorialWorkflow = new Map();
+    this.physicalMedia = new Map();
     this.currentId = 1;
     this.initializeData();
   }
@@ -232,6 +253,59 @@ export class MemStorage implements IStorage {
       createdAt: new Date()
     };
     this.admins.set(1, defaultAdmin);
+
+    // Initialize sample zine submission for testing editorial workflow
+    const sampleZineSubmission: ZineSubmission = {
+      id: 1,
+      authorName: "Elena Martinez",
+      authorEmail: "elena@example.com",
+      authorBio: "Music journalist and cultural critic based in San Antonio",
+      title: "The Underground Sound of San Antonio",
+      subtitle: "A deep dive into the city's experimental music scene",
+      contentType: "article",
+      category: "music",
+      content: `In the heart of San Antonio's Southtown district, a revolution is quietly taking place. Here, in converted warehouses and intimate venues, a new generation of musicians is crafting sounds that challenge conventional definitions of genre...
+
+The scene is diverse, drawing influences from the city's rich cultural heritage while pushing forward into uncharted sonic territories. From the experimental hip-hop collective Ghetto Sage to the ambient soundscapes of Luna Park, these artists are creating something uniquely San Antonian...
+
+What makes this movement particularly fascinating is its relationship with the city's history. The artists aren't rejecting the past but rather incorporating it into their futuristic visions, creating a sound that feels both deeply rooted and completely contemporary.`,
+      excerpt: "Exploring the innovative music scene emerging from San Antonio's underground venues and the artists who are redefining the city's sonic identity.",
+      tags: "san antonio, experimental music, underground scene, cultural criticism",
+      imageUrls: null,
+      audioUrls: null,
+      externalLinks: null,
+      collaborators: null,
+      submissionNotes: "This piece includes interviews with 5 local artists and was researched over 3 months.",
+      status: "submitted",
+      publishedAt: null,
+      submittedAt: new Date(),
+      reviewedAt: null,
+      reviewedBy: null,
+      editorNotes: null,
+      featuredOrder: null,
+      isFeatured: false,
+      viewCount: 0
+    };
+    this.zineSubmissions.set(1, sampleZineSubmission);
+    
+    // Initialize corresponding editorial workflow
+    const sampleWorkflow: EditorialWorkflow = {
+      id: 1,
+      submissionId: 1,
+      workflowStage: "submitted",
+      assignedEditor: null,
+      copyEditorNotes: null,
+      webEditorNotes: null,
+      publisherNotes: null,
+      estimatedPublishDate: null,
+      actualPublishDate: null,
+      priority: "normal",
+      issuuDraftId: null,
+      issuuPublicationId: null,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.editorialWorkflow.set(1, sampleWorkflow);
 
     // Initialize sample DJ submissions
     const sampleSubmissions: DjSubmission[] = [
@@ -729,6 +803,158 @@ export class MemStorage implements IStorage {
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+  }
+
+  // Editorial Workflow methods
+  async getAllEditorialWorkflow(): Promise<EditorialWorkflow[]> {
+    return Array.from(this.editorialWorkflow.values());
+  }
+
+  async getEditorialWorkflowBySubmission(submissionId: number): Promise<EditorialWorkflow | undefined> {
+    return Array.from(this.editorialWorkflow.values()).find(
+      workflow => workflow.submissionId === submissionId
+    );
+  }
+
+  async createEditorialWorkflow(workflow: InsertEditorialWorkflow): Promise<EditorialWorkflow> {
+    const id = this.currentId++;
+    const newWorkflow: EditorialWorkflow = {
+      ...workflow,
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      assignedEditor: workflow.assignedEditor ?? null,
+      copyEditorNotes: workflow.copyEditorNotes ?? null,
+      webEditorNotes: workflow.webEditorNotes ?? null,
+      publisherNotes: workflow.publisherNotes ?? null,
+      estimatedPublishDate: workflow.estimatedPublishDate ?? null,
+      actualPublishDate: workflow.actualPublishDate ?? null,
+      issuuDraftId: workflow.issuuDraftId ?? null,
+      issuuPublicationId: workflow.issuuPublicationId ?? null
+    };
+    this.editorialWorkflow.set(id, newWorkflow);
+    return newWorkflow;
+  }
+
+  async updateEditorialWorkflowStage(id: number, stage: string, notes?: string): Promise<EditorialWorkflow | undefined> {
+    const workflow = this.editorialWorkflow.get(id);
+    if (!workflow) return undefined;
+
+    const updatedWorkflow: EditorialWorkflow = {
+      ...workflow,
+      workflowStage: stage,
+      publisherNotes: notes ?? workflow.publisherNotes,
+      updatedAt: new Date()
+    };
+    
+    this.editorialWorkflow.set(id, updatedWorkflow);
+    return updatedWorkflow;
+  }
+
+  async updateIssuuDraftId(id: number, draftId: string): Promise<EditorialWorkflow | undefined> {
+    const workflow = this.editorialWorkflow.get(id);
+    if (!workflow) return undefined;
+
+    const updatedWorkflow: EditorialWorkflow = {
+      ...workflow,
+      issuuDraftId: draftId,
+      updatedAt: new Date()
+    };
+    
+    this.editorialWorkflow.set(id, updatedWorkflow);
+    return updatedWorkflow;
+  }
+
+  async updateIssuuPublicationId(id: number, publicationId: string): Promise<EditorialWorkflow | undefined> {
+    const workflow = this.editorialWorkflow.get(id);
+    if (!workflow) return undefined;
+
+    const updatedWorkflow: EditorialWorkflow = {
+      ...workflow,
+      issuuPublicationId: publicationId,
+      workflowStage: "published",
+      actualPublishDate: new Date(),
+      updatedAt: new Date()
+    };
+    
+    this.editorialWorkflow.set(id, updatedWorkflow);
+    return updatedWorkflow;
+  }
+
+  // Physical Media methods
+  async getAllPhysicalMedia(): Promise<PhysicalMedia[]> {
+    return Array.from(this.physicalMedia.values());
+  }
+
+  async getPhysicalMediaBySubmission(submissionId: number): Promise<PhysicalMedia[]> {
+    return Array.from(this.physicalMedia.values()).filter(
+      media => media.submissionId === submissionId
+    );
+  }
+
+  async createPhysicalMedia(media: InsertPhysicalMedia): Promise<PhysicalMedia> {
+    const id = this.currentId++;
+    const physicalId = `PM-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Generate NFC data for Issuu.com loading
+    const nfcData = JSON.stringify({
+      action: "open_url",
+      url: `https://issuu.com/enamorado-radio/docs/submission-${media.submissionId}`,
+      title: `Enamorado Radio Zine - Submission ${media.submissionId}`,
+      type: "magazine"
+    });
+
+    // Generate QR code content
+    const qrCode = `https://issuu.com/enamorado-radio/docs/submission-${media.submissionId}`;
+
+    // Generate print specifications based on media type
+    const printSpecs = JSON.stringify({
+      mediaType: media.mediaType,
+      size: media.mediaType === 'mini_cd' ? '8cm diameter' : 
+            media.mediaType === 'nfc_card' ? '85.60 × 53.98 mm' : 
+            '2.5 × 2.5 cm',
+      material: media.mediaType === 'mini_cd' ? 'CD-R with printable surface' : 
+                media.mediaType === 'nfc_card' ? 'PVC card with NFC chip' : 
+                'Vinyl sticker with QR code',
+      nfcChip: media.mediaType === 'nfc_card' ? 'NTAG213' : null,
+      printInstructions: media.mediaType === 'mini_cd' ? 'Print magazine artwork on CD surface' : 
+                         media.mediaType === 'nfc_card' ? 'Magazine cover artwork with NFC chip embedded' : 
+                         'QR code with magazine branding'
+    });
+
+    const newMedia: PhysicalMedia = {
+      ...media,
+      id,
+      physicalId,
+      nfcData,
+      qrCode,
+      printSpecs,
+      createdAt: new Date(),
+      shippedAt: null
+    };
+    
+    this.physicalMedia.set(id, newMedia);
+    return newMedia;
+  }
+
+  async updatePhysicalMediaStatus(id: number, status: string): Promise<PhysicalMedia | undefined> {
+    const media = this.physicalMedia.get(id);
+    if (!media) return undefined;
+
+    const updatedMedia: PhysicalMedia = {
+      ...media,
+      productionStatus: status,
+      shippedAt: status === 'shipped' ? new Date() : media.shippedAt
+    };
+    
+    this.physicalMedia.set(id, updatedMedia);
+    return updatedMedia;
+  }
+
+  async getPhysicalMediaByPhysicalId(physicalId: string): Promise<PhysicalMedia | undefined> {
+    return Array.from(this.physicalMedia.values()).find(
+      media => media.physicalId === physicalId
+    );
   }
 }
 
