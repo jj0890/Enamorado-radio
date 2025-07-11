@@ -28,6 +28,12 @@ interface DJSubmission {
   showDescription: string;
   primaryGenre: string;
   showLength: string;
+  demoMixTitle?: string;
+  demoMixDescription?: string;
+  soundcloudUrl?: string;
+  mixcloudUrl?: string;
+  audiocomUrl?: string;
+  otherUrl?: string;
   status: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
   reviewedBy?: string;
@@ -452,6 +458,60 @@ export default function ScheduleAdmin() {
                       
                       {submission.showDescription && (
                         <p className="text-gray-300 mb-4 text-sm italic">"{submission.showDescription}"</p>
+                      )}
+                      
+                      {/* Demo Mix Information */}
+                      {submission.demoMixTitle && (
+                        <div className="bg-gray-800 rounded p-3 mb-4">
+                          <h4 className="font-semibold text-purple-400 mb-2">Demo Mix: {submission.demoMixTitle}</h4>
+                          {submission.demoMixDescription && (
+                            <p className="text-gray-300 text-sm mb-2">"{submission.demoMixDescription}"</p>
+                          )}
+                          
+                          {/* Streaming Platform Links */}
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {submission.soundcloudUrl && (
+                              <a 
+                                href={submission.soundcloudUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-xs hover:bg-orange-500/30 transition-colors"
+                              >
+                                SoundCloud
+                              </a>
+                            )}
+                            {submission.mixcloudUrl && (
+                              <a 
+                                href={submission.mixcloudUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs hover:bg-blue-500/30 transition-colors"
+                              >
+                                Mixcloud
+                              </a>
+                            )}
+                            {submission.audiocomUrl && (
+                              <a 
+                                href={submission.audiocomUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs hover:bg-green-500/30 transition-colors"
+                              >
+                                Audio.com
+                              </a>
+                            )}
+                            {submission.otherUrl && (
+                              <a 
+                                href={submission.otherUrl} 
+                                target="_blank" 
+                                rel="noopener noreferrer"
+                                className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs hover:bg-purple-500/30 transition-colors"
+                              >
+                                Other Platform
+                              </a>
+                            )}
+                          </div>
+                        </div>
                       )}
                       
                       <div className="flex space-x-2">

@@ -18,6 +18,10 @@ export default function DJSubmit() {
     socialMedia: "",
     demoMixTitle: "",
     demoMixDescription: "",
+    soundcloudUrl: "",
+    mixcloudUrl: "",
+    audiocomUrl: "",
+    otherUrl: "",
     agreeTerms: false,
   });
 
@@ -143,6 +147,10 @@ export default function DJSubmit() {
           socialMedia: "",
           demoMixTitle: "",
           demoMixDescription: "",
+          soundcloudUrl: "",
+          mixcloudUrl: "",
+          audiocomUrl: "",
+          otherUrl: "",
           agreeTerms: false,
         });
         setUploadedFiles([]);
@@ -571,12 +579,87 @@ export default function DJSubmit() {
                   className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300 resize-none"
                 />
               </div>
+
+              {/* Streaming Platform Links */}
+              <div className="bg-black/20 backdrop-blur-sm rounded-3xl p-6 border border-white/10 space-y-4">
+                <h4 className="text-lg font-semibold text-orange-300 flex items-center">
+                  <Music className="w-5 h-5 mr-2" />
+                  Streaming Platform Links
+                </h4>
+                <p className="text-sm text-gray-400 mb-4">
+                  Share your mix from SoundCloud, Mixcloud, Audio.com, or any platform where you host MP3s
+                </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-300 flex items-center">
+                      <div className="w-4 h-4 bg-orange-500 rounded mr-2"></div>
+                      SoundCloud
+                    </label>
+                    <input
+                      type="url"
+                      name="soundcloudUrl"
+                      value={formData.soundcloudUrl || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                      placeholder="https://soundcloud.com/your-mix"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-300 flex items-center">
+                      <div className="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                      Mixcloud
+                    </label>
+                    <input
+                      type="url"
+                      name="mixcloudUrl"
+                      value={formData.mixcloudUrl || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="https://mixcloud.com/your-mix"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-300 flex items-center">
+                      <div className="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                      Audio.com
+                    </label>
+                    <input
+                      type="url"
+                      name="audiocomUrl"
+                      value={formData.audiocomUrl || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                      placeholder="https://audio.com/your-mix"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="block text-sm font-medium text-gray-300 flex items-center">
+                      <div className="w-4 h-4 bg-purple-500 rounded mr-2"></div>
+                      Other Platform
+                    </label>
+                    <input
+                      type="url"
+                      name="otherUrl"
+                      value={formData.otherUrl || ''}
+                      onChange={handleInputChange}
+                      className="w-full px-4 py-3 bg-black/30 border border-white/20 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      placeholder="Any other platform URL"
+                    />
+                  </div>
+                </div>
+              </div>
               
               {/* File Upload Area */}
               <div className="space-y-3">
                 <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
-                  Upload Your Mix
+                  Upload MP3 Files (Optional)
                 </label>
+                <p className="text-sm text-gray-400 mb-2">
+                  Upload your mix files directly, or use the streaming platform links above
+                </p>
                 <div
                   className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all duration-300 ${
                     dragOver 
@@ -593,12 +676,12 @@ export default function DJSubmit() {
                       <Headphones className="w-10 h-10 text-white" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-white mb-2">Drop your mix here</p>
+                      <p className="text-2xl font-bold text-white mb-2">Drop your MP3 files here</p>
                       <p className="text-gray-400 text-lg">or click to browse your files</p>
                     </div>
                     <div className="text-center">
                       <p className="text-sm text-gray-500">
-                        <span className="font-semibold">MP3, WAV, FLAC</span> • Max 100MB per file
+                        <span className="font-semibold">MP3, WAV, FLAC, M4A</span> • Max 100MB per file
                       </p>
                     </div>
                   </div>
@@ -607,7 +690,7 @@ export default function DJSubmit() {
                   type="file"
                   id="fileInput"
                   multiple
-                  accept="audio/*,.pdf,image/*"
+                  accept=".mp3,.wav,.flac,.m4a,.aac"
                   onChange={(e) => e.target.files && handleFileUpload(e.target.files)}
                   className="hidden"
                 />

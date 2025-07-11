@@ -620,7 +620,11 @@ What makes this movement particularly fascinating is its relationship with the c
       musicDiscovery: submission.musicDiscovery ?? null,
       socialMedia: submission.socialMedia ?? null,
       demoMixTitle: submission.demoMixTitle ?? null,
-      demoMixDescription: submission.demoMixDescription ?? null
+      demoMixDescription: submission.demoMixDescription ?? null,
+      soundcloudUrl: submission.soundcloudUrl ?? null,
+      mixcloudUrl: submission.mixcloudUrl ?? null,
+      audiocomUrl: submission.audiocomUrl ?? null,
+      otherUrl: submission.otherUrl ?? null
     };
     this.djSubmissions.set(id, newSubmission);
     return newSubmission;

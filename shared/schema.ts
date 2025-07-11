@@ -61,6 +61,10 @@ export const djSubmissions = pgTable("dj_submissions", {
   socialMedia: text("social_media"),
   demoMixTitle: text("demo_mix_title"),
   demoMixDescription: text("demo_mix_description"),
+  soundcloudUrl: text("soundcloud_url"),
+  mixcloudUrl: text("mixcloud_url"),
+  audiocomUrl: text("audiocom_url"),
+  otherUrl: text("other_url"),
   status: text("status").notNull().default("pending"), // pending, approved, rejected
   submittedAt: timestamp("submitted_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
