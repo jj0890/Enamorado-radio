@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "wouter";
-import { Upload, X, CheckCircle, AlertCircle } from "lucide-react";
+import { Upload, X, CheckCircle, AlertCircle, Music, Radio, Headphones, Mic, Sparkles, Plus, Tag } from "lucide-react";
 
 export default function DJSubmit() {
   const [formData, setFormData] = useState({
@@ -25,6 +25,10 @@ export default function DJSubmit() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [dragOver, setDragOver] = useState(false);
+  const [tags, setTags] = useState<string[]>([]);
+  const [currentTag, setCurrentTag] = useState("");
+  const [isLive, setIsLive] = useState(false);
+  const [artworkPreview, setArtworkPreview] = useState<string | null>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { id, value, type } = e.target;
@@ -47,6 +51,42 @@ export default function DJSubmit() {
     e.preventDefault();
     setDragOver(true);
   };
+
+  const handleArtworkUpload = (files: FileList) => {
+    const file = files[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setArtworkPreview(e.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addTag = (tag: string) => {
+    if (tag.trim() && !tags.includes(tag.trim())) {
+      setTags([...tags, tag.trim()]);
+      setCurrentTag("");
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ',') {
+      e.preventDefault();
+      addTag(currentTag);
+    }
+  };
+
+  const quickActionButtons = [
+    { label: "Live Show", icon: Radio, color: "from-red-500 to-pink-500" },
+    { label: "Mix Series", icon: Music, color: "from-blue-500 to-purple-500" },
+    { label: "Experimental", icon: Sparkles, color: "from-green-500 to-teal-500" },
+    { label: "Interview", icon: Mic, color: "from-orange-500 to-yellow-500" },
+  ];
 
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
@@ -100,35 +140,77 @@ export default function DJSubmit() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="max-w-4xl mx-auto py-8 px-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
+      </div>
+      
+      <div className="relative z-10 max-w-5xl mx-auto py-8 px-4">
         {/* Header */}
-        <div className="text-center mb-8">
-          <Link href="/" className="text-orange-500 hover:text-orange-400 mb-4 inline-block">
-            ← Back to Home
+        <div className="text-center mb-12">
+          <Link href="/" className="text-purple-400 hover:text-purple-300 mb-6 inline-flex items-center group transition-colors">
+            <span className="text-lg group-hover:translate-x-[-4px] transition-transform">←</span>
+            <span className="ml-2">Back to Home</span>
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Join Our DJ Collective</h1>
-          <p className="text-gray-300 text-lg">Share your sound with our community</p>
-        </div>
-
-        {/* Intro Section */}
-        <div className="bg-gradient-to-r from-orange-500/10 to-red-500/10 rounded-lg p-6 mb-8 border border-orange-500/20">
-          <h3 className="text-xl font-semibold mb-3 text-center">Ready to broadcast?</h3>
-          <p className="text-gray-300 text-center">
-            We're looking for passionate DJs who want to share their unique sound with our listeners. 
-            Whether you're spinning experimental beats, deep cuts, or genre-defying mixes, we want to hear from you.
+          
+          {/* Live Status Indicator */}
+          <div className="flex items-center justify-center mb-6">
+            <div className="relative flex items-center">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
+              <span className="text-red-400 font-semibold uppercase text-sm tracking-wide">
+                {isLive ? "ON AIR" : "ACCEPTING SUBMISSIONS"}
+              </span>
+            </div>
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
+            Join the Frequency
+          </h1>
+          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            Share your sonic vision with our experimental collective. 
+            We're seeking artists who push boundaries and redefine what radio can be.
           </p>
         </div>
 
+        {/* Quick Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+          {quickActionButtons.map((button, index) => {
+            const Icon = button.icon;
+            return (
+              <button
+                key={index}
+                onClick={() => setFormData(prev => ({ ...prev, primaryGenre: button.label.toLowerCase() }))}
+                className={`relative group p-6 rounded-2xl bg-gradient-to-r ${button.color} bg-opacity-10 backdrop-blur-sm border border-white/10 hover:border-white/20 transition-all duration-300 hover:scale-105 hover:shadow-2xl`}
+              >
+                <div className="flex flex-col items-center text-center">
+                  <Icon className="w-8 h-8 mb-3 group-hover:scale-110 transition-transform" />
+                  <span className="text-sm font-semibold">{button.label}</span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-gray-800 rounded-lg p-8 space-y-8">
+        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 md:p-12 space-y-12 border border-white/10 shadow-2xl">
           {/* Personal Information */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4 pb-2 border-b-2 border-orange-500">About You</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="djName" className="block text-sm font-medium mb-2">
-                  DJ Name / Artist Name *
+          <div className="space-y-8">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">1</span>
+              </div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                Tell us about yourself
+              </h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <label htmlFor="djName" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  Artist Name *
                 </label>
                 <input
                   type="text"
@@ -136,11 +218,12 @@ export default function DJSubmit() {
                   value={formData.djName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="What do you call yourself?"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
-              <div>
-                <label htmlFor="realName" className="block text-sm font-medium mb-2">
+              <div className="space-y-3">
+                <label htmlFor="realName" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Real Name *
                 </label>
                 <input
@@ -149,11 +232,12 @@ export default function DJSubmit() {
                   value={formData.realName}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Your given name"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
-              <div>
-                <label htmlFor="email" className="block text-sm font-medium mb-2">
+              <div className="space-y-3">
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Email *
                 </label>
                 <input
@@ -162,11 +246,12 @@ export default function DJSubmit() {
                   value={formData.email}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="your@email.com"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
-              <div>
-                <label htmlFor="location" className="block text-sm font-medium mb-2">
+              <div className="space-y-3">
+                <label htmlFor="location" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Location
                 </label>
                 <input
@@ -174,20 +259,28 @@ export default function DJSubmit() {
                   id="location"
                   value={formData.location}
                   onChange={handleInputChange}
-                  placeholder="City, State/Country"
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Where are you broadcasting from?"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
             </div>
           </div>
 
           {/* Show Concept */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4 pb-2 border-b-2 border-orange-500">Your Show Concept</h3>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="showTitle" className="block text-sm font-medium mb-2">
-                  Proposed Show Title *
+          <div className="space-y-8">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-teal-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">2</span>
+              </div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-teal-400 bg-clip-text text-transparent">
+                Your sonic vision
+              </h3>
+            </div>
+            
+            <div className="space-y-8">
+              <div className="space-y-3">
+                <label htmlFor="showTitle" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  Show Title *
                 </label>
                 <input
                   type="text"
@@ -195,26 +288,83 @@ export default function DJSubmit() {
                   value={formData.showTitle}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="What's your show called?"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
-              <div>
-                <label htmlFor="showDescription" className="block text-sm font-medium mb-2">
+              
+              <div className="space-y-3">
+                <label htmlFor="showDescription" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Show Description *
                 </label>
                 <textarea
                   id="showDescription"
                   value={formData.showDescription}
                   onChange={handleInputChange}
-                  placeholder="Describe your show concept, the vibe you want to create, and what makes it unique..."
+                  placeholder="Paint us a picture... What atmosphere will you create? What journey will you take listeners on? What makes your sonic vision unique?"
                   required
-                  rows={4}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  rows={5}
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300 resize-none"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="primaryGenre" className="block text-sm font-medium mb-2">
+              
+              {/* Artwork Upload */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  Show Artwork
+                </label>
+                <div
+                  className={`relative border-2 border-dashed rounded-3xl p-8 text-center transition-all duration-300 ${
+                    dragOver 
+                      ? 'border-purple-400 bg-purple-500/10' 
+                      : 'border-white/20 hover:border-white/40'
+                  }`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={() => setDragOver(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOver(false);
+                    handleArtworkUpload(e.dataTransfer.files);
+                  }}
+                >
+                  {artworkPreview ? (
+                    <div className="relative">
+                      <img 
+                        src={artworkPreview} 
+                        alt="Show artwork" 
+                        className="w-32 h-32 object-cover rounded-2xl mx-auto mb-4"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setArtworkPreview(null)}
+                        className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-4">
+                      <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center mx-auto">
+                        <Upload className="w-8 h-8 text-white" />
+                      </div>
+                      <div>
+                        <p className="text-xl font-semibold text-white mb-2">Drop your artwork here</p>
+                        <p className="text-gray-400">or click to browse</p>
+                      </div>
+                    </div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => e.target.files && handleArtworkUpload(e.target.files)}
+                    className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <label htmlFor="primaryGenre" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                     Primary Genre/Style *
                   </label>
                   <select
@@ -222,19 +372,22 @@ export default function DJSubmit() {
                     value={formData.primaryGenre}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm text-white text-lg transition-all duration-300"
                   >
                     <option value="">Select primary genre...</option>
                     <option value="electronic">Electronic</option>
                     <option value="experimental">Experimental</option>
                     <option value="ambient">Ambient</option>
+                    <option value="drone">Drone</option>
                     <option value="techno">Techno</option>
                     <option value="house">House</option>
+                    <option value="breakbeat">Breakbeat</option>
                     <option value="hip-hop">Hip-Hop</option>
                     <option value="jazz">Jazz</option>
                     <option value="indie">Indie</option>
                     <option value="world">World Music</option>
                     <option value="classical">Classical</option>
+                    <option value="noise">Noise</option>
                     <option value="punk">Punk</option>
                     <option value="metal">Metal</option>
                     <option value="folk">Folk</option>
@@ -243,15 +396,15 @@ export default function DJSubmit() {
                     <option value="other">Other</option>
                   </select>
                 </div>
-                <div>
-                  <label htmlFor="showLength" className="block text-sm font-medium mb-2">
-                    Preferred Show Length
+                <div className="space-y-3">
+                  <label htmlFor="showLength" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                    Show Length
                   </label>
                   <select
                     id="showLength"
                     value={formData.showLength}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent backdrop-blur-sm text-white text-lg transition-all duration-300"
                   >
                     <option value="30">30 minutes</option>
                     <option value="60">1 hour</option>
@@ -260,74 +413,122 @@ export default function DJSubmit() {
                   </select>
                 </div>
               </div>
-              <div>
-                <label htmlFor="additionalGenres" className="block text-sm font-medium mb-2">
-                  Additional Genres/Tags
+              {/* Visual Tag System */}
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  Additional Tags & Genres
                 </label>
-                <input
-                  type="text"
-                  id="additionalGenres"
-                  value={formData.additionalGenres}
-                  onChange={handleInputChange}
-                  placeholder="downtempo, lo-fi, acid, breakbeat, etc."
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+                <div className="space-y-4">
+                  <div className="flex flex-wrap gap-2">
+                    {tags.map((tag, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-2 bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm border border-purple-500/30 rounded-full px-4 py-2 text-sm font-medium"
+                      >
+                        <Tag className="w-3 h-3" />
+                        <span>{tag}</span>
+                        <button
+                          type="button"
+                          onClick={() => removeTag(tag)}
+                          className="w-4 h-4 bg-white/20 rounded-full flex items-center justify-center hover:bg-white/30 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="text"
+                      value={currentTag}
+                      onChange={(e) => setCurrentTag(e.target.value)}
+                      onKeyPress={handleTagKeyPress}
+                      placeholder="Add tags like: downtempo, lo-fi, acid, breakbeat..."
+                      className="flex-1 px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => addTag(currentTag)}
+                      className="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center hover:scale-105 transition-transform"
+                    >
+                      <Plus className="w-6 h-6 text-white" />
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Background */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4 pb-2 border-b-2 border-orange-500">Your Background</h3>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="djExperience" className="block text-sm font-medium mb-2">
+          <div className="space-y-8">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">3</span>
+              </div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-400 bg-clip-text text-transparent">
+                Your musical journey
+              </h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label htmlFor="djExperience" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   DJ Experience
                 </label>
                 <textarea
                   id="djExperience"
                   value={formData.djExperience}
                   onChange={handleInputChange}
-                  placeholder="Tell us about your DJ background, how long you've been mixing, notable gigs, etc."
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Share your story... How did you start? What drives your passion for DJing? Any notable moments or venues?"
+                  rows={4}
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300 resize-none"
                 />
               </div>
-              <div>
-                <label htmlFor="musicDiscovery" className="block text-sm font-medium mb-2">
+              
+              <div className="space-y-3">
+                <label htmlFor="musicDiscovery" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Music Discovery
                 </label>
                 <textarea
                   id="musicDiscovery"
                   value={formData.musicDiscovery}
                   onChange={handleInputChange}
-                  placeholder="How do you discover new music? What sources inspire your selections?"
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Where do you hunt for sounds? Record stores, SoundCloud, Bandcamp, late-night YouTube rabbit holes?"
+                  rows={4}
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300 resize-none"
                 />
               </div>
-              <div>
-                <label htmlFor="socialMedia" className="block text-sm font-medium mb-2">
-                  Social Media / Website
+              
+              <div className="space-y-3">
+                <label htmlFor="socialMedia" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  Online Presence
                 </label>
                 <input
                   type="url"
                   id="socialMedia"
                   value={formData.socialMedia}
                   onChange={handleInputChange}
-                  placeholder="Your SoundCloud, Instagram, website, etc."
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Your SoundCloud, Instagram, website, or wherever you share your work"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
             </div>
           </div>
 
           {/* Demo Mix Upload */}
-          <div>
-            <h3 className="text-xl font-semibold mb-4 pb-2 border-b-2 border-orange-500">Demo Mix</h3>
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="demoMixTitle" className="block text-sm font-medium mb-2">
+          <div className="space-y-8">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-10 h-10 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                <span className="text-white font-bold text-lg">4</span>
+              </div>
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+                Show us your sound
+              </h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <label htmlFor="demoMixTitle" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Mix Title
                 </label>
                 <input
@@ -335,41 +536,55 @@ export default function DJSubmit() {
                   id="demoMixTitle"
                   value={formData.demoMixTitle}
                   onChange={handleInputChange}
-                  placeholder="Title of your demo mix"
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="What's your demo mix called?"
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300"
                 />
               </div>
-              <div>
-                <label htmlFor="demoMixDescription" className="block text-sm font-medium mb-2">
+              
+              <div className="space-y-3">
+                <label htmlFor="demoMixDescription" className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
                   Mix Description
                 </label>
                 <textarea
                   id="demoMixDescription"
                   value={formData.demoMixDescription}
                   onChange={handleInputChange}
-                  placeholder="Describe your mix, the journey you're taking listeners on, and any special tracks or techniques..."
-                  rows={3}
-                  className="w-full px-3 py-2 bg-gray-900 border border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  placeholder="Tell the story of your mix... What journey are you taking us on? Any special tracks or techniques that make it unique?"
+                  rows={4}
+                  className="w-full px-6 py-4 bg-black/20 border border-white/20 rounded-2xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent backdrop-blur-sm text-white placeholder-gray-400 text-lg transition-all duration-300 resize-none"
                 />
               </div>
               
               {/* File Upload Area */}
-              <div>
-                <label className="block text-sm font-medium mb-2">Upload Files</label>
+              <div className="space-y-3">
+                <label className="block text-sm font-semibold text-gray-300 uppercase tracking-wide">
+                  Upload Your Mix
+                </label>
                 <div
-                  className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-all ${
+                  className={`border-2 border-dashed rounded-3xl p-12 text-center cursor-pointer transition-all duration-300 ${
                     dragOver 
-                      ? 'border-blue-500 bg-blue-500/10' 
-                      : 'border-gray-600 hover:border-blue-500 hover:bg-blue-500/5'
+                      ? 'border-orange-400 bg-orange-500/10 scale-105' 
+                      : 'border-white/20 hover:border-orange-400 hover:bg-orange-500/5'
                   }`}
                   onDragOver={handleDragOver}
                   onDragLeave={handleDragLeave}
                   onDrop={handleDrop}
                   onClick={() => document.getElementById('fileInput')?.click()}
                 >
-                  <Upload className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-lg font-medium mb-1">Click to upload or drag and drop</p>
-                  <p className="text-sm text-gray-400">MP3, WAV, FLAC • Max 100MB per file</p>
+                  <div className="space-y-6">
+                    <div className="w-20 h-20 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center mx-auto animate-pulse">
+                      <Headphones className="w-10 h-10 text-white" />
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-white mb-2">Drop your mix here</p>
+                      <p className="text-gray-400 text-lg">or click to browse your files</p>
+                    </div>
+                    <div className="text-center">
+                      <p className="text-sm text-gray-500">
+                        <span className="font-semibold">MP3, WAV, FLAC</span> • Max 100MB per file
+                      </p>
+                    </div>
+                  </div>
                 </div>
                 <input
                   type="file"
@@ -383,70 +598,95 @@ export default function DJSubmit() {
 
               {/* Uploaded Files */}
               {uploadedFiles.length > 0 && (
-                <div className="space-y-2">
-                  <h4 className="font-medium">Uploaded Files:</h4>
-                  {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between bg-gray-900 p-3 rounded-md">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-blue-500 rounded flex items-center justify-center">
-                          <span className="text-xs font-bold">{file.name.split('.').pop()?.toUpperCase()}</span>
+                <div className="space-y-4">
+                  <h4 className="text-lg font-semibold text-gray-300">Uploaded Files:</h4>
+                  <div className="space-y-3">
+                    {uploadedFiles.map((file, index) => (
+                      <div key={index} className="flex items-center justify-between bg-black/20 backdrop-blur-sm p-4 rounded-2xl border border-white/10">
+                        <div className="flex items-center space-x-4">
+                          <div className="w-12 h-12 bg-gradient-to-r from-orange-500 to-red-500 rounded-full flex items-center justify-center">
+                            <span className="text-sm font-bold">{file.name.split('.').pop()?.toUpperCase()}</span>
+                          </div>
+                          <div>
+                            <p className="font-semibold text-white">{file.name}</p>
+                            <p className="text-sm text-gray-400">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-medium">{file.name}</p>
-                          <p className="text-xs text-gray-400">{(file.size / 1024 / 1024).toFixed(1)} MB</p>
-                        </div>
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="w-8 h-8 bg-red-500/20 rounded-full flex items-center justify-center hover:bg-red-500/30 transition-colors"
+                        >
+                          <X className="w-4 h-4 text-red-400" />
+                        </button>
                       </div>
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="text-red-400 hover:text-red-300 transition-colors"
-                      >
-                        <X className="w-5 h-5" />
-                      </button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
           </div>
 
           {/* Terms */}
-          <div className="flex items-start space-x-3">
-            <input
-              type="checkbox"
-              id="agreeTerms"
-              checked={formData.agreeTerms}
-              onChange={handleInputChange}
-              required
-              className="mt-1"
-            />
-            <label htmlFor="agreeTerms" className="text-sm text-gray-300">
-              I agree to the terms and conditions and confirm that I have the rights to all submitted content. 
-              I understand that submissions will be reviewed and I may be contacted for additional information.
-            </label>
+          <div className="bg-black/20 backdrop-blur-sm rounded-3xl p-8 border border-white/10">
+            <div className="flex items-start space-x-4">
+              <input
+                type="checkbox"
+                id="agreeTerms"
+                checked={formData.agreeTerms}
+                onChange={handleInputChange}
+                required
+                className="mt-1 w-5 h-5 rounded border-2 border-white/20 bg-black/20 checked:bg-purple-500 checked:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+              />
+              <label htmlFor="agreeTerms" className="text-gray-300 leading-relaxed">
+                I confirm that I have the rights to all submitted content and agree to Enamorado Radio's terms. 
+                I understand that submissions will be reviewed by our team and I may be contacted for additional information.
+                <br />
+                <span className="text-sm text-gray-500 mt-2 block">
+                  By submitting, you're joining our collective of boundary-pushing artists.
+                </span>
+              </label>
+            </div>
           </div>
 
           {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={isSubmitting || !formData.agreeTerms}
-            className="w-full bg-orange-500 hover:bg-orange-600 disabled:bg-gray-600 disabled:cursor-not-allowed text-white py-3 px-6 rounded-md font-semibold transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100"
-          >
-            {isSubmitting ? (
-              <div className="flex items-center justify-center space-x-2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                <span>Submitting...</span>
-              </div>
-            ) : (
-              'Submit Application'
-            )}
-          </button>
+          <div className="flex flex-col sm:flex-row gap-4 pt-8">
+            <button
+              type="submit"
+              disabled={isSubmitting || !formData.agreeTerms}
+              className="flex-1 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-500 hover:from-purple-600 hover:via-pink-600 hover:to-orange-600 disabled:from-gray-600 disabled:via-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white py-6 px-8 rounded-3xl font-bold text-lg transition-all duration-300 transform hover:scale-105 disabled:hover:scale-100 shadow-2xl"
+            >
+              {isSubmitting ? (
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+                  <span>Transmitting your frequency...</span>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center space-x-3">
+                  <Radio className="w-6 h-6" />
+                  <span>JOIN THE COLLECTIVE</span>
+                </div>
+              )}
+            </button>
+            
+            <Link 
+              href="/"
+              className="flex-1 sm:flex-none bg-black/20 backdrop-blur-sm border border-white/20 hover:border-white/40 text-white py-6 px-8 rounded-3xl font-semibold text-lg transition-all duration-300 hover:bg-black/30 text-center"
+            >
+              Back to Home
+            </Link>
+          </div>
 
           {/* Success Message */}
           {showSuccess && (
-            <div className="bg-green-500/10 border border-green-500/30 text-green-400 p-4 rounded-md flex items-center space-x-2">
-              <CheckCircle className="w-5 h-5" />
-              <span>Application submitted successfully! We'll review your submission and get back to you soon.</span>
+            <div className="bg-gradient-to-r from-green-500/10 to-emerald-500/10 backdrop-blur-sm border border-green-500/30 text-green-400 p-6 rounded-3xl flex items-center space-x-4">
+              <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6" />
+              </div>
+              <div>
+                <h4 className="font-semibold text-lg mb-1">Frequency received!</h4>
+                <p className="text-green-300">Your application has been transmitted to our collective. We'll review your sonic vision and get back to you soon.</p>
+              </div>
             </div>
           )}
         </form>
