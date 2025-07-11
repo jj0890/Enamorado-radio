@@ -3,6 +3,8 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
+import { AudioPlayer } from "../components/AudioPlayer";
+import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
   id: number;
@@ -21,6 +23,8 @@ export default function HomePage() {
   const [currentShow, setCurrentShow] = useState("Deep Routes");
   const [isPlaying, setIsPlaying] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
+  const [currentTrack, setCurrentTrack] = useState<any>(null);
+  const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
 
   // Fetch featured DJ submissions
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
@@ -135,9 +139,25 @@ export default function HomePage() {
     genre: submission.primaryGenre,
     duration: `${submission.showLength} min`,
     soundcloudUrl: submission.soundcloudUrl || submission.mixcloudUrl || submission.audiocomUrl || submission.otherUrl,
+    thumbnail: getTrackThumbnail(submission),
     isSpotlight: index === 0, // First approved submission gets spotlight
     background: index === 0 ? "from-purple-900/20 to-blue-900/20" : "from-red-900/20 to-orange-900/20"
   }));
+
+  const handlePlayTrack = (content: any) => {
+    // Convert content to track format for audio player
+    const track = {
+      id: content.id.toString(),
+      title: content.title,
+      artist: content.artist,
+      artwork: content.thumbnail || "",
+      streamUrl: content.soundcloudUrl || "",
+      duration: content.duration.includes('min') ? parseInt(content.duration) * 60 : 0,
+      genre: content.genre
+    };
+    setCurrentTrack(track);
+    setIsPlayerExpanded(false); // Start with compact player
+  };
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -214,9 +234,15 @@ export default function HomePage() {
         <section className="mb-16">
           <div className="text-center mb-8">
             <h1 className="text-6xl font-bold mb-4">ENAMORADO RADIO</h1>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto">
+            <p className="text-xl text-white/80 max-w-2xl mx-auto mb-6">
               Digital space dedicated to the things we are enamored with
             </p>
+            {featuredContent.length > 0 && (
+              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white/80 text-sm">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span>{featuredContent.length} Featured Mix{featuredContent.length > 1 ? 'es' : ''} Available</span>
+              </div>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
@@ -224,14 +250,32 @@ export default function HomePage() {
               featuredContent.map((content) => (
                 <div key={content.id} className={`bg-gradient-to-br ${content.background} backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10 ${content.isSpotlight ? 'ring-2 ring-purple-500/50' : ''}`}>
                   <div className="aspect-square bg-gradient-to-br from-white/10 to-white/5 rounded-lg mb-4 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-white/80 text-center">
-                        <Music className="w-16 h-16 mx-auto mb-2" />
-                        <div className="text-sm font-medium">{content.genre.toUpperCase()}</div>
-                        {content.isSpotlight && (
-                          <div className="text-xs mt-1 text-purple-300 font-bold">SPOTLIGHT</div>
-                        )}
+                    {content.thumbnail ? (
+                      <img 
+                        src={content.thumbnail} 
+                        alt={content.title}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-white/80 text-center">
+                          <Music className="w-16 h-16 mx-auto mb-2" />
+                          <div className="text-sm font-medium">{content.genre.toUpperCase()}</div>
+                        </div>
                       </div>
+                    )}
+                    {content.isSpotlight && (
+                      <div className="absolute top-3 right-3 bg-purple-500/90 text-white px-2 py-1 rounded-full text-xs font-bold">
+                        SPOTLIGHT
+                      </div>
+                    )}
+                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                      <button 
+                        onClick={() => handlePlayTrack(content)}
+                        className="bg-white/90 hover:bg-white text-black rounded-full p-4 transition-all duration-300 transform hover:scale-110"
+                      >
+                        <Play className="w-8 h-8" />
+                      </button>
                     </div>
                   </div>
                   <div className="text-xs text-white/60 mb-1">{content.genre} • {content.duration}</div>
@@ -241,17 +285,25 @@ export default function HomePage() {
                   </p>
                   <div className="flex items-center justify-between">
                     <span className="text-white/60 text-sm">{content.artist}</span>
-                    {content.soundcloudUrl && (
-                      <a 
-                        href={content.soundcloudUrl} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => handlePlayTrack(content)}
+                        className="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
                       >
                         <Play className="w-3 h-3 mr-1" />
-                        Listen
-                      </a>
-                    )}
+                        Play
+                      </button>
+                      {content.soundcloudUrl && (
+                        <a 
+                          href={content.soundcloudUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                        >
+                          <ChevronRight className="w-3 h-3" />
+                        </a>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))
@@ -461,6 +513,15 @@ export default function HomePage() {
 
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
+
+      {/* Audio Player - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <AudioPlayer
+          track={currentTrack}
+          isExpanded={isPlayerExpanded}
+          onToggleExpanded={() => setIsPlayerExpanded(!isPlayerExpanded)}
+        />
+      </div>
     </div>
   );
 }
