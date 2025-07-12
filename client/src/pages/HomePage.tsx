@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus } from "lucide-react";
+import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
 import { AudioPlayer } from "../components/AudioPlayer";
+import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -25,11 +26,38 @@ export default function HomePage() {
   const [showSearch, setShowSearch] = useState(false);
   const [currentTrack, setCurrentTrack] = useState<any>(null);
   const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
+  const [showSoundCloudEmbed, setShowSoundCloudEmbed] = useState(false);
+  const [selectedTrack, setSelectedTrack] = useState<any>(null);
+  const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
 
   // Fetch featured DJ submissions
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
     queryKey: ['/api/dj-submissions/featured'],
   });
+
+  // Fetch thumbnails for featured submissions
+  useEffect(() => {
+    const fetchThumbnails = async () => {
+      const thumbnails: {[key: number]: string} = {};
+      
+      for (const submission of featuredSubmissions) {
+        try {
+          const thumbnail = await getTrackThumbnail(submission);
+          if (thumbnail) {
+            thumbnails[submission.id] = thumbnail;
+          }
+        } catch (error) {
+          console.error('Error fetching thumbnail for submission', submission.id, error);
+        }
+      }
+      
+      setTrackThumbnails(thumbnails);
+    };
+
+    if (featuredSubmissions.length > 0) {
+      fetchThumbnails();
+    }
+  }, [featuredSubmissions]);
 
   useEffect(() => {
     // Simulate live updates
@@ -139,24 +167,15 @@ export default function HomePage() {
     genre: submission.primaryGenre,
     duration: `${submission.showLength} min`,
     soundcloudUrl: submission.soundcloudUrl || submission.mixcloudUrl || submission.audiocomUrl || submission.otherUrl,
-    thumbnail: getTrackThumbnail(submission),
+    thumbnail: trackThumbnails[submission.id],
     isSpotlight: index === 0, // First approved submission gets spotlight
     background: index === 0 ? "from-purple-900/20 to-blue-900/20" : "from-red-900/20 to-orange-900/20"
   }));
 
   const handlePlayTrack = (content: any) => {
-    // Convert content to track format for audio player
-    const track = {
-      id: content.id.toString(),
-      title: content.title,
-      artist: content.artist,
-      artwork: content.thumbnail || "",
-      streamUrl: content.soundcloudUrl || "",
-      duration: content.duration.includes('min') ? parseInt(content.duration) * 60 : 0,
-      genre: content.genre
-    };
-    setCurrentTrack(track);
-    setIsPlayerExpanded(false); // Start with compact player
+    // Open SoundCloud embed modal for direct playback
+    setSelectedTrack(content);
+    setShowSoundCloudEmbed(true);
   };
 
   return (
@@ -514,8 +533,44 @@ export default function HomePage() {
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
 
+      {/* SoundCloud Embed Modal */}
+      {showSoundCloudEmbed && selectedTrack && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-white text-xl font-bold">{selectedTrack.title}</h3>
+                <p className="text-white/70">{selectedTrack.artist}</p>
+              </div>
+              <button
+                onClick={() => setShowSoundCloudEmbed(false)}
+                className="text-white/60 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+            
+            <SoundCloudEmbed
+              url={selectedTrack.soundcloudUrl}
+              title={selectedTrack.title}
+              artist={selectedTrack.artist}
+              height={300}
+              className="mb-4"
+            />
+            
+            <div className="text-white/60 text-sm">
+              <p className="mb-2">{selectedTrack.description}</p>
+              <div className="flex items-center gap-4">
+                <span>{selectedTrack.genre}</span>
+                <span>{selectedTrack.duration}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Audio Player - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-50">
+      <div className="fixed bottom-0 left-0 right-0 z-40">
         <AudioPlayer
           track={currentTrack}
           isExpanded={isPlayerExpanded}
