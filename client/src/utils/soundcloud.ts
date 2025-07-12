@@ -84,8 +84,11 @@ export async function getTrackThumbnail(submission: any): Promise<string | null>
 // Extract SoundCloud embed URL from regular URL
 export function getSoundCloudEmbedUrl(url: string): string | null {
   try {
+    // Clean the URL to remove query parameters that might interfere
+    const cleanUrl = url.split('?')[0];
+    
     // Convert regular SoundCloud URL to embed URL
-    const embedUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`;
+    const embedUrl = `https://w.soundcloud.com/player/?url=${encodeURIComponent(cleanUrl)}&color=%23ff5500&auto_play=false&hide_related=false&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`;
     return embedUrl;
   } catch (error) {
     console.error('Error creating SoundCloud embed URL:', error);

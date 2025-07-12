@@ -264,11 +264,91 @@ export default function HomePage() {
             )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {featuredContent.length > 0 ? (
-              featuredContent.map((content) => (
-                <div key={content.id} className={`bg-gradient-to-br ${content.background} backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10 ${content.isSpotlight ? 'ring-2 ring-purple-500/50' : ''}`}>
-                  <div className="aspect-square bg-gradient-to-br from-white/10 to-white/5 rounded-lg mb-4 relative overflow-hidden">
+          {/* Featured Content - Main Highlight */}
+          {featuredContent.length > 0 && (
+            <div className="max-w-4xl mx-auto mb-12">
+              <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
+                <div className="flex flex-col lg:flex-row gap-8 items-center">
+                  {/* Artwork Section */}
+                  <div className="flex-shrink-0">
+                    <div className="w-64 h-64 rounded-xl overflow-hidden bg-gradient-to-br from-white/10 to-white/5 relative">
+                      {featuredContent[0].thumbnail ? (
+                        <img 
+                          src={featuredContent[0].thumbnail} 
+                          alt={featuredContent[0].title}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-white/80 text-center">
+                            <Music className="w-16 h-16 mx-auto mb-2" />
+                            <div className="text-sm font-medium">{featuredContent[0].genre.toUpperCase()}</div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                        <button 
+                          onClick={() => handlePlayTrack(featuredContent[0])}
+                          className="bg-white/90 hover:bg-white text-black rounded-full p-6 transition-all duration-300 transform hover:scale-110"
+                        >
+                          <Play className="w-12 h-12" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Content Section */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                      FEATURED MIX
+                    </div>
+                    
+                    <h2 className="text-4xl font-bold mb-2 text-white">{featuredContent[0].title}</h2>
+                    <p className="text-2xl text-white/80 mb-4">{featuredContent[0].artist}</p>
+                    
+                    <p className="text-white/70 text-lg mb-6 max-w-2xl">
+                      {featuredContent[0].description}
+                    </p>
+                    
+                    <div className="flex items-center justify-center lg:justify-start gap-4 mb-6">
+                      <span className="text-white/60 text-sm">{featuredContent[0].genre}</span>
+                      <span className="text-white/60 text-sm">•</span>
+                      <span className="text-white/60 text-sm">{featuredContent[0].duration}</span>
+                    </div>
+                    
+                    <div className="flex items-center justify-center lg:justify-start gap-4">
+                      <button 
+                        onClick={() => handlePlayTrack(featuredContent[0])}
+                        className="bg-white text-black px-8 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-white/90 transition-colors"
+                      >
+                        <Play className="w-5 h-5" />
+                        Play Now
+                      </button>
+                      {featuredContent[0].soundcloudUrl && (
+                        <a 
+                          href={featuredContent[0].soundcloudUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"
+                        >
+                          Listen on SoundCloud
+                          <ChevronRight className="w-4 h-4" />
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          {/* Additional Featured Tracks */}
+          {featuredContent.length > 1 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+              {featuredContent.slice(1).map((content) => (
+                <div key={content.id} className="bg-white/5 backdrop-blur-sm rounded-lg p-4 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
+                  <div className="aspect-square bg-gradient-to-br from-white/10 to-white/5 rounded-lg mb-3 relative overflow-hidden">
                     {content.thumbnail ? (
                       <img 
                         src={content.thumbnail} 
@@ -278,110 +358,91 @@ export default function HomePage() {
                     ) : (
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div className="text-white/80 text-center">
-                          <Music className="w-16 h-16 mx-auto mb-2" />
-                          <div className="text-sm font-medium">{content.genre.toUpperCase()}</div>
+                          <Music className="w-12 h-12 mx-auto mb-2" />
+                          <div className="text-xs font-medium">{content.genre.toUpperCase()}</div>
                         </div>
-                      </div>
-                    )}
-                    {content.isSpotlight && (
-                      <div className="absolute top-3 right-3 bg-purple-500/90 text-white px-2 py-1 rounded-full text-xs font-bold">
-                        SPOTLIGHT
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
                       <button 
                         onClick={() => handlePlayTrack(content)}
-                        className="bg-white/90 hover:bg-white text-black rounded-full p-4 transition-all duration-300 transform hover:scale-110"
+                        className="bg-white/90 hover:bg-white text-black rounded-full p-3 transition-all duration-300 transform hover:scale-110"
                       >
-                        <Play className="w-8 h-8" />
+                        <Play className="w-6 h-6" />
                       </button>
                     </div>
                   </div>
                   <div className="text-xs text-white/60 mb-1">{content.genre} • {content.duration}</div>
-                  <h3 className="text-lg font-semibold mb-2">{content.title}</h3>
-                  <p className="text-white/70 text-sm mb-3">
-                    {content.description}
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60 text-sm">{content.artist}</span>
-                    <div className="flex items-center gap-2">
-                      <button 
-                        onClick={() => handlePlayTrack(content)}
-                        className="bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
-                      >
-                        <Play className="w-3 h-3 mr-1" />
-                        Play
-                      </button>
-                      {content.soundcloudUrl && (
-                        <a 
-                          href={content.soundcloudUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
-                        >
-                          <ChevronRight className="w-3 h-3" />
-                        </a>
-                      )}
+                  <h3 className="text-sm font-semibold mb-1">{content.title}</h3>
+                  <p className="text-white/70 text-xs mb-2">{content.artist}</p>
+                  <button 
+                    onClick={() => handlePlayTrack(content)}
+                    className="w-full bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded text-xs flex items-center justify-center gap-1 transition-colors"
+                  >
+                    <Play className="w-3 h-3" />
+                    Play
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          {/* Fallback when no featured content */}
+          {featuredContent.length === 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+              {/* Default content when no featured submissions */}
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
+                <div className="aspect-square bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg mb-4 relative overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white/80 text-center">
+                      <Music className="w-16 h-16 mx-auto mb-2" />
+                      <div className="text-sm font-medium">FEATURED MIX</div>
                     </div>
                   </div>
                 </div>
-              ))
-            ) : (
-              // Default content when no featured submissions
-              <>
-                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-                  <div className="aspect-square bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg mb-4 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-white/80 text-center">
-                        <Music className="w-16 h-16 mx-auto mb-2" />
-                        <div className="text-sm font-medium">FEATURED MIX</div>
-                      </div>
+                <div className="text-xs text-white/60 mb-1">DECEMBER 15, 2024</div>
+                <h3 className="text-lg font-semibold mb-2">Submit Your Mix</h3>
+                <p className="text-white/70 text-sm mb-3">
+                  Be the first to have your mix featured on our homepage
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Your Name Here</span>
+                  <Link 
+                    href="/dj-submit"
+                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                  >
+                    <Plus className="w-3 h-3 mr-1" />
+                    Submit
+                  </Link>
+                </div>
+              </div>
+              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
+                <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 relative overflow-hidden">
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-white/80 text-center">
+                      <Radio className="w-16 h-16 mx-auto mb-2" />
+                      <div className="text-sm font-medium">LIVE NOW</div>
                     </div>
                   </div>
-                  <div className="text-xs text-white/60 mb-1">DECEMBER 15, 2024</div>
-                  <h3 className="text-lg font-semibold mb-2">Submit Your Mix</h3>
-                  <p className="text-white/70 text-sm mb-3">
-                    Be the first to have your mix featured on our homepage
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60 text-sm">Your Name Here</span>
-                    <Link 
-                      href="/dj-submit"
-                      className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
-                    >
-                      <Plus className="w-3 h-3 mr-1" />
-                      Submit
-                    </Link>
+                  <div className="absolute top-3 right-3">
+                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
                   </div>
                 </div>
-                <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-                  <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 relative overflow-hidden">
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="text-white/80 text-center">
-                        <Radio className="w-16 h-16 mx-auto mb-2" />
-                        <div className="text-sm font-medium">LIVE NOW</div>
-                      </div>
-                    </div>
-                    <div className="absolute top-3 right-3">
-                      <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                    </div>
-                  </div>
-                  <div className="text-xs text-white/60 mb-1">LIVE • 8:00 PM GMT</div>
-                  <h3 className="text-lg font-semibold mb-2">Deep Routes</h3>
-                  <p className="text-white/70 text-sm mb-3">
-                    Deep house specialist with 15+ years digging through Detroit's underground
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-white/60 text-sm">Marcus Rivera</span>
-                    <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
-                      <Play className="w-3 h-3 mr-1" />
-                      Listen
-                    </button>
-                  </div>
+                <div className="text-xs text-white/60 mb-1">LIVE • 8:00 PM GMT</div>
+                <h3 className="text-lg font-semibold mb-2">Deep Routes</h3>
+                <p className="text-white/70 text-sm mb-3">
+                  Deep house specialist with 15+ years digging through Detroit's underground
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-white/60 text-sm">Marcus Rivera</span>
+                  <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
+                    <Play className="w-3 h-3 mr-1" />
+                    Listen
+                  </button>
                 </div>
-              </>
-            )}
-          </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Guides Section - macOS Style */}
