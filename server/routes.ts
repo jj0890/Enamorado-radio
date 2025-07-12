@@ -271,6 +271,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const submissions = await storage.getAllDjSubmissions();
       const approvedSubmissions = submissions
         .filter(submission => submission.status === 'approved')
+        .sort((a, b) => {
+          // Sort by reviewedAt (newest first), then by submittedAt as fallback
+          const aTime = a.reviewedAt ? new Date(a.reviewedAt).getTime() : new Date(a.submittedAt).getTime();
+          const bTime = b.reviewedAt ? new Date(b.reviewedAt).getTime() : new Date(b.submittedAt).getTime();
+          return bTime - aTime;
+        })
         .slice(0, 4); // Get top 4 for homepage
       res.json(approvedSubmissions);
     } catch (error) {

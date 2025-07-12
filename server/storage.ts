@@ -307,7 +307,7 @@ What makes this movement particularly fascinating is its relationship with the c
     };
     this.editorialWorkflow.set(1, sampleWorkflow);
 
-    // Initialize sample DJ submissions
+    // Initialize sample DJ submissions (keeping minimal test data)
     const sampleSubmissions: DjSubmission[] = [
       {
         id: 1,
@@ -330,28 +330,6 @@ What makes this movement particularly fascinating is its relationship with the c
         reviewedAt: null,
         reviewedBy: null,
         notes: null
-      },
-      {
-        id: 2,
-        djName: "Vinyl Junkie",
-        realName: "David Chen",
-        email: "david@example.com",
-        location: "Austin, TX",
-        showTitle: "Rare Grooves",
-        showDescription: "Deep cuts and rare finds from decades of vinyl collecting",
-        primaryGenre: "soul",
-        showLength: 90,
-        additionalGenres: "funk, jazz, r&b",
-        djExperience: "10+ years collecting and DJing vinyl",
-        musicDiscovery: "Record stores, estate sales, collector networks",
-        socialMedia: "https://instagram.com/vinyljunkie",
-        demoMixTitle: "Deep Cuts Vol. 1",
-        demoMixDescription: "Rare soul and funk from my personal collection",
-        status: "approved",
-        submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        reviewedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        reviewedBy: "admin",
-        notes: "Great submission, approved for regular slot"
       }
     ];
 
