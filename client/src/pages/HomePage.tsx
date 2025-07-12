@@ -31,9 +31,14 @@ export default function HomePage() {
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
 
   // Fetch featured DJ submissions
-  const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
+  const { data: featuredSubmissions = [], isLoading, error } = useQuery<FeaturedSubmission[]>({
     queryKey: ['/api/dj-submissions/featured'],
   });
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Featured submissions query:', { featuredSubmissions, isLoading, error });
+  }, [featuredSubmissions, isLoading, error]);
 
   // Fetch thumbnails for featured submissions
   useEffect(() => {
@@ -48,6 +53,7 @@ export default function HomePage() {
           }
         } catch (error) {
           console.error('Error fetching thumbnail for submission', submission.id, error);
+          // Continue with other submissions even if one fails
         }
       }
       
@@ -55,7 +61,9 @@ export default function HomePage() {
     };
 
     if (featuredSubmissions.length > 0) {
-      fetchThumbnails();
+      fetchThumbnails().catch(error => {
+        console.error('Error in fetchThumbnails:', error);
+      });
     }
   }, [featuredSubmissions]);
 
@@ -171,6 +179,12 @@ export default function HomePage() {
     isSpotlight: index === 0, // First approved submission gets spotlight
     background: index === 0 ? "from-purple-900/20 to-blue-900/20" : "from-red-900/20 to-orange-900/20"
   }));
+
+  // Debug logging for featured content
+  useEffect(() => {
+    console.log('Featured content length:', featuredContent.length);
+    console.log('Featured content:', featuredContent);
+  }, [featuredContent]);
 
   const handlePlayTrack = (content: any) => {
     // Open SoundCloud embed modal for direct playback
