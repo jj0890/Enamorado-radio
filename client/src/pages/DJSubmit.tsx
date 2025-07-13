@@ -192,12 +192,18 @@ export default function DJSubmit() {
           </div>
           
           <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-            Join the Frequency
+            Share Your Mix
           </h1>
           <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Share your sonic vision with our experimental collective. 
-            We're seeking artists who push boundaries and redefine what radio can be.
+            We celebrate artists and their craft. Share your work with our community for potential featuring, 
+            airplay, or collaboration opportunities. <strong>All submissions are reviewed with respect for your artistic vision.</strong>
           </p>
+          <div className="mt-6 p-4 bg-purple-500/20 rounded-lg border border-purple-500/30 max-w-3xl mx-auto">
+            <p className="text-sm text-purple-200">
+              <strong>Important:</strong> By submitting, you maintain full ownership of your work. 
+              We only feature content with explicit artist consent and will discuss any compensation for regular programming.
+            </p>
+          </div>
         </div>
 
         {/* Quick Action Buttons */}

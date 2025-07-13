@@ -131,6 +131,10 @@ Changelog:
 - July 12, 2025. Implemented SoundCloud embed modal for authentic audio playback experience
 - July 12, 2025. Added dynamic thumbnail loading from actual SoundCloud tracks using their API
 - July 12, 2025. Redesigned homepage layout with prominent featured mix display similar to modern music platforms
+- July 13, 2025. Improved artist submission ethics with respectful language and consent-focused messaging
+- July 13, 2025. Enhanced featured content card design with square aspect ratio and "Featured Mix of the Month" branding
+- July 13, 2025. Updated submission process to emphasize artist ownership, consent, and fair compensation practices
+- July 13, 2025. Changed "Become a DJ" button to "Submit a Mix" with more inclusive community messaging
 
 ## User Preferences
 

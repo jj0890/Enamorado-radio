@@ -278,7 +278,7 @@ export default function HomePage() {
                 <div className="flex flex-col lg:flex-row gap-8 items-center">
                   {/* Artwork Section */}
                   <div className="flex-shrink-0">
-                    <div className="w-64 h-64 rounded-xl overflow-hidden bg-gradient-to-br from-white/10 to-white/5 relative">
+                    <div className="w-80 h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-white/10 to-white/5 relative">
                       {featuredContent[0].thumbnail ? (
                         <img 
                           src={featuredContent[0].thumbnail} 
@@ -306,9 +306,9 @@ export default function HomePage() {
                   
                   {/* Content Section */}
                   <div className="flex-1 text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-3 py-1 rounded-full text-sm font-medium mb-4">
+                    <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm font-medium mb-4">
                       <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                      FEATURED MIX
+                      FEATURED MIX OF THE MONTH
                     </div>
                     
                     <h2 className="text-4xl font-bold mb-2 text-white">{featuredContent[0].title}</h2>
@@ -330,7 +330,7 @@ export default function HomePage() {
                         className="bg-white text-black px-8 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-white/90 transition-colors"
                       >
                         <Play className="w-5 h-5" />
-                        Play Now
+                        Listen Here
                       </button>
                       {featuredContent[0].soundcloudUrl && (
                         <a 
@@ -559,17 +559,17 @@ export default function HomePage() {
         <section className="mb-16">
           <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-8 border border-white/10">
             <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl font-bold mb-4">JOIN OUR COMMUNITY</h2>
+              <h2 className="text-3xl font-bold mb-4">SHARE YOUR ART</h2>
               <p className="text-white/70 mb-6">
-                Be part of a growing community of music lovers, artists, and creators. 
-                Share your passion and discover new sounds together.
+                Join our community of artists and creators. We respect your work and provide 
+                opportunities for featuring, airplay, and collaboration with fair compensation practices.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/dj-submit"
                   className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                 >
-                  Become a DJ
+                  Submit a Mix
                 </Link>
                 <Link
                   href="/zine"
