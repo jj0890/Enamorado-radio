@@ -35,10 +35,7 @@ export default function HomePage() {
     queryKey: ['/api/dj-submissions/featured'],
   });
 
-  // Debug logging
-  useEffect(() => {
-    console.log('Featured submissions query:', { featuredSubmissions, isLoading, error });
-  }, [featuredSubmissions, isLoading, error]);
+
 
   // Fetch thumbnails for featured submissions
   useEffect(() => {
@@ -180,11 +177,7 @@ export default function HomePage() {
     background: index === 0 ? "from-purple-900/20 to-blue-900/20" : "from-red-900/20 to-orange-900/20"
   }));
 
-  // Debug logging for featured content
-  useEffect(() => {
-    console.log('Featured content length:', featuredContent.length);
-    console.log('Featured content:', featuredContent);
-  }, [featuredContent]);
+
 
   const handlePlayTrack = (content: any) => {
     // Open SoundCloud embed modal for direct playback
