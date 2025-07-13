@@ -13,7 +13,9 @@ import {
   insertEditorialWorkflowSchema,
   insertPhysicalMediaSchema,
   insertMixUploadSchema,
-  insertMixTracklistSchema
+  insertMixTracklistSchema,
+  insertEpisodeSchema,
+  insertEpisodeTracklistSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -731,6 +733,100 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to process NFC scan' });
+    }
+  });
+
+  // Episode routes
+  app.get('/api/episodes', async (req, res) => {
+    try {
+      const episodes = await storage.getAllEpisodes();
+      res.json(episodes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch episodes' });
+    }
+  });
+
+  app.get('/api/episodes/featured', async (req, res) => {
+    try {
+      const episodes = await storage.getFeaturedEpisodes();
+      res.json(episodes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch featured episodes' });
+    }
+  });
+
+  app.get('/api/episodes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const episode = await storage.getEpisode(id);
+      if (!episode) {
+        return res.status(404).json({ error: 'Episode not found' });
+      }
+      res.json(episode);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch episode' });
+    }
+  });
+
+  app.post('/api/episodes', async (req, res) => {
+    try {
+      const validatedData = insertEpisodeSchema.parse(req.body);
+      const episode = await storage.createEpisode(validatedData);
+      res.status(201).json(episode);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid episode data' });
+    }
+  });
+
+  app.get('/api/episodes/host/:hostName', async (req, res) => {
+    try {
+      const hostName = req.params.hostName;
+      const episodes = await storage.getEpisodesByHost(hostName);
+      res.json(episodes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch episodes by host' });
+    }
+  });
+
+  app.get('/api/episodes/series/:seriesTitle', async (req, res) => {
+    try {
+      const seriesTitle = req.params.seriesTitle;
+      const episodes = await storage.getEpisodesBySeries(seriesTitle);
+      res.json(episodes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch episodes by series' });
+    }
+  });
+
+  // Episode Tracklist routes
+  app.get('/api/episode-tracklist/:episodeId', async (req, res) => {
+    try {
+      const episodeId = parseInt(req.params.episodeId);
+      const tracks = await storage.getEpisodeTracklist(episodeId);
+      res.json(tracks);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch episode tracklist' });
+    }
+  });
+
+  app.post('/api/episode-tracklist', async (req, res) => {
+    try {
+      const validatedData = insertEpisodeTracklistSchema.parse(req.body);
+      const track = await storage.createEpisodeTrack(validatedData);
+      res.status(201).json(track);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid episode track data' });
+    }
+  });
+
+  app.get('/api/episode-tracklist/:episodeId/current-track', async (req, res) => {
+    try {
+      const episodeId = parseInt(req.params.episodeId);
+      const currentTime = parseInt(req.query.time as string) || 0;
+      const track = await storage.getCurrentEpisodeTrackByTime(episodeId, currentTime);
+      res.json(track || null);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch current episode track' });
     }
   });
 

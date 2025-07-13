@@ -193,6 +193,52 @@ export const mixTracklist = pgTable("mix_tracklist", {
   bpm: integer("bpm"),
   key: text("key"), // musical key
   notes: text("notes"), // DJ notes about the track
+  spotifyId: text("spotify_id"), // Spotify track ID for "Search on Spotify"
+  soundcloudUrl: text("soundcloud_url"), // Original SoundCloud URL
+  youtubeUrl: text("youtube_url"), // YouTube URL
+  discogsUrl: text("discogs_url"), // Discogs URL for vinyl info
+  isSpotifyAvailable: boolean("is_spotify_available").default(false),
+});
+
+// Episodes table for organizing mixes into series like NTS Radio
+export const episodes = pgTable("episodes", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  episodeNumber: integer("episode_number"),
+  seriesTitle: text("series_title"), // e.g., "Late Night Sessions", "Footwork Fridays"
+  hostName: text("host_name").notNull(),
+  airDate: timestamp("air_date").notNull(),
+  duration: integer("duration").notNull(), // in seconds
+  audioUrl: text("audio_url").notNull(), // path to episode audio
+  artworkUrl: text("artwork_url"),
+  tags: text("tags").array(), // genre tags like ["RAP", "HIP HOP", "RNB"]
+  isLive: boolean("is_live").default(false),
+  isFeatured: boolean("is_featured").default(false),
+  viewCount: integer("view_count").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Episode tracklist for NTS-style track listings
+export const episodeTracklist = pgTable("episode_tracklist", {
+  id: serial("id").primaryKey(),
+  episodeId: integer("episode_id").references(() => episodes.id),
+  trackNumber: integer("track_number").notNull(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  startTime: integer("start_time").notNull(), // timestamp in seconds when track starts
+  endTime: integer("end_time"), // timestamp in seconds when track ends
+  label: text("label"), // record label
+  year: integer("year"), // release year
+  genre: text("genre"),
+  bpm: integer("bpm"),
+  key: text("key"), // musical key
+  notes: text("notes"), // DJ notes about the track
+  spotifyId: text("spotify_id"), // For "Search on Spotify" functionality
+  soundcloudUrl: text("soundcloud_url"),
+  youtubeUrl: text("youtube_url"),
+  discogsUrl: text("discogs_url"),
+  isSpotifyAvailable: boolean("is_spotify_available").default(false),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
@@ -269,6 +315,16 @@ export const insertMixTracklistSchema = createInsertSchema(mixTracklist).omit({
   id: true,
 });
 
+export const insertEpisodeSchema = createInsertSchema(episodes).omit({
+  id: true,
+  createdAt: true,
+  viewCount: true,
+});
+
+export const insertEpisodeTracklistSchema = createInsertSchema(episodeTracklist).omit({
+  id: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Station = typeof stations.$inferSelect;
@@ -293,3 +349,7 @@ export type MixUpload = typeof mixUploads.$inferSelect;
 export type MixTracklist = typeof mixTracklist.$inferSelect;
 export type InsertMixUpload = z.infer<typeof insertMixUploadSchema>;
 export type InsertMixTracklist = z.infer<typeof insertMixTracklistSchema>;
+export type Episode = typeof episodes.$inferSelect;
+export type EpisodeTracklist = typeof episodeTracklist.$inferSelect;
+export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
+export type InsertEpisodeTracklist = z.infer<typeof insertEpisodeTracklistSchema>;

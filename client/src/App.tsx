@@ -13,6 +13,8 @@ import EditorialWorkflow from "./pages/EditorialWorkflow";
 import Discover from "./pages/Discover";
 import MixUpload from "./pages/MixUpload";
 import LiveMixDemo from "./pages/LiveMixDemo";
+import EpisodesBrowser from "./pages/EpisodesBrowser";
+import EpisodeView from "./pages/EpisodeView";
 
 function Router() {
   return (
@@ -29,6 +31,8 @@ function Router() {
       <Route path="/zine/submit" component={ZineSubmit} />
       <Route path="/mix-upload" component={MixUpload} />
       <Route path="/live-mix-demo" component={LiveMixDemo} />
+      <Route path="/episodes" component={EpisodesBrowser} />
+      <Route path="/episode/:id" component={EpisodeView} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">

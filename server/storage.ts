@@ -1,11 +1,13 @@
 import { 
   users, stations, shows, currentPlayback, djSubmissions, admins, zineSubmissions, zineContent,
-  editorialWorkflow, physicalMedia,
+  editorialWorkflow, physicalMedia, mixUploads, mixTracklist, episodes, episodeTracklist,
   type User, type InsertUser, type Station, type InsertStation, 
   type Show, type InsertShow, type CurrentPlayback, type InsertCurrentPlayback,
   type DjSubmission, type InsertDjSubmission, type Admin, type InsertAdmin,
   type ZineSubmission, type InsertZineSubmission, type ZineContent, type InsertZineContent,
-  type EditorialWorkflow, type InsertEditorialWorkflow, type PhysicalMedia, type InsertPhysicalMedia
+  type EditorialWorkflow, type InsertEditorialWorkflow, type PhysicalMedia, type InsertPhysicalMedia,
+  type MixUpload, type InsertMixUpload, type MixTracklist, type InsertMixTracklist,
+  type Episode, type InsertEpisode, type EpisodeTracklist, type InsertEpisodeTracklist
 } from "@shared/schema";
 
 export interface IStorage {
@@ -81,6 +83,19 @@ export interface IStorage {
   getMixTracklist(mixId: number): Promise<MixTracklist[]>;
   createMixTrack(track: InsertMixTracklist): Promise<MixTracklist>;
   getCurrentTrackByTime(mixId: number, currentTime: number): Promise<MixTracklist | undefined>;
+  
+  // Episode methods
+  getAllEpisodes(): Promise<Episode[]>;
+  getEpisode(id: number): Promise<Episode | undefined>;
+  createEpisode(episode: InsertEpisode): Promise<Episode>;
+  getFeaturedEpisodes(): Promise<Episode[]>;
+  getEpisodesByHost(hostName: string): Promise<Episode[]>;
+  getEpisodesBySeries(seriesTitle: string): Promise<Episode[]>;
+  
+  // Episode Tracklist methods
+  getEpisodeTracklist(episodeId: number): Promise<EpisodeTracklist[]>;
+  createEpisodeTrack(track: InsertEpisodeTracklist): Promise<EpisodeTracklist>;
+  getCurrentEpisodeTrackByTime(episodeId: number, currentTime: number): Promise<EpisodeTracklist | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -95,6 +110,8 @@ export class MemStorage implements IStorage {
   private physicalMedia: Map<number, PhysicalMedia>;
   private mixUploads: Map<number, MixUpload>;
   private mixTracklist: Map<number, MixTracklist>;
+  private episodes: Map<number, Episode>;
+  private episodeTracklist: Map<number, EpisodeTracklist>;
   private currentPlayback: CurrentPlayback | undefined;
   private currentId: number;
 
@@ -110,9 +127,12 @@ export class MemStorage implements IStorage {
     this.physicalMedia = new Map();
     this.mixUploads = new Map();
     this.mixTracklist = new Map();
+    this.episodes = new Map();
+    this.episodeTracklist = new Map();
     this.currentId = 1;
     this.initializeData();
     this.initializeMixData();
+    this.initializeEpisodeData();
   }
 
   private initializeData() {
@@ -1349,6 +1369,85 @@ What makes this movement particularly fascinating is its relationship with the c
       track.startTime <= currentTime && 
       (track.endTime === null || track.endTime >= currentTime)
     );
+  }
+
+  // Episode methods
+  async getAllEpisodes(): Promise<Episode[]> {
+    return Array.from(this.episodes.values());
+  }
+
+  async getEpisode(id: number): Promise<Episode | undefined> {
+    return this.episodes.get(id);
+  }
+
+  async createEpisode(episode: InsertEpisode): Promise<Episode> {
+    const id = this.currentId++;
+    const newEpisode: Episode = {
+      id,
+      ...episode,
+      viewCount: 0,
+      createdAt: new Date(),
+    };
+    this.episodes.set(id, newEpisode);
+    return newEpisode;
+  }
+
+  async getFeaturedEpisodes(): Promise<Episode[]> {
+    return Array.from(this.episodes.values()).filter(episode => episode.isFeatured);
+  }
+
+  async getEpisodesByHost(hostName: string): Promise<Episode[]> {
+    return Array.from(this.episodes.values()).filter(episode => episode.hostName === hostName);
+  }
+
+  async getEpisodesBySeries(seriesTitle: string): Promise<Episode[]> {
+    return Array.from(this.episodes.values()).filter(episode => episode.seriesTitle === seriesTitle);
+  }
+
+  // Episode Tracklist methods
+  async getEpisodeTracklist(episodeId: number): Promise<EpisodeTracklist[]> {
+    return Array.from(this.episodeTracklist.values())
+      .filter(track => track.episodeId === episodeId)
+      .sort((a, b) => a.trackNumber - b.trackNumber);
+  }
+
+  async createEpisodeTrack(track: InsertEpisodeTracklist): Promise<EpisodeTracklist> {
+    const id = this.currentId++;
+    const newTrack: EpisodeTracklist = {
+      id,
+      ...track,
+    };
+    this.episodeTracklist.set(id, newTrack);
+    return newTrack;
+  }
+
+  async getCurrentEpisodeTrackByTime(episodeId: number, currentTime: number): Promise<EpisodeTracklist | undefined> {
+    const tracks = Array.from(this.episodeTracklist.values()).filter(track => track.episodeId === episodeId);
+    return tracks.find(track => currentTime >= track.startTime && (track.endTime === null || currentTime < track.endTime));
+  }
+
+  // Initialize sample episode data
+  private initializeEpisodeData() {
+    // Convert your existing mix into an episode
+    const jarradEpisode: Episode = {
+      id: 1,
+      title: "how did i do",
+      description: "A footwork-heavy mix featuring tracks from Arma, DJ Earl, DJ Rashad, and more underground artists from the Texas scene.",
+      episodeNumber: 1,
+      seriesTitle: "Footwork Fridays",
+      hostName: "Jarrad",
+      airDate: new Date("2024-12-01"),
+      duration: 2516, // 41:56 in seconds
+      audioUrl: "https://on.soundcloud.com/JBVQVj7oTbVFUdARA",
+      artworkUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
+      tags: ["RAP", "HIP HOP", "FOOTWORK", "ELECTRONIC"],
+      isLive: false,
+      isFeatured: true,
+      viewCount: 0,
+      createdAt: new Date(),
+    };
+    
+    this.episodes.set(1, jarradEpisode);
   }
 }
 
