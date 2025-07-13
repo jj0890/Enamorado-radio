@@ -845,17 +845,17 @@ What makes this movement particularly fascinating is its relationship with the c
       },
       {
         id: 2,
-        title: "Midnight Frequencies",
-        artist: "Luna Park",
-        description: "A journey through ambient soundscapes for late night listening",
-        genre: "Ambient",
-        duration: 3600, // 60 minutes
+        title: "how did i do",
+        artist: "Jarrad Jones",
+        description: "Hip-hop and grime mix showcasing raw talent and creativity",
+        genre: "Hip-Hop",
+        duration: 2516, // 41:56 minutes
         fileUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
-        artworkUrl: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=300&h=300&fit=crop",
+        artworkUrl: "https://audio.com/s3w/audio.com.static/user/avatar/06/05/1796473882060506.jpeg@300?qlt=75",
         isLive: false,
-        isFeatured: false,
+        isFeatured: true,
         uploadedAt: new Date(),
-        uploadedBy: "admin",
+        uploadedBy: "jarrad-jones",
       },
     ];
 
