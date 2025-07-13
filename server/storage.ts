@@ -310,6 +310,29 @@ What makes this movement particularly fascinating is its relationship with the c
     // Initialize sample DJ submissions (keeping minimal test data)
     const sampleSubmissions: DjSubmission[] = [
       {
+        id: 15,
+        djName: "Jarrad",
+        realName: "Jarrad Jones",
+        email: "jarrad@scumbagjones.com",
+        location: "Chicago, IL",
+        showTitle: "Footwork Sessions",
+        showDescription: "Deep footwork and juke selections for the underground dance scene",
+        primaryGenre: "Electronic",
+        showLength: 45,
+        additionalGenres: "Footwork, Juke, Electronic",
+        djExperience: "10+ years in Chicago footwork scene",
+        musicDiscovery: "Underground footwork producers and local Chicago scene",
+        socialMedia: "https://soundcloud.com/scumbagjones1",
+        demoMixTitle: "New Mix (Mostly Footwork/Juke)",
+        demoMixDescription: "High energy footwork and juke tracks for the dance floor",
+        soundcloudUrl: "https://soundcloud.com/scumbagjones1/new-mix-mostly-footwork-juke",
+        status: "approved",
+        submittedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+        reviewedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        reviewedBy: "admin",
+        notes: "Featured footwork mix"
+      },
+      {
         id: 1,
         djName: "Luna Park",
         realName: "Luna Martinez",
