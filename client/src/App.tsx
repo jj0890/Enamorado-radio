@@ -11,6 +11,8 @@ import ZineArchive from "./pages/ZineArchive";
 import ZineSubmit from "./pages/ZineSubmit";
 import EditorialWorkflow from "./pages/EditorialWorkflow";
 import Discover from "./pages/Discover";
+import MixUpload from "./pages/MixUpload";
+import LiveMixDemo from "./pages/LiveMixDemo";
 
 function Router() {
   return (
@@ -25,6 +27,8 @@ function Router() {
       <Route path="/schedule" component={Schedule} />
       <Route path="/zine" component={ZineArchive} />
       <Route path="/zine/submit" component={ZineSubmit} />
+      <Route path="/mix-upload" component={MixUpload} />
+      <Route path="/live-mix-demo" component={LiveMixDemo} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">

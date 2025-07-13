@@ -100,6 +100,13 @@ export default function HomePage() {
       icon: "⚙️",
       description: "Technical requirements",
       color: "from-orange-500 to-red-500"
+    },
+    {
+      id: "live-mix-demo",
+      title: "Live Mix Demo",
+      icon: "🎵",
+      description: "Try our custom audio player",
+      color: "from-purple-500 to-pink-500"
     }
   ];
 
@@ -458,11 +465,20 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold">GUIDES</h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {guides.map((guide) => (
               <div
                 key={guide.id}
                 className="group relative cursor-pointer"
+                onClick={() => {
+                  if (guide.id === "live-mix-demo") {
+                    window.location.href = "/live-mix-demo";
+                  } else if (guide.id === "dj-guide") {
+                    window.location.href = "/dj-submit";
+                  } else if (guide.id === "submission-guide") {
+                    window.location.href = "/mix-upload";
+                  }
+                }}
               >
                 <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center text-4xl shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl border border-white/10">
                   <span className="group-hover:scale-125 transition-transform duration-300">

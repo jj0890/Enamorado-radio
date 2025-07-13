@@ -162,6 +162,39 @@ export const physicalMedia = pgTable("physical_media", {
   shippedAt: timestamp("shipped_at"),
 });
 
+// Custom Mix Upload System
+export const mixUploads = pgTable("mix_uploads", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(), // DJ name
+  description: text("description"),
+  genre: text("genre").notNull(),
+  duration: integer("duration").notNull(), // in seconds
+  fileUrl: text("file_url").notNull(), // path to uploaded MP3
+  artworkUrl: text("artwork_url"), // mix artwork
+  isLive: boolean("is_live").default(false),
+  isFeatured: boolean("is_featured").default(false),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  uploadedBy: text("uploaded_by").notNull(), // admin username
+});
+
+// Tracklist for custom mixes
+export const mixTracklist = pgTable("mix_tracklist", {
+  id: serial("id").primaryKey(),
+  mixId: integer("mix_id").references(() => mixUploads.id),
+  trackNumber: integer("track_number").notNull(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  startTime: integer("start_time").notNull(), // timestamp in seconds when track starts
+  endTime: integer("end_time"), // timestamp in seconds when track ends
+  label: text("label"), // record label
+  year: integer("year"), // release year
+  genre: text("genre"),
+  bpm: integer("bpm"),
+  key: text("key"), // musical key
+  notes: text("notes"), // DJ notes about the track
+});
+
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
@@ -227,6 +260,15 @@ export const insertPhysicalMediaSchema = createInsertSchema(physicalMedia).omit(
   shippedAt: true,
 });
 
+export const insertMixUploadSchema = createInsertSchema(mixUploads).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export const insertMixTracklistSchema = createInsertSchema(mixTracklist).omit({
+  id: true,
+});
+
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 export type Station = typeof stations.$inferSelect;
@@ -247,3 +289,7 @@ export type InsertZineSubmission = z.infer<typeof insertZineSubmissionSchema>;
 export type InsertZineContent = z.infer<typeof insertZineContentSchema>;
 export type InsertEditorialWorkflow = z.infer<typeof insertEditorialWorkflowSchema>;
 export type InsertPhysicalMedia = z.infer<typeof insertPhysicalMediaSchema>;
+export type MixUpload = typeof mixUploads.$inferSelect;
+export type MixTracklist = typeof mixTracklist.$inferSelect;
+export type InsertMixUpload = z.infer<typeof insertMixUploadSchema>;
+export type InsertMixTracklist = z.infer<typeof insertMixTracklistSchema>;

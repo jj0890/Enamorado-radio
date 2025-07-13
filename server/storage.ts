@@ -70,6 +70,17 @@ export interface IStorage {
   createPhysicalMedia(media: InsertPhysicalMedia): Promise<PhysicalMedia>;
   updatePhysicalMediaStatus(id: number, status: string): Promise<PhysicalMedia | undefined>;
   getPhysicalMediaByPhysicalId(physicalId: string): Promise<PhysicalMedia | undefined>;
+  
+  // Mix Upload methods
+  getAllMixUploads(): Promise<MixUpload[]>;
+  getMixUpload(id: number): Promise<MixUpload | undefined>;
+  createMixUpload(upload: InsertMixUpload): Promise<MixUpload>;
+  updateMixUploadStatus(id: number, isLive: boolean, isFeatured: boolean): Promise<MixUpload | undefined>;
+  
+  // Mix Tracklist methods
+  getMixTracklist(mixId: number): Promise<MixTracklist[]>;
+  createMixTrack(track: InsertMixTracklist): Promise<MixTracklist>;
+  getCurrentTrackByTime(mixId: number, currentTime: number): Promise<MixTracklist | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -82,6 +93,8 @@ export class MemStorage implements IStorage {
   private zineContent: Map<number, ZineContent>;
   private editorialWorkflow: Map<number, EditorialWorkflow>;
   private physicalMedia: Map<number, PhysicalMedia>;
+  private mixUploads: Map<number, MixUpload>;
+  private mixTracklist: Map<number, MixTracklist>;
   private currentPlayback: CurrentPlayback | undefined;
   private currentId: number;
 
@@ -95,8 +108,11 @@ export class MemStorage implements IStorage {
     this.zineContent = new Map();
     this.editorialWorkflow = new Map();
     this.physicalMedia = new Map();
+    this.mixUploads = new Map();
+    this.mixTracklist = new Map();
     this.currentId = 1;
     this.initializeData();
+    this.initializeMixData();
   }
 
   private initializeData() {
@@ -810,6 +826,176 @@ What makes this movement particularly fascinating is its relationship with the c
       .trim();
   }
 
+  private initializeMixData() {
+    // Sample mix uploads with realistic data
+    const sampleMixes: MixUpload[] = [
+      {
+        id: 1,
+        title: "Footwork Sessions Vol. 1",
+        artist: "Jarrad",
+        description: "High energy footwork and juke tracks for the dance floor",
+        genre: "Electronic",
+        duration: 2700, // 45 minutes
+        fileUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        artworkUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=300&h=300&fit=crop",
+        isLive: true,
+        isFeatured: true,
+        uploadedAt: new Date(),
+        uploadedBy: "admin",
+      },
+      {
+        id: 2,
+        title: "Midnight Frequencies",
+        artist: "Luna Park",
+        description: "A journey through ambient soundscapes for late night listening",
+        genre: "Ambient",
+        duration: 3600, // 60 minutes
+        fileUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3",
+        artworkUrl: "https://images.unsplash.com/photo-1571330735066-03aaa9429d89?w=300&h=300&fit=crop",
+        isLive: false,
+        isFeatured: false,
+        uploadedAt: new Date(),
+        uploadedBy: "admin",
+      },
+    ];
+
+    // Sample tracklist for the first mix
+    const sampleTracklist: MixTracklist[] = [
+      {
+        id: 1,
+        mixId: 1,
+        trackNumber: 1,
+        title: "Footwork Anthem",
+        artist: "DJ Rashad",
+        startTime: 0,
+        endTime: 180,
+        label: "Hyperdub",
+        year: 2013,
+        genre: "Footwork",
+        bpm: 160,
+        key: "Am",
+        notes: "Opening track with heavy 808s",
+      },
+      {
+        id: 2,
+        mixId: 1,
+        trackNumber: 2,
+        title: "Juke Bounce",
+        artist: "RP Boo",
+        startTime: 180,
+        endTime: 360,
+        label: "Planet Mu",
+        year: 2013,
+        genre: "Juke",
+        bpm: 155,
+        key: "Cm",
+        notes: "Classic juke rhythm",
+      },
+      {
+        id: 3,
+        mixId: 1,
+        trackNumber: 3,
+        title: "Teklife Forever",
+        artist: "DJ Spinn",
+        startTime: 360,
+        endTime: 540,
+        label: "Teklife",
+        year: 2014,
+        genre: "Footwork",
+        bpm: 165,
+        key: "Gm",
+        notes: "Tribute to the scene",
+      },
+      {
+        id: 4,
+        mixId: 1,
+        trackNumber: 4,
+        title: "Ghost Notes",
+        artist: "Machinedrum",
+        startTime: 540,
+        endTime: 720,
+        label: "Ninja Tune",
+        year: 2015,
+        genre: "Electronic",
+        bpm: 170,
+        key: "Dm",
+        notes: "Experimental footwork fusion",
+      },
+      {
+        id: 5,
+        mixId: 1,
+        trackNumber: 5,
+        title: "Chicago Steppin",
+        artist: "Traxman",
+        startTime: 720,
+        endTime: 900,
+        label: "Dance Mania",
+        year: 2012,
+        genre: "Juke",
+        bpm: 150,
+        key: "F",
+        notes: "Classic Chicago sound",
+      },
+      // Second mix tracklist
+      {
+        id: 6,
+        mixId: 2,
+        trackNumber: 1,
+        title: "Nebula Drift",
+        artist: "Tim Hecker",
+        startTime: 0,
+        endTime: 420,
+        label: "Kranky",
+        year: 2019,
+        genre: "Ambient",
+        bpm: null,
+        key: "D",
+        notes: "Atmospheric opener",
+      },
+      {
+        id: 7,
+        mixId: 2,
+        trackNumber: 2,
+        title: "Weightless",
+        artist: "Marconi Union",
+        startTime: 420,
+        endTime: 840,
+        label: "Just Music",
+        year: 2011,
+        genre: "Ambient",
+        bpm: null,
+        key: "G",
+        notes: "Scientifically designed to reduce anxiety",
+      },
+      {
+        id: 8,
+        mixId: 2,
+        trackNumber: 3,
+        title: "The Blue Notebooks",
+        artist: "Max Richter",
+        startTime: 840,
+        endTime: 1260,
+        label: "130701",
+        year: 2004,
+        genre: "Neoclassical",
+        bpm: null,
+        key: "A",
+        notes: "Contemporary classical meets ambient",
+      },
+    ];
+
+    // Store the sample data
+    sampleMixes.forEach(mix => {
+      this.mixUploads.set(mix.id, mix);
+      this.currentId = Math.max(this.currentId, mix.id + 1);
+    });
+
+    sampleTracklist.forEach(track => {
+      this.mixTracklist.set(track.id, track);
+      this.currentId = Math.max(this.currentId, track.id + 1);
+    });
+  }
+
   // Editorial Workflow methods
   async getAllEditorialWorkflow(): Promise<EditorialWorkflow[]> {
     return Array.from(this.editorialWorkflow.values());
@@ -959,6 +1145,74 @@ What makes this movement particularly fascinating is its relationship with the c
   async getPhysicalMediaByPhysicalId(physicalId: string): Promise<PhysicalMedia | undefined> {
     return Array.from(this.physicalMedia.values()).find(
       media => media.physicalId === physicalId
+    );
+  }
+
+  // Mix Upload methods
+  async getAllMixUploads(): Promise<MixUpload[]> {
+    return Array.from(this.mixUploads.values());
+  }
+
+  async getMixUpload(id: number): Promise<MixUpload | undefined> {
+    return this.mixUploads.get(id);
+  }
+
+  async createMixUpload(upload: InsertMixUpload): Promise<MixUpload> {
+    const id = this.currentId++;
+    const newMixUpload: MixUpload = {
+      ...upload,
+      id,
+      uploadedAt: new Date(),
+      isLive: upload.isLive ?? false,
+      isFeatured: upload.isFeatured ?? false,
+    };
+    this.mixUploads.set(id, newMixUpload);
+    return newMixUpload;
+  }
+
+  async updateMixUploadStatus(id: number, isLive: boolean, isFeatured: boolean): Promise<MixUpload | undefined> {
+    const mixUpload = this.mixUploads.get(id);
+    if (!mixUpload) return undefined;
+
+    const updatedMixUpload: MixUpload = {
+      ...mixUpload,
+      isLive,
+      isFeatured,
+    };
+    
+    this.mixUploads.set(id, updatedMixUpload);
+    return updatedMixUpload;
+  }
+
+  // Mix Tracklist methods
+  async getMixTracklist(mixId: number): Promise<MixTracklist[]> {
+    return Array.from(this.mixTracklist.values())
+      .filter(track => track.mixId === mixId)
+      .sort((a, b) => a.trackNumber - b.trackNumber);
+  }
+
+  async createMixTrack(track: InsertMixTracklist): Promise<MixTracklist> {
+    const id = this.currentId++;
+    const newTrack: MixTracklist = {
+      ...track,
+      id,
+      endTime: track.endTime ?? null,
+      label: track.label ?? null,
+      year: track.year ?? null,
+      genre: track.genre ?? null,
+      bpm: track.bpm ?? null,
+      key: track.key ?? null,
+      notes: track.notes ?? null,
+    };
+    this.mixTracklist.set(id, newTrack);
+    return newTrack;
+  }
+
+  async getCurrentTrackByTime(mixId: number, currentTime: number): Promise<MixTracklist | undefined> {
+    const tracks = await this.getMixTracklist(mixId);
+    return tracks.find(track => 
+      track.startTime <= currentTime && 
+      (track.endTime === null || track.endTime >= currentTime)
     );
   }
 }

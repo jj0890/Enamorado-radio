@@ -11,7 +11,9 @@ import {
   insertZineSubmissionSchema,
   insertZineContentSchema,
   insertEditorialWorkflowSchema,
-  insertPhysicalMediaSchema
+  insertPhysicalMediaSchema,
+  insertMixUploadSchema,
+  insertMixTracklistSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -600,6 +602,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(media);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch physical media' });
+    }
+  });
+
+  // Mix Upload API
+  app.get('/api/mix-uploads', async (req, res) => {
+    try {
+      const uploads = await storage.getAllMixUploads();
+      res.json(uploads);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch mix uploads' });
+    }
+  });
+
+  app.get('/api/mix-uploads/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const upload = await storage.getMixUpload(id);
+      if (!upload) {
+        return res.status(404).json({ error: 'Mix upload not found' });
+      }
+      res.json(upload);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch mix upload' });
+    }
+  });
+
+  app.post('/api/mix-uploads', async (req, res) => {
+    try {
+      const validatedData = insertMixUploadSchema.parse(req.body);
+      const upload = await storage.createMixUpload(validatedData);
+      res.status(201).json(upload);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid mix upload data' });
+    }
+  });
+
+  app.patch('/api/mix-uploads/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { isLive, isFeatured } = req.body;
+      
+      const upload = await storage.updateMixUploadStatus(id, isLive, isFeatured);
+      if (!upload) {
+        return res.status(404).json({ error: 'Mix upload not found' });
+      }
+      
+      res.json(upload);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update mix upload status' });
+    }
+  });
+
+  // Mix Tracklist API
+  app.get('/api/mix-uploads/:mixId/tracklist', async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.mixId);
+      const tracklist = await storage.getMixTracklist(mixId);
+      res.json(tracklist);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch tracklist' });
+    }
+  });
+
+  app.post('/api/mix-uploads/:mixId/tracklist', async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.mixId);
+      const validatedData = insertMixTracklistSchema.parse({ ...req.body, mixId });
+      const track = await storage.createMixTrack(validatedData);
+      res.status(201).json(track);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid track data' });
+    }
+  });
+
+  app.get('/api/mix-uploads/:mixId/current-track', async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.mixId);
+      const currentTime = parseInt(req.query.time as string) || 0;
+      const track = await storage.getCurrentTrackByTime(mixId, currentTime);
+      res.json(track || null);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch current track' });
     }
   });
 
