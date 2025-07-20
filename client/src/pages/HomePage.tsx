@@ -72,41 +72,39 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Redirect guides to the new dedicated guides page
   const guides = [
     {
-      id: "dj-guide",
-      title: "DJ Guide",
-      icon: "🎧",
-      description: "Complete guide to DJing",
-      color: "from-purple-500 to-pink-500"
+      id: "guides",
+      title: "Artist Guides",
+      icon: "🎵",
+      description: "Deep dives into artists and genres",
+      color: "from-purple-500 to-pink-500",
+      route: "/guides"
     },
     {
-      id: "submission-guide",
-      title: "Submission Guide",
-      icon: "📝",
-      description: "How to submit your work",
-      color: "from-blue-500 to-teal-500"
+      id: "albums",
+      title: "Albums of the Month",
+      icon: "💿",
+      description: "Curated monthly album picks",
+      color: "from-blue-500 to-teal-500", 
+      route: "/albums"
     },
     {
-      id: "community-guide",
-      title: "Community Guide",
-      icon: "👥",
-      description: "Join our community",
-      color: "from-green-500 to-emerald-500"
-    },
-    {
-      id: "technical-guide",
-      title: "Technical Guide",
-      icon: "⚙️",
-      description: "Technical requirements",
-      color: "from-orange-500 to-red-500"
+      id: "episodes",
+      title: "Radio Episodes",
+      icon: "📻",
+      description: "Browse all radio episodes",
+      color: "from-green-500 to-emerald-500",
+      route: "/episodes"
     },
     {
       id: "live-mix-demo",
       title: "Live Mix Demo",
-      icon: "🎵",
+      icon: "🎧",
       description: "Try our custom audio player",
-      color: "from-purple-500 to-pink-500"
+      color: "from-orange-500 to-red-500",
+      route: "/live-mix-demo"
     }
   ];
 
@@ -467,19 +465,9 @@ export default function HomePage() {
           
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
             {guides.map((guide) => (
-              <div
-                key={guide.id}
-                className="group relative cursor-pointer"
-                onClick={() => {
-                  if (guide.id === "live-mix-demo") {
-                    window.location.href = "/live-mix-demo";
-                  } else if (guide.id === "dj-guide") {
-                    window.location.href = "/dj-submit";
-                  } else if (guide.id === "submission-guide") {
-                    window.location.href = "/mix-upload";
-                  }
-                }}
-              >
+              <Link key={guide.id} href={guide.route}>
+                <div className="group relative cursor-pointer">
+              
                 <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center text-4xl shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl border border-white/10">
                   <span className="group-hover:scale-125 transition-transform duration-300">
                     {guide.icon}
@@ -494,7 +482,8 @@ export default function HomePage() {
                   <h4 className="font-semibold text-white text-sm mb-1">{guide.title}</h4>
                   <p className="text-white/90 text-xs">{guide.description}</p>
                 </div>
-              </div>
+                </div>
+              </Link>
             ))}
           </div>
         </section>
