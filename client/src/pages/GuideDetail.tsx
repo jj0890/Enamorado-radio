@@ -35,7 +35,7 @@ export default function GuideDetail() {
   // Mock guide data - would come from API
   const guide: GuideData = {
     id: 1,
-    title: "Guide to Earl Sweatshirt",
+    title: "Enamorado Guide to Earl Sweatshirt",
     description: "Dive into the artistry of Earl Sweatshirt and explore his unique approach to hip-hop, showcasing his introspective lyrics, unconventional production, and artistic evolution from Odd Future to his solo career.",
     author: "Jarrad",
     coverImage: "@assets/IMG_0231_1752971370281.PNG",

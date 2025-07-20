@@ -18,7 +18,7 @@ export default function Guides() {
   const guides: Guide[] = [
     {
       id: 1,
-      title: "Guide to Earl Sweatshirt",
+      title: "Enamorado Guide to Earl Sweatshirt",
       description: "Deep dive into Earl's artistic evolution and discography",
       author: "Jarrad",
       episodeCount: 8,
@@ -26,7 +26,7 @@ export default function Guides() {
     },
     {
       id: 2,
-      title: "Jazz Essentials",
+      title: "Enamorado Guide to Jazz Essentials",
       description: "Explore the soulful roots of jazz with this essential collection",
       author: "Lauren",
       episodeCount: 12,
@@ -34,7 +34,7 @@ export default function Guides() {
     },
     {
       id: 3,
-      title: "Hip-Hop Classics",
+      title: "Enamorado Guide to Hip-Hop Classics",
       description: "Dive deep into the tracks that defined hip-hop culture",
       author: "Marcus",
       episodeCount: 15,
@@ -42,7 +42,7 @@ export default function Guides() {
     },
     {
       id: 4,
-      title: "Electronic Vibes",
+      title: "Enamorado Guide to Electronic Vibes",
       description: "Journey through electronic music's evolution",
       author: "Riley",
       episodeCount: 10,
@@ -50,7 +50,7 @@ export default function Guides() {
     },
     {
       id: 5,
-      title: "Indie Hits",
+      title: "Enamorado Guide to Indie Hits",
       description: "The indie gems that shaped alternative music",
       author: "Sam",
       episodeCount: 6,
@@ -58,7 +58,7 @@ export default function Guides() {
     },
     {
       id: 6,
-      title: "Ambient Sounds",
+      title: "Enamorado Guide to Ambient Sounds",
       description: "Atmospheric music for deep listening and relaxation",
       author: "Alex",
       episodeCount: 9,

@@ -144,6 +144,7 @@ Changelog:
 - July 20, 2025. Created macOS folder-style guide navigation system for artist deep dives and genre exploration
 - July 20, 2025. Implemented iPod Cover Flow-inspired album showcase with vinyl record hover effects
 - July 20, 2025. Added content discovery system balancing radio episodes with curated guides and monthly album picks
+- July 20, 2025. Updated guide naming convention to "Enamorado Guide to..." format for brand consistency
 
 ## User Preferences
 
