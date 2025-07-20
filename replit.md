@@ -140,6 +140,10 @@ Changelog:
 - July 13, 2025. Implemented professional audio player with seeking, volume controls, and track metadata display
 - July 13, 2025. Added Jarrad's "how did i do" mix with complete 12-track listing and SoundCloud integration
 - July 13, 2025. Created mix upload workflow with step-by-step process for detailed track information entry
+- July 20, 2025. Built comprehensive NTS-inspired episode system with Spotify integration for music discovery
+- July 20, 2025. Created macOS folder-style guide navigation system for artist deep dives and genre exploration
+- July 20, 2025. Implemented iPod Cover Flow-inspired album showcase with vinyl record hover effects
+- July 20, 2025. Added content discovery system balancing radio episodes with curated guides and monthly album picks
 
 ## User Preferences
 

@@ -15,6 +15,9 @@ import MixUpload from "./pages/MixUpload";
 import LiveMixDemo from "./pages/LiveMixDemo";
 import EpisodesBrowser from "./pages/EpisodesBrowser";
 import EpisodeView from "./pages/EpisodeView";
+import Guides from "./pages/Guides";
+import GuideDetail from "./pages/GuideDetail";
+import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 
 function Router() {
   return (
@@ -33,6 +36,9 @@ function Router() {
       <Route path="/live-mix-demo" component={LiveMixDemo} />
       <Route path="/episodes" component={EpisodesBrowser} />
       <Route path="/episode/:id" component={EpisodeView} />
+      <Route path="/guides" component={Guides} />
+      <Route path="/guide/:id" component={GuideDetail} />
+      <Route path="/albums" component={AlbumsOfTheMonth} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">
