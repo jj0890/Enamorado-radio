@@ -72,7 +72,7 @@ export default function HomePage() {
     return () => clearInterval(interval);
   }, []);
 
-  // Redirect guides to the new dedicated guides page
+  // Centralized guides navigation
   const guides = [
     {
       id: "guides",
@@ -99,12 +99,12 @@ export default function HomePage() {
       route: "/episodes"
     },
     {
-      id: "live-mix-demo",
-      title: "Live Mix Demo",
+      id: "mix-submission",
+      title: "Mix Submission",
       icon: "🎧",
-      description: "Try our custom audio player",
+      description: "Submit your mix to our platform",
       color: "from-orange-500 to-red-500",
-      route: "/live-mix-demo"
+      route: "/mix-upload"
     }
   ];
 
@@ -463,7 +463,8 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold">GUIDES</h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
+          <div className="flex justify-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl">
             {guides.map((guide) => (
               <Link key={guide.id} href={guide.route}>
                 <div className="group relative cursor-pointer">
@@ -485,6 +486,20 @@ export default function HomePage() {
                 </div>
               </Link>
             ))}
+            </div>
+          </div>
+          
+          {/* Bottom Navigation */}
+          <div className="flex justify-center gap-8 mt-12 pt-8 border-t border-white/10">
+            <Link href="/" className="text-white/70 hover:text-white transition-colors text-sm font-medium">
+              Back to Home
+            </Link>
+            <Link href="/about" className="text-white/70 hover:text-white transition-colors text-sm font-medium">
+              About Us
+            </Link>
+            <Link href="/albums" className="text-white/70 hover:text-white transition-colors text-sm font-medium">
+              Check Out Editorial
+            </Link>
           </div>
         </section>
 
