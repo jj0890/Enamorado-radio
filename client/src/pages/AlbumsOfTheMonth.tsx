@@ -1,8 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Play, ExternalLink, ChevronLeft, ChevronRight, Disc } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { enrichMultipleAlbums, type AlbumInfo } from '@/../../shared/musicApi';
 
 interface Album {
   id: number;
@@ -23,7 +24,37 @@ interface Album {
 export default function AlbumsOfTheMonth() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [isVinylVisible, setIsVinylVisible] = useState<number | null>(null);
+  const [enrichedAlbums, setEnrichedAlbums] = useState<Album[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Enrich albums with real artwork on component mount
+  useEffect(() => {
+    const loadAlbumArtwork = async () => {
+      const albumsToEnrich = albums.map(album => ({
+        id: album.id.toString(),
+        title: album.title,
+        artist: album.artist,
+        coverUrl: album.coverUrl,
+        spotifyUrl: album.spotifyUrl
+      }));
+
+      const enriched = await enrichMultipleAlbums(albumsToEnrich);
+      
+      // Merge back with original album data
+      const updatedAlbums = albums.map(album => {
+        const enrichedData = enriched.find(e => e.id === album.id.toString());
+        return {
+          ...album,
+          coverUrl: enrichedData?.coverUrl || album.coverUrl,
+          spotifyUrl: enrichedData?.spotifyUrl || album.spotifyUrl
+        };
+      });
+      
+      setEnrichedAlbums(updatedAlbums);
+    };
+
+    loadAlbumArtwork();
+  }, []);
 
   // Mock data - would come from API
   const albums: Album[] = [
@@ -99,27 +130,27 @@ export default function AlbumsOfTheMonth() {
   };
 
   return (
-    <div className="bg-neutral-950 text-white min-h-screen">
-      <div className="max-w-7xl mx-auto px-6 py-16">
-        {/* Editorial Header */}
-        <div className="mb-20">
-          <h1 className="font-serif text-7xl font-light mb-8 text-white tracking-tight leading-none">
-            Albums of<br />the Month
+    <div className="bg-white text-black min-h-screen">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* NTS-Style Header */}
+        <div className="mb-8 border-b-2 border-black pb-6">
+          <h1 className="text-4xl font-bold uppercase tracking-wide mb-4">
+            ALBUMS OF THE MONTH
           </h1>
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
-            <p className="text-neutral-300 text-xl font-light max-w-2xl leading-relaxed">
-              Four standout albums selected by our editorial team. Each pick represents a moment in music worth preserving.
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+            <p className="text-lg max-w-2xl">
+              Four standout albums selected by our editorial team.
             </p>
-            <div className="text-neutral-500 text-sm font-mono">
+            <div className="text-sm font-mono">
               JANUARY 2025 SELECTION
             </div>
           </div>
         </div>
 
         {/* Current Month Feature */}
-        <div className="mb-20">
-          <h2 className="font-serif text-3xl font-light mb-12 text-neutral-200">
-            Current Selection
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold uppercase tracking-wide mb-8">
+            CURRENT SELECTION
           </h2>
           
           {/* Cover Flow Style Gallery */}
@@ -142,103 +173,71 @@ export default function AlbumsOfTheMonth() {
               <ChevronRight className="h-6 w-6" />
             </Button>
 
-            {/* Asymmetric Albums Layout */}
-            <div className="grid grid-cols-12 gap-8 auto-rows-min">
-              {albums.map((album, index) => {
-                // Create varied sizing - featured album is larger
-                const isFeatured = index === 0;
-                const isLarge = index === 1;
-                const spanClass = isFeatured ? 'col-span-6' : isLarge ? 'col-span-4' : 'col-span-3';
-                const sizeClass = isFeatured ? 'w-full aspect-square' : isLarge ? 'w-full aspect-square' : 'w-full aspect-square';
-                
-                return (
-                  <div
-                    key={album.id}
-                    className={`${spanClass} ${isFeatured ? 'row-span-2' : ''}`}
-                  >
-                    <div
-                      className="relative group cursor-pointer"
-                      onMouseEnter={() => handleAlbumHover(album.id)}
-                      onMouseLeave={() => handleAlbumHover(null)}
-                      onClick={() => setSelectedAlbum(album)}
-                    >
-                      {/* Album Cover with Varied Styling */}
-                      <div className={`relative ${sizeClass} transform transition-all duration-500 group-hover:scale-[1.02]`}>
-                        <img 
-                          src={album.coverUrl} 
-                          alt={`${album.title} by ${album.artist}`}
-                          className={`w-full h-full object-cover shadow-2xl ${
-                            isFeatured ? 'rounded-none' : 'rounded-lg'
-                          }`}
-                        />
-                        
-                        {/* Vinyl Record Effect - Only for Featured */}
-                        {isFeatured && (
-                          <div 
-                            className={`absolute -right-8 top-1/2 -translate-y-1/2 w-64 h-64 bg-black rounded-full border-8 border-neutral-800 transition-all duration-500 ${
-                              isVinylVisible === album.id ? 'translate-x-0 opacity-100' : 'translate-x-full opacity-0'
-                            }`}
-                            style={{
-                              background: 'radial-gradient(circle, #1a1a1a 30%, #000 70%)',
-                              boxShadow: 'inset 0 0 50px rgba(255,255,255,0.1)'
-                            }}
-                          >
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-red-600 rounded-full flex items-center justify-center">
-                              <div className="w-3 h-3 bg-black rounded-full"></div>
-                            </div>
-                            <div className="absolute inset-4 rounded-full border border-neutral-600 opacity-30"></div>
-                            <div className="absolute inset-8 rounded-full border border-neutral-600 opacity-20"></div>
-                            <div className="absolute inset-12 rounded-full border border-neutral-600 opacity-10"></div>
-                          </div>
-                        )}
-                        
-                        {/* Editorial Badge for Featured */}
-                        {isFeatured && (
-                          <div className="absolute top-4 left-4 bg-white text-black px-3 py-1 text-xs font-mono tracking-wide">
-                            EDITOR'S CHOICE
-                          </div>
-                        )}
-                        
-                        {/* Play Button Overlay */}
-                        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button size={isFeatured ? "lg" : "default"} className="rounded-full bg-white text-black hover:bg-neutral-200">
-                            <Play className="h-4 w-4 mr-2" />
-                            Listen
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {/* Album Info with Editorial Typography */}
-                      <div className={`mt-6 ${isFeatured ? 'text-left' : 'text-center'}`}>
-                        <h3 className={`font-bold mb-1 ${isFeatured ? 'text-2xl' : 'text-lg'}`}>
-                          {album.title}
-                        </h3>
-                        <p className={`text-neutral-400 mb-3 ${isFeatured ? 'text-lg' : 'text-base'}`}>
-                          {album.artist}
-                        </p>
-                        
-                        {/* Featured Description */}
-                        {isFeatured && (
-                          <p className="text-neutral-300 text-sm leading-relaxed mb-4 max-w-md">
-                            {album.description}
-                          </p>
-                        )}
-                        
-                        <div className={`flex ${isFeatured ? 'justify-start' : 'justify-center'} gap-1 mb-3`}>
-                          {album.genre.map((g, genreIndex) => (
-                            <Badge key={genreIndex} variant="outline" className="text-xs border-neutral-600 text-neutral-400">
-                              {g}
-                            </Badge>
-                          ))}
-                          <Badge variant="outline" className="text-xs border-neutral-600 text-neutral-400">
-                            {album.releaseYear}
-                          </Badge>
-                        </div>
-                      </div>
+            {/* Clean Album Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-2 border-black">
+              {(enrichedAlbums.length > 0 ? enrichedAlbums : albums).map((album, index) => (
+                <div
+                  key={album.id}
+                  className="border-r-2 border-b-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer"
+                  onMouseEnter={() => handleAlbumHover(album.id)}
+                  onMouseLeave={() => handleAlbumHover(null)}
+                  onClick={() => setSelectedAlbum(album)}
+                >
+                  {/* Album Cover */}
+                  <div className="aspect-square mb-4 relative overflow-hidden">
+                    <img 
+                      src={album.coverUrl} 
+                      alt={`${album.title} by ${album.artist}`}
+                      className="w-full h-full object-cover"
+                    />
+                    
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="sm" className="bg-white text-black hover:bg-gray-200">
+                        <Play className="h-4 w-4 mr-1" />
+                        PLAY
+                      </Button>
                     </div>
                   </div>
-                );
-              })}
+                  
+                  {/* Album Info */}
+                  <div className="space-y-2">
+                    <h3 className="font-bold text-lg uppercase tracking-wide leading-tight">
+                      {album.title}
+                    </h3>
+                    
+                    <p className="text-base font-medium">
+                      {album.artist}
+                    </p>
+                    
+                    <div className="flex flex-wrap gap-1 pt-2">
+                      {album.genre.map((g, genreIndex) => (
+                        <span key={genreIndex} className="text-xs font-mono bg-black text-white px-2 py-1">
+                          {g}
+                        </span>
+                      ))}
+                      <span className="text-xs font-mono bg-black text-white px-2 py-1">
+                        {album.releaseYear}
+                      </span>
+                    </div>
+                    
+                    {/* Spotify Link */}
+                    {album.spotifyUrl && (
+                      <div className="pt-2">
+                        <a 
+                          href={album.spotifyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs font-mono text-gray-600 hover:text-black flex items-center gap-1"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                          SPOTIFY
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>

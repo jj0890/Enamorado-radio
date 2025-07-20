@@ -67,109 +67,53 @@ export default function Guides() {
   ];
 
   return (
-    <div className="bg-gradient-to-br from-amber-50 to-orange-50 text-black min-h-screen">
-      <div className="max-w-6xl mx-auto px-6 py-12">
-        {/* Header with Editorial Typography */}
-        <div className="mb-16">
-          <h1 className="font-serif text-6xl font-light mb-6 text-gray-900 tracking-tight leading-tight">
-            Curated<br />Genres
+    <div className="bg-white text-black min-h-screen">
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* NTS-Style Header */}
+        <div className="mb-8 border-b-2 border-black pb-6">
+          <h1 className="text-4xl font-bold uppercase tracking-wide mb-4">
+            CURATED GENRES
           </h1>
-          <p className="text-gray-700 text-xl font-light max-w-2xl leading-relaxed">
-            Deep dives into artists and genres curated by our editorial team. Each guide features hand-picked episodes, articles, and discoveries.
+          <p className="text-lg max-w-2xl">
+            Deep dives into artists and genres curated by our editorial team.
           </p>
         </div>
 
-        {/* Asymmetric Folder Grid */}
-        <div className="grid grid-cols-12 gap-8 auto-rows-min">
-          {guides.map((guide, index) => {
-            // Create asymmetric sizing pattern
-            const isLarge = index === 0; // Featured guide
-            const isMedium = index % 3 === 1;
-            const spanClass = isLarge ? 'col-span-6' : isMedium ? 'col-span-4' : 'col-span-3';
-            const heightClass = isLarge ? 'h-80' : isMedium ? 'h-64' : 'h-52';
-            
-            // Vary folder colors beyond purple
-            const folderColors = [
-              'from-emerald-500 via-emerald-600 to-green-700', // Earl - signature green
-              'from-blue-500 via-indigo-600 to-purple-700',   // Jazz - classic blue
-              'from-orange-500 via-red-600 to-pink-700',      // Hip-Hop - warm
-              'from-gray-600 via-slate-700 to-gray-800',      // Electronic - modern
-              'from-yellow-500 via-orange-600 to-red-700',    // Indie - bright
-              'from-purple-600 via-violet-700 to-indigo-800'  // Ambient - deep
-            ];
-            
-            return (
-              <div key={guide.id} className={`${spanClass} ${isLarge ? 'row-span-2' : ''}`}>
-                <Link href={`/guide/${guide.id}`}>
-                  <div className="group cursor-pointer h-full">
-                    {/* macOS Folder with Varied Design */}
-                    <div className={`relative w-full ${heightClass}`}>
-                      {/* Folder Base with Editorial Colors */}
-                      <div className={`absolute inset-0 bg-gradient-to-br ${folderColors[index % folderColors.length]} rounded-lg shadow-lg transform transition-all duration-300 group-hover:scale-[1.02] group-hover:shadow-2xl ${isLarge ? 'shadow-2xl' : ''}`}>
-                        {/* Folder Tab - Varied Positions */}
-                        <div className={`absolute -top-1 ${index % 2 === 0 ? 'left-3 right-12' : 'left-6 right-8'} h-4 bg-gradient-to-b from-blue-400 to-blue-500 rounded-t-md shadow-sm`}>
-                          <div className="absolute top-1 left-2 right-2 h-1 bg-blue-300 rounded-sm opacity-60"></div>
-                        </div>
-                        
-                        {/* Folder Content with Varied Typography */}
-                        <div className="absolute inset-4 flex flex-col">
-                          {/* Episode Count Badge */}
-                          <div className="flex justify-end mb-3">
-                            <div className="px-2 py-1 bg-black/20 rounded text-white/90 text-xs font-medium">
-                              {guide.episodeCount} ep
-                            </div>
-                          </div>
-                          
-                          {/* Title with Editorial Typography */}
-                          <div className="flex-1 flex flex-col justify-center">
-                            <h3 className={`text-white font-bold mb-2 leading-tight ${
-                              isLarge ? 'text-xl' : isMedium ? 'text-base' : 'text-sm'
-                            }`}>
-                              {guide.title.replace('Enamorado Guide to ', '')}
-                            </h3>
-                            
-                            {/* Description for larger cards */}
-                            {isLarge && (
-                              <p className="text-white/90 text-sm mb-3 leading-relaxed">
-                                {guide.description}
-                              </p>
-                            )}
-                            
-                            {/* Tags with Varied Styling */}
-                            <div className="flex flex-wrap gap-1 mb-2">
-                              {guide.tags.slice(0, isLarge ? 3 : 2).map((tag, tagIndex) => (
-                                <span key={tagIndex} className="text-white/80 text-xs bg-white/20 px-2 py-1 rounded-full">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
-                            
-                            {/* Author */}
-                            <div className="text-white/70 text-xs font-medium">
-                              Curated by {guide.author}
-                            </div>
-                          </div>
-                        </div>
-                        
-                        {/* Folder Number with Varied Position */}
-                        <div className={`absolute ${index % 2 === 0 ? 'top-2 right-2' : 'top-3 right-3'} w-6 h-6 bg-black/30 text-white text-xs font-bold rounded-full flex items-center justify-center`}>
-                          {index + 1}
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Varied Label Styling */}
-                    <div className={`mt-4 ${isLarge ? 'text-left' : 'text-center'}`}>
-                      <p className={`text-gray-800 font-medium ${isLarge ? 'text-base' : 'text-sm'} leading-tight`}>
-                        {guide.title}
-                      </p>
-                      <p className="text-gray-600 text-xs mt-1">by {guide.author}</p>
-                    </div>
+        {/* NTS-Style Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-2 border-black">
+          {guides.map((guide, index) => (
+            <Link key={guide.id} href={`/guide/${guide.id}`}>
+              <div className="border-r-2 border-b-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer">
+                {/* Image Area */}
+                <div className="aspect-square bg-gray-100 mb-4 flex items-center justify-center text-6xl">
+                  🎵
+                </div>
+                
+                {/* Content */}
+                <div className="space-y-2">
+                  <h3 className="font-bold text-lg uppercase tracking-wide leading-tight">
+                    {guide.title.replace('Enamorado Guide to ', '')}
+                  </h3>
+                  
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    {guide.description}
+                  </p>
+                  
+                  <div className="flex flex-wrap gap-1 pt-2">
+                    {guide.tags.map((tag, tagIndex) => (
+                      <span key={tagIndex} className="text-xs font-mono bg-black text-white px-2 py-1">
+                        {tag}
+                      </span>
+                    ))}
                   </div>
-                </Link>
+                  
+                  <div className="text-xs text-gray-500 font-mono pt-2">
+                    {guide.episodeCount} EPISODES • BY {guide.author.toUpperCase()}
+                  </div>
+                </div>
               </div>
-            );
-          })}
+            </Link>
+          ))}
         </div>
         
         {/* Empty State */}
