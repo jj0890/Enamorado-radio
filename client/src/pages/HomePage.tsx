@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
+
 import { SearchModal } from "../components/SearchModal";
 import { AudioPlayer } from "../components/AudioPlayer";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
@@ -640,30 +640,30 @@ export default function HomePage() {
           isExpanded={isPlayerExpanded}
           onToggleExpanded={() => setIsPlayerExpanded(!isPlayerExpanded)}
         />
-        {/* Share Your Work Section - pi.fyi style */}
-        <section className="py-16 px-8">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">SHARE YOUR WORK</h2>
-            <p className="text-white/80 text-lg mb-8">
-              Show us what you've been creating - mixes, essays, art, photos, discoveries, whatever
-            </p>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center">
-              <Link href="/share">
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200 px-8 py-3 font-medium">
-                  Share Something
-                </Button>
-              </Link>
-              <Link href="/zine/submit">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-8 py-3 font-medium">
-                  Submit for Print
-                </Button>
-              </Link>
+        {/* Community Section */}
+        <section className="mb-16">
+          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-8 border border-white/10">
+            <div className="text-center max-w-2xl mx-auto">
+              <h2 className="text-3xl font-bold mb-4">SHARE YOUR ART</h2>
+              <p className="text-white/70 mb-6">
+                Join our community of artists and creators. We respect your work and provide 
+                opportunities for featuring, airplay, and collaboration with fair compensation practices.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Link
+                  href="/dj-submit"
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  Submit a Mix
+                </Link>
+                <Link
+                  href="/zine"
+                  className="border border-white/20 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors"
+                >
+                  Submit to Zine
+                </Link>
+              </div>
             </div>
-            
-            <p className="text-white/60 text-sm mt-6">
-              Easy sharing without the social media BS
-            </p>
           </div>
         </section>
 
