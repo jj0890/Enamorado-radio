@@ -56,32 +56,30 @@ export default function AlbumsOfTheMonth() {
     loadAlbumArtwork();
   }, []);
 
-  // Mock data - would come from API
+  // Album data with real albums that exist in MusicBrainz
   const albums: Album[] = [
     {
       id: 1,
-      title: "Burning Desire",
-      artist: "MIKE",
+      title: "Kind of Blue",
+      artist: "Miles Davis",
       coverUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
-      description: "A raw, introspective journey through consciousness and community.",
-      genre: ["Hip-Hop", "Experimental"],
-      releaseYear: 2024,
-      spotifyUrl: "https://open.spotify.com/album/example1",
-      appleMusicUrl: "https://music.apple.com/album/example1",
+      description: "The quintessential jazz album that changed music forever.",
+      genre: ["Jazz", "Modal Jazz"],
+      releaseYear: 1959,
+      spotifyUrl: "https://open.spotify.com/album/1weenld61qoidwYuZ1GESA",
       featured: true,
       month: "January",
       year: 2025
     },
     {
       id: 2,
-      title: "Getz/Gilberto",
-      artist: "Stan Getz & João Gilberto",
+      title: "The Velvet Underground & Nico",
+      artist: "The Velvet Underground",
       coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=400&fit=crop",
-      description: "The quintessential bossa nova album that defined a generation.",
-      genre: ["Jazz", "Bossa Nova"],
-      releaseYear: 1964,
-      spotifyUrl: "https://open.spotify.com/album/example2",
-      appleMusicUrl: "https://music.apple.com/album/example2",
+      description: "The album with the banana that launched a thousand art rock bands.",
+      genre: ["Art Rock", "Experimental"],
+      releaseYear: 1967,
+      spotifyUrl: "https://open.spotify.com/album/4xwx0x7k6c5VuThz5qVqmV",
       featured: true,
       month: "January",
       year: 2025
@@ -94,21 +92,20 @@ export default function AlbumsOfTheMonth() {
       description: "Smooth sophistication meets emotional depth in this timeless classic.",
       genre: ["R&B", "Soul"],
       releaseYear: 1992,
-      spotifyUrl: "https://open.spotify.com/album/example3",
-      bandcampUrl: "https://sade.bandcamp.com/album/love-deluxe",
+      spotifyUrl: "https://open.spotify.com/album/5th5BJGOc9RdyYKS9Kgm3A",
       featured: true,
       month: "January",
       year: 2025
     },
     {
       id: 4,
-      title: "Breath from Another",
+      title: "Breathe from Another",
       artist: "Esthero",
       coverUrl: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop",
       description: "Ethereal vocals meet downtempo beats in this underground masterpiece.",
       genre: ["Electronic", "Trip-Hop"],
       releaseYear: 1998,
-      spotifyUrl: "https://open.spotify.com/album/example4",
+      spotifyUrl: "https://open.spotify.com/search/esthero%20breath%20from%20another",
       featured: true,
       month: "January",
       year: 2025

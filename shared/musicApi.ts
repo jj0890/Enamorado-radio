@@ -12,14 +12,19 @@ export interface AlbumInfo {
 // MusicBrainz API for album artwork
 export async function getAlbumArtwork(artist: string, album: string): Promise<string | null> {
   try {
+    console.log(`Fetching artwork for: ${artist} - ${album}`);
+    
     // Search for the release on MusicBrainz
     const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(artist)}" AND release:"${encodeURIComponent(album)}"&fmt=json&limit=1`;
     
     const response = await fetch(searchUrl);
     const data = await response.json();
     
+    console.log(`MusicBrainz response for ${album}:`, data.releases?.length || 0, 'releases found');
+    
     if (data.releases && data.releases.length > 0) {
       const mbid = data.releases[0].id;
+      console.log(`Found MBID for ${album}: ${mbid}`);
       
       // Get cover art from Cover Art Archive
       const coverUrl = `https://coverartarchive.org/release/${mbid}/front-500`;
@@ -27,7 +32,10 @@ export async function getAlbumArtwork(artist: string, album: string): Promise<st
       // Check if cover exists
       const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
       if (coverResponse.ok) {
+        console.log(`✓ Found cover art for ${album}: ${coverUrl}`);
         return coverUrl;
+      } else {
+        console.log(`✗ No cover art found for ${album} (${coverResponse.status})`);
       }
     }
     
