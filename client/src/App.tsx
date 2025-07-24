@@ -18,6 +18,7 @@ import EpisodeView from "./pages/EpisodeView";
 import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
+import MixesLanding from "./pages/MixesLanding";
 
 function Router() {
   return (
@@ -39,6 +40,7 @@ function Router() {
       <Route path="/guides" component={Guides} />
       <Route path="/guide/:id" component={GuideDetail} />
       <Route path="/albums" component={AlbumsOfTheMonth} />
+      <Route path="/mixes" component={MixesLanding} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">

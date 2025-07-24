@@ -145,6 +145,16 @@ Changelog:
 - July 20, 2025. Implemented iPod Cover Flow-inspired album showcase with vinyl record hover effects
 - July 20, 2025. Added content discovery system balancing radio episodes with curated guides and monthly album picks
 - July 20, 2025. Updated guide naming convention to "Enamorado Guide to..." format for brand consistency
+- July 24, 2025. Completed comprehensive design overhaul with white/cream backgrounds and #FF0000 red accent scheme
+- July 24, 2025. Implemented IBM Plex Mono typography throughout the platform for magazine-style aesthetic
+- July 24, 2025. Changed "Live Mix Demo" to "Mixes" and created comprehensive MixesLanding.tsx component
+- July 24, 2025. Added carousel functionality for featured mixes supporting multiple audio platforms (SoundCloud, Mixcloud, MP3, WAV, Audio.com)
+- July 24, 2025. Added "Back to Home" navigation to all pages (Albums, Mixes, Episodes, Guides, DJ Submit)
+- July 24, 2025. Fixed featured mix readability with improved contrast and background styling
+- July 24, 2025. Removed gradients from submit link and made it more subtle with smaller, cleaner styling
+- July 24, 2025. Updated admin panel to focus only on radio content, removed all zine references
+- July 24, 2025. Changed navigation from "GUIDES" to "EXPLORE" and removed gradient overlays
+- July 24, 2025. Implemented "Latest" button functionality for episode navigation
 
 ## User Preferences
 

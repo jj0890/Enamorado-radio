@@ -99,12 +99,12 @@ export default function HomePage() {
       route: "/episodes"
     },
     {
-      id: "live-mix-demo",
-      title: "Live Mix Demo",
+      id: "mixes",
+      title: "Mixes",
       icon: "🎧",
-      description: "Try our custom audio player",
+      description: "Browse community mixes and DJ sets",
       color: "from-orange-500 to-red-500",
-      route: "/live-mix-demo"
+      route: "/mixes"
     }
   ];
 
@@ -227,6 +227,9 @@ export default function HomePage() {
                 <Link href="/albums" className="text-gray-600 hover:text-red-500 transition-colors">
                   ALBUMS
                 </Link>
+                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
+                  MIXES
+                </Link>
                 <Link href="/episodes" className="text-red-500 hover:text-red-600 transition-colors font-medium">
                   RADIO
                 </Link>
@@ -307,7 +310,7 @@ export default function HomePage() {
                     <h2 className="text-4xl font-bold mb-2 text-white">{featuredContent[0].title}</h2>
                     <p className="text-2xl text-white/80 mb-4">{featuredContent[0].artist}</p>
                     
-                    <p className="text-white/70 text-lg mb-6 max-w-2xl">
+                    <p className="text-white text-lg mb-6 max-w-2xl bg-black/40 p-4 rounded-lg backdrop-blur-sm">
                       {featuredContent[0].description}
                     </p>
                     
@@ -467,9 +470,9 @@ export default function HomePage() {
                     </div>
                     
                     {/* Hover popup with red accent */}
-                    <div className={`absolute -top-2 -right-2 w-48 bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-xl z-10`}>
-                      <h4 className="font-semibold text-white text-sm mb-1">{guide.title}</h4>
-                      <p className="text-white/90 text-xs">{guide.description}</p>
+                    <div className={`absolute -top-2 -right-2 w-48 bg-white border border-red-500 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-xl z-10`}>
+                      <h4 className="font-semibold text-red-500 text-sm mb-1">{guide.title}</h4>
+                      <p className="text-gray-600 text-xs">{guide.description}</p>
                     </div>
                   </div>
                 </Link>
@@ -482,9 +485,12 @@ export default function HomePage() {
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold font-mono text-red-500">RECENT SHOWS</h2>
-            <Link href="/episodes" className="text-red-500 hover:text-red-400 flex items-center transition-colors font-mono">
-              VIEW ALL <ChevronRight className="w-4 h-4 ml-1" />
-            </Link>
+            <button 
+              onClick={() => console.log('Latest clicked - implement latest episodes functionality')}
+              className="text-red-500 hover:text-red-400 flex items-center transition-colors font-mono"
+            >
+              LATEST <ChevronRight className="w-4 h-4 ml-1" />
+            </button>
           </div>
           
           <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200">
@@ -522,17 +528,17 @@ export default function HomePage() {
 
         {/* Community Section */}
         <section className="mb-16">
-          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-8">
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6">
             <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">SHARE YOUR ART</h2>
-              <p className="text-gray-600 mb-6 font-mono">
+              <h2 className="text-2xl font-bold mb-3 font-mono text-gray-700">SHARE YOUR ART</h2>
+              <p className="text-gray-600 mb-4 font-mono text-sm">
                 Join our community of artists and creators. We respect your work and provide 
                 opportunities for featuring, airplay, and collaboration with fair compensation practices.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
                 <Link
                   href="/dj-submit"
-                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-mono font-semibold transition-colors"
+                  className="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 font-mono text-sm transition-colors"
                 >
                   Submit a Mix
                 </Link>

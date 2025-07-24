@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'wouter';
 import { Play, ExternalLink, ChevronLeft, ChevronRight, Disc } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -129,9 +130,19 @@ export default function AlbumsOfTheMonth() {
   return (
     <div className="bg-white text-black min-h-screen">
       <div className="max-w-6xl mx-auto px-6 py-8">
+        {/* Back to Home */}
+        <div className="mb-6">
+          <Link 
+            href="/"
+            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+          >
+            ← Back to Home
+          </Link>
+        </div>
+        
         {/* NTS-Style Header */}
         <div className="mb-8 border-b-2 border-black pb-6">
-          <h1 className="text-4xl font-bold uppercase tracking-wide mb-4">
+          <h1 className="text-4xl font-bold uppercase tracking-wide mb-4 font-mono">
             ALBUMS OF THE MONTH
           </h1>
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
