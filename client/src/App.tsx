@@ -20,7 +20,6 @@ import GuideDetail from "./pages/GuideDetail";
 import TagsPage from "./pages/TagsPage";
 import About from "./pages/About";
 import ShareWork from "./pages/ShareWork";
-import EditorialSubmissions from "./pages/EditorialSubmissions";
 import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 
 function Router() {
@@ -45,7 +44,6 @@ function Router() {
       <Route path="/tag/:tag" component={TagsPage} />
       <Route path="/about" component={About} />
       <Route path="/share" component={ShareWork} />
-      <Route path="/editorial-submit" component={EditorialSubmissions} />
       <Route path="/albums" component={AlbumsOfTheMonth} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">

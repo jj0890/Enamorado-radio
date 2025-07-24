@@ -654,7 +654,7 @@ export default function HomePage() {
                   Share Something
                 </Button>
               </Link>
-              <Link href="/editorial-submit">
+              <Link href="/zine/submit">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white hover:text-black px-8 py-3 font-medium">
                   Submit for Print
                 </Button>

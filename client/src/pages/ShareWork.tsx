@@ -164,7 +164,7 @@ export default function ShareWork() {
                 Share It
               </Button>
               
-              <Link href="/editorial-submit">
+              <Link href="/zine/submit">
                 <Button
                   type="button"
                   variant="outline"
