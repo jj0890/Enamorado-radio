@@ -56,7 +56,7 @@ interface ZineSubmission {
 }
 
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'zine-submissions' | 'analytics'>('dj-submissions');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'analytics'>('dj-submissions');
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState({
     title: '',
@@ -69,43 +69,12 @@ export default function ScheduleAdmin() {
     recurring: 'none'
   });
 
-  const [shows] = useState<Show[]>([
-    {
-      id: '1',
-      title: 'Deep Routes',
-      host: 'Marcus Rivera',
-      startTime: '2025-01-15T20:00:00',
-      duration: 120,
-      category: 'live',
-      description: 'Deep house specialist with 15+ years digging through Detroit\'s underground',
-      tags: ['house', 'deep', 'underground'],
-      recurring: 'weekly',
-      isLive: true
-    },
-    {
-      id: '2',
-      title: 'Experimental Sounds',
-      host: 'Alex Stone',
-      startTime: '2025-01-16T18:00:00',
-      duration: 90,
-      category: 'experimental',
-      description: 'Pushing boundaries with avant-garde and experimental music',
-      tags: ['experimental', 'avant-garde', 'ambient'],
-      recurring: 'monthly',
-      isLive: false
-    }
-  ]);
+  const [shows] = useState<Show[]>([]);
 
   // Fetch DJ submissions
   const { data: djSubmissions = [], isLoading: djSubmissionsLoading } = useQuery({
     queryKey: ['/api/dj-submissions'],
     queryFn: () => apiRequest('/api/dj-submissions'),
-  });
-
-  // Fetch Zine submissions
-  const { data: zineSubmissions = [], isLoading: zineSubmissionsLoading } = useQuery({
-    queryKey: ['/api/zine-submissions'],
-    queryFn: () => apiRequest('/api/zine-submissions'),
   });
 
   // Update DJ submission status
@@ -121,24 +90,10 @@ export default function ScheduleAdmin() {
     },
   });
 
-  // Update Zine submission status
-  const updateZineSubmissionStatus = useMutation({
-    mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
-      return await apiRequest(`/api/zine-submissions/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, notes, reviewedBy: 'Admin' }),
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/zine-submissions'] });
-    },
-  });
-
   const analytics = {
     totalShows: shows.length,
     liveShows: shows.filter(s => s.isLive).length,
     pendingDjSubmissions: djSubmissions.filter((s: DJSubmission) => s.status === 'pending').length,
-    pendingZineSubmissions: zineSubmissions.filter((s: ZineSubmission) => s.status === 'pending').length,
     totalHours: shows.reduce((acc, show) => acc + show.duration, 0) / 60
   };
 
@@ -180,25 +135,25 @@ export default function ScheduleAdmin() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
+    <div className="min-h-screen bg-white text-black">
       <div className="max-w-6xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="text-orange-500 hover:text-orange-400 mb-4 inline-block">
+          <Link href="/" className="text-red-500 hover:text-red-600 mb-4 inline-block font-mono">
             ← Back to Home
           </Link>
-          <h1 className="text-4xl font-bold mb-2">Schedule Admin Panel</h1>
-          <p className="text-gray-300">Manage shows, DJ submissions, and schedule content</p>
+          <h1 className="text-4xl font-bold mb-2 font-mono text-red-500">Radio Admin Panel</h1>
+          <p className="text-gray-600 font-mono">Manage radio shows and DJ submissions</p>
         </div>
 
         {/* Navigation */}
         <div className="flex justify-center space-x-4 mb-8 flex-wrap">
           <button
             onClick={() => setActiveSection('add-show')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'add-show'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-blue-500/20 hover:text-blue-400'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
             }`}
           >
             <Plus className="w-4 h-4 inline mr-2" />
@@ -206,10 +161,10 @@ export default function ScheduleAdmin() {
           </button>
           <button
             onClick={() => setActiveSection('manage-shows')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'manage-shows'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-blue-500/20 hover:text-blue-400'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
             }`}
           >
             <Calendar className="w-4 h-4 inline mr-2" />
@@ -217,53 +172,36 @@ export default function ScheduleAdmin() {
           </button>
           <button
             onClick={() => setActiveSection('dj-submissions')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'dj-submissions'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-blue-500/20 hover:text-blue-400'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
             }`}
           >
             <Users className="w-4 h-4 inline mr-2" />
             DJ Submissions
           </button>
           <button
-            onClick={() => setActiveSection('zine-submissions')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
-              activeSection === 'zine-submissions'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-blue-500/20 hover:text-blue-400'
-            }`}
-          >
-            <FileText className="w-4 h-4 inline mr-2" />
-            Zine Submissions
-          </button>
-          <button
             onClick={() => setActiveSection('analytics')}
-            className={`px-6 py-3 rounded-lg font-medium transition-all ${
+            className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'analytics'
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-800 text-gray-300 hover:bg-blue-500/20 hover:text-blue-400'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
             }`}
           >
             <BarChart3 className="w-4 h-4 inline mr-2" />
             Analytics
           </button>
-          <Link href="/admin/editorial-workflow">
-            <button className="px-6 py-3 rounded-lg font-medium bg-purple-600 text-white hover:bg-purple-700 transition-all">
-              <FileText className="w-4 h-4 inline mr-2" />
-              Editorial Workflow
-            </button>
-          </Link>
         </div>
 
         {/* Add Show Section */}
         {activeSection === 'add-show' && (
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-6">Add New Show</h2>
+          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">Add New Show</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Show Title</label>
+                  <label className="block text-sm font-medium mb-2 font-mono text-gray-600">Show Title</label>
                   <input
                     type="text"
                     name="title"

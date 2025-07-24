@@ -191,55 +191,43 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-white text-black">
       {/* Live Player Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
-        <div className="flex items-center justify-between px-4 py-2 text-sm">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-2 text-sm font-mono">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <span className="text-white/80">LIVE NOW</span>
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-white">{currentShow}</span>
-              <Headphones className="w-4 h-4 text-white/60" />
+              <span className="text-gray-600">ENAMORADO RADIO</span>
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-white/60">SAN ANTONIO</span>
-            <button 
-              onClick={() => setIsPlaying(!isPlaying)}
-              className="border border-white/20 text-white hover:bg-white/10 h-8 px-3 text-sm rounded flex items-center transition-colors"
-            >
-              <Play className="w-3 h-3 mr-1" />
-              {isPlaying ? 'Pause' : 'Listen'}
-            </button>
+            <span className="text-gray-600">SAN ANTONIO</span>
           </div>
         </div>
       </div>
 
       {/* Main Header */}
-      <header className="fixed top-10 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/10">
+      <header className="fixed top-10 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight">
+              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
                 ENAMORADO
               </Link>
-              <nav className="hidden md:flex items-center space-x-6 text-sm">
-                <Link href="/" className="text-white/80 hover:text-white transition-colors">
+              <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
+                <Link href="/" className="text-gray-600 hover:text-red-500 transition-colors">
                   LATEST
                 </Link>
-                <Link href="/zine" className="text-white/80 hover:text-white transition-colors">
+                <Link href="/guides" className="text-gray-600 hover:text-red-500 transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/dj-submit" className="text-white/80 hover:text-white transition-colors">
+                <Link href="/dj-submit" className="text-gray-600 hover:text-red-500 transition-colors">
                   SUBMIT
                 </Link>
-                <Link href="/shop" className="text-white/80 hover:text-white transition-colors">
-                  SHOP
+                <Link href="/albums" className="text-gray-600 hover:text-red-500 transition-colors">
+                  ALBUMS
                 </Link>
-                <Link href="/radio" className="text-white hover:text-red-500 transition-colors font-medium">
+                <Link href="/episodes" className="text-red-500 hover:text-red-600 transition-colors font-medium">
                   RADIO
                 </Link>
               </nav>
@@ -247,12 +235,12 @@ export default function HomePage() {
             <div className="flex items-center space-x-4">
               <button 
                 onClick={() => setShowSearch(true)}
-                className="p-2 hover:bg-white/10 rounded transition-colors"
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
               >
-                <Search className="w-5 h-5" />
+                <Search className="w-5 h-5 text-gray-600" />
               </button>
-              <button className="p-2 hover:bg-white/10 rounded transition-colors">
-                <User className="w-5 h-5" />
+              <button className="p-2 hover:bg-gray-100 rounded transition-colors">
+                <User className="w-5 h-5 text-gray-600" />
               </button>
             </div>
           </div>
@@ -264,13 +252,13 @@ export default function HomePage() {
         {/* Hero Section */}
         <section className="mb-16">
           <div className="text-center mb-8">
-            <h1 className="text-6xl font-bold mb-4">ENAMORADO RADIO</h1>
-            <p className="text-xl text-white/80 max-w-2xl mx-auto mb-6">
+            <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">ENAMORADO RADIO</h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6 font-mono">
               Digital space dedicated to the things we are enamored with
             </p>
             {featuredContent.length > 0 && (
-              <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-white/80 text-sm">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <div className="inline-flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-4 py-2 text-red-600 text-sm font-mono">
+                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <span>{featuredContent.length} Featured Mix{featuredContent.length > 1 ? 'es' : ''} Available</span>
               </div>
             )}
@@ -457,10 +445,10 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Guides Section - macOS Style */}
+        {/* Explore Section - macOS Style */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">GUIDES</h2>
+            <h2 className="text-3xl font-bold font-mono text-red-500">EXPLORE</h2>
           </div>
           
           <div className="flex justify-center">
@@ -490,45 +478,21 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Recent Shows */}
+        {/* Recent Shows - Coming Soon */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">RECENT SHOWS</h2>
-            <Link href="/episodes" className="text-red-500 hover:text-red-400 flex items-center transition-colors">
+            <h2 className="text-3xl font-bold font-mono text-red-500">RECENT SHOWS</h2>
+            <Link href="/episodes" className="text-red-500 hover:text-red-400 flex items-center transition-colors font-mono">
               VIEW ALL <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {recentShows.map((show) => (
-              <div
-                key={show.id}
-                className="bg-white/5 backdrop-blur-sm rounded-lg p-4 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10"
-              >
-                <div className="aspect-square bg-gradient-to-br from-purple-500/20 to-blue-500/20 rounded-lg mb-3 relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white/80 text-center">
-                      <Music className="w-8 h-8 mx-auto mb-1" />
-                      <div className="text-xs font-medium">{show.category}</div>
-                    </div>
-                  </div>
-                  {show.isLive && (
-                    <div className="absolute top-2 right-2">
-                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-                    </div>
-                  )}
-                </div>
-                <div className="text-xs text-white/60 mb-1">{show.date}</div>
-                <h3 className="font-semibold mb-1 text-sm">{show.title}</h3>
-                <p className="text-white/70 text-xs mb-2">{show.host}</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-xs text-white/60">{show.duration}</span>
-                  {show.isLive && (
-                    <span className="text-xs bg-red-500 px-2 py-1 rounded">LIVE</span>
-                  )}
-                </div>
-              </div>
-            ))}
+          <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200">
+            <div className="text-gray-400 mb-4">
+              <Radio className="w-16 h-16 mx-auto mb-4" />
+            </div>
+            <p className="text-gray-600 font-mono">Coming Soon</p>
+            <p className="text-gray-500 text-sm font-mono mt-2">Live shows will appear here when we're ready to broadcast</p>
           </div>
         </section>
 
@@ -558,25 +522,19 @@ export default function HomePage() {
 
         {/* Community Section */}
         <section className="mb-16">
-          <div className="bg-gradient-to-r from-red-500/10 to-red-600/10 rounded-lg p-8 border border-red-500/20">
+          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-8">
             <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-3xl font-bold mb-4">SHARE YOUR ART</h2>
-              <p className="text-white/70 mb-6">
+              <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">SHARE YOUR ART</h2>
+              <p className="text-gray-600 mb-6 font-mono">
                 Join our community of artists and creators. We respect your work and provide 
                 opportunities for featuring, airplay, and collaboration with fair compensation practices.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/dj-submit"
-                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-mono font-semibold transition-colors"
                 >
                   Submit a Mix
-                </Link>
-                <Link
-                  href="/zine"
-                  className="border border-white/20 text-white hover:bg-white/10 px-6 py-3 rounded-lg font-semibold transition-colors"
-                >
-                  Submit to Zine
                 </Link>
               </div>
             </div>

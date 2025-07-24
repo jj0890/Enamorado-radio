@@ -239,58 +239,45 @@ export default function AlbumsOfTheMonth() {
           </div>
         </div>
 
-        {/* Selected Album Detail */}
+        {/* Selected Album Detail - Clean Style */}
         {selectedAlbum && (
-          <div className="bg-gray-900 rounded-lg p-8 mb-8">
+          <div className="bg-red-50 border-2 border-red-500 p-8 mb-8">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-1/3">
                 <img 
                   src={selectedAlbum.coverUrl} 
                   alt={`${selectedAlbum.title} by ${selectedAlbum.artist}`}
-                  className="w-full max-w-xs mx-auto rounded-lg shadow-lg"
+                  className="w-full max-w-xs mx-auto border-2 border-gray-200"
                 />
               </div>
               <div className="md:w-2/3">
-                <h3 className="text-3xl font-bold mb-2">{selectedAlbum.title}</h3>
-                <p className="text-xl text-gray-300 mb-4">{selectedAlbum.artist}</p>
-                <p className="text-gray-400 mb-4 text-lg leading-relaxed">{selectedAlbum.description}</p>
+                <h3 className="text-3xl font-bold mb-2 font-mono text-red-500">{selectedAlbum.title}</h3>
+                <p className="text-xl text-gray-600 mb-4 font-mono">{selectedAlbum.artist}</p>
+                <p className="text-gray-600 mb-4 text-lg leading-relaxed font-mono">{selectedAlbum.description}</p>
                 
                 <div className="flex gap-2 mb-6">
                   {selectedAlbum.genre.map((genre, index) => (
-                    <Badge key={index} className="bg-purple-600">
+                    <span key={index} className="bg-red-500 text-white px-3 py-1 text-sm font-mono">
                       {genre}
-                    </Badge>
+                    </span>
                   ))}
-                  <Badge variant="outline">
+                  <span className="bg-gray-600 text-white px-3 py-1 text-sm font-mono">
                     {selectedAlbum.releaseYear}
-                  </Badge>
+                  </span>
                 </div>
                 
                 {/* Streaming Links */}
                 <div className="flex flex-wrap gap-3">
                   {selectedAlbum.spotifyUrl && (
-                    <Button asChild className="bg-green-600 hover:bg-green-700">
-                      <a href={selectedAlbum.spotifyUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Spotify
-                      </a>
-                    </Button>
-                  )}
-                  {selectedAlbum.appleMusicUrl && (
-                    <Button asChild variant="outline">
-                      <a href={selectedAlbum.appleMusicUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Apple Music
-                      </a>
-                    </Button>
-                  )}
-                  {selectedAlbum.bandcampUrl && (
-                    <Button asChild className="bg-blue-600 hover:bg-blue-700">
-                      <a href={selectedAlbum.bandcampUrl} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-4 w-4 mr-2" />
-                        Bandcamp
-                      </a>
-                    </Button>
+                    <a 
+                      href={selectedAlbum.spotifyUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 font-mono transition-colors flex items-center"
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Spotify
+                    </a>
                   )}
                 </div>
               </div>
@@ -299,17 +286,18 @@ export default function AlbumsOfTheMonth() {
         )}
 
         {/* Archive Section */}
-        <div className="border-t border-gray-800 pt-8">
-          <h2 className="text-2xl font-semibold mb-4">Previous Months</h2>
-          <p className="text-gray-400 mb-6">
+        <div className="border-t-2 border-gray-300 pt-8">
+          <h2 className="text-2xl font-semibold mb-4 font-mono text-red-500">Previous Months</h2>
+          <p className="text-gray-600 mb-6 font-mono">
             albums for your listening pleasure. Explore our curated picks below or dive into our archive to discover past selections.
           </p>
-          <Button variant="outline" size="lg" asChild>
-            <a href="/editorial-picks">
-              <ExternalLink className="h-4 w-4 mr-2" />
-              View Editorial Picks Archive
-            </a>
-          </Button>
+          <a 
+            href="/editorial-picks"
+            className="inline-flex items-center bg-red-500 hover:bg-red-600 text-white px-6 py-3 font-mono transition-colors"
+          >
+            <ExternalLink className="h-4 w-4 mr-2" />
+            View Editorial Picks Archive
+          </a>
         </div>
       </div>
     </div>
