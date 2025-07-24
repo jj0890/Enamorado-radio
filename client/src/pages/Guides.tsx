@@ -101,11 +101,9 @@ export default function Guides() {
                   
                   <div className="flex flex-wrap gap-1 pt-2">
                     {guide.tags.map((tag, tagIndex) => (
-                      <Link key={tagIndex} href={`/tag/${encodeURIComponent(tag)}`}>
-                        <span className="text-xs font-mono bg-black text-white px-2 py-1 hover:bg-gray-800 transition-colors cursor-pointer">
-                          {tag}
-                        </span>
-                      </Link>
+                      <span key={tagIndex} className="text-xs font-mono bg-black text-white px-2 py-1">
+                        {tag}
+                      </span>
                     ))}
                   </div>
                   
