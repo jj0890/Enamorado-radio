@@ -206,7 +206,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <span className="text-white/60">CHICAGO</span>
+            <span className="text-white/60">SAN ANTONIO</span>
             <button 
               onClick={() => setIsPlaying(!isPlaying)}
               className="border border-white/20 text-white hover:bg-white/10 h-8 px-3 text-sm rounded flex items-center transition-colors"
@@ -233,13 +233,13 @@ export default function HomePage() {
                 <Link href="/zine" className="text-white/80 hover:text-white transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/mixes" className="text-white/80 hover:text-white transition-colors">
-                  INFINITE MIXTAPES
+                <Link href="/dj-submit" className="text-white/80 hover:text-white transition-colors">
+                  SUBMIT
                 </Link>
                 <Link href="/shop" className="text-white/80 hover:text-white transition-colors">
                   SHOP
                 </Link>
-                <Link href="/radio" className="text-white hover:text-blue-400 transition-colors font-medium">
+                <Link href="/radio" className="text-white hover:text-red-500 transition-colors font-medium">
                   RADIO
                 </Link>
               </nav>
@@ -463,28 +463,30 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold">GUIDES</h2>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6">
-            {guides.map((guide) => (
-              <Link key={guide.id} href={guide.route}>
-                <div className="group relative cursor-pointer">
-              
-                <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center text-4xl shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl border border-white/10">
-                  <span className="group-hover:scale-125 transition-transform duration-300">
-                    {guide.icon}
-                  </span>
-                </div>
-                <div className="mt-3 text-center">
-                  <h3 className="font-semibold text-sm">{guide.title}</h3>
-                </div>
-                
-                {/* Hover popup */}
-                <div className={`absolute -top-2 -right-2 w-48 bg-gradient-to-r ${guide.color} rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-xl z-10`}>
-                  <h4 className="font-semibold text-white text-sm mb-1">{guide.title}</h4>
-                  <p className="text-white/90 text-xs">{guide.description}</p>
-                </div>
-                </div>
-              </Link>
-            ))}
+          <div className="flex justify-center">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl">
+              {guides.map((guide) => (
+                <Link key={guide.id} href={guide.route}>
+                  <div className="group relative cursor-pointer">
+                  
+                    <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center text-4xl shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl border border-white/10">
+                      <span className="group-hover:scale-125 transition-transform duration-300">
+                        {guide.icon}
+                      </span>
+                    </div>
+                    <div className="mt-3 text-center">
+                      <h3 className="font-semibold text-sm">{guide.title}</h3>
+                    </div>
+                    
+                    {/* Hover popup with red accent */}
+                    <div className={`absolute -top-2 -right-2 w-48 bg-gradient-to-r from-red-500 to-red-600 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-xl z-10`}>
+                      <h4 className="font-semibold text-white text-sm mb-1">{guide.title}</h4>
+                      <p className="text-white/90 text-xs">{guide.description}</p>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -492,7 +494,7 @@ export default function HomePage() {
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold">RECENT SHOWS</h2>
-            <Link href="/radio" className="text-blue-400 hover:text-blue-300 flex items-center transition-colors">
+            <Link href="/episodes" className="text-red-500 hover:text-red-400 flex items-center transition-colors">
               VIEW ALL <ChevronRight className="w-4 h-4 ml-1" />
             </Link>
           </div>
@@ -530,39 +532,33 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Collections */}
+        {/* Featured Issue Preview - Magazine Style with Red Border */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold">COLLECTIONS</h2>
-            <Link href="/collections" className="text-blue-400 hover:text-blue-300 flex items-center transition-colors">
-              VIEW ALL <ChevronRight className="w-4 h-4 ml-1" />
-            </Link>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {collections.map((collection, index) => (
-              <div
-                key={index}
-                className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10"
-              >
-                <div className="aspect-video bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white/80 text-center">
-                      <Calendar className="w-12 h-12 mx-auto mb-2" />
-                      <div className="text-sm font-medium">{collection.count} ITEMS</div>
-                    </div>
+          <div className="max-w-2xl mx-auto">
+            <div className="bg-gray-50 rounded-2xl p-8 border-4 border-red-500 shadow-xl">
+              <div className="text-center">
+                {/* Magazine Cover */}
+                <div className="w-64 h-80 mx-auto mb-6 bg-black rounded-lg shadow-2xl flex items-center justify-center">
+                  <div className="text-white text-center">
+                    <h3 className="text-2xl font-bold mb-2">ENAMORADO</h3>
+                    <p className="text-white/70 text-sm mb-4">ISSUE #001</p>
+                    <div className="w-16 h-0.5 bg-white/50 mx-auto"></div>
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold mb-2">{collection.title}</h3>
-                <p className="text-white/70 text-sm">{collection.description}</p>
+                
+                {/* Content */}
+                <h3 className="text-xl font-bold text-black mb-3">Featured Issue Preview</h3>
+                <div className="text-red-500 hover:text-red-600 transition-colors cursor-pointer font-medium">
+                  Coming Soon →
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </section>
 
         {/* Community Section */}
         <section className="mb-16">
-          <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg p-8 border border-white/10">
+          <div className="bg-gradient-to-r from-red-500/10 to-red-600/10 rounded-lg p-8 border border-red-500/20">
             <div className="text-center max-w-2xl mx-auto">
               <h2 className="text-3xl font-bold mb-4">SHARE YOUR ART</h2>
               <p className="text-white/70 mb-6">
@@ -572,7 +568,7 @@ export default function HomePage() {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Link
                   href="/dj-submit"
-                  className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
+                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors"
                 >
                   Submit a Mix
                 </Link>
