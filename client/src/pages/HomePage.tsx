@@ -5,6 +5,7 @@ import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, P
 import { SearchModal } from "../components/SearchModal";
 import { AudioPlayer } from "../components/AudioPlayer";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
+import CustomRadioPlayer from "../components/CustomRadioPlayer";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -500,17 +501,8 @@ export default function HomePage() {
             </div>
             
             <div className="p-4 md:p-6">
-              <div className="max-w-4xl mx-auto">
-                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
-                  <iframe
-                    className="absolute top-0 left-0 w-full h-full rounded-lg"
-                    scrolling="no"
-                    frameBorder="no"
-                    allow="autoplay"
-                    src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/scumbagjones1/sets/essentials&color=%23ff0000&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"
-                    title="Enamorado Radio Live Playlist"
-                  ></iframe>
-                </div>
+              <div className="max-w-3xl mx-auto">
+                <CustomRadioPlayer />
               </div>
               
               <div className="mt-4 text-center">

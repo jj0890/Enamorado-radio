@@ -161,6 +161,10 @@ Changelog:
 - July 27, 2025. Added "NOW PLAYING:" header with live indicator and professional radio station branding
 - July 27, 2025. Fixed SoundCloud embed URL format by resolving short URL to full playlist URL (https://soundcloud.com/scumbagjones1/sets/essentials)
 - July 27, 2025. Successfully integrated "Essentials" playlist by Jarrad with 144 tracks (1:01:37 duration) featuring artists like PARTYNEXTDOOR, Drake, Bryson Tiller
+- July 27, 2025. Replaced SoundCloud embed with custom HTML5 radio player matching mini player design from reference images
+- July 27, 2025. Created CustomRadioPlayer component with dark theme, live indicators, volume controls, and professional branding
+- July 27, 2025. Added real-time progress tracking, listener count simulation, and track information display
+- July 27, 2025. Implemented play/pause controls, volume slider, and track progression matching radio station UX
 
 ## User Preferences
 
