@@ -165,6 +165,11 @@ Changelog:
 - July 27, 2025. Created CustomRadioPlayer component with dark theme, live indicators, volume controls, and professional branding
 - July 27, 2025. Added real-time progress tracking, listener count simulation, and track information display
 - July 27, 2025. Implemented play/pause controls, volume slider, and track progression matching radio station UX
+- July 27, 2025. Redesigned entire radio experience with single persistent player in top-right corner like NTS Radio
+- July 27, 2025. Added SoundCloud-style waveform visualization with clickable seeking functionality
+- July 27, 2025. Integrated proper track artwork display and metadata from Essentials playlist
+- July 27, 2025. Removed competing players for clean, focused user experience with single radio interface
+- July 27, 2025. Added social features: like buttons, external SoundCloud links, and expandable player view
 
 ## User Preferences
 
