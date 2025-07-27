@@ -155,6 +155,10 @@ Changelog:
 - July 24, 2025. Updated admin panel to focus only on radio content, removed all zine references
 - July 24, 2025. Changed navigation from "GUIDES" to "EXPLORE" and removed gradient overlays
 - July 24, 2025. Implemented "Latest" button functionality for episode navigation
+- July 27, 2025. Replaced radio player placeholder with functional SoundCloud playlist embed (https://on.soundcloud.com/nwBBfgMi2BC0J97BoT)
+- July 27, 2025. Added responsive iframe container with 16:9 aspect ratio for mobile compatibility
+- July 27, 2025. Styled SoundCloud embed with red accent theme (#FF0000) matching overall design
+- July 27, 2025. Added "NOW PLAYING:" header with live indicator and professional radio station branding
 
 ## User Preferences
 

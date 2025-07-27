@@ -481,24 +481,44 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Recent Shows - Coming Soon */}
+        {/* Live Radio Player */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold font-mono text-red-500">RECENT SHOWS</h2>
-            <button 
-              onClick={() => console.log('Latest clicked - implement latest episodes functionality')}
-              className="text-red-500 hover:text-red-400 flex items-center transition-colors font-mono"
-            >
-              LATEST <ChevronRight className="w-4 h-4 ml-1" />
-            </button>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
+            <h2 className="text-2xl md:text-3xl font-bold font-mono text-red-500">NOW PLAYING:</h2>
+            <div className="flex items-center gap-2 text-red-500 font-mono">
+              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
+              LIVE
+            </div>
           </div>
           
-          <div className="text-center py-16 bg-gray-50 rounded-lg border border-gray-200">
-            <div className="text-gray-400 mb-4">
-              <Radio className="w-16 h-16 mx-auto mb-4" />
+          <div className="bg-white border-2 border-red-500 rounded-lg overflow-hidden shadow-xl">
+            <div className="bg-gradient-to-r from-purple-500/10 to-red-500/10 p-4 border-b border-red-200">
+              <div className="flex items-center justify-center">
+                <Radio className="w-6 h-6 text-red-500 mr-2" />
+                <span className="font-mono text-red-500 font-bold">ENAMORADO RADIO</span>
+              </div>
             </div>
-            <p className="text-gray-600 font-mono">Coming Soon</p>
-            <p className="text-gray-500 text-sm font-mono mt-2">Live shows will appear here when we're ready to broadcast</p>
+            
+            <div className="p-4 md:p-6">
+              <div className="max-w-4xl mx-auto">
+                <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+                  <iframe
+                    className="absolute top-0 left-0 w-full h-full rounded-lg"
+                    scrolling="no"
+                    frameBorder="no"
+                    allow="autoplay"
+                    src="https://w.soundcloud.com/player/?url=https%3A//on.soundcloud.com/nwBBfgMi2BC0J97BoT&color=%23ff0000&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"
+                    title="Enamorado Radio Live Playlist"
+                  ></iframe>
+                </div>
+              </div>
+              
+              <div className="mt-4 text-center">
+                <p className="text-gray-600 font-mono text-sm">
+                  Streaming live from our curated playlist • Use controls above to play, pause, and explore tracks
+                </p>
+              </div>
+            </div>
           </div>
         </section>
 
