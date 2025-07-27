@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX, Radio } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Radio, SkipForward } from 'lucide-react';
 
 interface Track {
   title: string;
@@ -11,22 +11,22 @@ const sampleTracks: Track[] = [
   {
     title: "Jus Know (feat. Travis Scott)",
     artist: "PARTYNEXTDOOR",
-    audioUrl: "" // Placeholder - can be added later
+    audioUrl: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3"
   },
   {
     title: "Female Energy - Freestyle",
     artist: "WILOUGH",
-    audioUrl: ""
+    audioUrl: "https://commondatastorage.googleapis.com/codeskulptor-assets/week7-brrring.m4a"
   },
   {
     title: "Without U",
     artist: "spookyblakc",
-    audioUrl: ""
+    audioUrl: "https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3"
   },
   {
     title: "Days In The East",
     artist: "Drake",
-    audioUrl: ""
+    audioUrl: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Sevish_-__nbsp_.mp3"
   }
 ];
 
@@ -51,26 +51,49 @@ export default function CustomRadioPlayer() {
   }, []);
 
   useEffect(() => {
-    // Simulate progress for demo
-    if (isPlaying) {
-      const interval = setInterval(() => {
-        setCurrentTime(prev => {
-          if (prev >= duration) {
-            // Auto advance to next track
-            setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % sampleTracks.length);
-            return 0;
-          }
-          return prev + 1;
-        });
-      }, 1000);
-
-      return () => clearInterval(interval);
+    // Load new track when track index changes
+    if (audioRef.current && currentTrack.audioUrl) {
+      audioRef.current.src = currentTrack.audioUrl;
+      audioRef.current.load();
     }
-  }, [isPlaying, duration]);
+  }, [currentTrackIndex]);
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    const updateTime = () => setCurrentTime(Math.floor(audio.currentTime));
+    const updateDuration = () => setDuration(Math.floor(audio.duration));
+    const handleEnded = () => {
+      setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % sampleTracks.length);
+      setCurrentTime(0);
+    };
+
+    audio.addEventListener('timeupdate', updateTime);
+    audio.addEventListener('loadedmetadata', updateDuration);
+    audio.addEventListener('ended', handleEnded);
+
+    return () => {
+      audio.removeEventListener('timeupdate', updateTime);
+      audio.removeEventListener('loadedmetadata', updateDuration);
+      audio.removeEventListener('ended', handleEnded);
+    };
+  }, []);
 
   const togglePlayPause = () => {
-    setIsPlaying(!isPlaying);
-    // In real implementation, would control audio element
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying) {
+      audio.pause();
+      setIsPlaying(false);
+    } else {
+      audio.play().catch(error => {
+        console.error('Error playing audio:', error);
+        // Handle autoplay restrictions
+      });
+      setIsPlaying(true);
+    }
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +102,24 @@ export default function CustomRadioPlayer() {
     if (audioRef.current) {
       audioRef.current.volume = newVolume / 100;
     }
+  };
+
+  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const audio = audioRef.current;
+    if (!audio || !duration) return;
+
+    const rect = e.currentTarget.getBoundingClientRect();
+    const clickX = e.clientX - rect.left;
+    const clickPercentage = clickX / rect.width;
+    const newTime = clickPercentage * duration;
+    
+    audio.currentTime = newTime;
+    setCurrentTime(Math.floor(newTime));
+  };
+
+  const nextTrack = () => {
+    setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % sampleTracks.length);
+    setCurrentTime(0);
   };
 
   const formatTime = (seconds: number) => {
@@ -121,9 +162,12 @@ export default function CustomRadioPlayer() {
       {/* Progress Bar */}
       <div className="mb-6">
         <div className="relative">
-          <div className="w-full h-2 bg-gray-700 rounded-full">
+          <div 
+            className="w-full h-2 bg-gray-700 rounded-full cursor-pointer"
+            onClick={handleProgressClick}
+          >
             <div 
-              className="h-full bg-red-500 rounded-full transition-all duration-1000"
+              className="h-full bg-red-500 rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -148,6 +192,13 @@ export default function CustomRadioPlayer() {
             )}
           </button>
           
+          <button
+            onClick={nextTrack}
+            className="bg-gray-700 hover:bg-gray-600 p-2 rounded-full transition-colors"
+          >
+            <SkipForward className="w-4 h-4 text-white" />
+          </button>
+          
           <div className="flex items-center gap-2">
             <VolumeX className="w-4 h-4 text-gray-400" />
             <input
@@ -168,12 +219,12 @@ export default function CustomRadioPlayer() {
         </div>
       </div>
 
-      {/* Hidden audio element for future use */}
+      {/* Hidden audio element */}
       <audio 
         ref={audioRef} 
         className="hidden"
-        // src={currentTrack.audioUrl} 
-        // Add actual audio source when available
+        src={currentTrack.audioUrl}
+        preload="metadata"
       />
 
       <style dangerouslySetInnerHTML={{
