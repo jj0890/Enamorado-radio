@@ -260,19 +260,88 @@ export default function HomePage() {
 
           </div>
           
-          {/* Simple Radio Section */}
-          <div className="text-center mb-12">
-            <p className="text-gray-600 font-mono mb-4">
-              Now playing: "how did i do" by Jarrad
-            </p>
-            <button
-              onClick={() => setIsRadioActive(true)}
-              className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-lg font-mono font-bold transition-colors flex items-center gap-2 mx-auto"
-            >
-              <Play className="w-5 h-5" />
-              Listen Live
-            </button>
-          </div>
+          {/* Featured Mix Section */}
+          {featuredSubmissions.length > 0 && (
+            <div className="max-w-4xl mx-auto mb-12">
+              <div className="bg-gray-50 rounded-lg p-8 border border-gray-200">
+                <div className="flex flex-col lg:flex-row gap-8 items-center">
+                  {/* Artwork Section */}
+                  <div className="flex-shrink-0">
+                    <div className="w-64 h-64 rounded-lg overflow-hidden bg-gray-200 relative">
+                      {trackThumbnails[featuredSubmissions[0].id] ? (
+                        <img 
+                          src={trackThumbnails[featuredSubmissions[0].id]} 
+                          alt={featuredSubmissions[0].demoMixTitle}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="text-gray-500 text-center">
+                            <Music className="w-16 h-16 mx-auto mb-2" />
+                            <div className="text-sm font-medium font-mono">{featuredSubmissions[0].primaryGenre.toUpperCase()}</div>
+                          </div>
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
+                        <button 
+                          onClick={() => handlePlayTrack(featuredSubmissions[0])}
+                          className="bg-white/90 hover:bg-white text-black rounded-full p-6 transition-all duration-300 transform hover:scale-110"
+                        >
+                          <Play className="w-12 h-12" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Content Section */}
+                  <div className="flex-1 text-center lg:text-left">
+                    <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-medium mb-4 font-mono">
+                      <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                      FEATURED MIX
+                    </div>
+                    
+                    <h2 className="text-3xl font-bold text-gray-900 mb-2 font-mono">
+                      {featuredSubmissions[0].demoMixTitle}
+                    </h2>
+                    <p className="text-xl text-gray-600 mb-4 font-mono">{featuredSubmissions[0].djName}</p>
+                    
+                    <p className="text-gray-700 text-lg leading-relaxed mb-6 font-mono">
+                      {featuredSubmissions[0].demoMixDescription}
+                    </p>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4 mb-6">
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span className="font-mono text-sm">{featuredSubmissions[0].primaryGenre}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-gray-600">
+                        <Headphones className="w-4 h-4" />
+                        <span className="font-mono text-sm">{featuredSubmissions[0].showLength}min</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <button 
+                        onClick={() => handlePlayTrack(featuredSubmissions[0])}
+                        className="flex items-center justify-center gap-3 bg-red-500 text-white hover:bg-red-600 px-8 py-3 rounded-lg font-medium transition-all duration-300 font-mono"
+                      >
+                        <Play className="w-5 h-5" />
+                        <span>Play Mix</span>
+                      </button>
+                      
+                      <button
+                        onClick={() => setIsRadioActive(true)}
+                        className="flex items-center justify-center gap-3 bg-gray-800 text-white hover:bg-gray-900 px-8 py-3 rounded-lg font-medium transition-all duration-300 font-mono"
+                      >
+                        <Radio className="w-5 h-5" />
+                        <span>Listen Live</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </section>
 
         {/* Community Section */}
@@ -509,67 +578,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Listen Live CTA */}
-        <section className="mb-16">
-          <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 rounded-3xl shadow-lg border border-purple-200/50 overflow-hidden">
-            <div className="p-8 md:p-12 text-center">
-              <div className="mb-6">
-                <div className="flex items-center justify-center gap-3 mb-4">
-                  <Radio className="w-8 h-8 text-red-500" />
-                  <span className="font-mono text-red-500 font-bold text-2xl">ENAMORADO RADIO</span>
-                </div>
-                <p className="text-gray-600 font-mono text-lg mb-6">
-                  Digital space dedicated to the things we are enamored with
-                </p>
-              </div>
-              
-              <div className="flex items-center justify-center gap-4">
-                <div className="flex items-center gap-2 text-green-500">
-                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                  <span className="font-mono font-bold">Live Now</span>
-                </div>
-                
-                <button
-                  onClick={() => setIsRadioActive(true)}
-                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-mono font-bold transition-colors flex items-center gap-2"
-                >
-                  <Play className="w-5 h-5" />
-                  Listen Live
-                </button>
-              </div>
-              
-              <div className="mt-6">
-                <p className="text-gray-500 font-mono text-sm">
-                  24/7 curated stream • Auto-shuffles from our Essentials playlist
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
 
-        {/* Featured Issue Preview - Magazine Style with Red Border */}
-        <section className="mb-16">
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-gray-50 rounded-2xl p-8 border-4 border-red-500 shadow-xl">
-              <div className="text-center">
-                {/* Magazine Cover */}
-                <div className="w-64 h-80 mx-auto mb-6 bg-black rounded-lg shadow-2xl flex items-center justify-center">
-                  <div className="text-white text-center">
-                    <h3 className="text-2xl font-bold mb-2">ENAMORADO</h3>
-                    <p className="text-white/70 text-sm mb-4">ISSUE #001</p>
-                    <div className="w-16 h-0.5 bg-white/50 mx-auto"></div>
-                  </div>
-                </div>
-                
-                {/* Content */}
-                <h3 className="text-xl font-bold text-black mb-3">Featured Issue Preview</h3>
-                <div className="text-red-500 hover:text-red-600 transition-colors cursor-pointer font-medium">
-                  Coming Soon →
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
 
         {/* Community Section */}
         <section className="mb-16">
