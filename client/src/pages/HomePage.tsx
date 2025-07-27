@@ -30,6 +30,7 @@ export default function HomePage() {
   const [showSoundCloudEmbed, setShowSoundCloudEmbed] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<any>(null);
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
+  const [isRadioPlaying, setIsRadioPlaying] = useState(false);
 
   // Fetch featured DJ submissions
   const { data: featuredSubmissions = [], isLoading, error } = useQuery<FeaturedSubmission[]>({
@@ -502,7 +503,7 @@ export default function HomePage() {
             
             <div className="p-4 md:p-6">
               <div className="max-w-3xl mx-auto">
-                <CustomRadioPlayer />
+                <CustomRadioPlayer onPlayingStateChange={setIsRadioPlaying} />
               </div>
               
               <div className="mt-4 text-center">
@@ -614,14 +615,16 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Audio Player - Fixed at bottom */}
-      <div className="fixed bottom-0 left-0 right-0 z-40">
-        <AudioPlayer
-          track={currentTrack}
-          isExpanded={isPlayerExpanded}
-          onToggleExpanded={() => setIsPlayerExpanded(!isPlayerExpanded)}
-        />
-      </div>
+      {/* Audio Player - Fixed at bottom (hidden when radio is playing) */}
+      {!isRadioPlaying && (
+        <div className="fixed bottom-0 left-0 right-0 z-40">
+          <AudioPlayer
+            track={currentTrack}
+            isExpanded={isPlayerExpanded}
+            onToggleExpanded={() => setIsPlayerExpanded(!isPlayerExpanded)}
+          />
+        </div>
+      )}
     </div>
   );
 }

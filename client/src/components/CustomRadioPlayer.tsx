@@ -30,7 +30,11 @@ const sampleTracks: Track[] = [
   }
 ];
 
-export default function CustomRadioPlayer() {
+interface CustomRadioPlayerProps {
+  onPlayingStateChange?: (isPlaying: boolean) => void;
+}
+
+export default function CustomRadioPlayer({ onPlayingStateChange }: CustomRadioPlayerProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0);
   const [volume, setVolume] = useState(70);
@@ -67,6 +71,7 @@ export default function CustomRadioPlayer() {
     const handleEnded = () => {
       setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % sampleTracks.length);
       setCurrentTime(0);
+      // Keep playing state since we're auto-advancing to next track
     };
 
     audio.addEventListener('timeupdate', updateTime);
@@ -84,6 +89,8 @@ export default function CustomRadioPlayer() {
     const audio = audioRef.current;
     if (!audio) return;
 
+    const newPlayingState = !isPlaying;
+    
     if (isPlaying) {
       audio.pause();
       setIsPlaying(false);
@@ -94,6 +101,9 @@ export default function CustomRadioPlayer() {
       });
       setIsPlaying(true);
     }
+    
+    // Notify parent component about playing state change
+    onPlayingStateChange?.(newPlayingState);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,6 +130,7 @@ export default function CustomRadioPlayer() {
   const nextTrack = () => {
     setCurrentTrackIndex((prevIndex) => (prevIndex + 1) % sampleTracks.length);
     setCurrentTime(0);
+    // Keep current playing state when manually advancing tracks
   };
 
   const formatTime = (seconds: number) => {
