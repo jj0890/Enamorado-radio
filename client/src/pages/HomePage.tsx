@@ -507,7 +507,7 @@ export default function HomePage() {
                     scrolling="no"
                     frameBorder="no"
                     allow="autoplay"
-                    src="https://w.soundcloud.com/player/?url=https%3A//on.soundcloud.com/nwBBfgMi2BC0J97BoT&color=%23ff0000&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"
+                    src="https://w.soundcloud.com/player/?url=https%3A//soundcloud.com/scumbagjones1/sets/essentials&color=%23ff0000&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true"
                     title="Enamorado Radio Live Playlist"
                   ></iframe>
                 </div>

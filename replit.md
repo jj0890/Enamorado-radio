@@ -159,6 +159,8 @@ Changelog:
 - July 27, 2025. Added responsive iframe container with 16:9 aspect ratio for mobile compatibility
 - July 27, 2025. Styled SoundCloud embed with red accent theme (#FF0000) matching overall design
 - July 27, 2025. Added "NOW PLAYING:" header with live indicator and professional radio station branding
+- July 27, 2025. Fixed SoundCloud embed URL format by resolving short URL to full playlist URL (https://soundcloud.com/scumbagjones1/sets/essentials)
+- July 27, 2025. Successfully integrated "Essentials" playlist by Jarrad with 144 tracks (1:01:37 duration) featuring artists like PARTYNEXTDOOR, Drake, Bryson Tiller
 
 ## User Preferences
 
