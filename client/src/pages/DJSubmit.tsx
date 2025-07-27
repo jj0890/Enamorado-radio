@@ -165,43 +165,44 @@ export default function DJSubmit() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 text-white relative overflow-hidden">
-      {/* Animated Background Elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
-        <div className="absolute top-1/2 left-1/2 w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse delay-2000"></div>
-      </div>
+    <div className="min-h-screen bg-white relative">
+      {/* Header */}
+      <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+              ENAMORADO
+            </Link>
+            <Link href="/" className="text-gray-600 hover:text-red-500 transition-colors text-sm font-mono">
+              ← Back to Home
+            </Link>
+          </div>
+        </div>
+      </header>
       
-      <div className="relative z-10 max-w-5xl mx-auto py-8 px-4">
+      <div className="pt-24 max-w-4xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="text-center mb-12">
-          <Link href="/" className="text-purple-400 hover:text-purple-300 mb-6 inline-flex items-center group transition-colors">
-            <span className="text-lg group-hover:translate-x-[-4px] transition-transform">←</span>
-            <span className="ml-2">Back to Home</span>
-          </Link>
-          
-          {/* Live Status Indicator */}
           <div className="flex items-center justify-center mb-6">
             <div className="relative flex items-center">
               <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
-              <span className="text-red-400 font-semibold uppercase text-sm tracking-wide">
-                {isLive ? "ON AIR" : "ACCEPTING SUBMISSIONS"}
+              <span className="text-red-500 font-semibold uppercase text-sm tracking-wide font-mono">
+                ACCEPTING SUBMISSIONS
               </span>
             </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-purple-400 via-pink-400 to-blue-400 bg-clip-text text-transparent">
-            Share Your Mix
+          <h1 className="text-4xl font-bold mb-4 font-mono text-gray-900">
+            Submit a Mix
           </h1>
-          <p className="text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            We celebrate artists and their craft. Share your work with our community for potential featuring, 
-            airplay, or collaboration opportunities. <strong>All submissions are reviewed with respect for your artistic vision.</strong>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed font-mono">
+            Share your work with our community for potential featuring, 
+            airplay, or collaboration opportunities.
           </p>
-          <div className="mt-6 p-4 bg-purple-500/20 rounded-lg border border-purple-500/30 max-w-3xl mx-auto">
-            <p className="text-sm text-purple-200">
+          <div className="mt-6 p-4 bg-red-50 rounded-lg border border-red-200 max-w-3xl mx-auto">
+            <p className="text-sm text-red-600 font-mono">
               <strong>Important:</strong> By submitting, you maintain full ownership of your work. 
-              We only feature content with explicit artist consent and will discuss any compensation for regular programming.
+              We only feature content with explicit artist consent.
             </p>
           </div>
         </div>
@@ -226,7 +227,7 @@ export default function DJSubmit() {
         </div>
 
         {/* Form */}
-        <form onSubmit={handleSubmit} className="bg-white/5 backdrop-blur-lg rounded-3xl p-8 md:p-12 space-y-12 border border-white/10 shadow-2xl">
+        <form onSubmit={handleSubmit} className="bg-white border border-gray-200 rounded-lg p-8 md:p-12 space-y-12 shadow-lg">
           {/* Personal Information */}
           <div className="space-y-8">
             <div className="flex items-center space-x-3 mb-8">

@@ -36,6 +36,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve audio files statically from attached_assets directory (before routes)
+app.use('/attached_assets', express.static('attached_assets', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.mp3')) {
+      res.setHeader('Content-Type', 'audio/mpeg');
+    }
+  }
+}));
+
 (async () => {
   const server = await registerRoutes(app);
 
@@ -55,9 +64,6 @@ app.use((req, res, next) => {
   } else {
     serveStatic(app);
   }
-
-  // Serve audio files statically from attached_assets directory
-  app.use('/attached_assets', express.static('attached_assets'));
 
   // ALWAYS serve the app on port 5000
   // this serves both the API and the client.
