@@ -15,7 +15,8 @@ import {
   insertMixUploadSchema,
   insertMixTracklistSchema,
   insertEpisodeSchema,
-  insertEpisodeTracklistSchema
+  insertEpisodeTracklistSchema,
+  insertRadioPlaylistSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -841,5 +842,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }, 30000); // Every 30 seconds
   
+  // Radio Playlist API
+  app.get('/api/radio/playlist', async (req, res) => {
+    try {
+      const tracks = await storage.getActiveRadioPlaylist();
+      res.json(tracks);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch radio playlist' });
+    }
+  });
+
+  app.get('/api/radio/playlist/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const track = await storage.getRadioPlaylistItem(id);
+      if (!track) {
+        return res.status(404).json({ error: 'Track not found' });
+      }
+      res.json(track);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch track' });
+    }
+  });
+
+  app.post('/api/radio/playlist/:id/play', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.incrementPlayCount(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update play count' });
+    }
+  });
+
+  app.post('/api/radio/playlist', requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertRadioPlaylistSchema.parse(req.body);
+      const newTrack = await storage.createRadioPlaylistItem(validatedData);
+      res.status(201).json(newTrack);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to create track' });
+    }
+  });
+
   return httpServer;
 }

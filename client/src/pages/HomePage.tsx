@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
-import PersistentRadioPlayer from "../components/PersistentRadioPlayer";
+import HTML5RadioPlayer from "../components/HTML5RadioPlayer";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -618,7 +618,7 @@ export default function HomePage() {
       )}
 
       {/* Persistent Radio Player */}
-      <PersistentRadioPlayer 
+      <HTML5RadioPlayer 
         isActive={isRadioActive} 
         onToggle={() => setIsRadioActive(!isRadioActive)} 
       />

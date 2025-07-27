@@ -96,6 +96,14 @@ export interface IStorage {
   getEpisodeTracklist(episodeId: number): Promise<EpisodeTracklist[]>;
   createEpisodeTrack(track: InsertEpisodeTracklist): Promise<EpisodeTracklist>;
   getCurrentEpisodeTrackByTime(episodeId: number, currentTime: number): Promise<EpisodeTracklist | undefined>;
+  
+  // Radio Playlist methods
+  getAllRadioPlaylist(): Promise<RadioPlaylist[]>;
+  getActiveRadioPlaylist(): Promise<RadioPlaylist[]>;
+  getRadioPlaylistItem(id: number): Promise<RadioPlaylist | undefined>;
+  createRadioPlaylistItem(item: InsertRadioPlaylist): Promise<RadioPlaylist>;
+  updateRadioPlaylistStatus(id: number, isActive: boolean): Promise<RadioPlaylist | undefined>;
+  incrementPlayCount(id: number): Promise<void>;
 }
 
 export class MemStorage implements IStorage {
@@ -112,6 +120,7 @@ export class MemStorage implements IStorage {
   private mixTracklist: Map<number, MixTracklist>;
   private episodes: Map<number, Episode>;
   private episodeTracklist: Map<number, EpisodeTracklist>;
+  private radioPlaylist: Map<number, RadioPlaylist>;
   private currentPlayback: CurrentPlayback | undefined;
   private currentId: number;
 
@@ -129,10 +138,12 @@ export class MemStorage implements IStorage {
     this.mixTracklist = new Map();
     this.episodes = new Map();
     this.episodeTracklist = new Map();
+    this.radioPlaylist = new Map();
     this.currentId = 1;
     this.initializeData();
     this.initializeMixData();
     this.initializeEpisodeData();
+    this.initializeRadioPlaylist();
   }
 
   private initializeData() {
@@ -1624,6 +1635,102 @@ What makes this movement particularly fascinating is its relationship with the c
     tracks.forEach(track => {
       this.episodeTracklist.set(track.id, track);
     });
+  }
+
+  // Radio Playlist initialization
+  private initializeRadioPlaylist() {
+    // Initialize with your actual mix file
+    const sampleRadioTracks: RadioPlaylist[] = [
+      {
+        id: 1,
+        title: "how did i do",
+        artist: "Jarrad",
+        description: "Personal mix showcasing Chicago footwork and juke selections",
+        genre: "Footwork/Juke",
+        duration: 2700, // 45 minutes in seconds
+        fileUrl: "/attached_assets/how did i do_1753594094475.mp3",
+        artworkUrl: "https://via.placeholder.com/300x300/1a1a1a/ff0000?text=JARRAD",
+        isActive: true,
+        playCount: 0,
+        uploadedAt: new Date(),
+        uploadedBy: "admin"
+      },
+      // Additional sample tracks for testing rotation
+      {
+        id: 2,
+        title: "Midnight Sessions",
+        artist: "Luna Park",
+        description: "Ambient and downtempo journey for late night listeners",
+        genre: "Ambient",
+        duration: 3600, // 60 minutes
+        fileUrl: "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        artworkUrl: "https://via.placeholder.com/300x300/1a1a1a/ff0000?text=LUNA",
+        isActive: true,
+        playCount: 0,
+        uploadedAt: new Date(),
+        uploadedBy: "admin"
+      },
+      {
+        id: 3,
+        title: "Berlin Underground",
+        artist: "Techno Collective",
+        description: "Raw techno sounds from Berlin's underground scene",
+        genre: "Techno",
+        duration: 2400, // 40 minutes
+        fileUrl: "https://commondatastorage.googleapis.com/codeskulptor-demos/DDR_assets/Kangaroo_MusiQue_-_The_Neverwritten_Role_Playing_Game.mp3",
+        artworkUrl: "https://via.placeholder.com/300x300/1a1a1a/ff0000?text=BERLIN",
+        isActive: true,
+        playCount: 0,
+        uploadedAt: new Date(),
+        uploadedBy: "admin"
+      }
+    ];
+
+    sampleRadioTracks.forEach((track) => {
+      this.radioPlaylist.set(track.id, track);
+    });
+  }
+
+  // Radio Playlist Methods
+  async getAllRadioPlaylist(): Promise<RadioPlaylist[]> {
+    return Array.from(this.radioPlaylist.values());
+  }
+
+  async getActiveRadioPlaylist(): Promise<RadioPlaylist[]> {
+    return Array.from(this.radioPlaylist.values()).filter(track => track.isActive);
+  }
+
+  async getRadioPlaylistItem(id: number): Promise<RadioPlaylist | undefined> {
+    return this.radioPlaylist.get(id);
+  }
+
+  async createRadioPlaylistItem(item: InsertRadioPlaylist): Promise<RadioPlaylist> {
+    const newItem: RadioPlaylist = {
+      ...item,
+      id: this.currentId++,
+      playCount: 0,
+      uploadedAt: new Date(),
+    };
+    this.radioPlaylist.set(newItem.id, newItem);
+    return newItem;
+  }
+
+  async updateRadioPlaylistStatus(id: number, isActive: boolean): Promise<RadioPlaylist | undefined> {
+    const item = this.radioPlaylist.get(id);
+    if (item) {
+      item.isActive = isActive;
+      this.radioPlaylist.set(id, item);
+      return item;
+    }
+    return undefined;
+  }
+
+  async incrementPlayCount(id: number): Promise<void> {
+    const item = this.radioPlaylist.get(id);
+    if (item) {
+      item.playCount = (item.playCount || 0) + 1;
+      this.radioPlaylist.set(id, item);
+    }
   }
 }
 

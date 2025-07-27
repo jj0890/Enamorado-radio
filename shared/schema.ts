@@ -321,8 +321,30 @@ export const insertEpisodeSchema = createInsertSchema(episodes).omit({
   viewCount: true,
 });
 
+// Radio Playlist table for HTML5 player
+export const radioPlaylist = pgTable("radio_playlist", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(), // DJ name
+  description: text("description"),
+  genre: text("genre").notNull(),
+  duration: integer("duration").notNull(), // in seconds
+  fileUrl: text("file_url").notNull(), // path to uploaded audio file
+  artworkUrl: text("artwork_url"), // mix artwork
+  isActive: boolean("is_active").default(true), // if file should be in rotation
+  playCount: integer("play_count").default(0),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  uploadedBy: text("uploaded_by").notNull(), // admin username
+});
+
 export const insertEpisodeTracklistSchema = createInsertSchema(episodeTracklist).omit({
   id: true,
+});
+
+export const insertRadioPlaylistSchema = createInsertSchema(radioPlaylist).omit({
+  id: true,
+  uploadedAt: true,
+  playCount: true,
 });
 
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -353,3 +375,5 @@ export type Episode = typeof episodes.$inferSelect;
 export type EpisodeTracklist = typeof episodeTracklist.$inferSelect;
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertEpisodeTracklist = z.infer<typeof insertEpisodeTracklistSchema>;
+export type RadioPlaylist = typeof radioPlaylist.$inferSelect;
+export type InsertRadioPlaylist = z.infer<typeof insertRadioPlaylistSchema>;
