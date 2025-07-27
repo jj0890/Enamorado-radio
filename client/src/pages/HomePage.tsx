@@ -3,9 +3,8 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
-import { AudioPlayer } from "../components/AudioPlayer";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
-import CustomRadioPlayer from "../components/CustomRadioPlayer";
+import PersistentRadioPlayer from "../components/PersistentRadioPlayer";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -23,14 +22,11 @@ interface FeaturedSubmission {
 
 export default function HomePage() {
   const [currentShow, setCurrentShow] = useState("Deep Routes");
-  const [isPlaying, setIsPlaying] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
-  const [currentTrack, setCurrentTrack] = useState<any>(null);
-  const [isPlayerExpanded, setIsPlayerExpanded] = useState(false);
   const [showSoundCloudEmbed, setShowSoundCloudEmbed] = useState(false);
   const [selectedTrack, setSelectedTrack] = useState<any>(null);
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
-  const [isRadioPlaying, setIsRadioPlaying] = useState(false);
+  const [isRadioActive, setIsRadioActive] = useState(false);
 
   // Fetch featured DJ submissions
   const { data: featuredSubmissions = [], isLoading, error } = useQuery<FeaturedSubmission[]>({
@@ -483,32 +479,38 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Live Radio Player */}
+        {/* Listen Live CTA */}
         <section className="mb-16">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 gap-4">
-            <h2 className="text-2xl md:text-3xl font-bold font-mono text-red-500">NOW PLAYING:</h2>
-            <div className="flex items-center gap-2 text-red-500 font-mono">
-              <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-              LIVE
-            </div>
-          </div>
-          
-          <div className="bg-white border-2 border-red-500 rounded-lg overflow-hidden shadow-xl">
-            <div className="bg-gradient-to-r from-purple-500/10 to-red-500/10 p-4 border-b border-red-200">
-              <div className="flex items-center justify-center">
-                <Radio className="w-6 h-6 text-red-500 mr-2" />
-                <span className="font-mono text-red-500 font-bold">ENAMORADO RADIO</span>
-              </div>
-            </div>
-            
-            <div className="p-4 md:p-6">
-              <div className="max-w-3xl mx-auto">
-                <CustomRadioPlayer onPlayingStateChange={setIsRadioPlaying} />
+          <div className="bg-gradient-to-br from-purple-100 via-pink-50 to-orange-50 rounded-3xl shadow-lg border border-purple-200/50 overflow-hidden">
+            <div className="p-8 md:p-12 text-center">
+              <div className="mb-6">
+                <div className="flex items-center justify-center gap-3 mb-4">
+                  <Radio className="w-8 h-8 text-red-500" />
+                  <span className="font-mono text-red-500 font-bold text-2xl">ENAMORADO RADIO</span>
+                </div>
+                <p className="text-gray-600 font-mono text-lg mb-6">
+                  Digital space dedicated to the things we are enamored with
+                </p>
               </div>
               
-              <div className="mt-4 text-center">
-                <p className="text-gray-600 font-mono text-sm">
-                  Streaming live from our curated playlist • Use controls above to play, pause, and explore tracks
+              <div className="flex items-center justify-center gap-4">
+                <div className="flex items-center gap-2 text-green-500">
+                  <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="font-mono font-bold">Live Now</span>
+                </div>
+                
+                <button
+                  onClick={() => setIsRadioActive(true)}
+                  className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 rounded-full font-mono font-bold transition-colors flex items-center gap-2"
+                >
+                  <Play className="w-5 h-5" />
+                  Listen Live
+                </button>
+              </div>
+              
+              <div className="mt-6">
+                <p className="text-gray-500 font-mono text-sm">
+                  24/7 curated stream • Auto-shuffles from our Essentials playlist
                 </p>
               </div>
             </div>
@@ -615,16 +617,11 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Audio Player - Fixed at bottom (hidden when radio is playing) */}
-      {!isRadioPlaying && (
-        <div className="fixed bottom-0 left-0 right-0 z-40">
-          <AudioPlayer
-            track={currentTrack}
-            isExpanded={isPlayerExpanded}
-            onToggleExpanded={() => setIsPlayerExpanded(!isPlayerExpanded)}
-          />
-        </div>
-      )}
+      {/* Persistent Radio Player */}
+      <PersistentRadioPlayer 
+        isActive={isRadioActive} 
+        onToggle={() => setIsRadioActive(!isRadioActive)} 
+      />
     </div>
   );
 }
