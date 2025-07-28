@@ -143,6 +143,107 @@ export class MemStorage implements IStorage {
     this.radioPlaylist = new Map();
     this.trackMetadataStore = new Map();
     this.currentId = 1;
+
+    // Initialize with sample live shows for college radio
+    this.initializeSampleData();
+  }
+
+  private initializeSampleData() {
+    // Sample live shows
+    const sampleShows = [
+      {
+        id: 1,
+        showName: "Morning Vibes",
+        hostName: "Sarah Chen",
+        description: "Start your day with uplifting indie and electronic tracks",
+        genre: "Indie Electronic",
+        dayOfWeek: 1, // Monday
+        startTime: "08:00",
+        endTime: "10:00",
+        isActive: true,
+        isLive: false,
+        startedAt: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 2,
+        showName: "Late Night Jazz",
+        hostName: "Marcus Rivera",
+        description: "Smooth jazz and experimental sounds for night owls",
+        genre: "Jazz & Experimental",
+        dayOfWeek: 5, // Friday
+        startTime: "22:00",
+        endTime: "24:00",
+        isActive: true,
+        isLive: false,
+        startedAt: null,
+        createdAt: new Date(),
+      },
+      {
+        id: 3,
+        showName: "Weekend House Sessions",
+        hostName: "DJ Alex",
+        description: "Deep house and tech house to get you moving",
+        genre: "House & Techno",
+        dayOfWeek: 6, // Saturday
+        startTime: "20:00",
+        endTime: "22:00",
+        isActive: true,
+        isLive: false,
+        startedAt: null,
+        createdAt: new Date(),
+      }
+    ];
+
+    sampleShows.forEach(show => {
+      this.liveShowsStore.set(show.id, show);
+    });
+
+    // Sample rotation tracks (approved)
+    const sampleTracks = [
+      {
+        trackId: "upload_jarrad_track_1",
+        sourceType: "upload",
+        title: "How Did I Do",
+        artist: "Jarrad",
+        originalMetadata: JSON.stringify({
+          description: "Demo track submission",
+          genre: "Electronic",
+          submittedAt: new Date(),
+        }),
+        lastfmMetadata: JSON.stringify({
+          artist: "Jarrad",
+          trackName: "How Did I Do",
+          album: "Demo Submission",
+          imageUrl: "https://i1.sndcdn.com/avatars-000123456789-abcdef-t500x500.jpg",
+          displayTitle: "Jarrad - How Did I Do"
+        }),
+        approvalStatus: "approved",
+        approvedBy: "admin",
+        approvedAt: new Date(),
+        inRotation: true,
+        playCount: 12,
+        lastPlayed: new Date(Date.now() - 1000 * 60 * 30), // 30 minutes ago
+        uploadedAt: new Date(),
+        createdAt: new Date(),
+      }
+    ];
+
+    sampleTracks.forEach(track => {
+      this.radioRotationStore.set(track.trackId, track);
+    });
+
+    // Set initial program state to auto rotation
+    this.programStateStore = {
+      type: 'auto',
+      currentShowId: null,
+      currentTrackId: "upload_jarrad_track_1",
+      lastUpdated: new Date(),
+    };
+
+    this.currentId = 10; // Start IDs after sample data
+    
+    // Initialize existing data
     this.initializeData();
     this.initializeMixData();
     this.initializeEpisodeData();
@@ -1767,6 +1868,77 @@ What makes this movement particularly fascinating is its relationship with the c
 
   async deleteTrackMetadata(filename: string): Promise<void> {
     this.trackMetadataStore.delete(filename);
+  }
+
+  // College Radio Rotation methods
+  private radioRotationStore: Map<string, any> = new Map();
+  private liveShowsStore: Map<number, any> = new Map();
+  private programStateStore: any = { type: 'auto', currentShowId: null, currentTrackId: null };
+
+  async getApprovedRotationTracks(): Promise<any[]> {
+    return Array.from(this.radioRotationStore.values()).filter(track => 
+      track.approvalStatus === 'approved' && track.inRotation
+    );
+  }
+
+  async getRadioRotationTrack(trackId: string): Promise<any | null> {
+    return this.radioRotationStore.get(trackId) || null;
+  }
+
+  async createRadioRotationTrack(track: any): Promise<any> {
+    this.radioRotationStore.set(track.trackId, track);
+    return track;
+  }
+
+  async updateRotationTrackStatus(trackId: string, status: string, approvedBy: string, inRotation: boolean): Promise<void> {
+    const track = this.radioRotationStore.get(trackId);
+    if (track) {
+      track.approvalStatus = status;
+      track.approvedBy = approvedBy;
+      track.inRotation = inRotation;
+      track.approvedAt = new Date();
+      this.radioRotationStore.set(trackId, track);
+    }
+  }
+
+  async incrementRotationPlayCount(trackId: string): Promise<void> {
+    const track = this.radioRotationStore.get(trackId);
+    if (track) {
+      track.playCount = (track.playCount || 0) + 1;
+      track.lastPlayed = new Date();
+      this.radioRotationStore.set(trackId, track);
+    }
+  }
+
+  async getAllLiveShows(): Promise<any[]> {
+    return Array.from(this.liveShowsStore.values());
+  }
+
+  async getLiveShow(id: number): Promise<any | null> {
+    return this.liveShowsStore.get(id) || null;
+  }
+
+  async createLiveShow(show: any): Promise<any> {
+    const newShow = { ...show, id: this.currentId++, createdAt: new Date() };
+    this.liveShowsStore.set(newShow.id, newShow);
+    return newShow;
+  }
+
+  async updateLiveShowStatus(id: number, isLive: boolean): Promise<void> {
+    const show = this.liveShowsStore.get(id);
+    if (show) {
+      show.isLive = isLive;
+      show.startedAt = isLive ? new Date() : null;
+      this.liveShowsStore.set(id, show);
+    }
+  }
+
+  async getCurrentProgramState(): Promise<any> {
+    return this.programStateStore;
+  }
+
+  async updateProgramState(state: any): Promise<void> {
+    this.programStateStore = { ...state };
   }
 }
 

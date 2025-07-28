@@ -921,6 +921,102 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // College Radio System Routes
+  app.get('/api/radio/program-info', async (req, res) => {
+    try {
+      const radioService = (await import('./radioService')).radioService;
+      const programInfo = await radioService.getCurrentProgramInfo();
+      res.json(programInfo);
+    } catch (error) {
+      console.error('[api] Error fetching program info:', error);
+      res.status(500).json({ message: 'Failed to fetch program info' });
+    }
+  });
+
+  app.get('/api/radio/rotation/pending', async (req, res) => {
+    try {
+      const tracks = Array.from((storage as any).radioRotationStore?.values() || [])
+        .filter((track: any) => track.approvalStatus === 'pending');
+      res.json(tracks);
+    } catch (error) {
+      console.error('[api] Error fetching pending tracks:', error);
+      res.status(500).json({ message: 'Failed to fetch pending tracks' });
+    }
+  });
+
+  app.post('/api/radio/rotation/:trackId/approve', async (req, res) => {
+    try {
+      const { trackId } = req.params;
+      const { approvedBy } = req.body;
+      
+      const radioService = (await import('./radioService')).radioService;
+      await radioService.approveTrackForRotation(trackId, approvedBy);
+      
+      res.json({ message: 'Track approved for rotation' });
+    } catch (error) {
+      console.error('[api] Error approving track:', error);
+      res.status(500).json({ message: 'Failed to approve track' });
+    }
+  });
+
+  app.post('/api/radio/switch-to-live', async (req, res) => {
+    try {
+      const { showId } = req.body;
+      const radioService = (await import('./radioService')).radioService;
+      await radioService.switchToLiveMode(showId);
+      res.json({ message: 'Switched to live mode' });
+    } catch (error) {
+      console.error('[api] Error switching to live mode:', error);
+      res.status(500).json({ message: 'Failed to switch to live mode' });
+    }
+  });
+
+  app.post('/api/radio/switch-to-auto', async (req, res) => {
+    try {
+      const radioService = (await import('./radioService')).radioService;
+      await radioService.switchToAutoMode();
+      res.json({ message: 'Switched to auto rotation' });
+    } catch (error) {
+      console.error('[api] Error switching to auto mode:', error);
+      res.status(500).json({ message: 'Failed to switch to auto mode' });
+    }
+  });
+
+  // College Radio Track Submission
+  app.post('/api/radio/submit-track', async (req, res) => {
+    try {
+      const { title, artist, description, genre, sourceType, soundcloudUrl } = req.body;
+      
+      // Generate unique track ID
+      const trackId = `${sourceType}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      
+      const trackData = {
+        trackId,
+        sourceType,
+        title,
+        artist,
+        originalMetadata: {
+          description,
+          genre,
+          soundcloudUrl: sourceType === 'soundcloud' ? soundcloudUrl : undefined,
+          submittedAt: new Date(),
+        }
+      };
+
+      const radioService = (await import('./radioService')).radioService;
+      await radioService.submitTrackForRotation(trackData);
+      
+      res.json({ 
+        message: 'Track submitted successfully',
+        trackId,
+        status: 'pending_approval'
+      });
+    } catch (error) {
+      console.error('[api] Error submitting track:', error);
+      res.status(500).json({ message: 'Failed to submit track for rotation' });
+    }
+  });
+
   // Force refresh metadata (admin endpoint)
   app.post('/api/track-metadata/:filename/refresh', async (req, res) => {
     try {

@@ -402,3 +402,70 @@ export const insertTrackMetadataSchema = createInsertSchema(trackMetadata).omit(
 
 export type TrackMetadata = typeof trackMetadata.$inferSelect;
 export type InsertTrackMetadata = z.infer<typeof insertTrackMetadataSchema>;
+
+// College Radio Rotation System
+export const radioRotation = pgTable("radio_rotation", {
+  id: serial("id").primaryKey(),
+  trackId: text("track_id").notNull(), // references submission or upload
+  sourceType: text("source_type").notNull(), // 'upload' | 'soundcloud' | 'dj_submission'
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  originalMetadata: text("original_metadata"), // JSON string
+  lastfmMetadata: text("lastfm_metadata"), // JSON string  
+  approvalStatus: text("approval_status").notNull().default("pending"), // 'pending' | 'approved' | 'rejected'
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  inRotation: boolean("in_rotation").default(false),
+  playCount: integer("play_count").default(0),
+  lastPlayed: timestamp("last_played"),
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertRadioRotationSchema = createInsertSchema(radioRotation).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type RadioRotation = typeof radioRotation.$inferSelect;
+export type InsertRadioRotation = z.infer<typeof insertRadioRotationSchema>;
+
+// Live Programming Schedule
+export const liveShows = pgTable("live_shows", {
+  id: serial("id").primaryKey(),
+  showName: text("show_name").notNull(),
+  hostName: text("host_name").notNull(),
+  description: text("description"),
+  genre: text("genre"),
+  dayOfWeek: integer("day_of_week").notNull(), // 0-6 (Sunday-Saturday)
+  startTime: text("start_time").notNull(), // HH:MM format
+  endTime: text("end_time").notNull(), // HH:MM format
+  isActive: boolean("is_active").default(true),
+  isLive: boolean("is_live").default(false), // currently broadcasting
+  startedAt: timestamp("started_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertLiveShowSchema = createInsertSchema(liveShows).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type LiveShow = typeof liveShows.$inferSelect;
+export type InsertLiveShow = z.infer<typeof insertLiveShowSchema>;
+
+// Programming State (current radio mode)
+export const programState = pgTable("program_state", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'auto' | 'live'
+  currentShowId: integer("current_show_id"),
+  currentTrackId: text("current_track_id"),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+});
+
+export const insertProgramStateSchema = createInsertSchema(programState).omit({
+  id: true,
+});
+
+export type ProgramState = typeof programState.$inferSelect;
+export type InsertProgramState = z.infer<typeof insertProgramStateSchema>;

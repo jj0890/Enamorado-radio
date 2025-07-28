@@ -6,6 +6,8 @@ import { SearchModal } from "../components/SearchModal";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
 import EnhancedRadioPlayer from "../components/EnhancedRadioPlayer";
 import LastFmDebugPanel from "../components/LastFmDebugPanel";
+import ProgramIndicator from "../components/ProgramIndicator";
+import CollegeRadioUpload from "../components/CollegeRadioUpload";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -29,6 +31,7 @@ export default function HomePage() {
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
   const [isRadioActive, setIsRadioActive] = useState(false);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
+  const [showRadioUpload, setShowRadioUpload] = useState(false);
 
   // Fetch featured DJ submissions
   const { data: featuredSubmissions = [], isLoading, error } = useQuery<FeaturedSubmission[]>({
@@ -261,17 +264,38 @@ export default function HomePage() {
 
       {/* Main Content */}
       <main className="pt-32 pb-32 px-4 max-w-7xl mx-auto">
-        {/* Hero Section */}
+        {/* Hero Section with Program Indicator */}
         <section className="mb-16">
           <div className="text-center mb-8">
             <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">ENAMORADO RADIO</h1>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-6 font-mono">
               Digital space dedicated to the things we are enamored with
             </p>
-
+            
+            <div className="flex justify-center gap-4 mb-8">
+              <button 
+                onClick={() => setIsRadioActive(true)}
+                className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 font-mono font-bold transition-colors"
+              >
+                LISTEN
+              </button>
+              <Link 
+                href="/episodes" 
+                className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 font-mono transition-colors"
+              >
+                EPISODES
+              </Link>
+            </div>
           </div>
-          
-          {/* Featured Mix Section */}
+
+          {/* Program Status Indicator */}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg max-w-2xl mx-auto mb-12">
+            <ProgramIndicator />
+          </div>
+        </section>
+        
+        {/* Featured Mix Section */}
+        <section className="mb-16">
           {featuredSubmissions.length > 0 && (
             <div className="max-w-4xl mx-auto mb-12">
               <div className="bg-gray-50 rounded-lg p-8 border border-gray-200">
@@ -371,228 +395,46 @@ export default function HomePage() {
                 >
                   Submit a Mix
                 </Link>
+                <button
+                  onClick={() => setShowRadioUpload(true)}
+                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 font-mono text-sm transition-colors"
+                >
+                  Submit for Radio
+                </button>
               </div>
             </div>
           </div>
-
-          {/* Radio Live Section Replacement */}
-          {false && (
-            <div className="max-w-4xl mx-auto mb-12">
-              <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur-sm rounded-2xl p-8 border border-white/10">
-                <div className="flex flex-col lg:flex-row gap-8 items-center">
-                  {/* Artwork Section */}
-                  <div className="flex-shrink-0">
-                    <div className="w-80 h-80 rounded-2xl overflow-hidden bg-gradient-to-br from-white/10 to-white/5 relative">
-                      {featuredContent[0].thumbnail ? (
-                        <img 
-                          src={featuredContent[0].thumbnail} 
-                          alt={featuredContent[0].title}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-white/80 text-center">
-                            <Music className="w-16 h-16 mx-auto mb-2" />
-                            <div className="text-sm font-medium">{featuredContent[0].genre.toUpperCase()}</div>
-                          </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
-                        <button 
-                          onClick={() => handlePlayTrack(featuredContent[0])}
-                          className="bg-white/90 hover:bg-white text-black rounded-full p-6 transition-all duration-300 transform hover:scale-110"
-                        >
-                          <Play className="w-12 h-12" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Content Section */}
-                  <div className="flex-1 text-center lg:text-left">
-                    <div className="inline-flex items-center gap-2 bg-purple-500/20 text-purple-300 px-4 py-2 rounded-full text-sm font-medium mb-4">
-                      <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                      FEATURED MIX OF THE MONTH
-                    </div>
-                    
-                    <h2 className="text-4xl font-bold mb-2 text-white">{featuredContent[0].title}</h2>
-                    <p className="text-2xl text-white/80 mb-4">{featuredContent[0].artist}</p>
-                    
-                    <p className="text-white text-lg mb-6 max-w-2xl bg-black/40 p-4 rounded-lg backdrop-blur-sm">
-                      {featuredContent[0].description}
-                    </p>
-                    
-                    <div className="flex items-center justify-center lg:justify-start gap-4 mb-6">
-                      <span className="text-white/60 text-sm">{featuredContent[0].genre}</span>
-                      <span className="text-white/60 text-sm">•</span>
-                      <span className="text-white/60 text-sm">{featuredContent[0].duration}</span>
-                    </div>
-                    
-                    <div className="flex items-center justify-center lg:justify-start gap-4">
-                      <button 
-                        onClick={() => handlePlayTrack(featuredContent[0])}
-                        className="bg-white text-black px-8 py-3 rounded-lg font-semibold flex items-center gap-2 hover:bg-white/90 transition-colors"
-                      >
-                        <Play className="w-5 h-5" />
-                        Listen Here
-                      </button>
-                      {featuredContent[0].soundcloudUrl && (
-                        <a 
-                          href={featuredContent[0].soundcloudUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors"
-                        >
-                          Listen on SoundCloud
-                          <ChevronRight className="w-4 h-4" />
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Additional Featured Tracks */}
-          {featuredContent.length > 1 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
-              {featuredContent.slice(1).map((content) => (
-                <div key={content.id} className="bg-white/5 backdrop-blur-sm rounded-lg p-4 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-                  <div className="aspect-square bg-gradient-to-br from-white/10 to-white/5 rounded-lg mb-3 relative overflow-hidden">
-                    {content.thumbnail ? (
-                      <img 
-                        src={content.thumbnail} 
-                        alt={content.title}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="text-white/80 text-center">
-                          <Music className="w-12 h-12 mx-auto mb-2" />
-                          <div className="text-xs font-medium">{content.genre.toUpperCase()}</div>
-                        </div>
-                      </div>
-                    )}
-                    <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-all duration-300 flex items-center justify-center opacity-0 hover:opacity-100">
-                      <button 
-                        onClick={() => handlePlayTrack(content)}
-                        className="bg-white/90 hover:bg-white text-black rounded-full p-3 transition-all duration-300 transform hover:scale-110"
-                      >
-                        <Play className="w-6 h-6" />
-                      </button>
-                    </div>
-                  </div>
-                  <div className="text-xs text-white/60 mb-1">{content.genre} • {content.duration}</div>
-                  <h3 className="text-sm font-semibold mb-1">{content.title}</h3>
-                  <p className="text-white/70 text-xs mb-2">{content.artist}</p>
-                  <button 
-                    onClick={() => handlePlayTrack(content)}
-                    className="w-full bg-white/10 hover:bg-white/20 text-white px-3 py-1 rounded text-xs flex items-center justify-center gap-1 transition-colors"
-                  >
-                    <Play className="w-3 h-3" />
-                    Play
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-          
-          {/* Fallback when no featured content */}
-          {featuredContent.length === 0 && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-              {/* Default content when no featured submissions */}
-              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-                <div className="aspect-square bg-gradient-to-br from-red-500/20 to-orange-500/20 rounded-lg mb-4 relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white/80 text-center">
-                      <Music className="w-16 h-16 mx-auto mb-2" />
-                      <div className="text-sm font-medium">FEATURED MIX</div>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-xs text-white/60 mb-1">DECEMBER 15, 2024</div>
-                <h3 className="text-lg font-semibold mb-2">Submit Your Mix</h3>
-                <p className="text-white/70 text-sm mb-3">
-                  Be the first to have your mix featured on our homepage
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60 text-sm">Your Name Here</span>
-                  <Link 
-                    href="/dj-submit"
-                    className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
-                  >
-                    <Plus className="w-3 h-3 mr-1" />
-                    Submit
-                  </Link>
-                </div>
-              </div>
-              <div className="bg-white/5 backdrop-blur-sm rounded-lg p-6 cursor-pointer hover:bg-white/10 transition-all duration-300 border border-white/10">
-                <div className="aspect-square bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg mb-4 relative overflow-hidden">
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white/80 text-center">
-                      <Radio className="w-16 h-16 mx-auto mb-2" />
-                      <div className="text-sm font-medium">LIVE NOW</div>
-                    </div>
-                  </div>
-                  <div className="absolute top-3 right-3">
-                    <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                  </div>
-                </div>
-                <div className="text-xs text-white/60 mb-1">LIVE • 8:00 PM GMT</div>
-                <h3 className="text-lg font-semibold mb-2">Deep Routes</h3>
-                <p className="text-white/70 text-sm mb-3">
-                  Deep house specialist with 15+ years digging through Detroit's underground
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60 text-sm">Marcus Rivera</span>
-                  <button 
-                    onClick={() => setIsRadioActive(true)}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Listen
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
         </section>
-
-        {/* Explore Section - macOS Style */}
+        
+        {/* Guides Grid Section */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold font-mono text-red-500">EXPLORE</h2>
+          <div className="mb-8 text-center">
+            <h2 className="text-2xl font-bold mb-4 font-mono text-gray-800">DISCOVER</h2>
+            <p className="text-gray-600 font-mono">Explore our curated collections and featured content</p>
           </div>
           
-          <div className="flex justify-center">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-4xl">
-              {guides.map((guide) => (
-                <Link key={guide.id} href={guide.route}>
-                  <div className="group relative cursor-pointer">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {guides.map((guide) => (
+              <Link
+                key={guide.id}
+                href={guide.route}
+                className="group relative overflow-hidden transition-all duration-300 hover:scale-105"
+              >
+                <div className="aspect-square bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg p-6 flex flex-col items-center justify-center text-center border border-gray-200 hover:border-red-200 transition-colors">
+                  <div className="text-4xl mb-3">{guide.icon}</div>
+                  <h3 className="font-semibold text-sm text-gray-700 mb-2 font-mono">{guide.title}</h3>
+                  <p className="text-xs text-gray-500 font-mono">{guide.description}</p>
                   
-                    <div className="aspect-square bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl flex items-center justify-center text-4xl shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:shadow-3xl border border-white/10">
-                      <span className="group-hover:scale-125 transition-transform duration-300">
-                        {guide.icon}
-                      </span>
-                    </div>
-                    <div className="mt-3 text-center">
-                      <h3 className="font-semibold text-sm">{guide.title}</h3>
-                    </div>
-                    
-                    {/* Hover popup with red accent */}
-                    <div className={`absolute -top-2 -right-2 w-48 bg-white border border-red-500 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-xl z-10`}>
-                      <h4 className="font-semibold text-red-500 text-sm mb-1">{guide.title}</h4>
-                      <p className="text-gray-600 text-xs">{guide.description}</p>
-                    </div>
+                  {/* Hover popup with red accent */}
+                  <div className={`absolute -top-2 -right-2 w-48 bg-white border border-red-500 rounded-lg p-3 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-4 group-hover:translate-x-0 shadow-xl z-10`}>
+                    <h4 className="font-semibold text-red-500 text-sm mb-1">{guide.title}</h4>
+                    <p className="text-gray-600 text-xs">{guide.description}</p>
                   </div>
-                </Link>
-              ))}
-            </div>
+                </div>
+              </Link>
+            ))}
           </div>
         </section>
-
-
 
         {/* Community Section */}
         <section className="mb-16">
@@ -610,6 +452,12 @@ export default function HomePage() {
                 >
                   Submit a Mix
                 </Link>
+                <button
+                  onClick={() => setShowRadioUpload(true)}
+                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-4 py-2 font-mono text-sm transition-colors"
+                >
+                  Submit for Radio
+                </button>
               </div>
             </div>
           </div>
@@ -617,14 +465,14 @@ export default function HomePage() {
       </main>
 
       {/* Footer with Admin Access */}
-      <footer className="mt-16 border-t border-white/10 pt-8 pb-4">
+      <footer className="mt-16 border-t border-gray-200 pt-8 pb-4">
         <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
-          <div className="text-white/60 text-sm">
+          <div className="text-gray-600 text-sm">
             © 2025 Enamorado Radio. Digital space for the things we love.
           </div>
           <Link 
             href="/admin" 
-            className="text-white/60 hover:text-white text-sm underline transition-colors"
+            className="text-gray-600 hover:text-gray-800 text-sm underline transition-colors"
           >
             Admin Panel
           </Link>
@@ -646,42 +494,13 @@ export default function HomePage() {
         onClose={() => setIsRadioActive(false)} 
       />
 
-      {/* SoundCloud Embed Modal */}
-      {showSoundCloudEmbed && selectedTrack && (
-        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-gray-900 rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-white text-xl font-bold">{selectedTrack.title}</h3>
-                <p className="text-white/70">{selectedTrack.artist}</p>
-              </div>
-              <button
-                onClick={() => setShowSoundCloudEmbed(false)}
-                className="text-white/60 hover:text-white transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-            
-            <SoundCloudEmbed
-              url={selectedTrack.soundcloudUrl}
-              title={selectedTrack.title}
-              artist={selectedTrack.artist}
-              height={300}
-              className="mb-4"
-            />
-            
-            <div className="text-white/60 text-sm">
-              <p className="mb-2">{selectedTrack.description}</p>
-              <div className="flex items-center gap-4">
-                <span>{selectedTrack.genre}</span>
-                <span>{selectedTrack.duration}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
+
+      {/* College Radio Upload Modal */}
+      <CollegeRadioUpload 
+        isOpen={showRadioUpload}
+        onClose={() => setShowRadioUpload(false)} 
+      />
 
     </div>
   );

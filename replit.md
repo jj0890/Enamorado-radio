@@ -170,6 +170,14 @@ Changelog:
 - July 27, 2025. Integrated proper track artwork display and metadata from Essentials playlist
 - July 27, 2025. Removed competing players for clean, focused user experience with single radio interface
 - July 27, 2025. Added social features: like buttons, external SoundCloud links, and expandable player view
+- July 28, 2025. Built comprehensive college radio system distinguishing live programming vs auto-rotation modes
+- July 28, 2025. Created radioService.ts for managing radio programs, schedules, and content rotation with Last.fm metadata
+- July 28, 2025. Added ProgramIndicator component showing current program status (LIVE NOW vs AUTO ROTATION) and next scheduled shows
+- July 28, 2025. Extended database schema with radioRotation, liveShows, and programState tables for college radio functionality
+- July 28, 2025. Implemented CollegeRadioUpload component for community track submissions (both file upload and SoundCloud links)
+- July 28, 2025. Created unified submission system with admin approval queue and automatic Last.fm metadata enhancement
+- July 28, 2025. Added live show scheduling system with day/time slots, host information, and automatic program switching
+- July 28, 2025. Integrated track rotation system that combines community uploads, SoundCloud links, and DJ submissions
 
 ## User Preferences
 
