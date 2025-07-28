@@ -1764,6 +1764,10 @@ What makes this movement particularly fascinating is its relationship with the c
     this.trackMetadataStore.set(filename, updated);
     return updated;
   }
+
+  async deleteTrackMetadata(filename: string): Promise<void> {
+    this.trackMetadataStore.delete(filename);
+  }
 }
 
 export const storage = new MemStorage();

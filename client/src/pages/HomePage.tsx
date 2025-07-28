@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X } from "lucide-react";
+import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X, Settings } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
 import EnhancedRadioPlayer from "../components/EnhancedRadioPlayer";
+import LastFmDebugPanel from "../components/LastFmDebugPanel";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -27,6 +28,7 @@ export default function HomePage() {
   const [selectedTrack, setSelectedTrack] = useState<any>(null);
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
   const [isRadioActive, setIsRadioActive] = useState(false);
+  const [showDebugPanel, setShowDebugPanel] = useState(false);
 
   // Fetch featured DJ submissions
   const { data: featuredSubmissions = [], isLoading, error } = useQuery<FeaturedSubmission[]>({
@@ -240,6 +242,15 @@ export default function HomePage() {
               >
                 <Search className="w-5 h-5 text-gray-600" />
               </button>
+              
+              <button 
+                onClick={() => setShowDebugPanel(true)}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+                title="Last.fm Debug Panel"
+              >
+                <Settings className="w-5 h-5 text-gray-600" />
+              </button>
+              
               <button className="p-2 hover:bg-gray-100 rounded transition-colors">
                 <User className="w-5 h-5 text-gray-600" />
               </button>
@@ -622,6 +633,12 @@ export default function HomePage() {
 
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
+
+      {/* Last.fm Debug Panel */}
+      <LastFmDebugPanel 
+        isOpen={showDebugPanel} 
+        onClose={() => setShowDebugPanel(false)} 
+      />
 
       {/* Enhanced Radio Player with Last.fm Integration */}
       <EnhancedRadioPlayer 

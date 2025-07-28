@@ -902,6 +902,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Force refresh track metadata (for testing/debugging)
+  app.post('/api/track-metadata/:filename/refresh', async (req, res) => {
+    try {
+      const filename = decodeURIComponent(req.params.filename);
+      console.log(`[api] Force refreshing metadata for: ${filename}`);
+      
+      // Clear cached metadata first
+      await storage.deleteTrackMetadata(filename);
+      
+      // Fetch fresh metadata
+      const metadata = await trackMetadataService.getOrFetchTrackInfo(filename);
+      console.log(`[api] Successfully refreshed metadata:`, metadata);
+      res.json(metadata);
+    } catch (error) {
+      console.error('[api] Error refreshing track metadata:', error);
+      res.status(500).json({ message: 'Failed to refresh track metadata', error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
   // Force refresh metadata (admin endpoint)
   app.post('/api/track-metadata/:filename/refresh', async (req, res) => {
     try {
