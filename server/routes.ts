@@ -2,6 +2,7 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
+import { trackMetadataService } from "./trackMetadataService";
 import { 
   insertStationSchema, 
   insertShowSchema, 
@@ -882,6 +883,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(newTrack);
     } catch (error) {
       res.status(500).json({ error: 'Failed to create track' });
+    }
+  });
+
+  // Track metadata routes for Last.fm integration
+  app.get('/api/track-metadata/:filename', async (req, res) => {
+    try {
+      const filename = decodeURIComponent(req.params.filename);
+      console.log(`[api] Fetching metadata for: ${filename}`);
+      
+      const metadata = await trackMetadataService.getOrFetchTrackInfo(filename);
+      console.log(`[api] Successfully fetched metadata:`, metadata);
+      res.json(metadata);
+    } catch (error) {
+      console.error('[api] Error fetching track metadata:', error);
+      console.error('[api] Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      res.status(500).json({ message: 'Failed to fetch track metadata', error: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
+  // Force refresh metadata (admin endpoint)
+  app.post('/api/track-metadata/:filename/refresh', async (req, res) => {
+    try {
+      const filename = decodeURIComponent(req.params.filename);
+      console.log(`[api] Force refreshing metadata for: ${filename}`);
+      
+      const metadata = await trackMetadataService.refreshTrackMetadata(filename);
+      res.json(metadata);
+    } catch (error) {
+      console.error('Error refreshing track metadata:', error);
+      res.status(500).json({ message: 'Failed to refresh track metadata' });
     }
   });
 

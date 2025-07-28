@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Play, Music, Radio, Search, User, ChevronRight, Calendar, Headphones, Plus, X } from "lucide-react";
 import { SearchModal } from "../components/SearchModal";
 import { SoundCloudEmbed } from "../components/SoundCloudEmbed";
-import SimpleRadioPlayer from "../components/SimpleRadioPlayer";
+import EnhancedRadioPlayer from "../components/EnhancedRadioPlayer";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
 interface FeaturedSubmission {
@@ -535,7 +535,10 @@ export default function HomePage() {
                 </p>
                 <div className="flex items-center justify-between">
                   <span className="text-white/60 text-sm">Marcus Rivera</span>
-                  <button className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors">
+                  <button 
+                    onClick={() => setIsRadioActive(true)}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm flex items-center transition-colors"
+                  >
                     <Play className="w-3 h-3 mr-1" />
                     Listen
                   </button>
@@ -620,6 +623,12 @@ export default function HomePage() {
       {/* Search Modal */}
       <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
 
+      {/* Enhanced Radio Player with Last.fm Integration */}
+      <EnhancedRadioPlayer 
+        isActive={isRadioActive} 
+        onClose={() => setIsRadioActive(false)} 
+      />
+
       {/* SoundCloud Embed Modal */}
       {showSoundCloudEmbed && selectedTrack && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
@@ -656,11 +665,7 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Persistent Radio Player */}
-      <SimpleRadioPlayer 
-        isActive={isRadioActive} 
-        onToggle={() => setIsRadioActive(!isRadioActive)} 
-      />
+
     </div>
   );
 }

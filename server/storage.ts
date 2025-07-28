@@ -1,13 +1,14 @@
 import { 
   users, stations, shows, currentPlayback, djSubmissions, admins, zineSubmissions, zineContent,
-  editorialWorkflow, physicalMedia, mixUploads, mixTracklist, episodes, episodeTracklist,
+  editorialWorkflow, physicalMedia, mixUploads, mixTracklist, episodes, episodeTracklist, trackMetadata,
   type User, type InsertUser, type Station, type InsertStation, 
   type Show, type InsertShow, type CurrentPlayback, type InsertCurrentPlayback,
   type DjSubmission, type InsertDjSubmission, type Admin, type InsertAdmin,
   type ZineSubmission, type InsertZineSubmission, type ZineContent, type InsertZineContent,
   type EditorialWorkflow, type InsertEditorialWorkflow, type PhysicalMedia, type InsertPhysicalMedia,
   type MixUpload, type InsertMixUpload, type MixTracklist, type InsertMixTracklist,
-  type Episode, type InsertEpisode, type EpisodeTracklist, type InsertEpisodeTracklist
+  type Episode, type InsertEpisode, type EpisodeTracklist, type InsertEpisodeTracklist,
+  type TrackMetadata, type InsertTrackMetadata
 } from "@shared/schema";
 
 export interface IStorage {
@@ -120,7 +121,8 @@ export class MemStorage implements IStorage {
   private mixTracklist: Map<number, MixTracklist>;
   private episodes: Map<number, Episode>;
   private episodeTracklist: Map<number, EpisodeTracklist>;
-  private radioPlaylist: Map<number, RadioPlaylist>;
+  private radioPlaylist: Map<number, any>;
+  private trackMetadataStore: Map<string, TrackMetadata>;
   private currentPlayback: CurrentPlayback | undefined;
   private currentId: number;
 
@@ -139,6 +141,7 @@ export class MemStorage implements IStorage {
     this.episodes = new Map();
     this.episodeTracklist = new Map();
     this.radioPlaylist = new Map();
+    this.trackMetadataStore = new Map();
     this.currentId = 1;
     this.initializeData();
     this.initializeMixData();
@@ -1731,6 +1734,35 @@ What makes this movement particularly fascinating is its relationship with the c
       item.playCount = (item.playCount || 0) + 1;
       this.radioPlaylist.set(id, item);
     }
+  }
+
+  // Track metadata methods for Last.fm integration
+  async getTrackMetadata(filename: string): Promise<TrackMetadata | null> {
+    return this.trackMetadataStore.get(filename) || null;
+  }
+
+  async saveTrackMetadata(metadata: InsertTrackMetadata): Promise<TrackMetadata> {
+    const newMetadata: TrackMetadata = {
+      id: this.currentId++,
+      ...metadata,
+      lastUpdated: new Date(),
+      createdAt: new Date()
+    };
+    this.trackMetadataStore.set(metadata.filename, newMetadata);
+    return newMetadata;
+  }
+
+  async updateTrackMetadata(filename: string, updates: Partial<InsertTrackMetadata>): Promise<TrackMetadata | null> {
+    const existing = this.trackMetadataStore.get(filename);
+    if (!existing) return null;
+    
+    const updated: TrackMetadata = {
+      ...existing,
+      ...updates,
+      lastUpdated: new Date()
+    };
+    this.trackMetadataStore.set(filename, updated);
+    return updated;
   }
 }
 

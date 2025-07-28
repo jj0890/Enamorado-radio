@@ -1,4 +1,5 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar } from "drizzle-orm/pg-core";
+import { sql } from 'drizzle-orm';
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -377,3 +378,27 @@ export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertEpisodeTracklist = z.infer<typeof insertEpisodeTracklistSchema>;
 export type RadioPlaylist = typeof radioPlaylist.$inferSelect;
 export type InsertRadioPlaylist = z.infer<typeof insertRadioPlaylistSchema>;
+
+// Track metadata cache for Last.fm data
+export const trackMetadata = pgTable("track_metadata", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull().unique(),
+  artist: text("artist"),
+  trackName: text("track_name"),
+  album: text("album"),
+  imageUrl: text("image_url"),
+  lastfmUrl: text("lastfm_url"),
+  duration: integer("duration"), // in seconds
+  playcount: integer("playcount"),
+  listeners: integer("listeners"),
+  lastUpdated: timestamp("last_updated").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertTrackMetadataSchema = createInsertSchema(trackMetadata).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type TrackMetadata = typeof trackMetadata.$inferSelect;
+export type InsertTrackMetadata = z.infer<typeof insertTrackMetadataSchema>;
