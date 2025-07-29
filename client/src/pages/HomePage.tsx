@@ -169,7 +169,7 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Editorial/Staff Picks */}
             <Link
-              href="/guides"
+              href="/albums"
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
             >
               <div className="text-center">
