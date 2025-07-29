@@ -64,17 +64,10 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      {/* Moving Banner */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 text-white overflow-hidden">
-        <div className="whitespace-nowrap animate-marquee py-1 text-sm font-mono">
-          <span className="inline-block px-8">
-            ✦ SITE IN EARLY STAGES ✦ OPEN TO SONG SUGGESTIONS FOR RADIO ROTATION ✦ RESIDENT DJ APPLICATIONS WELCOME ✦ MUSIC 24/7 ✦ SUBMIT YOUR TRACKS ✦
-          </span>
-        </div>
-      </div>
+
 
       {/* Live Player Bar */}
-      <div className="fixed top-6 left-0 right-0 z-40 bg-white border-b border-gray-200">
+      <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-2 text-sm font-mono">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -88,7 +81,7 @@ export default function HomePage() {
       </div>
 
       {/* Main Header */}
-      <header className="fixed top-16 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
+      <header className="fixed top-10 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -133,7 +126,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-40 pb-32 px-4 max-w-7xl mx-auto">
+      <main className="pt-32 pb-32 px-4 max-w-7xl mx-auto">
         {/* Hero Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
