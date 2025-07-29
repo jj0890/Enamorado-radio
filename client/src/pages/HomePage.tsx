@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Search, User, Settings } from "lucide-react";
-import { SearchModal } from "../components/SearchModal";
+import { Settings } from "lucide-react";
 import FeaturedMixCard from "../components/FeaturedMixCard";
+import RadioStreamPlayer from "../components/RadioStreamPlayer";
 import ProgramIndicator from "../components/ProgramIndicator";
 import CollegeRadioUpload from "../components/CollegeRadioUpload";
 import LastFmDebugPanel from "../components/LastFmDebugPanel";
@@ -23,7 +23,7 @@ interface FeaturedSubmission {
 }
 
 export default function HomePage() {
-  const [showSearch, setShowSearch] = useState(false);
+
   const [showRadioUpload, setShowRadioUpload] = useState(false);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
@@ -109,22 +109,11 @@ export default function HomePage() {
             </div>
             <div className="flex items-center space-x-4">
               <button 
-                onClick={() => setShowSearch(true)}
-                className="p-2 hover:bg-gray-100 rounded transition-colors"
-              >
-                <Search className="w-5 h-5 text-gray-600" />
-              </button>
-              
-              <button 
                 onClick={() => setShowDebugPanel(true)}
                 className="p-2 hover:bg-gray-100 rounded transition-colors"
-                title="Last.fm Debug Panel"
+                title="Debug Panel"
               >
                 <Settings className="w-5 h-5 text-gray-600" />
-              </button>
-              
-              <button className="p-2 hover:bg-gray-100 rounded transition-colors">
-                <User className="w-5 h-5 text-gray-600" />
               </button>
             </div>
           </div>
@@ -140,6 +129,11 @@ export default function HomePage() {
             <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 font-mono">
               Digital space dedicated to the things we are enamored with
             </p>
+          </div>
+
+          {/* Radio Stream Player */}
+          <div className="mb-8">
+            <RadioStreamPlayer />
           </div>
 
           {/* Program Status */}
@@ -187,9 +181,6 @@ export default function HomePage() {
       </main>
 
       {/* Modals */}
-      {showSearch && (
-        <SearchModal isOpen={showSearch} onClose={() => setShowSearch(false)} />
-      )}
 
       {showRadioUpload && (
         <CollegeRadioUpload isOpen={showRadioUpload} onClose={() => setShowRadioUpload(false)} />
