@@ -24,10 +24,10 @@ export default function MixesLanding() {
   const featuredMixes: Mix[] = [
     {
       id: 1,
-      title: "New Mix (Mostly Footwork/ Juke)",
-      artist: "Jarrad",
+      title: "454 presents: Florida man FM",
+      artist: "Stream 454",
       description: "High energy footwork and juke tracks for the dance floor",
-      thumbnailUrl: "https://i1.sndcdn.com/artworks-000000000000-000000-t500x500.jpg",
+      thumbnailUrl: "",
       platform: "soundcloud",
       url: "https://on.soundcloud.com/dz0vf4V42uVnuzBe7j",
       duration: "42:33",
@@ -39,7 +39,7 @@ export default function MixesLanding() {
       title: "Mix Collection",
       artist: "Various Artists",
       description: "Curated selection of electronic music",
-      thumbnailUrl: "https://i1.sndcdn.com/artworks-000000000000-000000-t500x500.jpg",
+      thumbnailUrl: "",
       platform: "soundcloud", 
       url: "https://on.soundcloud.com/sibo68x0qIQwOfpgiM",
       duration: "38:15",
@@ -256,15 +256,24 @@ export default function MixesLanding() {
                 className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:border-red-500 transition-colors group"
               >
                 {/* Mix Thumbnail */}
-                <div className="aspect-square bg-gray-200 rounded-lg mb-4 overflow-hidden relative">
-                  <img 
-                    src={mix.thumbnailUrl} 
-                    alt={`${mix.title} by ${mix.artist}`}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ccircle cx='200' cy='200' r='60' fill='%23d1d5db'/%3E%3Cpath d='M200 140v120' stroke='%23374151' stroke-width='2'/%3E%3C/svg%3E";
-                    }}
-                  />
+                <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative">
+                  {mix.thumbnailUrl ? (
+                    <img 
+                      src={mix.thumbnailUrl} 
+                      alt={`${mix.title} by ${mix.artist}`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                      }}
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-white flex items-center justify-center">
+                      <div className="text-gray-400 text-center">
+                        <Play className="w-16 h-16 mx-auto mb-2" />
+                        <p className="text-xs font-mono">Audio Mix</p>
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Play Button Overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

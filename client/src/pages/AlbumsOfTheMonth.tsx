@@ -76,7 +76,7 @@ export default function AlbumsOfTheMonth() {
       id: 2,
       title: "The Velvet Underground & Nico",
       artist: "The Velvet Underground",
-      coverUrl: "https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=400&h=400&fit=crop",
+      coverUrl: "",
       description: "The album with the banana that launched a thousand art rock bands.",
       genre: ["Art Rock", "Experimental"],
       releaseYear: 1967,
@@ -89,7 +89,7 @@ export default function AlbumsOfTheMonth() {
       id: 3,
       title: "Love Deluxe",
       artist: "Sade",
-      coverUrl: "https://images.unsplash.com/photo-1518367764-2a3e72e153c2?w=400&h=400&fit=crop",
+      coverUrl: "",
       description: "Smooth sophistication meets emotional depth in this timeless classic.",
       genre: ["R&B", "Soul"],
       releaseYear: 1992,
@@ -192,12 +192,24 @@ export default function AlbumsOfTheMonth() {
                   onClick={() => setSelectedAlbum(album)}
                 >
                   {/* Album Cover */}
-                  <div className="aspect-square mb-4 relative overflow-hidden">
-                    <img 
-                      src={album.coverUrl} 
-                      alt={`${album.title} by ${album.artist}`}
-                      className="w-full h-full object-cover"
-                    />
+                  <div className="aspect-square mb-4 relative overflow-hidden bg-white">
+                    {album.coverUrl ? (
+                      <img 
+                        src={album.coverUrl} 
+                        alt={`${album.title} by ${album.artist}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white flex items-center justify-center">
+                        <div className="text-gray-400">
+                          <Disc className="w-16 h-16 mx-auto mb-2" />
+                          <p className="text-xs font-mono">Loading...</p>
+                        </div>
+                      </div>
+                    )}
                     
                     {/* Play Button Overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

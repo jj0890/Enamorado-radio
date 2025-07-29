@@ -107,16 +107,29 @@ export default function FeaturedMixCard({ submission, thumbnail }: FeaturedMixCa
     };
   }, []);
 
-  const togglePlay = () => {
+  const togglePlay = async () => {
     const audio = audioRef.current;
-    if (!audio) return;
+    if (!audio || !audioSrc) return;
 
     if (isPlaying) {
       audio.pause();
+      setIsPlaying(false);
     } else {
-      audio.play();
+      try {
+        // Ensure the audio source is set
+        if (audio.src !== audioSrc) {
+          audio.src = audioSrc;
+        }
+        await audio.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('Playback failed:', error);
+        // If direct playback fails, open SoundCloud as fallback
+        if (submission.soundcloudUrl) {
+          window.open(submission.soundcloudUrl, '_blank');
+        }
+      }
     }
-    setIsPlaying(!isPlaying);
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -214,16 +227,9 @@ export default function FeaturedMixCard({ submission, thumbnail }: FeaturedMixCa
                   {isPlaying ? 'Pause' : 'Play Mix'}
                 </button>
 
-                {submission.soundcloudUrl && (
-                  <a
-                    href={submission.soundcloudUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors font-mono"
-                  >
-                    Listen Live
-                  </a>
-                )}
+                <div className="flex items-center space-x-2 text-xs font-mono text-gray-500">
+                  <span>Play in browser</span>
+                </div>
               </div>
 
               {/* Progress Bar */}

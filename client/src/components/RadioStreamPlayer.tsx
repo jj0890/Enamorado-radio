@@ -68,7 +68,7 @@ export default function RadioStreamPlayer({ className = "" }: RadioStreamPlayerP
   };
 
   return (
-    <div className={`bg-white border border-gray-200 rounded-lg p-4 ${className}`}>
+    <div className={`bg-white border border-gray-200 rounded-lg p-6 ${className}`}>
       <audio
         ref={audioRef}
         onPlay={() => setIsPlaying(true)}
@@ -76,17 +76,42 @@ export default function RadioStreamPlayer({ className = "" }: RadioStreamPlayerP
         onEnded={() => setIsPlaying(false)}
       />
       
-      {/* Radio Stream Header */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-mono text-red-500 font-medium">
-            LIVE RADIO STREAM
+      {/* Enhanced Radio Stream Header */}
+      <div className="text-center mb-6">
+        <div className="flex items-center justify-center mb-2">
+          <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse mr-3"></div>
+          <span className="text-xl font-mono text-red-500 font-bold tracking-wider">
+            ENAMORADO RADIO
           </span>
+          <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse ml-3"></div>
         </div>
-        <div className="flex items-center space-x-2 text-xs font-mono text-gray-500">
-          <Radio className="w-4 h-4" />
-          <span>AUTO ROTATION</span>
+        <p className="text-sm font-mono text-gray-600 mb-4">
+          Digital space dedicated to the things we are enamored with - Continuous Mix
+        </p>
+        
+        {/* Now Playing & Next Show Side by Side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="text-xs font-mono text-gray-500 mb-1">NOW PLAYING:</div>
+            <div className="font-mono font-medium text-gray-900 text-sm">
+              {currentTrack?.displayTitle || "How Did I Do"}
+            </div>
+            {currentTrack?.artist && (
+              <div className="text-xs font-mono text-gray-600">
+                by {currentTrack.artist}
+              </div>
+            )}
+          </div>
+          
+          <div className="bg-gray-50 rounded-lg p-3">
+            <div className="text-xs font-mono text-gray-500 mb-1">NEXT LIVE SHOW:</div>
+            <div className="font-mono font-medium text-gray-900 text-sm">
+              Thursday 7PM
+            </div>
+            <div className="text-xs font-mono text-gray-600">
+              Resident Mix
+            </div>
+          </div>
         </div>
       </div>
 
