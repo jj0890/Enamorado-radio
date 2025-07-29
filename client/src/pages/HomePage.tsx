@@ -136,11 +136,6 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Radio Stream Player */}
-          <div className="mb-8">
-            <RadioStreamPlayer />
-          </div>
-
           {/* Program Status */}
           <div className="mb-12">
             <ProgramIndicator />

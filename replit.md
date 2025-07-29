@@ -182,6 +182,8 @@ Changelog:
 - July 29, 2025. Created explore grid with Editorial/Staff Picks, Resident Applications (Season 1), Submit a Mix, and Song Suggestions
 - July 29, 2025. Added special note to Song Suggestions explaining potential inclusion in compilation episodes for community submissions
 - July 29, 2025. Enhanced visual hierarchy with clean white backgrounds, red accent circles, and IBM Plex Mono typography throughout explore section
+- July 29, 2025. Built complete resident application system with database schema, API endpoints, and comprehensive form for Season 1 DJ applications
+- July 29, 2025. Removed redundant "Now Playing" section from homepage to eliminate duplication with top-right compact player for cleaner UX
 
 ## User Preferences
 
