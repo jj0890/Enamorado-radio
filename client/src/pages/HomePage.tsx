@@ -136,9 +136,9 @@ export default function HomePage() {
             </p>
           </div>
 
-          {/* Program Status */}
+          {/* Radio Stream Player */}
           <div className="mb-12">
-            <ProgramIndicator />
+            <RadioStreamPlayer />
           </div>
 
           {/* Featured Mix Section - Centered like Image 3 */}
