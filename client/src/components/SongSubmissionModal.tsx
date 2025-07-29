@@ -52,9 +52,51 @@ export default function SongSubmissionModal({ isOpen, onClose }: SongSubmissionM
     description: '',
     requestedDate: 'none',
   });
+  
+  const [metadataPreview, setMetadataPreview] = useState<any>(null);
+  const [fetchingMetadata, setFetchingMetadata] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch metadata when URL changes
+  const fetchMetadata = async (url: string) => {
+    if (!url.trim()) {
+      setMetadataPreview(null);
+      return;
+    }
+
+    setFetchingMetadata(true);
+    try {
+      const response = await fetch('/api/test-metadata', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url }),
+      });
+      
+      if (response.ok) {
+        const metadata = await response.json();
+        setMetadataPreview(metadata);
+        
+        // Auto-fill form fields with fetched metadata
+        if (metadata) {
+          setFormData(prev => ({
+            ...prev,
+            songTitle: metadata.title || prev.songTitle,
+            artistName: metadata.artist || prev.artistName,
+            albumName: metadata.album || prev.albumName,
+          }));
+        }
+      } else {
+        setMetadataPreview(null);
+      }
+    } catch (error) {
+      console.error('Failed to fetch metadata:', error);
+      setMetadataPreview(null);
+    } finally {
+      setFetchingMetadata(false);
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
