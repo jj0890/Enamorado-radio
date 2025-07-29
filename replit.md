@@ -178,6 +178,10 @@ Changelog:
 - July 28, 2025. Created unified submission system with admin approval queue and automatic Last.fm metadata enhancement
 - July 28, 2025. Added live show scheduling system with day/time slots, host information, and automatic program switching
 - July 28, 2025. Integrated track rotation system that combines community uploads, SoundCloud links, and DJ submissions
+- July 29, 2025. Replaced community submission section with comprehensive explore content grid featuring four main hubs
+- July 29, 2025. Created explore grid with Editorial/Staff Picks, Resident Applications (Season 1), Submit a Mix, and Song Suggestions
+- July 29, 2025. Added special note to Song Suggestions explaining potential inclusion in compilation episodes for community submissions
+- July 29, 2025. Enhanced visual hierarchy with clean white backgrounds, red accent circles, and IBM Plex Mono typography throughout explore section
 
 ## User Preferences
 

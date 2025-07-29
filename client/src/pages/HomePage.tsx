@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Settings } from "lucide-react";
+import { Settings, Star, Users, Music, Heart } from "lucide-react";
 import FeaturedMixCard from "../components/FeaturedMixCard";
 import RadioStreamPlayer from "../components/RadioStreamPlayer";
 import ProgramIndicator from "../components/ProgramIndicator";
@@ -164,30 +164,85 @@ export default function HomePage() {
           )}
         </section>
 
-        {/* Community Section - Below the fold */}
+        {/* Explore Content Grid */}
         <section className="mb-16">
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-8">
-            <div className="text-center max-w-2xl mx-auto">
-              <h2 className="text-2xl font-bold mb-4 font-mono text-gray-700">SHARE YOUR ART</h2>
-              <p className="text-gray-600 mb-6 font-mono text-sm">
-                Join our community of artists and creators. We respect your work and provide 
-                opportunities for featuring, airplay, and collaboration with fair compensation practices.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link
-                  href="/dj-submit"
-                  className="bg-gray-800 hover:bg-gray-900 text-white px-6 py-3 font-mono font-medium transition-colors"
-                >
-                  Submit a Mix
-                </Link>
-                <button
-                  onClick={() => setShowRadioUpload(true)}
-                  className="border border-gray-300 hover:bg-gray-50 text-gray-700 px-6 py-3 font-mono font-medium transition-colors"
-                >
-                  Song Suggestions
-                </button>
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">EXPLORE</h2>
+            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-mono">
+              Discover curated content, join our community, and contribute to the station
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Editorial/Staff Picks */}
+            <div className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <Star className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">EDITORIAL/STAFF PICKS</h3>
+                <p className="text-gray-600 font-mono text-sm mb-4">
+                  Hand-selected favorites from our editorial team. The music, mixes, and episodes we can't stop playing.
+                </p>
+                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                  EXPLORE PICKS →
+                </div>
               </div>
             </div>
+
+            {/* Resident Applications */}
+            <div className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <Users className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">RESIDENT APPLICATIONS</h3>
+                <p className="text-gray-600 font-mono text-sm mb-4">
+                  Join Season 1 as a resident DJ. Apply for a regular slot and become part of our programming lineup.
+                </p>
+                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                  APPLY FOR SEASON 1 →
+                </div>
+              </div>
+            </div>
+
+            {/* Submit a Mix */}
+            <Link
+              href="/dj-submit"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <Music className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SUBMIT A MIX</h3>
+                <p className="text-gray-600 font-mono text-sm mb-4">
+                  Share your DJ mixes with our community. We feature original work and support emerging artists.
+                </p>
+                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                  SUBMIT MIX →
+                </div>
+              </div>
+            </Link>
+
+            {/* Song Suggestions */}
+            <button
+              onClick={() => setShowRadioUpload(true)}
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer text-left w-full"
+            >
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+                  <Heart className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SONG SUGGESTIONS</h3>
+                <p className="text-gray-600 font-mono text-sm mb-4">
+                  Suggest tracks for our rotation. Even if not directly chosen, submissions may be featured in compilation episodes dedicated to community picks.
+                </p>
+                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                  SUGGEST SONGS →
+                </div>
+              </div>
+            </button>
           </div>
         </section>
       </main>
