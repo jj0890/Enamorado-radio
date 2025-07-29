@@ -188,7 +188,7 @@ export default function HomePage() {
 
             {/* Resident Applications */}
             <Link
-              href="/schedule"
+              href="/resident-application"
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
             >
               <div className="text-center">

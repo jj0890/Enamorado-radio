@@ -1,6 +1,7 @@
 import { 
   users, stations, shows, currentPlayback, djSubmissions, admins, zineSubmissions, zineContent,
   editorialWorkflow, physicalMedia, mixUploads, mixTracklist, episodes, episodeTracklist, trackMetadata,
+  residentApplications,
   type User, type InsertUser, type Station, type InsertStation, 
   type Show, type InsertShow, type CurrentPlayback, type InsertCurrentPlayback,
   type DjSubmission, type InsertDjSubmission, type Admin, type InsertAdmin,
@@ -8,7 +9,7 @@ import {
   type EditorialWorkflow, type InsertEditorialWorkflow, type PhysicalMedia, type InsertPhysicalMedia,
   type MixUpload, type InsertMixUpload, type MixTracklist, type InsertMixTracklist,
   type Episode, type InsertEpisode, type EpisodeTracklist, type InsertEpisodeTracklist,
-  type TrackMetadata, type InsertTrackMetadata
+  type TrackMetadata, type InsertTrackMetadata, type ResidentApplication, type InsertResidentApplication
 } from "@shared/schema";
 
 export interface IStorage {
@@ -39,6 +40,12 @@ export interface IStorage {
   getDjSubmission(id: number): Promise<DjSubmission | undefined>;
   createDjSubmission(submission: InsertDjSubmission): Promise<DjSubmission>;
   updateDjSubmissionStatus(id: number, status: string, reviewedBy: string, notes?: string): Promise<DjSubmission | undefined>;
+  
+  // Resident Application methods
+  getAllResidentApplications(): Promise<ResidentApplication[]>;
+  getResidentApplication(id: number): Promise<ResidentApplication | undefined>;
+  createResidentApplication(application: InsertResidentApplication): Promise<ResidentApplication>;
+  updateResidentApplicationStatus(id: number, status: string, reviewedBy: string, notes?: string): Promise<ResidentApplication | undefined>;
   
   // Admin methods
   getAdminByUsername(username: string): Promise<Admin | undefined>;
@@ -112,6 +119,7 @@ export class MemStorage implements IStorage {
   private stations: Map<number, Station>;
   private shows: Map<number, Show>;
   private djSubmissions: Map<number, DjSubmission>;
+  private residentApplications: Map<number, ResidentApplication>;
   private admins: Map<number, Admin>;
   private zineSubmissions: Map<number, ZineSubmission>;
   private zineContent: Map<number, ZineContent>;
@@ -131,6 +139,7 @@ export class MemStorage implements IStorage {
     this.stations = new Map();
     this.shows = new Map();
     this.djSubmissions = new Map();
+    this.residentApplications = new Map();
     this.admins = new Map();
     this.zineSubmissions = new Map();
     this.zineContent = new Map();
@@ -801,6 +810,55 @@ What makes this movement particularly fascinating is its relationship with the c
     
     this.djSubmissions.set(id, updatedSubmission);
     return updatedSubmission;
+  }
+
+  // Resident Application methods
+  async getAllResidentApplications(): Promise<ResidentApplication[]> {
+    return Array.from(this.residentApplications.values());
+  }
+
+  async getResidentApplication(id: number): Promise<ResidentApplication | undefined> {
+    return this.residentApplications.get(id);
+  }
+
+  async createResidentApplication(application: InsertResidentApplication): Promise<ResidentApplication> {
+    const id = this.currentId++;
+    const newApplication: ResidentApplication = {
+      ...application,
+      id,
+      status: "pending",
+      submittedAt: new Date(),
+      reviewedAt: null,
+      reviewedBy: null,
+      notes: null,
+      pastWork: application.pastWork ?? null,
+      socialMedia: application.socialMedia ?? null,
+      additionalInfo: application.additionalInfo ?? null,
+      mixSampleUrl: application.mixSampleUrl ?? null
+    };
+    this.residentApplications.set(id, newApplication);
+    return newApplication;
+  }
+
+  async updateResidentApplicationStatus(
+    id: number, 
+    status: string, 
+    reviewedBy: string, 
+    notes?: string
+  ): Promise<ResidentApplication | undefined> {
+    const application = this.residentApplications.get(id);
+    if (!application) return undefined;
+
+    const updatedApplication: ResidentApplication = {
+      ...application,
+      status,
+      reviewedBy,
+      reviewedAt: new Date(),
+      notes: notes ?? null
+    };
+    
+    this.residentApplications.set(id, updatedApplication);
+    return updatedApplication;
   }
 
   // Admin methods

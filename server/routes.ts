@@ -17,7 +17,8 @@ import {
   insertMixTracklistSchema,
   insertEpisodeSchema,
   insertEpisodeTracklistSchema,
-  insertRadioPlaylistSchema
+  insertRadioPlaylistSchema,
+  insertResidentApplicationSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -330,6 +331,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(submission);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update submission status' });
+    }
+  });
+
+  // Resident Applications API
+  app.get('/api/resident-applications', async (req, res) => {
+    try {
+      const applications = await storage.getAllResidentApplications();
+      res.json(applications);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch resident applications' });
+    }
+  });
+
+  app.get('/api/resident-applications/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const application = await storage.getResidentApplication(id);
+      if (!application) {
+        return res.status(404).json({ error: 'Resident application not found' });
+      }
+      res.json(application);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch resident application' });
+    }
+  });
+
+  app.post('/api/resident-applications', async (req, res) => {
+    try {
+      const validatedData = insertResidentApplicationSchema.parse(req.body);
+      const application = await storage.createResidentApplication(validatedData);
+      res.status(201).json(application);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid resident application data' });
+    }
+  });
+
+  app.patch('/api/resident-applications/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, reviewedBy, notes } = req.body;
+      
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+      
+      const application = await storage.updateResidentApplicationStatus(id, status, reviewedBy, notes);
+      if (!application) {
+        return res.status(404).json({ error: 'Resident application not found' });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update resident application status' });
     }
   });
 

@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage";
 import MobileRadio from "./pages/MobileRadio";
 import RadioLanding from "./pages/RadioLanding";
 import DJSubmit from "./pages/DJSubmit";
+import ResidentApplication from "./pages/ResidentApplication";
 import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
 import ZineArchive from "./pages/ZineArchive";
@@ -28,6 +29,7 @@ function Router() {
       <Route path="/radio" component={RadioLanding} />
       <Route path="/discover" component={Discover} />
       <Route path="/dj-submit" component={DJSubmit} />
+      <Route path="/resident-application" component={ResidentApplication} />
       <Route path="/admin" component={ScheduleAdmin} />
       <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
       <Route path="/schedule" component={Schedule} />

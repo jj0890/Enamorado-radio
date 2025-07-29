@@ -81,6 +81,32 @@ export const admins = pgTable("admins", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+export const residentApplications = pgTable("resident_applications", {
+  id: serial("id").primaryKey(),
+  djName: text("dj_name").notNull(),
+  realName: text("real_name").notNull(),
+  email: text("email").notNull(),
+  phoneNumber: text("phone_number").notNull(),
+  location: text("location").notNull(),
+  bio: text("bio").notNull(),
+  experience: text("experience").notNull(),
+  preferredGenres: text("preferred_genres").notNull(),
+  showConcept: text("show_concept").notNull(),
+  availableDays: text("available_days").notNull(),
+  preferredTimeSlot: text("preferred_time_slot").notNull(),
+  showLength: text("show_length").notNull(),
+  techSetup: text("tech_setup").notNull(),
+  pastWork: text("past_work"),
+  socialMedia: text("social_media"),
+  additionalInfo: text("additional_info"),
+  mixSampleUrl: text("mix_sample_url"),
+  status: text("status").notNull().default("pending"), // pending, approved, rejected
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by"),
+  notes: text("notes"),
+});
+
 export const zineSubmissions = pgTable("zine_submissions", {
   id: serial("id").primaryKey(),
   authorName: text("author_name").notNull(),
@@ -469,3 +495,13 @@ export const insertProgramStateSchema = createInsertSchema(programState).omit({
 
 export type ProgramState = typeof programState.$inferSelect;
 export type InsertProgramState = z.infer<typeof insertProgramStateSchema>;
+
+export const insertResidentApplicationSchema = createInsertSchema(residentApplications).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  status: true,
+});
+
+export type ResidentApplication = typeof residentApplications.$inferSelect;
+export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
