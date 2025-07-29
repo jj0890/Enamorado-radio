@@ -18,7 +18,8 @@ import {
   insertEpisodeSchema,
   insertEpisodeTracklistSchema,
   insertRadioPlaylistSchema,
-  insertResidentApplicationSchema
+  insertResidentApplicationSchema,
+  insertSongSubmissionSchema
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -572,7 +573,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Join with submission data to create complete workflow view
       const workflowsWithSubmissions = await Promise.all(
         workflows.map(async (workflow) => {
-          const submission = await storage.getZineSubmission(workflow.submissionId);
+          const submission = await storage.getZineSubmission(workflow.submissionId || 1);
           return {
             ...workflow,
             title: submission?.title || 'Unknown',
@@ -1082,6 +1083,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error refreshing track metadata:', error);
       res.status(500).json({ message: 'Failed to refresh track metadata' });
+    }
+  });
+
+  // Song Submission Routes
+  app.get('/api/song-submissions', async (req, res) => {
+    try {
+      const submissions = await storage.getAllSongSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch song submissions' });
+    }
+  });
+
+  app.post('/api/song-submissions', async (req, res) => {
+    try {
+      const validatedData = insertSongSubmissionSchema.parse(req.body);
+      
+      // Import metadata service and fetch track data
+      const { metadataService } = await import('./metadataService');
+      const metadata = await metadataService.fetchMetadata(validatedData.platformUrl);
+      
+      // Create submission with enhanced metadata
+      const enhancedSubmission = {
+        ...validatedData,
+        trackId: metadata?.trackId || null,
+        metadata: metadata ? JSON.stringify(metadata) : null,
+        themeTag: validatedData.requestedDate === 'none' ? null : validatedData.requestedDate,
+      };
+      
+      const submission = await storage.createSongSubmission(enhancedSubmission);
+      
+      // Log the successful processing for demo
+      if (metadata) {
+        console.log(`[song-submission] Successfully processed: "${metadata.title}" by ${metadata.artist} from ${metadata.platform}`);
+      }
+      
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error('[song-submission] Error:', error);
+      res.status(400).json({ error: 'Invalid submission data' });
+    }
+  });
+
+  // Test metadata endpoint - demonstrate with the user's Spotify URL
+  app.post('/api/test-metadata', async (req, res) => {
+    try {
+      const { url } = req.body;
+      const { metadataService } = await import('./metadataService');
+      const metadata = await metadataService.fetchMetadata(url);
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch metadata' });
     }
   });
 

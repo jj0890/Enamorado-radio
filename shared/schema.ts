@@ -505,3 +505,63 @@ export const insertResidentApplicationSchema = createInsertSchema(residentApplic
 
 export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
+
+// Song Submissions for Community Features
+export const songSubmissions = pgTable("song_submissions", {
+  id: serial("id").primaryKey(),
+  submitterName: text("submitter_name").notNull(),
+  submitterEmail: text("submitter_email").notNull(),
+  songTitle: text("song_title").notNull(),
+  artistName: text("artist_name").notNull(),
+  albumName: text("album_name"),
+  genre: text("genre").notNull(),
+  submissionType: text("submission_type").notNull(), // 'discovery', 'promotion', 'testing'
+  platform: text("platform").notNull(), // 'spotify', 'apple_music', 'soundcloud', 'bandcamp', 'youtube'
+  platformUrl: text("platform_url").notNull(),
+  trackId: text("track_id"), // Platform-specific track ID
+  description: text("description"), // Why they're submitting this track
+  requestedDate: text("requested_date"), // Specific day request (e.g., "Fan Music Friday")
+  isScheduled: boolean("is_scheduled").default(false),
+  scheduledFor: timestamp("scheduled_for"), // When it's scheduled to play
+  themeTag: text("theme_tag"), // e.g., "fan_music_friday", "throwback_thursday"
+  metadata: text("metadata"), // JSON string with track info from APIs
+  approvalStatus: text("approval_status").notNull().default("pending"), // 'pending', 'approved', 'rejected'
+  approvedBy: text("approved_by"),
+  approvedAt: timestamp("approved_at"),
+  playedAt: timestamp("played_at"),
+  playCount: integer("play_count").default(0),
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  notes: text("notes"), // Admin notes
+});
+
+export const insertSongSubmissionSchema = createInsertSchema(songSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  approvalStatus: true,
+  playCount: true,
+});
+
+export type SongSubmission = typeof songSubmissions.$inferSelect;
+export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
+
+// Themed Programming Schedule
+export const themedPrograms = pgTable("themed_programs", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // "Fan Music Friday", "Throwback Thursday"
+  slug: text("slug").notNull().unique(), // "fan_music_friday"
+  description: text("description"),
+  dayOfWeek: integer("day_of_week"), // 0-6, null for special events
+  startTime: text("start_time"), // HH:MM format
+  duration: integer("duration"), // minutes
+  isActive: boolean("is_active").default(true),
+  color: text("color").default("#FF0000"), // Theme color
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertThemedProgramSchema = createInsertSchema(themedPrograms).omit({
+  id: true,
+  createdAt: true,
+});
+
+export type ThemedProgram = typeof themedPrograms.$inferSelect;
+export type InsertThemedProgram = z.infer<typeof insertThemedProgramSchema>;

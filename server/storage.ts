@@ -1,7 +1,7 @@
 import { 
   users, stations, shows, currentPlayback, djSubmissions, admins, zineSubmissions, zineContent,
   editorialWorkflow, physicalMedia, mixUploads, mixTracklist, episodes, episodeTracklist, trackMetadata,
-  residentApplications,
+  residentApplications, songSubmissions, themedPrograms,
   type User, type InsertUser, type Station, type InsertStation, 
   type Show, type InsertShow, type CurrentPlayback, type InsertCurrentPlayback,
   type DjSubmission, type InsertDjSubmission, type Admin, type InsertAdmin,
@@ -9,7 +9,8 @@ import {
   type EditorialWorkflow, type InsertEditorialWorkflow, type PhysicalMedia, type InsertPhysicalMedia,
   type MixUpload, type InsertMixUpload, type MixTracklist, type InsertMixTracklist,
   type Episode, type InsertEpisode, type EpisodeTracklist, type InsertEpisodeTracklist,
-  type TrackMetadata, type InsertTrackMetadata, type ResidentApplication, type InsertResidentApplication
+  type TrackMetadata, type InsertTrackMetadata, type ResidentApplication, type InsertResidentApplication,
+  type SongSubmission, type InsertSongSubmission, type ThemedProgram, type InsertThemedProgram
 } from "@shared/schema";
 
 export interface IStorage {
@@ -46,6 +47,20 @@ export interface IStorage {
   getResidentApplication(id: number): Promise<ResidentApplication | undefined>;
   createResidentApplication(application: InsertResidentApplication): Promise<ResidentApplication>;
   updateResidentApplicationStatus(id: number, status: string, reviewedBy: string, notes?: string): Promise<ResidentApplication | undefined>;
+  
+  // Song Submission methods
+  getAllSongSubmissions(): Promise<SongSubmission[]>;
+  getSongSubmission(id: number): Promise<SongSubmission | undefined>;
+  createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission>;
+  updateSongSubmissionStatus(id: number, status: string, approvedBy: string, notes?: string): Promise<SongSubmission | undefined>;
+  getSongSubmissionsByTheme(themeTag: string): Promise<SongSubmission[]>;
+  getApprovedSongSubmissions(): Promise<SongSubmission[]>;
+  
+  // Themed Program methods
+  getAllThemedPrograms(): Promise<ThemedProgram[]>;
+  getThemedProgram(id: number): Promise<ThemedProgram | undefined>;
+  createThemedProgram(program: InsertThemedProgram): Promise<ThemedProgram>;
+  getActiveThemedPrograms(): Promise<ThemedProgram[]>;
   
   // Admin methods
   getAdminByUsername(username: string): Promise<Admin | undefined>;
@@ -120,6 +135,8 @@ export class MemStorage implements IStorage {
   private shows: Map<number, Show>;
   private djSubmissions: Map<number, DjSubmission>;
   private residentApplications: Map<number, ResidentApplication>;
+  private songSubmissions: Map<number, SongSubmission>;
+  private themedPrograms: Map<number, ThemedProgram>;
   private admins: Map<number, Admin>;
   private zineSubmissions: Map<number, ZineSubmission>;
   private zineContent: Map<number, ZineContent>;
@@ -140,6 +157,8 @@ export class MemStorage implements IStorage {
     this.shows = new Map();
     this.djSubmissions = new Map();
     this.residentApplications = new Map();
+    this.songSubmissions = new Map();
+    this.themedPrograms = new Map();
     this.admins = new Map();
     this.zineSubmissions = new Map();
     this.zineContent = new Map();
@@ -1997,6 +2016,81 @@ What makes this movement particularly fascinating is its relationship with the c
 
   async updateProgramState(state: any): Promise<void> {
     this.programStateStore = { ...state };
+  }
+
+  // Song Submission methods implementation
+  async getAllSongSubmissions(): Promise<SongSubmission[]> {
+    return Array.from(this.songSubmissions.values());
+  }
+
+  async getSongSubmission(id: number): Promise<SongSubmission | undefined> {
+    return this.songSubmissions.get(id);
+  }
+
+  async createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission> {
+    const id = this.songSubmissions.size + 1;
+    const newSubmission: SongSubmission = {
+      id,
+      ...submission,
+      approvalStatus: 'pending',
+      isScheduled: false,
+      playCount: 0,
+      submittedAt: new Date(),
+      scheduledFor: null,
+      approvedBy: null,
+      approvedAt: null,
+      playedAt: null,
+      notes: null,
+    };
+    this.songSubmissions.set(id, newSubmission);
+    return newSubmission;
+  }
+
+  async updateSongSubmissionStatus(id: number, status: string, approvedBy: string, notes?: string): Promise<SongSubmission | undefined> {
+    const submission = this.songSubmissions.get(id);
+    if (!submission) return undefined;
+
+    const updatedSubmission: SongSubmission = {
+      ...submission,
+      approvalStatus: status,
+      approvedBy,
+      approvedAt: new Date(),
+      notes: notes || submission.notes,
+    };
+    this.songSubmissions.set(id, updatedSubmission);
+    return updatedSubmission;
+  }
+
+  async getSongSubmissionsByTheme(themeTag: string): Promise<SongSubmission[]> {
+    return Array.from(this.songSubmissions.values()).filter(s => s.themeTag === themeTag);
+  }
+
+  async getApprovedSongSubmissions(): Promise<SongSubmission[]> {
+    return Array.from(this.songSubmissions.values()).filter(s => s.approvalStatus === 'approved');
+  }
+
+  // Themed Program methods implementation
+  async getAllThemedPrograms(): Promise<ThemedProgram[]> {
+    return Array.from(this.themedPrograms.values());
+  }
+
+  async getThemedProgram(id: number): Promise<ThemedProgram | undefined> {
+    return this.themedPrograms.get(id);
+  }
+
+  async createThemedProgram(program: InsertThemedProgram): Promise<ThemedProgram> {
+    const id = this.themedPrograms.size + 1;
+    const newProgram: ThemedProgram = {
+      id,
+      ...program,
+      createdAt: new Date(),
+    };
+    this.themedPrograms.set(id, newProgram);
+    return newProgram;
+  }
+
+  async getActiveThemedPrograms(): Promise<ThemedProgram[]> {
+    return Array.from(this.themedPrograms.values()).filter(p => p.isActive);
   }
 }
 

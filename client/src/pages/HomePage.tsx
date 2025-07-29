@@ -5,7 +5,7 @@ import { Settings, Star, Users, Music, Heart } from "lucide-react";
 import FeaturedMixCard from "../components/FeaturedMixCard";
 import RadioStreamPlayer from "../components/RadioStreamPlayer";
 import ProgramIndicator from "../components/ProgramIndicator";
-import CollegeRadioUpload from "../components/CollegeRadioUpload";
+import SongSubmissionModal from "../components/SongSubmissionModal";
 import LastFmDebugPanel from "../components/LastFmDebugPanel";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
@@ -24,7 +24,7 @@ interface FeaturedSubmission {
 
 export default function HomePage() {
 
-  const [showRadioUpload, setShowRadioUpload] = useState(false);
+  const [showSongSubmission, setShowSongSubmission] = useState(false);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
   const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
 
@@ -221,7 +221,7 @@ export default function HomePage() {
 
             {/* Song Suggestions */}
             <button
-              onClick={() => setShowRadioUpload(true)}
+              onClick={() => setShowSongSubmission(true)}
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer text-left w-full"
             >
               <div className="text-center">
@@ -243,8 +243,8 @@ export default function HomePage() {
 
       {/* Modals */}
 
-      {showRadioUpload && (
-        <CollegeRadioUpload isOpen={showRadioUpload} onClose={() => setShowRadioUpload(false)} />
+      {showSongSubmission && (
+        <SongSubmissionModal isOpen={showSongSubmission} onClose={() => setShowSongSubmission(false)} />
       )}
 
       {showDebugPanel && (
