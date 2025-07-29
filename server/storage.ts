@@ -168,7 +168,7 @@ export class MemStorage implements IStorage {
       {
         id: 2,
         showName: "Late Night Jazz",
-        hostName: "Marcus Rivera",
+        hostName: "Lauren Elyse & Cameron Courtney",
         description: "Smooth jazz and experimental sounds for night owls",
         genre: "Jazz & Experimental",
         dayOfWeek: 5, // Friday

@@ -21,7 +21,7 @@ interface LastFmDebugPanelProps {
 }
 
 export default function LastFmDebugPanel({ isOpen, onClose }: LastFmDebugPanelProps) {
-  const [testFilename, setTestFilename] = useState('how did i do_1753594094475.mp3');
+  const [testFilename, setTestFilename] = useState('https://soundcloud.com/scumbagjones1/sets/reloaded?si=d97664968be54d6998f4c9509e98cc4f&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing');
   const [testResults, setTestResults] = useState<any[]>([]);
   const queryClient = useQueryClient();
 

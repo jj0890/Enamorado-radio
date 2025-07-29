@@ -40,18 +40,42 @@ export default function FeaturedMixCard({ submission, thumbnail }: FeaturedMixCa
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
 
-  // Use actual uploaded audio file if available
-  const audioSrc = `/attached_assets/how did i do_1753594094475.mp3`;
+  // Use proper audio source based on submission
+  const getAudioSource = () => {
+    // If there's a direct upload file, use it
+    if (submission.djName === "Jarrad" && submission.demoMixTitle?.includes("How Did I Do")) {
+      return `/attached_assets/how did i do_1753594094475.mp3`;
+    }
+    
+    // For other submissions, use SoundCloud URL if available
+    if (submission.soundcloudUrl) {
+      return submission.soundcloudUrl;
+    }
+    
+    // Fallback to other URLs
+    return submission.mixcloudUrl || submission.audiocomUrl || submission.otherUrl;
+  };
+
+  const audioSrc = getAudioSource();
+  
+  // Use proper filename for metadata lookup
+  const getMetadataKey = () => {
+    if (submission.djName === "Jarrad" && submission.demoMixTitle?.includes("How Did I Do")) {
+      return 'how did i do_1753594094475.mp3';
+    }
+    return `${submission.djName}_${submission.demoMixTitle}`.toLowerCase().replace(/\s+/g, '_');
+  };
   
   // Fetch track metadata
   const { data: trackMetadata } = useQuery<TrackMetadata>({
-    queryKey: ['track-metadata', 'how did i do_1753594094475.mp3'],
+    queryKey: ['track-metadata', getMetadataKey()],
     queryFn: async () => {
-      const response = await fetch(`/api/track-metadata/${encodeURIComponent('how did i do_1753594094475.mp3')}`);
+      const response = await fetch(`/api/track-metadata/${encodeURIComponent(getMetadataKey())}`);
       if (!response.ok) throw new Error('Failed to fetch track metadata');
       return response.json();
     },
     staleTime: 1000 * 60 * 10,
+    enabled: !!submission,
   });
 
   useEffect(() => {
