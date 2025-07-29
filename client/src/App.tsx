@@ -20,6 +20,7 @@ import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 import MixesLanding from "./pages/MixesLanding";
+import AdminSongSubmissions from "./pages/AdminSongSubmissions";
 
 function Router() {
   return (
@@ -31,6 +32,7 @@ function Router() {
       <Route path="/dj-submit" component={DJSubmit} />
       <Route path="/resident-application" component={ResidentApplication} />
       <Route path="/admin" component={ScheduleAdmin} />
+      <Route path="/admin/song-submissions" component={AdminSongSubmissions} />
       <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
       <Route path="/schedule" component={Schedule} />
       <Route path="/zine" component={ZineArchive} />
