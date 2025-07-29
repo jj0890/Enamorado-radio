@@ -77,10 +77,33 @@ export default function HomePage() {
       <header className="fixed top-6 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center">
+            <div className="flex items-center space-x-8">
               <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
                 ENAMORADO
               </Link>
+              <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
+                <Link href="/" className="text-gray-600 hover:text-red-500 transition-colors">
+                  LATEST
+                </Link>
+                <Link href="/guides" className="text-gray-600 hover:text-red-500 transition-colors">
+                  EXPLORE
+                </Link>
+                <Link href="/dj-submit" className="text-gray-600 hover:text-red-500 transition-colors">
+                  SUBMIT
+                </Link>
+                <Link href="/albums" className="text-gray-600 hover:text-red-500 transition-colors">
+                  ALBUMS
+                </Link>
+                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
+                  MIXES
+                </Link>
+                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                  RADIO
+                </Link>
+                <Link href="/schedule" className="text-red-500 hover:text-red-600 transition-colors font-medium">
+                  SCHEDULE
+                </Link>
+              </nav>
             </div>
             <div className="flex items-center space-x-4">
               <button 
