@@ -73,8 +73,22 @@ export default function HomePage() {
         </div>
       </div>
 
+      {/* Live Player Bar */}
+      <div className="fixed top-6 left-0 right-0 z-40 bg-white border-b border-gray-200">
+        <div className="flex items-center justify-between px-4 py-2 text-sm font-mono">
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2">
+              <span className="text-gray-600">ENAMORADO RADIO</span>
+            </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-gray-600">SAN ANTONIO</span>
+          </div>
+        </div>
+      </div>
+
       {/* Main Header */}
-      <header className="fixed top-6 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
+      <header className="fixed top-16 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -119,7 +133,7 @@ export default function HomePage() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-32 pb-32 px-4 max-w-7xl mx-auto">
+      <main className="pt-40 pb-32 px-4 max-w-7xl mx-auto">
         {/* Hero Section */}
         <section className="mb-16">
           <div className="text-center mb-12">
@@ -161,7 +175,10 @@ export default function HomePage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Editorial/Staff Picks */}
-            <div className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer">
+            <Link
+              href="/guides"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Star className="w-8 h-8 text-white" />
@@ -174,10 +191,13 @@ export default function HomePage() {
                   EXPLORE PICKS →
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Resident Applications */}
-            <div className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer">
+            <Link
+              href="/schedule"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
                   <Users className="w-8 h-8 text-white" />
@@ -190,7 +210,7 @@ export default function HomePage() {
                   APPLY FOR SEASON 1 →
                 </div>
               </div>
-            </div>
+            </Link>
 
             {/* Submit a Mix */}
             <Link
