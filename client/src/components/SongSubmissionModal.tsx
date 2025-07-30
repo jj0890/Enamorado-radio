@@ -134,6 +134,21 @@ export default function SongSubmissionModal({ isOpen, onClose }: SongSubmissionM
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validation check
+    const requiredFields = ['submitterName', 'submitterEmail', 'songTitle', 'artistName', 'genre', 'platform', 'platformUrl'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    
+    if (missingFields.length > 0) {
+      toast({
+        title: "Missing Required Fields",
+        description: `Please fill in: ${missingFields.join(', ')}`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log('Form data being submitted:', formData);
     mutation.mutate(formData);
   };
 
@@ -362,6 +377,10 @@ export default function SongSubmissionModal({ isOpen, onClose }: SongSubmissionM
               type="submit"
               disabled={mutation.isPending}
               className="bg-red-500 hover:bg-red-600 text-white font-mono"
+              onClick={(e) => {
+                console.log('Submit button clicked');
+                console.log('Form data:', formData);
+              }}
             >
               {mutation.isPending ? 'Submitting...' : 'Submit Track'}
             </Button>
