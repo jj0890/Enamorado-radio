@@ -53,6 +53,15 @@ export interface IStorage {
   getSongSubmission(id: number): Promise<SongSubmission | undefined>;
   createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission>;
   updateSongSubmissionStatus(id: number, status: string, approvedBy: string, notes?: string): Promise<SongSubmission | undefined>;
+  
+  // Track like operations (requires user system)
+  addTrackLike(like: {
+    userId: string;
+    trackId: string;
+    trackTitle: string;
+    artist?: string;
+    timestamp: Date;
+  }): Promise<any>;
   getSongSubmissionsByTheme(themeTag: string): Promise<SongSubmission[]>;
   getApprovedSongSubmissions(): Promise<SongSubmission[]>;
   

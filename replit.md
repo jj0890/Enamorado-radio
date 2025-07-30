@@ -188,3 +188,6 @@ Changelog:
 ## User Preferences
 
 Preferred communication style: Simple, everyday language.
+Technical approach: No mock data, placeholder content, or "vibey coding" - only authentic data sources and real functionality
+Design philosophy: Substance over style - every UI element must have tangible backend implementation
+Streaming approach: Self-hosted solution preferred over third-party services like Radio.co

@@ -1126,6 +1126,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real radio stream state endpoint
+  app.get('/api/radio/stream-state', async (req, res) => {
+    try {
+      const { radioStreamService } = await import('./radioStreamService');
+      const state = radioStreamService.getCurrentState();
+      res.json(state);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get stream state' });
+    }
+  });
+
+  // Like current track (requires real user system)
+  app.post('/api/radio/like', async (req, res) => {
+    try {
+      const { userId } = req.body; // This would come from authenticated session
+      const { radioStreamService } = await import('./radioStreamService');
+      
+      if (!userId) {
+        return res.status(401).json({ error: 'User not authenticated' });
+      }
+      
+      const success = await radioStreamService.likeCurrentTrack(userId);
+      if (success) {
+        res.json({ message: 'Track liked successfully' });
+      } else {
+        res.status(400).json({ error: 'No track currently playing' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to like track' });
+    }
+  });
+
+  // Admin controls for queue management
+  app.post('/api/radio/skip', async (req, res) => {
+    try {
+      // In real app, verify admin authentication
+      const { radioStreamService } = await import('./radioStreamService');
+      radioStreamService.skipTrack();
+      res.json({ message: 'Track skipped' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to skip track' });
+    }
+  });
+
+  app.get('/api/radio/queue', async (req, res) => {
+    try {
+      const { radioStreamService } = await import('./radioStreamService');
+      const queue = radioStreamService.getQueue();
+      res.json(queue);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get queue' });
+    }
+  });
+
   // Test metadata endpoint - demonstrate with the user's Spotify URL
   app.post('/api/test-metadata', async (req, res) => {
     try {
