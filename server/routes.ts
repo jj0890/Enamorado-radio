@@ -1126,12 +1126,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Real radio stream state endpoint
+  // Simple streaming endpoints
+  app.get('/api/stream/state', async (req, res) => {
+    try {
+      const { simpleStreamingService } = await import('./simpleStreamingService');
+      const state = simpleStreamingService.getState();
+      res.json(state);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get stream state' });
+    }
+  });
+
+  app.post('/api/stream/play', async (req, res) => {
+    try {
+      const { simpleStreamingService } = await import('./simpleStreamingService');
+      simpleStreamingService.play();
+      res.json({ message: 'Playing' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to play' });
+    }
+  });
+
+  app.post('/api/stream/pause', async (req, res) => {
+    try {
+      const { simpleStreamingService } = await import('./simpleStreamingService');
+      simpleStreamingService.pause();
+      res.json({ message: 'Paused' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to pause' });
+    }
+  });
+
+  app.post('/api/stream/next', async (req, res) => {
+    try {
+      const { simpleStreamingService } = await import('./simpleStreamingService');
+      simpleStreamingService.playNext();
+      res.json({ message: 'Playing next track' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to skip track' });
+    }
+  });
+
+  app.post('/api/stream/set-now-playing', async (req, res) => {
+    try {
+      const { title, artist, artworkUrl } = req.body;
+      const { simpleStreamingService } = await import('./simpleStreamingService');
+      simpleStreamingService.setNowPlaying(title, artist, artworkUrl);
+      res.json({ message: 'Now playing updated' });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to update now playing' });
+    }
+  });
+
+  // Real radio stream state endpoint (legacy)
   app.get('/api/radio/stream-state', async (req, res) => {
     try {
-      const { radioStreamService } = await import('./radioStreamService');
-      const state = radioStreamService.getCurrentState();
-      res.json(state);
+      const { simpleStreamingService } = await import('./simpleStreamingService');
+      const state = simpleStreamingService.getState();
+      
+      // Convert to legacy format for existing frontend
+      const legacyState = {
+        current: state.currentTrack ? {
+          id: state.currentTrack.id,
+          title: state.currentTrack.title,
+          artist: state.currentTrack.artist,
+          duration: state.currentTrack.duration,
+          audioUrl: state.currentTrack.audioUrl,
+          type: state.currentTrack.source === 'dj_mix' ? 'dj_mix' : 'spotify_track'
+        } : null,
+        progress: state.currentTime,
+        isLive: state.isPlaying,
+        volume: state.volume,
+        listeners: state.listeners,
+        recent: [],
+        next: state.playlist[state.currentIndex + 1] || null
+      };
+      
+      res.json(legacyState);
     } catch (error) {
       res.status(500).json({ error: 'Failed to get stream state' });
     }
