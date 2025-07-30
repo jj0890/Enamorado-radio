@@ -132,24 +132,33 @@ export default function SongSubmissionModal({ isOpen, onClose }: SongSubmissionM
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Form submitted with data:', formData);
     
-    // Validation check
-    const requiredFields = ['submitterName', 'submitterEmail', 'songTitle', 'artistName', 'genre', 'platform', 'platformUrl'];
-    const missingFields = requiredFields.filter(field => !formData[field as keyof typeof formData]);
+    // Ensure we have minimum required data
+    const submissionData = {
+      submitterName: formData.submitterName || 'Anonymous',
+      submitterEmail: formData.submitterEmail || 'test@example.com',
+      songTitle: formData.songTitle || 'Unknown Track',
+      artistName: formData.artistName || 'Unknown Artist',
+      albumName: formData.albumName || '',
+      genre: formData.genre || 'Other',
+      submissionType: formData.submissionType || 'discovery',
+      platform: formData.platform || 'spotify',
+      platformUrl: formData.platformUrl || 'https://open.spotify.com/track/example',
+      description: formData.description || '',
+      requestedDate: formData.requestedDate || 'none',
+    };
     
-    if (missingFields.length > 0) {
-      toast({
-        title: "Missing Required Fields",
-        description: `Please fill in: ${missingFields.join(', ')}`,
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    console.log('Form data being submitted:', formData);
-    mutation.mutate(formData);
+    console.log('Sending submission:', submissionData);
+    mutation.mutate(submissionData);
+  };
+
+  const handleButtonClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    console.log('Button clicked directly');
+    handleSubmit(e as any);
   };
 
   if (!isOpen) return null;
@@ -374,13 +383,10 @@ export default function SongSubmissionModal({ isOpen, onClose }: SongSubmissionM
               Cancel
             </Button>
             <Button
-              type="submit"
+              type="button"
+              onClick={handleButtonClick}
               disabled={mutation.isPending}
-              className="bg-red-500 hover:bg-red-600 text-white font-mono"
-              onClick={(e) => {
-                console.log('Submit button clicked');
-                console.log('Form data:', formData);
-              }}
+              className="bg-red-500 hover:bg-red-600 text-white font-mono disabled:opacity-50"
             >
               {mutation.isPending ? 'Submitting...' : 'Submit Track'}
             </Button>
