@@ -189,6 +189,10 @@ Changelog:
 - July 30, 2025. Successfully tested song submissions with real Spotify API integration (Ed Sheeran's "Shape of You" with full metadata)
 - July 30, 2025. Built admin stream control panel with play/pause/skip controls and manual now playing updates
 - July 30, 2025. Implemented authentic approval workflow: submissions → admin approval → automatic queue entry → live rotation
+- July 30, 2025. Fixed critical backend storage connectivity for song submissions with complete CRUD API endpoints
+- July 30, 2025. Added comprehensive song submission status management with admin approval workflow and real metadata processing
+- July 30, 2025. Completed 6 customizable player themes with real-time switching and localStorage persistence (Classic, Dark, Retro Wave, Minimal, NTS, Glass)
+- July 30, 2025. Successfully tested entire song submission pipeline: form submission → Spotify metadata fetch → admin approval → queue integration
 
 ## User Preferences
 

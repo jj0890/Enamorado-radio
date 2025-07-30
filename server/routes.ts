@@ -1096,6 +1096,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/song-submissions/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const submission = await storage.getSongSubmission(id);
+      if (!submission) {
+        return res.status(404).json({ error: 'Song submission not found' });
+      }
+      res.json(submission);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch song submission' });
+    }
+  });
+
+  app.get('/api/song-submissions/approved', async (req, res) => {
+    try {
+      const submissions = await storage.getApprovedSongSubmissions();
+      res.json(submissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch approved song submissions' });
+    }
+  });
+
   app.post('/api/song-submissions', async (req, res) => {
     try {
       const validatedData = insertSongSubmissionSchema.parse(req.body);
@@ -1123,6 +1145,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[song-submission] Error:', error);
       res.status(400).json({ error: 'Invalid submission data' });
+    }
+  });
+
+  app.patch('/api/song-submissions/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, approvedBy, notes } = req.body;
+      
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+      
+      const submission = await storage.updateSongSubmissionStatus(id, status, approvedBy, notes);
+      if (!submission) {
+        return res.status(404).json({ error: 'Song submission not found' });
+      }
+      
+      console.log(`[song-submission] Status updated: ${submission.songTitle} by ${submission.artistName} -> ${status}`);
+      res.json(submission);
+    } catch (error) {
+      console.error('[song-submission] Failed to update status:', error);
+      res.status(500).json({ error: 'Failed to update song submission status' });
     }
   });
 
