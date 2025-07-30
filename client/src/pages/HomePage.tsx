@@ -5,7 +5,7 @@ import { Settings, Star, Users, Music, Heart } from "lucide-react";
 import FeaturedMixCard from "../components/FeaturedMixCard";
 import RadioStreamPlayer from "../components/RadioStreamPlayer";
 import ProgramIndicator from "../components/ProgramIndicator";
-import SongSubmissionModal from "../components/SongSubmissionModal";
+import SimpleSongForm from "../components/SimpleSongForm";
 import LastFmDebugPanel from "../components/LastFmDebugPanel";
 import { getTrackThumbnail } from "../utils/soundcloud";
 
@@ -244,7 +244,7 @@ export default function HomePage() {
       {/* Modals */}
 
       {showSongSubmission && (
-        <SongSubmissionModal isOpen={showSongSubmission} onClose={() => setShowSongSubmission(false)} />
+        <SimpleSongForm isOpen={showSongSubmission} onClose={() => setShowSongSubmission(false)} />
       )}
 
       {showDebugPanel && (
