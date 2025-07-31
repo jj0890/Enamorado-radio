@@ -10,8 +10,19 @@ interface CurrentlyPlayingData {
   metadata?: string;
 }
 
+interface QueueSong {
+  id: number;
+  songTitle: string;
+  artistName: string;
+  submitterName: string;
+  queuePosition: number;
+  playbackStatus: string;
+  currentlyPlaying: boolean;
+  metadata?: string;
+}
+
 export function CurrentlyPlayingWidget() {
-  const { data: currentlyPlaying } = useQuery({
+  const { data: currentlyPlaying } = useQuery<CurrentlyPlayingData>({
     queryKey: ['/api/admin/currently-playing'],
     refetchInterval: 10000, // Update every 10 seconds
   });
@@ -70,14 +81,14 @@ export function CurrentlyPlayingWidget() {
 }
 
 export function UpNextWidget() {
-  const { data: queue = [] } = useQuery({
+  const { data: queue = [] } = useQuery<QueueSong[]>({
     queryKey: ['/api/admin/queue'],
     refetchInterval: 30000, // Update every 30 seconds
   });
 
   const upNext = queue
-    .filter((song: any) => song.playbackStatus === 'queued')
-    .sort((a: any, b: any) => a.queuePosition - b.queuePosition)
+    .filter((song: QueueSong) => song.playbackStatus === 'queued')
+    .sort((a: QueueSong, b: QueueSong) => a.queuePosition - b.queuePosition)
     .slice(0, 3);
 
   if (upNext.length === 0) {
@@ -92,7 +103,7 @@ export function UpNextWidget() {
       </h4>
       
       <div className="space-y-2">
-        {upNext.map((song: any, index: number) => (
+        {upNext.map((song: QueueSong, index: number) => (
           <div key={song.id} className="text-xs">
             <span className="text-blue-600 font-mono font-bold">#{song.queuePosition}</span>
             <span className="ml-2 font-mono text-gray-900">{song.songTitle}</span>
