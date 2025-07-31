@@ -197,6 +197,9 @@ Changelog:
 - July 31, 2025. Implemented professional radio player with live status detection, automatic fallback, and red gradient theme matching platform design
 - July 31, 2025. Completed comprehensive system validation: confirmed working APIs, database operations, form submissions, admin workflows, and live streaming integration
 - July 31, 2025. Fixed SimpleSongForm integration and validated complete end-to-end song submission workflow with real Spotify metadata processing
+- July 31, 2025. Resolved critical bug in SimpleSongForm: fixed HTTP method parameter order in apiRequest call (was '/api/song-submissions', 'POST' should be 'POST', '/api/song-submissions')
+- July 31, 2025. Confirmed working song submission pipeline: form validation, API request, Spotify metadata fetch, database storage, and admin panel display
+- July 31, 2025. User validation successful: "Tales from the hood" by 454 submitted with complete metadata and admin interface display
 
 ## User Preferences
 
