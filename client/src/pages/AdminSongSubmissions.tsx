@@ -24,7 +24,7 @@ interface SongSubmission {
   trackId?: string;
   description?: string;
   themeTag?: string;
-  status: 'pending' | 'approved' | 'rejected';
+  approvalStatus: 'pending' | 'approved' | 'rejected';
   submittedAt: string;
   reviewedAt?: string;
   reviewedBy?: string;
@@ -138,13 +138,13 @@ export default function AdminSongSubmissions() {
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
               <div className="text-2xl font-bold text-yellow-800">
-                {submissions.filter((s: SongSubmission) => s.status === 'pending').length}
+                {submissions.filter((s: SongSubmission) => s.approvalStatus === 'pending').length}
               </div>
               <div className="text-sm text-yellow-600 font-mono">Pending Review</div>
             </div>
             <div className="bg-green-50 p-4 rounded-lg border border-green-200">
               <div className="text-2xl font-bold text-green-800">
-                {submissions.filter((s: SongSubmission) => s.status === 'approved').length}
+                {submissions.filter((s: SongSubmission) => s.approvalStatus === 'approved').length}
               </div>
               <div className="text-sm text-green-600 font-mono">Approved</div>
             </div>
@@ -184,8 +184,8 @@ export default function AdminSongSubmissions() {
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
                           <CardTitle className="font-mono text-lg">{submission.songTitle}</CardTitle>
-                          <Badge className={getStatusColor(submission.status)}>
-                            {submission.status}
+                          <Badge className={getStatusColor(submission.approvalStatus)}>
+                            {submission.approvalStatus}
                           </Badge>
                           <Badge className={getPlatformColor(submission.platform)}>
                             {submission.platform}
@@ -284,7 +284,7 @@ export default function AdminSongSubmissions() {
 
                     {/* Admin Review Section */}
                     <div className="border-t pt-4">
-                      {submission.status === 'pending' ? (
+                      {submission.approvalStatus === 'pending' ? (
                         !isReviewing ? (
                           <Button
                             onClick={() => setReviewingId(submission.id)}
@@ -329,7 +329,7 @@ export default function AdminSongSubmissions() {
                       ) : (
                         /* Quick Actions for Approved/Rejected */
                         <div className="flex gap-2">
-                          {submission.status === 'rejected' && (
+                          {submission.approvalStatus === 'rejected' && (
                             <Button
                               onClick={() => handleStatusUpdate(submission.id, 'approved')}
                               className="bg-green-600 hover:bg-green-700 text-white font-mono"
@@ -338,7 +338,7 @@ export default function AdminSongSubmissions() {
                               Approve & Add to Queue
                             </Button>
                           )}
-                          {submission.status === 'approved' && (
+                          {submission.approvalStatus === 'approved' && (
                             <Button
                               onClick={() => handleStatusUpdate(submission.id, 'rejected')}
                               variant="destructive"
@@ -360,10 +360,10 @@ export default function AdminSongSubmissions() {
                     </div>
 
                     {/* Review Information */}
-                    {submission.status !== 'pending' && (
+                    {submission.approvalStatus !== 'pending' && (
                       <div className="border-t pt-3 text-sm">
                         <div className="text-gray-600">
-                          {submission.status === 'approved' ? 'Approved' : 'Rejected'} 
+                          {submission.approvalStatus === 'approved' ? 'Approved' : 'Rejected'} 
                           {submission.reviewedAt && ` on ${new Date(submission.reviewedAt).toLocaleDateString()}`}
                           {submission.reviewedBy && ` by ${submission.reviewedBy}`}
                         </div>
