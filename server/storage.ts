@@ -2055,6 +2055,12 @@ What makes this movement particularly fascinating is its relationship with the c
     return newSubmission;
   }
 
+  async getApprovedSongSubmissions(): Promise<SongSubmission[]> {
+    return Array.from(this.songSubmissions.values()).filter(
+      submission => submission.approvalStatus === 'approved'
+    );
+  }
+
   async updateSongSubmissionStatus(id: number, status: string, approvedBy: string, notes?: string): Promise<SongSubmission | undefined> {
     const submission = this.songSubmissions.get(id);
     if (!submission) return undefined;
@@ -2072,10 +2078,6 @@ What makes this movement particularly fascinating is its relationship with the c
 
   async getSongSubmissionsByTheme(themeTag: string): Promise<SongSubmission[]> {
     return Array.from(this.songSubmissions.values()).filter(s => s.themeTag === themeTag);
-  }
-
-  async getApprovedSongSubmissions(): Promise<SongSubmission[]> {
-    return Array.from(this.songSubmissions.values()).filter(s => s.approvalStatus === 'approved');
   }
 
   // Themed Program methods implementation
