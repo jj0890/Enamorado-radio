@@ -18,6 +18,9 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
   
   const { toast } = useToast();
 
+  // Debug: Log all state changes
+  console.log('SimpleSongForm state:', { name, email, song, artist, url, isOpen });
+
   const mutation = useMutation({
     mutationFn: async () => {
       const data = {
@@ -59,34 +62,12 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
     },
   });
 
-  const handleSubmit = (e?: React.MouseEvent) => {
-    e?.preventDefault();
-    e?.stopPropagation();
-    console.log('🔥 BUTTON CLICKED! Data:', { name, email, song, artist, url });
-    console.log('🔥 Mutation state:', mutation.isPending);
-    console.log('🔥 Form validation:', { songOk: !!song, artistOk: !!artist });
+  const handleSubmit = () => {
+    console.log('SUBMIT BUTTON CLICKED');
+    console.log('Current form data:', { name, email, song, artist, url });
+    console.log('Mutation pending:', mutation.isPending);
     
-    if (!song?.trim()) {
-      console.log('❌ Missing song title');
-      toast({
-        title: "Missing Song Title",
-        description: "Please enter a song title.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!artist?.trim()) {
-      console.log('❌ Missing artist name');
-      toast({
-        title: "Missing Artist Name", 
-        description: "Please enter an artist name.",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    console.log('✅ Validation passed, submitting...');
+    // Force submission with current data
     mutation.mutate();
   };
 
