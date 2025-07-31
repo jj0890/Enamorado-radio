@@ -283,9 +283,9 @@ export default function AdminSongSubmissions() {
                     )}
 
                     {/* Admin Review Section */}
-                    {submission.status === 'pending' && (
-                      <div className="border-t pt-4">
-                        {!isReviewing ? (
+                    <div className="border-t pt-4">
+                      {submission.status === 'pending' ? (
+                        !isReviewing ? (
                           <Button
                             onClick={() => setReviewingId(submission.id)}
                             className="bg-red-600 hover:bg-red-700 text-white font-mono"
@@ -306,7 +306,7 @@ export default function AdminSongSubmissions() {
                                 className="bg-green-600 hover:bg-green-700 text-white font-mono"
                                 disabled={updateStatusMutation.isPending}
                               >
-                                Approve
+                                Approve & Add to Queue
                               </Button>
                               <Button
                                 onClick={() => handleStatusUpdate(submission.id, 'rejected')}
@@ -325,9 +325,39 @@ export default function AdminSongSubmissions() {
                               </Button>
                             </div>
                           </div>
-                        )}
-                      </div>
-                    )}
+                        )
+                      ) : (
+                        /* Quick Actions for Approved/Rejected */
+                        <div className="flex gap-2">
+                          {submission.status === 'rejected' && (
+                            <Button
+                              onClick={() => handleStatusUpdate(submission.id, 'approved')}
+                              className="bg-green-600 hover:bg-green-700 text-white font-mono"
+                              disabled={updateStatusMutation.isPending}
+                            >
+                              Approve & Add to Queue
+                            </Button>
+                          )}
+                          {submission.status === 'approved' && (
+                            <Button
+                              onClick={() => handleStatusUpdate(submission.id, 'rejected')}
+                              variant="destructive"
+                              className="font-mono"
+                              disabled={updateStatusMutation.isPending}
+                            >
+                              Remove from Queue
+                            </Button>
+                          )}
+                          <Button
+                            onClick={() => setReviewingId(submission.id)}
+                            variant="outline"
+                            className="font-mono"
+                          >
+                            Update Notes
+                          </Button>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Review Information */}
                     {submission.status !== 'pending' && (
