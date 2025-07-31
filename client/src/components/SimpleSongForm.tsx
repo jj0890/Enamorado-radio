@@ -62,18 +62,31 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
   const handleSubmit = (e?: React.MouseEvent) => {
     e?.preventDefault();
     e?.stopPropagation();
-    console.log('Button clicked - submitting with data:', { name, email, song, artist, url });
-    console.log('Mutation pending state:', mutation.isPending);
+    console.log('🔥 BUTTON CLICKED! Data:', { name, email, song, artist, url });
+    console.log('🔥 Mutation state:', mutation.isPending);
+    console.log('🔥 Form validation:', { songOk: !!song, artistOk: !!artist });
     
-    if (!song || !artist) {
+    if (!song?.trim()) {
+      console.log('❌ Missing song title');
       toast({
-        title: "Missing Information",
-        description: "Please provide both song title and artist name.",
+        title: "Missing Song Title",
+        description: "Please enter a song title.",
         variant: "destructive",
       });
       return;
     }
     
+    if (!artist?.trim()) {
+      console.log('❌ Missing artist name');
+      toast({
+        title: "Missing Artist Name", 
+        description: "Please enter an artist name.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    console.log('✅ Validation passed, submitting...');
     mutation.mutate();
   };
 
@@ -156,8 +169,9 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={mutation.isPending || (!song || !artist)}
+              disabled={mutation.isPending}
               className="px-4 py-2 bg-red-500 text-white rounded font-mono hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
+              style={{ pointerEvents: 'auto', zIndex: 1000 }}
             >
               {mutation.isPending ? 'Submitting...' : 'Submit'}
             </button>
