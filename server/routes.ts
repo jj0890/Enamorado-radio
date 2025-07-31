@@ -22,6 +22,20 @@ import {
   insertSongSubmissionSchema
 } from "@shared/schema";
 
+// Error logging middleware
+function logError(endpoint: string, error: any, req?: any) {
+  console.error(`[ERROR] ${endpoint}:`, {
+    message: error.message,
+    stack: error.stack,
+    url: req?.url,
+    method: req?.method,
+    params: req?.params,
+    query: req?.query,
+    body: req?.body,
+    timestamp: new Date().toISOString()
+  });
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   
@@ -65,6 +79,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stations = await storage.getAllStations();
       res.json(stations);
     } catch (error) {
+      logError('GET /api/stations', error, req);
       res.status(500).json({ error: 'Failed to fetch stations' });
     }
   });
@@ -78,6 +93,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(station);
     } catch (error) {
+      logError('GET /api/stations/:id', error, req);
       res.status(500).json({ error: 'Failed to fetch station' });
     }
   });
@@ -88,6 +104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const station = await storage.createStation(validatedData);
       res.status(201).json(station);
     } catch (error) {
+      logError('POST /api/stations', error, req);
       res.status(400).json({ error: 'Invalid station data' });
     }
   });
@@ -98,6 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const shows = await storage.getAllShows();
       res.json(shows);
     } catch (error) {
+      logError('GET /api/shows', error, req);
       res.status(500).json({ error: 'Failed to fetch shows' });
     }
   });
@@ -107,6 +125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const shows = await storage.getFeaturedShows();
       res.json(shows);
     } catch (error) {
+      logError('GET /api/shows/featured', error, req);
       res.status(500).json({ error: 'Failed to fetch featured shows' });
     }
   });
@@ -116,6 +135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const shows = await storage.getLiveShows();
       res.json(shows);
     } catch (error) {
+      logError('GET /api/shows/live', error, req);
       res.status(500).json({ error: 'Failed to fetch live shows' });
     }
   });
@@ -1092,6 +1112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const submissions = await storage.getAllSongSubmissions();
       res.json(submissions);
     } catch (error) {
+      logError('GET /api/song-submissions', error, req);
       res.status(500).json({ error: 'Failed to fetch song submissions' });
     }
   });
@@ -1105,6 +1126,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       res.json(submission);
     } catch (error) {
+      logError('GET /api/song-submissions/:id', error, req);
       res.status(500).json({ error: 'Failed to fetch song submission' });
     }
   });
@@ -1170,6 +1192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(submission);
     } catch (error) {
+      logError('POST /api/song-submissions', error, req);
       console.error('[song-submission] Error:', error);
       res.status(400).json({ error: 'Invalid submission data' });
     }
@@ -1198,6 +1221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[song-submission] Status updated: ${submission.songTitle} by ${submission.artistName} -> ${status}`);
       res.json(submission);
     } catch (error) {
+      logError('PATCH /api/song-submissions/:id/status', error, req);
       console.error('[song-submission] Failed to update status:', error);
       res.status(500).json({ error: 'Failed to update song submission status' });
     }
@@ -1209,6 +1233,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const queuedSongs = await storage.getQueuedSongs();
       res.json(queuedSongs);
     } catch (error) {
+      logError('GET /api/admin/queue', error, req);
       console.error('[queue] Failed to fetch queue:', error);
       res.status(500).json({ error: 'Failed to fetch queue' });
     }
@@ -1219,6 +1244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const currentlyPlaying = await storage.getCurrentlyPlaying();
       res.json(currentlyPlaying);
     } catch (error) {
+      logError('GET /api/admin/currently-playing', error, req);
       console.error('[queue] Failed to fetch currently playing:', error);
       res.status(500).json({ error: 'Failed to fetch currently playing' });
     }
@@ -1251,6 +1277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[queue] Playback action: ${action} for "${result.songTitle}" by ${result.artistName}`);
       res.json(result);
     } catch (error) {
+      logError('PATCH /api/admin/queue/:id/playback', error, req);
       console.error('[queue] Failed to update playback:', error);
       res.status(500).json({ error: 'Failed to update playback status' });
     }
@@ -1273,6 +1300,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`[queue] Position updated: "${result.songTitle}" moved to position ${newPosition}`);
       res.json(result);
     } catch (error) {
+      logError('PATCH /api/admin/queue/:id/position', error, req);
       console.error('[queue] Failed to update position:', error);
       res.status(500).json({ error: 'Failed to update queue position' });
     }
