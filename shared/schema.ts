@@ -532,6 +532,11 @@ export const songSubmissions = pgTable("song_submissions", {
   playCount: integer("play_count").default(0),
   submittedAt: timestamp("submitted_at").defaultNow(),
   notes: text("notes"), // Admin notes
+  
+  // Queue management fields
+  queuePosition: integer("queue_position"), // Order in queue (null = not in queue)
+  playbackStatus: text("playback_status").default('queued'), // 'queued', 'playing', 'played'
+  currentlyPlaying: boolean("currently_playing").default(false)
 });
 
 export const insertSongSubmissionSchema = createInsertSchema(songSubmissions).omit({

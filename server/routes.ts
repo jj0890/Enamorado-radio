@@ -1189,11 +1189,92 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Song submission not found' });
       }
       
+      // Auto-add approved songs to queue
+      if (status === 'approved') {
+        await storage.addToQueue(id);
+        console.log(`[queue] Added to queue: ${submission.songTitle} by ${submission.artistName}`);
+      }
+      
       console.log(`[song-submission] Status updated: ${submission.songTitle} by ${submission.artistName} -> ${status}`);
       res.json(submission);
     } catch (error) {
       console.error('[song-submission] Failed to update status:', error);
       res.status(500).json({ error: 'Failed to update song submission status' });
+    }
+  });
+
+  // Admin Queue Management API
+  app.get('/api/admin/queue', async (req, res) => {
+    try {
+      const queuedSongs = await storage.getQueuedSongs();
+      res.json(queuedSongs);
+    } catch (error) {
+      console.error('[queue] Failed to fetch queue:', error);
+      res.status(500).json({ error: 'Failed to fetch queue' });
+    }
+  });
+
+  app.get('/api/admin/currently-playing', async (req, res) => {
+    try {
+      const currentlyPlaying = await storage.getCurrentlyPlaying();
+      res.json(currentlyPlaying);
+    } catch (error) {
+      console.error('[queue] Failed to fetch currently playing:', error);
+      res.status(500).json({ error: 'Failed to fetch currently playing' });
+    }
+  });
+
+  app.patch('/api/admin/queue/:id/playback', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { action } = req.body;
+      
+      let result;
+      switch (action) {
+        case 'play':
+          result = await storage.setCurrentlyPlaying(id);
+          break;
+        case 'played':
+          result = await storage.updatePlaybackStatus(id, 'played');
+          break;
+        case 'skip':
+          result = await storage.updatePlaybackStatus(id, 'played');
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid playback action' });
+      }
+      
+      if (!result) {
+        return res.status(404).json({ error: 'Song not found in queue' });
+      }
+      
+      console.log(`[queue] Playback action: ${action} for "${result.songTitle}" by ${result.artistName}`);
+      res.json(result);
+    } catch (error) {
+      console.error('[queue] Failed to update playback:', error);
+      res.status(500).json({ error: 'Failed to update playback status' });
+    }
+  });
+
+  app.patch('/api/admin/queue/:id/position', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { newPosition } = req.body;
+      
+      if (!newPosition || newPosition < 1) {
+        return res.status(400).json({ error: 'Invalid position' });
+      }
+      
+      const result = await storage.updateQueuePosition(id, newPosition);
+      if (!result) {
+        return res.status(404).json({ error: 'Song not found in queue' });
+      }
+      
+      console.log(`[queue] Position updated: "${result.songTitle}" moved to position ${newPosition}`);
+      res.json(result);
+    } catch (error) {
+      console.error('[queue] Failed to update position:', error);
+      res.status(500).json({ error: 'Failed to update queue position' });
     }
   });
 

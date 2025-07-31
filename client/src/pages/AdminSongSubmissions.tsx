@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Music, Clock, Star, ExternalLink, User, Mail, Calendar, Hash } from "lucide-react";
+import { Music, Clock, Star, ExternalLink, User, Mail, Calendar, Hash, ListMusic, Play } from "lucide-react";
+import { Link } from "wouter";
 import { useState } from "react";
 
 interface SongSubmission {
@@ -29,6 +30,9 @@ interface SongSubmission {
   reviewedBy?: string;
   adminNotes?: string;
   metadata?: string;
+  queuePosition?: number;
+  playbackStatus?: 'queued' | 'playing' | 'played';
+  currentlyPlaying?: boolean;
 }
 
 export default function AdminSongSubmissions() {
@@ -115,10 +119,21 @@ export default function AdminSongSubmissions() {
     <div className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-mono font-bold text-gray-900 mb-2">Song Submissions Admin</h1>
-          <p className="text-gray-600 font-mono">
-            Manage community song submissions for radio programming and themed days
-          </p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-mono font-bold text-gray-900 mb-2">Song Submissions Admin</h1>
+              <p className="text-gray-600 font-mono">
+                Manage community song submissions for radio programming and themed days
+              </p>
+            </div>
+            <Link
+              href="/admin/queue"
+              className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded font-mono transition-colors"
+            >
+              <ListMusic className="w-4 h-4" />
+              Manage Queue
+            </Link>
+          </div>
           
           <div className="mt-4 grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">

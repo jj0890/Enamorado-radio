@@ -54,6 +54,14 @@ export interface IStorage {
   createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission>;
   updateSongSubmissionStatus(id: number, status: string, approvedBy: string, notes?: string): Promise<SongSubmission | undefined>;
   
+  // Queue management methods
+  getQueuedSongs(): Promise<SongSubmission[]>;
+  addToQueue(id: number, position?: number): Promise<SongSubmission | undefined>;
+  updateQueuePosition(id: number, newPosition: number): Promise<SongSubmission | undefined>;
+  updatePlaybackStatus(id: number, status: 'queued' | 'playing' | 'played'): Promise<SongSubmission | undefined>;
+  getCurrentlyPlaying(): Promise<SongSubmission | undefined>;
+  setCurrentlyPlaying(id: number): Promise<SongSubmission | undefined>;
+  
   // Track like operations (requires user system)
   addTrackLike(like: {
     userId: string;
@@ -2050,6 +2058,9 @@ What makes this movement particularly fascinating is its relationship with the c
       approvedAt: null,
       playedAt: null,
       notes: null,
+      queuePosition: null,
+      playbackStatus: 'queued',
+      currentlyPlaying: false,
     };
     this.songSubmissions.set(id, newSubmission);
     return newSubmission;
@@ -2071,6 +2082,9 @@ What makes this movement particularly fascinating is its relationship with the c
       approvedBy,
       approvedAt: new Date(),
       notes: notes || submission.notes,
+      queuePosition: null,
+      playbackStatus: 'queued',
+      currentlyPlaying: false,
     };
     this.songSubmissions.set(id, updatedSubmission);
     return updatedSubmission;
@@ -2078,6 +2092,104 @@ What makes this movement particularly fascinating is its relationship with the c
 
   async getSongSubmissionsByTheme(themeTag: string): Promise<SongSubmission[]> {
     return Array.from(this.songSubmissions.values()).filter(s => s.themeTag === themeTag);
+  }
+
+  // Queue management implementation
+  async getQueuedSongs(): Promise<SongSubmission[]> {
+    return Array.from(this.songSubmissions.values())
+      .filter(s => s.approvalStatus === 'approved' && s.queuePosition !== null)
+      .sort((a, b) => (a.queuePosition || 0) - (b.queuePosition || 0));
+  }
+
+  async addToQueue(id: number, position?: number): Promise<SongSubmission | undefined> {
+    const submission = this.songSubmissions.get(id);
+    if (!submission || submission.approvalStatus !== 'approved') return undefined;
+
+    const queuedSongs = await this.getQueuedSongs();
+    const maxPosition = queuedSongs.length;
+    const queuePosition = position || maxPosition + 1;
+
+    // Shift other songs if needed
+    if (position) {
+      queuedSongs.forEach(song => {
+        if (song.queuePosition && song.queuePosition >= position) {
+          const updated = { ...song, queuePosition: song.queuePosition + 1 };
+          this.songSubmissions.set(song.id, updated);
+        }
+      });
+    }
+
+    const updatedSubmission = {
+      ...submission,
+      queuePosition,
+      playbackStatus: 'queued' as const,
+    };
+    this.songSubmissions.set(id, updatedSubmission);
+    return updatedSubmission;
+  }
+
+  async updateQueuePosition(id: number, newPosition: number): Promise<SongSubmission | undefined> {
+    const submission = this.songSubmissions.get(id);
+    if (!submission || !submission.queuePosition) return undefined;
+
+    const oldPosition = submission.queuePosition;
+    const queuedSongs = await this.getQueuedSongs();
+
+    // Reorder other songs
+    queuedSongs.forEach(song => {
+      if (song.id === id) return;
+      
+      if (oldPosition < newPosition) {
+        // Moving down: shift songs up
+        if (song.queuePosition && song.queuePosition > oldPosition && song.queuePosition <= newPosition) {
+          const updated = { ...song, queuePosition: song.queuePosition - 1 };
+          this.songSubmissions.set(song.id, updated);
+        }
+      } else {
+        // Moving up: shift songs down
+        if (song.queuePosition && song.queuePosition >= newPosition && song.queuePosition < oldPosition) {
+          const updated = { ...song, queuePosition: song.queuePosition + 1 };
+          this.songSubmissions.set(song.id, updated);
+        }
+      }
+    });
+
+    const updatedSubmission = { ...submission, queuePosition: newPosition };
+    this.songSubmissions.set(id, updatedSubmission);
+    return updatedSubmission;
+  }
+
+  async updatePlaybackStatus(id: number, status: 'queued' | 'playing' | 'played'): Promise<SongSubmission | undefined> {
+    const submission = this.songSubmissions.get(id);
+    if (!submission) return undefined;
+
+    // Clear currently playing flag from all other songs
+    if (status === 'playing') {
+      Array.from(this.songSubmissions.values()).forEach(song => {
+        if (song.currentlyPlaying && song.id !== id) {
+          const updated = { ...song, currentlyPlaying: false, playbackStatus: 'queued' as const };
+          this.songSubmissions.set(song.id, updated);
+        }
+      });
+    }
+
+    const updatedSubmission = {
+      ...submission,
+      playbackStatus: status,
+      currentlyPlaying: status === 'playing',
+      playedAt: status === 'played' ? new Date() : submission.playedAt,
+      playCount: status === 'played' ? (submission.playCount || 0) + 1 : submission.playCount,
+    };
+    this.songSubmissions.set(id, updatedSubmission);
+    return updatedSubmission;
+  }
+
+  async getCurrentlyPlaying(): Promise<SongSubmission | undefined> {
+    return Array.from(this.songSubmissions.values()).find(s => s.currentlyPlaying);
+  }
+
+  async setCurrentlyPlaying(id: number): Promise<SongSubmission | undefined> {
+    return this.updatePlaybackStatus(id, 'playing');
   }
 
   // Themed Program methods implementation
