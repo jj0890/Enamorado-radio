@@ -38,7 +38,7 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
       };
       
       console.log('Submitting simple form:', data);
-      return apiRequest('/api/song-submissions', 'POST', data);
+      return apiRequest('POST', '/api/song-submissions', data);
     },
     onSuccess: () => {
       toast({
