@@ -39,17 +39,22 @@ export default function RadioStreamPlayer({ className = "" }: RadioStreamPlayerP
     audio.volume = isMuted ? 0 : volume;
   }, [volume, isMuted]);
 
-  // Check if live stream is available
+  // Check if live stream is available using CORS-free proxy
   const checkStreamStatus = async () => {
     try {
-      const response = await fetch(`${LIVE_STREAM_URL}`, { 
-        method: 'HEAD',
-        mode: 'no-cors' 
-      });
-      setStreamStatus('live');
-      return true;
+      const response = await fetch('/api/stream/status');
+      const data = await response.json();
+      
+      if (data.isLive) {
+        setStreamStatus('live');
+        console.log(`Live stream active with ${data.streamCount} source(s)`);
+      } else {
+        setStreamStatus('offline');
+        console.log('Live stream offline, using recorded mix');
+      }
+      return data.isLive;
     } catch (error) {
-      console.log('Live stream not available, using recorded mix');
+      console.log('Stream status check failed, assuming offline');
       setStreamStatus('offline');
       return false;
     }

@@ -1114,7 +1114,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const submissions = await storage.getApprovedSongSubmissions();
       res.json(submissions);
     } catch (error) {
+      console.error('Failed to fetch approved submissions:', error);
       res.status(500).json({ error: 'Failed to fetch approved song submissions' });
+    }
+  });
+
+  // Stream status proxy endpoint to solve CORS issues
+  app.get('/api/stream/status', async (req, res) => {
+    try {
+      const response = await fetch('http://24.199.109.18:8000/status-json.xsl');
+      const data = await response.json();
+      
+      // Check if there are any active streams
+      const isLive = data.icestats.source && (
+        Array.isArray(data.icestats.source) ? data.icestats.source.length > 0 : true
+      );
+      
+      res.json({
+        isLive,
+        serverInfo: data.icestats,
+        streamCount: Array.isArray(data.icestats.source) ? data.icestats.source.length : (data.icestats.source ? 1 : 0)
+      });
+    } catch (error) {
+      console.log('Stream server offline or unreachable');
+      res.json({
+        isLive: false,
+        serverInfo: null,
+        streamCount: 0
+      });
     }
   });
 
