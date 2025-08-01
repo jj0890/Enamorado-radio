@@ -1,7 +1,25 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Play, ExternalLink } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import SongSubmissionModal from '@/components/SongSubmissionModal';
+
+interface DjSubmission {
+  id: number;
+  djName: string;
+  demoMixTitle: string;
+  demoMixDescription: string;
+  primaryGenre: string;
+  showLength: number;
+  soundcloudUrl?: string;
+  mixcloudUrl?: string;
+  audiocomUrl?: string;
+  otherUrl?: string;
+  status: string;
+  submittedAt: string;
+  reviewedAt?: string;
+}
 
 interface Mix {
   id: number;
@@ -19,51 +37,112 @@ interface Mix {
 export default function MixesLanding() {
   const [currentMixIndex, setCurrentMixIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
 
-  // Featured mixes with real SoundCloud links
-  const featuredMixes: Mix[] = [
-    {
-      id: 1,
-      title: "454 presents: Florida man FM",
-      artist: "Stream 454",
-      description: "High energy footwork and juke tracks for the dance floor",
-      thumbnailUrl: "",
-      platform: "soundcloud",
-      url: "https://on.soundcloud.com/dz0vf4V42uVnuzBe7j",
-      duration: "42:33",
-      genre: ["Footwork", "Juke", "Electronic"],
-      featured: true
-    },
-    {
-      id: 2,
-      title: "Mix Collection",
-      artist: "Various Artists",
-      description: "Curated selection of electronic music",
-      thumbnailUrl: "",
-      platform: "soundcloud", 
-      url: "https://on.soundcloud.com/sibo68x0qIQwOfpgiM",
-      duration: "38:15",
-      genre: ["Electronic", "House"],
-      featured: true
-    },
-    {
-      id: 3,
-      title: "how did i do",
-      artist: "Jarrad",
-      description: "Eclectic mix spanning multiple genres and eras",
-      thumbnailUrl: "https://i1.sndcdn.com/artworks-yTAoZ8kgHtg2A96q-WbqI7Q-t500x500.jpg",
-      platform: "soundcloud",
-      url: "https://soundcloud.com/jarradsubstack/how-did-i-do",
-      duration: "61:42",
-      genre: ["Electronic", "Experimental"],
-      featured: true
+  // Fetch featured DJ submissions from API
+  const { data: featuredSubmissions = [], isLoading } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/dj-submissions/featured'],
+    refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
+  });
+
+  // Fetch all DJ submissions 
+  const { data: allSubmissions = [] } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/dj-submissions'],
+    refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Function to fetch SoundCloud thumbnails using oEmbed API
+  const fetchSoundCloudThumbnail = async (soundcloudUrl: string): Promise<string> => {
+    try {
+      const oEmbedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(soundcloudUrl)}`;
+      const response = await fetch(oEmbedUrl);
+      if (response.ok) {
+        const data = await response.json();
+        return data.thumbnail_url || '';
+      }
+    } catch (error) {
+      console.log('Could not fetch SoundCloud thumbnail:', error);
     }
-  ];
+    return '';
+  };
 
-  const allMixes: Mix[] = [
-    ...featuredMixes,
-    // Additional mixes can be added here
-  ];
+  // Convert DJ submissions to Mix format with proper SoundCloud URL handling
+  const convertSubmissionToMix = (submission: DjSubmission): Mix => {
+    const getMainUrl = () => {
+      if (submission.soundcloudUrl) return submission.soundcloudUrl;
+      if (submission.mixcloudUrl) return submission.mixcloudUrl;
+      if (submission.audiocomUrl) return submission.audiocomUrl;
+      if (submission.otherUrl) return submission.otherUrl;
+      return '';
+    };
+
+    const getPlatform = (): 'soundcloud' | 'mixcloud' | 'audio' | 'mp3' | 'wav' => {
+      if (submission.soundcloudUrl) return 'soundcloud';
+      if (submission.mixcloudUrl) return 'mixcloud';
+      return 'audio';
+    };
+
+    const getDuration = () => {
+      if (submission.showLength) {
+        const minutes = Math.floor(submission.showLength / 60);
+        const seconds = submission.showLength % 60;
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      }
+      return undefined;
+    };
+
+    // Fetch thumbnail for SoundCloud URLs
+    const thumbnailUrl = submission.soundcloudUrl 
+      ? `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(submission.soundcloudUrl)}`
+      : '';
+
+    return {
+      id: submission.id,
+      title: submission.demoMixTitle,
+      artist: submission.djName,
+      description: submission.demoMixDescription,
+      thumbnailUrl: '', // Will be populated by useEffect below
+      platform: getPlatform(),
+      url: getMainUrl(),
+      duration: getDuration(),
+      genre: [submission.primaryGenre],
+      featured: true
+    };
+  };
+
+  // Convert approved submissions to featured mixes
+  const featuredMixes: Mix[] = featuredSubmissions.map(convertSubmissionToMix);
+  
+  // Convert all approved submissions to all mixes
+  const approvedSubmissions = allSubmissions.filter(s => s.status === 'approved');
+  const allMixes: Mix[] = approvedSubmissions.map(convertSubmissionToMix);
+
+  // State for storing fetched thumbnails
+  const [thumbnailCache, setThumbnailCache] = useState<Record<number, string>>({});
+
+  // Fetch SoundCloud thumbnails for all mixes
+  useEffect(() => {
+    const fetchThumbnails = async () => {
+      const allMixesToProcess = [...featuredMixes, ...allMixes];
+      
+      for (const mix of allMixesToProcess) {
+        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
+          try {
+            const thumbnail = await fetchSoundCloudThumbnail(mix.url);
+            if (thumbnail) {
+              setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));
+            }
+          } catch (error) {
+            console.log(`Failed to fetch thumbnail for mix ${mix.id}`);
+          }
+        }
+      }
+    };
+
+    if (featuredMixes.length > 0 || allMixes.length > 0) {
+      fetchThumbnails();
+    }
+  }, [featuredMixes.length, allMixes.length]);
 
   const scrollToMix = (index: number) => {
     setCurrentMixIndex(index);
@@ -86,7 +165,36 @@ export default function MixesLanding() {
     scrollToMix(prevIndex);
   };
 
+  // Auto-advance carousel every 8 seconds
+  useEffect(() => {
+    if (featuredMixes.length === 0) return;
+    
+    const interval = setInterval(() => {
+      setCurrentMixIndex((prevIndex) => (prevIndex + 1) % featuredMixes.length);
+    }, 8000);
+
+    return () => clearInterval(interval);
+  }, [featuredMixes.length]);
+
+  // Update carousel scroll position when currentMixIndex changes
+  useEffect(() => {
+    if (carouselRef.current && featuredMixes.length > 0) {
+      const mixWidth = carouselRef.current.offsetWidth;
+      carouselRef.current.scrollTo({
+        left: currentMixIndex * mixWidth,
+        behavior: 'smooth'
+      });
+    }
+  }, [currentMixIndex, featuredMixes.length]);
+
   const extractSoundCloudId = (url: string): string | null => {
+    // Handle both regular and shortened SoundCloud URLs
+    const shortMatch = url.match(/on\.soundcloud\.com\/([a-zA-Z0-9]+)/);
+    if (shortMatch) {
+      // For shortened URLs, we'll need to resolve them
+      return url;
+    }
+    
     const match = url.match(/soundcloud\.com\/([^\/]+)\/([^\/\?]+)/);
     return match ? `${match[1]}/${match[2]}` : null;
   };
@@ -125,26 +233,74 @@ export default function MixesLanding() {
           <p className="text-xl text-gray-600 max-w-2xl mx-auto font-mono">
             Curated collection of mixes from our community
           </p>
+          
+          {/* Submit Mix Button */}
+          <div className="mt-8">
+            <Button
+              onClick={() => setIsSubmissionModalOpen(true)}
+              className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3"
+            >
+              <Plus className="w-6 h-6" />
+              SUBMIT YOUR MIX
+            </Button>
+          </div>
         </div>
 
         {/* Featured Mix Carousel */}
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">FEATURED MIXES</h2>
           
-          <div className="relative">
-            {/* Carousel Navigation */}
-            <button
-              onClick={prevMix}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6" />
-            </button>
-            <button
-              onClick={nextMix}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
-            >
-              <ChevronRight className="w-6 h-6" />
-            </button>
+          {/* Debug Info */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-sm font-mono">
+              <p>🔍 Debug: Featured submissions count: {featuredSubmissions.length}</p>
+              <p>🔍 Debug: Featured mixes count: {featuredMixes.length}</p>
+              <p>🔍 Debug: Loading state: {isLoading ? 'true' : 'false'}</p>
+              {featuredMixes.length > 0 && (
+                <p>🔍 Debug: First mix URL: {featuredMixes[0]?.url}</p>
+              )}
+            </div>
+          )}
+          
+          {isLoading ? (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 flex items-center justify-center">
+              <div className="text-center">
+                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
+                  <Play className="w-8 h-8 text-white" />
+                </div>
+                <p className="text-gray-600 font-mono">Loading featured mixes...</p>
+              </div>
+            </div>
+          ) : featuredMixes.length === 0 ? (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+              <div className="text-gray-600 font-mono">
+                <p className="mb-4">No featured mixes available yet.</p>
+                <Button
+                  onClick={() => setIsSubmissionModalOpen(true)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-6 py-3"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Be the first to submit!
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="relative">
+              {/* Carousel Navigation */}
+              <button
+                onClick={prevMix}
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
+                disabled={featuredMixes.length <= 1}
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={nextMix}
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
+                disabled={featuredMixes.length <= 1}
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
 
             {/* Carousel Container */}
             <div
@@ -162,14 +318,25 @@ export default function MixesLanding() {
                       <div className="lg:w-1/2">
                         {mix.platform === 'soundcloud' ? (
                           <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                            <img 
-                              src={mix.thumbnailUrl} 
-                              alt={`${mix.title} by ${mix.artist}`}
-                              className="w-full h-full object-cover"
-                              onError={(e) => {
-                                e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ccircle cx='200' cy='200' r='60' fill='%23d1d5db'/%3E%3Cpath d='M200 140v120' stroke='%23374151' stroke-width='2'/%3E%3C/svg%3E";
-                              }}
-                            />
+                            {thumbnailCache[mix.id] ? (
+                              <img 
+                                src={thumbnailCache[mix.id]} 
+                                alt={`${mix.title} by ${mix.artist}`}
+                                className="w-full h-full object-cover"
+                                onError={(e) => {
+                                  e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ccircle cx='200' cy='200' r='60' fill='%23d1d5db'/%3E%3Cpath d='M200 140v120' stroke='%23374151' stroke-width='2'/%3E%3C/svg%3E";
+                                }}
+                              />
+                            ) : (
+                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <div className="text-center">
+                                  <div className="w-12 h-12 bg-gray-400 rounded-full mx-auto mb-2 flex items-center justify-center animate-pulse">
+                                    <Play className="w-6 h-6 text-white" />
+                                  </div>
+                                  <p className="text-xs text-gray-500 font-mono">Loading...</p>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
@@ -243,6 +410,7 @@ export default function MixesLanding() {
               ))}
             </div>
           </div>
+        )}
         </section>
 
         {/* All Mixes Grid */}
@@ -257,9 +425,9 @@ export default function MixesLanding() {
               >
                 {/* Mix Thumbnail */}
                 <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative">
-                  {mix.thumbnailUrl ? (
+                  {thumbnailCache[mix.id] ? (
                     <img 
-                      src={mix.thumbnailUrl} 
+                      src={thumbnailCache[mix.id]} 
                       alt={`${mix.title} by ${mix.artist}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
@@ -319,6 +487,12 @@ export default function MixesLanding() {
           </div>
         </section>
       </div>
+
+      {/* Submission Modal */}
+      <SongSubmissionModal 
+        isOpen={isSubmissionModalOpen}
+        onClose={() => setIsSubmissionModalOpen(false)}
+      />
     </div>
   );
 }
