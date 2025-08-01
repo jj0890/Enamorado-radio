@@ -28,36 +28,50 @@ class MetadataService {
 
   // Extract track ID from various platform URLs
   extractTrackId(url: string): { platform: string; trackId: string } | null {
+    console.log(`[extractTrackId] Processing URL: ${url}`);
+    
     // Spotify
     const spotifyMatch = url.match(/spotify\.com\/track\/([a-zA-Z0-9]+)/);
     if (spotifyMatch) {
+      console.log(`[extractTrackId] Matched Spotify: ${spotifyMatch[1]}`);
       return { platform: 'spotify', trackId: spotifyMatch[1] };
     }
 
     // Apple Music
     const appleMatch = url.match(/music\.apple\.com\/[a-z]{2}\/album\/[^/]+\/(\d+)\?i=(\d+)/);
     if (appleMatch) {
+      console.log(`[extractTrackId] Matched Apple Music: ${appleMatch[2]}`);
       return { platform: 'apple_music', trackId: appleMatch[2] };
     }
 
-    // SoundCloud
+    // SoundCloud (including shortened URLs)
+    if (url.includes('on.soundcloud.com')) {
+      console.log(`[extractTrackId] Matched SoundCloud shortened URL: ${url}`);
+      // Handle shortened URLs like https://on.soundcloud.com/xyz - use full URL for oEmbed
+      return { platform: 'soundcloud', trackId: url };
+    }
     const soundcloudMatch = url.match(/soundcloud\.com\/([^/]+)\/([^/?]+)/);
     if (soundcloudMatch) {
-      return { platform: 'soundcloud', trackId: `${soundcloudMatch[1]}/${soundcloudMatch[2]}` };
+      const trackId = `${soundcloudMatch[1]}/${soundcloudMatch[2]}`;
+      console.log(`[extractTrackId] Matched SoundCloud full URL: ${trackId}`);
+      return { platform: 'soundcloud', trackId };
     }
 
     // Bandcamp
     const bandcampMatch = url.match(/([^.]+)\.bandcamp\.com\/track\/([^/?]+)/);
     if (bandcampMatch) {
+      console.log(`[extractTrackId] Matched Bandcamp: ${bandcampMatch[1]}/${bandcampMatch[2]}`);
       return { platform: 'bandcamp', trackId: `${bandcampMatch[1]}/${bandcampMatch[2]}` };
     }
 
     // YouTube Music
     const youtubeMatch = url.match(/music\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]+)/);
     if (youtubeMatch) {
+      console.log(`[extractTrackId] Matched YouTube: ${youtubeMatch[1]}`);
       return { platform: 'youtube', trackId: youtubeMatch[1] };
     }
 
+    console.log(`[extractTrackId] No match found for URL: ${url}`);
     return null;
   }
 
@@ -152,7 +166,8 @@ class MetadataService {
   // Fetch SoundCloud metadata (using oEmbed API)
   async fetchSoundCloudMetadata(trackId: string): Promise<TrackMetadata | null> {
     try {
-      const trackUrl = `https://soundcloud.com/${trackId}`;
+      // If trackId is a full URL (shortened), use it directly
+      const trackUrl = trackId.includes('http') ? trackId : `https://soundcloud.com/${trackId}`;
       const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(trackUrl)}`);
       
       if (!response.ok) {

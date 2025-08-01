@@ -318,18 +318,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Only process SoundCloud URLs for metadata enrichment
           if (submission.soundcloudUrl) {
             try {
-              const metadata = await metadataService.fetchMetadata(submission.soundcloudUrl);
-              if (metadata?.imageUrl) {
-                thumbnail = metadata.imageUrl;
-              }
-              if (metadata?.title) {
-                dynamicTitle = metadata.title;
-              }
-              if (metadata?.artist) {
-                dynamicArtist = metadata.artist;
+              // For SoundCloud, call oEmbed API directly for shortened URLs
+              if (submission.soundcloudUrl.includes('soundcloud.com')) {
+                const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(submission.soundcloudUrl)}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  
+                  // Parse artist and title from the title field
+                  const titleParts = data.title.split(' by ');
+                  dynamicTitle = titleParts[0];
+                  dynamicArtist = titleParts[1] || data.author_name;
+                  thumbnail = data.thumbnail_url;
+                  
+                  console.log(`[soundcloud] Direct oEmbed success: ${dynamicTitle} by ${dynamicArtist}`);
+                } else {
+                  console.log(`[soundcloud] Direct oEmbed failed for ${submission.soundcloudUrl}: ${response.status}`);
+                }
+              } else {
+                // Fallback to the metadata service for other platforms
+                const metadata = await metadataService.fetchMetadata(submission.soundcloudUrl);
+                if (metadata?.imageUrl) {
+                  thumbnail = metadata.imageUrl;
+                }
+                if (metadata?.title) {
+                  dynamicTitle = metadata.title;
+                }
+                if (metadata?.artist) {
+                  dynamicArtist = metadata.artist;
+                }
               }
             } catch (error) {
-              console.log(`Failed to fetch SoundCloud metadata for submission ${submission.id}`);
+              console.log(`Failed to fetch SoundCloud metadata for submission ${submission.id}:`, error);
             }
           }
           
