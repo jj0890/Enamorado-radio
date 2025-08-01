@@ -568,11 +568,11 @@ What makes this movement particularly fascinating is its relationship with the c
         demoMixTitle: "Ambient Collection",
         demoMixDescription: "Curated ambient and electronic selections",
         soundcloudUrl: "https://on.soundcloud.com/jD0a63lzBjp8mJiYTG",
-        status: "approved",
+        status: "pending",
         submittedAt: new Date(Date.now() - 30 * 60 * 60 * 1000),
-        reviewedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-        reviewedBy: "admin",
-        notes: "Featured ambient collection"
+        reviewedAt: null,
+        reviewedBy: null,
+        notes: null
       },
       {
         id: 18,
