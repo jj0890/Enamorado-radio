@@ -44,7 +44,7 @@ export function SimpleAudioPlayer() {
 
   const handlePlay = async () => {
     try {
-      await apiRequest('/api/stream/play', { method: 'POST' });
+      await apiRequest('/api/stream/play', 'POST');
       setIsLocalPlaying(true);
       refetch();
       
@@ -59,7 +59,7 @@ export function SimpleAudioPlayer() {
 
   const handlePause = async () => {
     try {
-      await apiRequest('/api/stream/pause', { method: 'POST' });
+      await apiRequest('/api/stream/pause', 'POST');
       setIsLocalPlaying(false);
       refetch();
       
@@ -74,7 +74,7 @@ export function SimpleAudioPlayer() {
 
   const handleNext = async () => {
     try {
-      await apiRequest('/api/stream/next', { method: 'POST' });
+      await apiRequest('/api/stream/next', 'POST');
       refetch();
     } catch (error) {
       console.error('Failed to skip:', error);

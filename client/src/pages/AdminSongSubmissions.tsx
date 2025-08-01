@@ -41,7 +41,7 @@ export default function AdminSongSubmissions() {
   const [reviewingId, setReviewingId] = useState<number | null>(null);
   const [reviewNotes, setReviewNotes] = useState("");
 
-  const { data: submissions = [], isLoading } = useQuery({
+  const { data: submissions = [], isLoading } = useQuery<SongSubmission[]>({
     queryKey: ['/api/song-submissions'],
   });
 
