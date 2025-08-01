@@ -19,6 +19,9 @@ interface DjSubmission {
   status: string;
   submittedAt: string;
   reviewedAt?: string;
+  thumbnail?: string;
+  dynamicTitle?: string;
+  dynamicArtist?: string;
 }
 
 interface Mix {
@@ -96,8 +99,8 @@ export default function MixesLanding() {
 
     return {
       id: submission.id,
-      title: submission.demoMixTitle,
-      artist: submission.djName,
+      title: submission.dynamicTitle || submission.demoMixTitle,
+      artist: submission.dynamicArtist || submission.djName,
       description: submission.demoMixDescription,
       thumbnailUrl: '', // Will be populated by useEffect below
       platform: getPlatform(),
@@ -118,9 +121,17 @@ export default function MixesLanding() {
   // State for storing fetched thumbnails
   const [thumbnailCache, setThumbnailCache] = useState<Record<number, string>>({});
 
-  // Fetch SoundCloud thumbnails for all mixes
+  // Populate thumbnails from API data and fallback to SoundCloud oEmbed
   useEffect(() => {
-    const fetchThumbnails = async () => {
+    const populateThumbnails = async () => {
+      // First, populate from API-enriched thumbnails
+      [...featuredSubmissions, ...allSubmissions].forEach(submission => {
+        if (submission.thumbnail && !thumbnailCache[submission.id]) {
+          setThumbnailCache(prev => ({ ...prev, [submission.id]: submission.thumbnail! }));
+        }
+      });
+
+      // Then fetch any missing thumbnails via SoundCloud oEmbed as fallback
       const allMixesToProcess = [...featuredMixes, ...allMixes];
       
       for (const mix of allMixesToProcess) {
@@ -138,10 +149,10 @@ export default function MixesLanding() {
       }
     };
 
-    if (featuredMixes.length > 0 || allMixes.length > 0) {
-      fetchThumbnails();
+    if (featuredSubmissions.length > 0 || allSubmissions.length > 0) {
+      populateThumbnails();
     }
-  }, [featuredMixes.length, allMixes.length]);
+  }, [featuredSubmissions.length, allSubmissions.length]);
 
   const scrollToMix = (index: number) => {
     setCurrentMixIndex(index);
@@ -311,7 +322,7 @@ export default function MixesLanding() {
                   key={mix.id}
                   className="w-full flex-shrink-0 px-4"
                 >
-                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-8">
+                  <div className="bg-gray-50 border-2 border-black rounded-lg p-8 hover:border-red-500 hover:shadow-lg transition-all duration-300">
                     <div className="flex flex-col lg:flex-row gap-8">
                       {/* Mix Cover/Embed */}
                       <div className="lg:w-1/2">
@@ -428,7 +439,7 @@ export default function MixesLanding() {
             {allMixes.map((mix) => (
               <div
                 key={mix.id}
-                className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:border-red-500 transition-colors group"
+                className="bg-gray-50 border-2 border-black rounded-lg p-6 hover:border-red-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
               >
                 {/* Mix Thumbnail */}
                 <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative border-2 border-black">

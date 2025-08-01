@@ -308,17 +308,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .slice(0, 4); // Get top 4 for homepage
 
-      // Enrich submissions with metadata for thumbnails
+      // Enrich submissions with metadata for thumbnails and dynamic titles
       const enrichedSubmissions = await Promise.all(
         approvedSubmissions.map(async (submission) => {
           let thumbnail = null;
+          let dynamicTitle = null;
+          let dynamicArtist = null;
           
-          // Only process SoundCloud URLs for thumbnail enrichment
+          // Only process SoundCloud URLs for metadata enrichment
           if (submission.soundcloudUrl) {
             try {
               const metadata = await metadataService.fetchMetadata(submission.soundcloudUrl);
               if (metadata?.imageUrl) {
                 thumbnail = metadata.imageUrl;
+              }
+              if (metadata?.title) {
+                dynamicTitle = metadata.title;
+              }
+              if (metadata?.artist) {
+                dynamicArtist = metadata.artist;
               }
             } catch (error) {
               console.log(`Failed to fetch SoundCloud metadata for submission ${submission.id}`);
@@ -327,7 +335,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           return {
             ...submission,
-            thumbnail
+            thumbnail,
+            dynamicTitle,
+            dynamicArtist
           };
         })
       );
