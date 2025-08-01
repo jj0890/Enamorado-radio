@@ -185,6 +185,52 @@ class MetadataService {
     }
   }
 
+  // Fetch Mixcloud metadata  
+  async fetchMixcloudMetadata(trackId: string): Promise<TrackMetadata | null> {
+    try {
+      const trackUrl = `https://www.mixcloud.com/${trackId}`;
+      const response = await fetch(`https://app.mixcloud.com/oembed/?format=json&url=${encodeURIComponent(trackUrl)}`);
+      
+      if (!response.ok) {
+        console.error('[mixcloud] oEmbed fetch failed:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      
+      // Extract larger thumbnail from the HTML if available
+      let imageUrl = data.thumbnail_url;
+      if (data.html) {
+        const imgMatch = data.html.match(/src="([^"]*mixcloud[^"]*\.jpg[^"]*)"/);
+        if (imgMatch && imgMatch[1]) {
+          imageUrl = imgMatch[1].replace('_300_300', '_630_630'); // Get larger image
+        }
+      }
+      
+      console.log(`[mixcloud] Successfully fetched metadata for: ${data.title}`);
+
+      return {
+        platform: 'mixcloud',
+        trackId,
+        title: data.title,
+        artist: data.author_name || 'Unknown Artist',
+        album: null,
+        duration: null,
+        imageUrl: imageUrl || null,
+        previewUrl: null,
+        releaseDate: null,
+        popularity: null,
+        genres: [],
+        externalUrls: {
+          mixcloud: trackUrl,
+        },
+      };
+    } catch (error) {
+      console.error('[mixcloud] Error fetching metadata:', error);
+      return null;
+    }
+  }
+
   // Main method to fetch metadata from any platform
   async fetchMetadata(url: string): Promise<TrackMetadata | null> {
     const extracted = this.extractTrackId(url);
@@ -201,6 +247,9 @@ class MetadataService {
       
       case 'soundcloud':
         return this.fetchSoundCloudMetadata(extracted.trackId);
+      
+      case 'mixcloud':
+        return this.fetchMixcloudMetadata(extracted.trackId);
       
       case 'apple_music':
         // Apple Music would require complex JWT setup and $99/year developer account

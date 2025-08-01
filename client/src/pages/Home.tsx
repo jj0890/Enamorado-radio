@@ -38,6 +38,11 @@ export default function Home() {
     queryKey: ['/api/shows/featured'],
   });
 
+  // Fetch featured mix
+  const { data: featuredMixes = [], isLoading: mixesLoading } = useQuery({
+    queryKey: ['/api/dj-submissions/featured'],
+  });
+
   // Fetch current playback
   const { data: playbackData } = useQuery<CurrentPlayback>({
     queryKey: ['/api/playback/current'],
@@ -144,31 +149,58 @@ export default function Home() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-            {/* Featured Content */}
-            <Card className="bg-black/40 border-white/10 hover:bg-black/60 transition-colors">
-              <CardContent className="p-6">
-                <div className="aspect-square bg-white/5 rounded-lg mb-4 relative overflow-hidden">
-                  <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20"></div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-white/80">
-                      <Music className="w-16 h-16 mx-auto mb-2" />
-                      <div className="text-sm font-medium">FEATURED MIX</div>
+            {/* Featured Mix */}
+            {!mixesLoading && featuredMixes.length > 0 ? (
+              <Link href="/mixes">
+                <Card className="bg-black/40 border-white/10 hover:bg-black/60 transition-colors">
+                  <CardContent className="p-6">
+                    <div className="aspect-square bg-white/5 rounded-lg mb-4 relative overflow-hidden">
+                      <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20"></div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="text-white/80">
+                          <Music className="w-16 h-16 mx-auto mb-2" />
+                          <div className="text-sm font-medium">FEATURED MIX</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-white/60 mb-1">
+                      {new Date(featuredMixes[0].submittedAt).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric', 
+                        year: 'numeric' 
+                      }).toUpperCase()}
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">{featuredMixes[0].demoMixTitle}</h3>
+                    <p className="text-white/70 text-sm mb-3">
+                      {featuredMixes[0].demoMixDescription}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-white/60 text-sm">{featuredMixes[0].djName}</span>
+                      <Badge variant="outline" className="text-xs border-white/20">
+                        {featuredMixes[0].showLength}min
+                      </Badge>
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
+            ) : (
+              <Card className="bg-black/40 border-white/10">
+                <CardContent className="p-6">
+                  <div className="aspect-square bg-white/5 rounded-lg mb-4 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-orange-500/20"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="text-white/80">
+                        <Music className="w-16 h-16 mx-auto mb-2" />
+                        <div className="text-sm font-medium">FEATURED MIX</div>
+                      </div>
                     </div>
                   </div>
-                </div>
-                <div className="text-xs text-white/60 mb-1">DECEMBER 15, 2024</div>
-                <h3 className="text-lg font-semibold mb-2">Post-Punk Revival</h3>
-                <p className="text-white/70 text-sm mb-3">
-                  Rediscovering the angular sounds of early 80s UK underground
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-white/60 text-sm">Marcus Rivera</span>
-                  <Badge variant="outline" className="text-xs border-white/20">
-                    2h 15m
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
+                  <div className="text-center text-white/60">
+                    {mixesLoading ? 'Loading...' : 'No featured mixes available'}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
 
             {/* Live Show */}
             <Card className="bg-black/40 border-white/10 hover:bg-black/60 transition-colors">
@@ -336,7 +368,7 @@ export default function Home() {
       </main>
 
       {/* Audio Player Component */}
-      <AudioPlayer />
+      <AudioPlayer isExpanded={false} onToggleExpanded={() => {}} />
     </div>
   );
 }
