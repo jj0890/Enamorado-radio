@@ -3,7 +3,7 @@ import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import SongSubmissionModal from '@/components/SongSubmissionModal';
+import MixSubmissionModal from '@/components/MixSubmissionModal';
 
 interface DjSubmission {
   id: number;
@@ -489,7 +489,7 @@ export default function MixesLanding() {
       </div>
 
       {/* Submission Modal */}
-      <SongSubmissionModal 
+      <MixSubmissionModal 
         isOpen={isSubmissionModalOpen}
         onClose={() => setIsSubmissionModalOpen(false)}
       />
