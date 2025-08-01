@@ -458,7 +458,7 @@ export default function MixesLanding() {
                   <p className="text-lg font-bold">Be the First to Share</p>
                 </div>
                 <p className="text-gray-600 font-mono mb-6 max-w-2xl mx-auto">
-                  Share your mixes, art, playlists, or discoveries. Help build our community archive of beautiful moments and creative work.
+                  Share your mixes, playlists, or discoveries with our community. Every submission adds to our growing archive of music and creativity - no gatekeeping, just good vibes.
                 </p>
                 <Button
                   onClick={() => setIsSubmissionModalOpen(true)}
@@ -500,11 +500,9 @@ export default function MixesLanding() {
                       <span className={`px-2 py-1 text-xs font-mono ${
                         submission.status === 'approved' 
                           ? 'bg-green-500 text-white' 
-                          : submission.status === 'pending'
-                          ? 'bg-yellow-500 text-black'
-                          : 'bg-gray-500 text-white'
+                          : 'bg-blue-500 text-white'
                       }`}>
-                        {submission.status.toUpperCase()}
+                        {submission.status === 'approved' ? 'FEATURED' : 'NEW'}
                       </span>
                     </div>
 

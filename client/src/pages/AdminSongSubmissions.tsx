@@ -290,7 +290,7 @@ export default function AdminSongSubmissions() {
                             onClick={() => setReviewingId(submission.id)}
                             className="bg-red-600 hover:bg-red-700 text-white font-mono"
                           >
-                            Review Submission
+                            Feature This Mix
                           </Button>
                         ) : (
                           <div className="space-y-3">
@@ -306,15 +306,15 @@ export default function AdminSongSubmissions() {
                                 className="bg-green-600 hover:bg-green-700 text-white font-mono"
                                 disabled={updateStatusMutation.isPending}
                               >
-                                Approve & Add to Queue
+                                Feature This Mix
                               </Button>
                               <Button
-                                onClick={() => handleStatusUpdate(submission.id, 'rejected')}
-                                variant="destructive"
+                                onClick={() => setReviewingId(null)}
+                                variant="outline"
                                 className="font-mono"
                                 disabled={updateStatusMutation.isPending}
                               >
-                                Reject
+                                Skip for Now
                               </Button>
                               <Button
                                 onClick={() => setReviewingId(null)}
@@ -327,26 +327,12 @@ export default function AdminSongSubmissions() {
                           </div>
                         )
                       ) : (
-                        /* Quick Actions for Approved/Rejected */
+                        /* Quick Actions for Approved */
                         <div className="flex gap-2">
-                          {submission.approvalStatus === 'rejected' && (
-                            <Button
-                              onClick={() => handleStatusUpdate(submission.id, 'approved')}
-                              className="bg-green-600 hover:bg-green-700 text-white font-mono"
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              Approve & Add to Queue
-                            </Button>
-                          )}
                           {submission.approvalStatus === 'approved' && (
-                            <Button
-                              onClick={() => handleStatusUpdate(submission.id, 'rejected')}
-                              variant="destructive"
-                              className="font-mono"
-                              disabled={updateStatusMutation.isPending}
-                            >
-                              Remove from Queue
-                            </Button>
+                            <div className="text-green-600 font-mono text-sm">
+                              ✓ Featured in rotation
+                            </div>
                           )}
                           <Button
                             onClick={() => setReviewingId(submission.id)}

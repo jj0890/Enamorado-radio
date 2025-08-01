@@ -42,7 +42,7 @@ Streaming approach: Self-hosted solution preferred over third-party services lik
 - **Content Discovery**: NTS-inspired episode system, Spotify integration for music discovery, curated guides, and monthly album picks.
 - **Mix Upload & Playback**: Custom MP3 upload system, LiveMixPlayer component with real-time track sync, professional audio player with seeking and volume controls.
 - **College Radio System**: Distinguishes live programming vs. auto-rotation modes, ProgramIndicator, track rotation system combining community uploads, SoundCloud, and DJ submissions.
-- **User Submissions**: Unified submission system for tracks/mixes with admin approval queue, automatic metadata enhancement (e.g., Last.fm, Spotify).
+- **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
 - **Admin Controls**: Stream control panel (play/pause/skip), manual now playing updates, comprehensive CRUD operations for content.
 
 ## External Dependencies
