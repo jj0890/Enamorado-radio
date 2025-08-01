@@ -126,9 +126,20 @@ export default function MixesLanding() {
       const allMixesToProcess = [...featuredMixes, ...allMixes];
       
       for (const mix of allMixesToProcess) {
-        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
+        if ((mix.platform === 'soundcloud' || mix.platform === 'mixcloud') && mix.url && !thumbnailCache[mix.id]) {
           try {
-            const thumbnail = await fetchSoundCloudThumbnail(mix.url);
+            let thumbnail = null;
+            if (mix.platform === 'soundcloud') {
+              thumbnail = await fetchSoundCloudThumbnail(mix.url);
+            } else if (mix.platform === 'mixcloud') {
+              // For Mixcloud, fetch from metadata API
+              const response = await fetch(`/api/metadata/enrich?url=${encodeURIComponent(mix.url)}`);
+              if (response.ok) {
+                const metadata = await response.json();
+                thumbnail = metadata.imageUrl;
+              }
+            }
+            
             if (thumbnail) {
               setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));
             }
@@ -340,12 +351,20 @@ export default function MixesLanding() {
                           </div>
                         ) : (
                           <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-                            <div className="text-center">
-                              <div className="w-16 h-16 bg-gray-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                <Play className="w-8 h-8 text-white" />
+                            {thumbnailCache[mix.id] ? (
+                              <img 
+                                src={thumbnailCache[mix.id]} 
+                                alt={`${mix.title} by ${mix.artist}`}
+                                className="w-full h-full object-cover rounded-lg"
+                              />
+                            ) : (
+                              <div className="text-center">
+                                <div className="w-16 h-16 bg-gray-400 rounded-full mx-auto mb-4 flex items-center justify-center">
+                                  <Play className="w-8 h-8 text-white" />
+                                </div>
+                                <p className="text-gray-600 font-mono">Loading...</p>
                               </div>
-                              <p className="text-gray-600 font-mono">Audio Player</p>
-                            </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -424,7 +443,7 @@ export default function MixesLanding() {
                 className="bg-gray-50 border border-gray-200 rounded-lg p-6 hover:border-red-500 transition-colors group"
               >
                 {/* Mix Thumbnail */}
-                <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative">
+                <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative border-2 border-black">
                   {thumbnailCache[mix.id] ? (
                     <img 
                       src={thumbnailCache[mix.id]} 

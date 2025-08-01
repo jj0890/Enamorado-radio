@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { trackMetadataService } from "./trackMetadataService";
+import { metadataService } from "./metadataService";
 import { 
   insertStationSchema, 
   insertShowSchema, 
@@ -306,7 +307,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return bTime - aTime;
         })
         .slice(0, 4); // Get top 4 for homepage
-      res.json(approvedSubmissions);
+
+      // Enrich submissions with metadata for thumbnails
+      const enrichedSubmissions = await Promise.all(
+        approvedSubmissions.map(async (submission) => {
+          let thumbnail = null;
+          
+          // Try to get thumbnail from external URLs
+          if (submission.mixcloudUrl) {
+            try {
+              const metadata = await metadataService.fetchMetadata(submission.mixcloudUrl);
+              if (metadata?.imageUrl) {
+                thumbnail = metadata.imageUrl;
+              }
+            } catch (error) {
+              console.log(`Failed to fetch Mixcloud metadata for submission ${submission.id}`);
+            }
+          } else if (submission.soundcloudUrl) {
+            try {
+              const metadata = await metadataService.fetchMetadata(submission.soundcloudUrl);
+              if (metadata?.imageUrl) {
+                thumbnail = metadata.imageUrl;
+              }
+            } catch (error) {
+              console.log(`Failed to fetch SoundCloud metadata for submission ${submission.id}`);
+            }
+          }
+          
+          return {
+            ...submission,
+            thumbnail
+          };
+        })
+      );
+
+      res.json(enrichedSubmissions);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch featured DJ submissions' });
     }
@@ -322,6 +357,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(submission);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch submission' });
+    }
+  });
+
+  // Metadata enrichment endpoint
+  app.get('/api/metadata/enrich', async (req, res) => {
+    try {
+      const url = req.query.url as string;
+      if (!url) {
+        return res.status(400).json({ error: 'URL parameter required' });
+      }
+      
+      const metadata = await metadataService.fetchMetadata(url);
+      if (!metadata) {
+        return res.status(404).json({ error: 'Could not fetch metadata for URL' });
+      }
+      
+      res.json(metadata);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch metadata' });
     }
   });
 
