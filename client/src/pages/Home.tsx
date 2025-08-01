@@ -170,12 +170,16 @@ export default function Home() {
                         year: 'numeric' 
                       }).toUpperCase()}
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">{featuredMixes[0].demoMixTitle}</h3>
+                    <h3 className="text-lg font-semibold mb-2">
+                      {featuredMixes[0].dynamicTitle || featuredMixes[0].demoMixTitle}
+                    </h3>
                     <p className="text-white/70 text-sm mb-3">
                       {featuredMixes[0].demoMixDescription}
                     </p>
                     <div className="flex items-center justify-between">
-                      <span className="text-white/60 text-sm">{featuredMixes[0].djName}</span>
+                      <span className="text-white/60 text-sm">
+                        {featuredMixes[0].dynamicArtist || featuredMixes[0].djName}
+                      </span>
                       <Badge variant="outline" className="text-xs border-white/20">
                         {featuredMixes[0].showLength}min
                       </Badge>
