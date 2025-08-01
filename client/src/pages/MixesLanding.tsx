@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import MixSubmissionModal from '@/components/MixSubmissionModal';
 
@@ -52,6 +52,12 @@ export default function MixesLanding() {
   const { data: allSubmissions = [] } = useQuery<DjSubmission[]>({
     queryKey: ['/api/dj-submissions'],
     refetchInterval: 60000, // Refresh every minute
+  });
+
+  // Fetch community submissions (recent submissions regardless of approval)
+  const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/dj-submissions/community'],
+    refetchInterval: 30000, // Refresh every 30 seconds for fresh content
   });
 
   // Function to fetch SoundCloud thumbnails using oEmbed API
@@ -429,6 +435,124 @@ export default function MixesLanding() {
             </div>
           </div>
         )}
+        </section>
+
+        {/* Fresh Community Submissions */}
+        <section className="mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold font-mono text-red-500">FRESH FROM THE COMMUNITY</h2>
+            <Button
+              onClick={() => setIsSubmissionModalOpen(true)}
+              className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-6 py-3"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Submit Your Mix
+            </Button>
+          </div>
+          
+          {communitySubmissions.length === 0 ? (
+            <div className="bg-gray-50 border-2 border-black rounded-lg p-6 mb-8">
+              <div className="text-center">
+                <div className="text-gray-600 font-mono mb-4">
+                  <Radio className="w-12 h-12 mx-auto mb-2" />
+                  <p className="text-lg font-bold">Be the First to Share</p>
+                </div>
+                <p className="text-gray-600 font-mono mb-6 max-w-2xl mx-auto">
+                  Share your mixes, art, playlists, or discoveries. Help build our community archive of beautiful moments and creative work.
+                </p>
+                <Button
+                  onClick={() => setIsSubmissionModalOpen(true)}
+                  className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-3"
+                >
+                  Submit Your Work
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              {communitySubmissions.slice(0, 4).map((submission) => (
+                <div
+                  key={submission.id}
+                  className="bg-gray-50 border-2 border-black rounded-lg p-4 hover:border-red-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
+                >
+                  {/* Community Submission Thumbnail */}
+                  <div className="aspect-square bg-white rounded-lg mb-3 overflow-hidden relative border-2 border-black">
+                    {submission.thumbnail ? (
+                      <img 
+                        src={submission.thumbnail} 
+                        alt={`${submission.dynamicTitle || submission.demoMixTitle} by ${submission.dynamicArtist || submission.djName}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                        }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-white flex items-center justify-center">
+                        <div className="text-gray-400 text-center">
+                          <Play className="w-12 h-12 mx-auto mb-2" />
+                          <p className="text-xs font-mono">New Submission</p>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {/* Status Badge */}
+                    <div className="absolute top-2 right-2">
+                      <span className={`px-2 py-1 text-xs font-mono ${
+                        submission.status === 'approved' 
+                          ? 'bg-green-500 text-white' 
+                          : submission.status === 'pending'
+                          ? 'bg-yellow-500 text-black'
+                          : 'bg-gray-500 text-white'
+                      }`}>
+                        {submission.status.toUpperCase()}
+                      </span>
+                    </div>
+
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button size="sm" className="bg-white text-black hover:bg-gray-200 text-xs px-2 py-1">
+                        <Play className="h-3 w-3 mr-1" />
+                        LISTEN
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Community Submission Info */}
+                  <div className="space-y-1">
+                    <h3 className="font-bold text-sm leading-tight font-mono">
+                      {submission.dynamicTitle || submission.demoMixTitle}
+                    </h3>
+                    <p className="text-gray-600 font-mono text-xs">
+                      {submission.dynamicArtist || submission.djName}
+                    </p>
+                    
+                    {/* Genre & Duration */}
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="bg-red-500 text-white px-2 py-1 font-mono">
+                        {submission.primaryGenre}
+                      </span>
+                      <span className="text-gray-500 font-mono">
+                        {submission.showLength}min
+                      </span>
+                    </div>
+                    
+                    {/* Platform Link */}
+                    {submission.soundcloudUrl && (
+                      <a 
+                        href={submission.soundcloudUrl} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-red-500 gap-1 mt-1"
+                      >
+                        <ExternalLink className="h-3 w-3" />
+                        SOUNDCLOUD
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         {/* All Mixes Grid */}

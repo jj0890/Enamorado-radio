@@ -294,6 +294,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Community Submissions API (recent submissions regardless of approval status)
+  app.get('/api/dj-submissions/community', async (req, res) => {
+    try {
+      const submissions = await storage.getAllDjSubmissions();
+      const recentSubmissions = submissions
+        .sort((a, b) => {
+          const aTime = new Date(a.submittedAt!).getTime();
+          const bTime = new Date(b.submittedAt!).getTime();
+          return bTime - aTime;
+        })
+        .slice(0, 8); // Get 8 most recent submissions
+
+      // Enrich submissions with metadata for thumbnails and dynamic titles
+      const enrichedSubmissions = await Promise.all(
+        recentSubmissions.map(async (submission) => {
+          let thumbnail = null;
+          let dynamicTitle = null;
+          let dynamicArtist = null;
+          
+          // Only process SoundCloud URLs for metadata enrichment
+          if (submission.soundcloudUrl) {
+            try {
+              // For SoundCloud, call oEmbed API directly for shortened URLs
+              if (submission.soundcloudUrl.includes('soundcloud.com')) {
+                const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(submission.soundcloudUrl)}`);
+                if (response.ok) {
+                  const data = await response.json();
+                  
+                  // Parse artist and title from the title field
+                  const titleParts = data.title.split(' by ');
+                  dynamicTitle = titleParts[0];
+                  dynamicArtist = titleParts[1] || data.author_name;
+                  thumbnail = data.thumbnail_url;
+                  
+                  console.log(`[soundcloud] Community submission oEmbed success: ${dynamicTitle} by ${dynamicArtist}`);
+                } else {
+                  console.log(`[soundcloud] Community submission oEmbed failed for ${submission.soundcloudUrl}: ${response.status}`);
+                }
+              }
+            } catch (error) {
+              console.log(`Failed to fetch SoundCloud metadata for community submission ${submission.id}:`, error);
+            }
+          }
+          
+          return {
+            ...submission,
+            thumbnail,
+            dynamicTitle,
+            dynamicArtist
+          };
+        })
+      );
+
+      res.json(enrichedSubmissions);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch community submissions' });
+    }
+  });
+
   // Featured DJ Submissions API (approved submissions for homepage)
   app.get('/api/dj-submissions/featured', async (req, res) => {
     try {
