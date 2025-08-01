@@ -568,35 +568,13 @@ What makes this movement particularly fascinating is its relationship with the c
         demoMixTitle: "Ambient Collection",
         demoMixDescription: "Curated ambient and electronic selections",
         soundcloudUrl: "https://on.soundcloud.com/jD0a63lzBjp8mJiYTG",
-        status: "pending",
-        submittedAt: new Date(Date.now() - 30 * 60 * 60 * 1000),
-        reviewedAt: null,
-        reviewedBy: null,
-        notes: null
-      },
-      {
-        id: 18,
-        djName: "Jarrad Jones",
-        realName: "Jarrad Jones",
-        email: "jarrad@example.com",
-        location: "Chicago, IL", 
-        showTitle: "Ghettotech Sessions",
-        showDescription: "High energy ghettotech and jungle selections from the Chicago scene",
-        primaryGenre: "Electronic",
-        showLength: 65,
-        additionalGenres: "Ghettotech, Jungle, Footwork",
-        djExperience: "Chicago underground veteran",
-        musicDiscovery: "Local producers and vinyl digging",
-        socialMedia: "https://mixcloud.com/jarradjones7",
-        demoMixTitle: "Ghettotech and Jungle Mix",
-        demoMixDescription: "High energy ghettotech and jungle selections",
-        mixcloudUrl: "https://www.mixcloud.com/jarradjones7/ghettotech-and-jungle-mix/",
         status: "approved",
-        submittedAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
+        submittedAt: new Date(Date.now() - 30 * 60 * 60 * 1000),
         reviewedAt: new Date(Date.now() - 6 * 60 * 60 * 1000),
         reviewedBy: "admin",
-        notes: "Featured ghettotech mix"
+        notes: "Featured ambient collection"
       },
+
       {
         id: 1,
         djName: "Luna Park",

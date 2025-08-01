@@ -70,7 +70,6 @@ export default function MixesLanding() {
   const convertSubmissionToMix = (submission: DjSubmission): Mix => {
     const getMainUrl = () => {
       if (submission.soundcloudUrl) return submission.soundcloudUrl;
-      if (submission.mixcloudUrl) return submission.mixcloudUrl;
       if (submission.audiocomUrl) return submission.audiocomUrl;
       if (submission.otherUrl) return submission.otherUrl;
       return '';
@@ -78,7 +77,6 @@ export default function MixesLanding() {
 
     const getPlatform = (): 'soundcloud' | 'mixcloud' | 'audio' | 'mp3' | 'wav' => {
       if (submission.soundcloudUrl) return 'soundcloud';
-      if (submission.mixcloudUrl) return 'mixcloud';
       return 'audio';
     };
 
@@ -126,19 +124,9 @@ export default function MixesLanding() {
       const allMixesToProcess = [...featuredMixes, ...allMixes];
       
       for (const mix of allMixesToProcess) {
-        if ((mix.platform === 'soundcloud' || mix.platform === 'mixcloud') && mix.url && !thumbnailCache[mix.id]) {
+        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
           try {
-            let thumbnail = null;
-            if (mix.platform === 'soundcloud') {
-              thumbnail = await fetchSoundCloudThumbnail(mix.url);
-            } else if (mix.platform === 'mixcloud') {
-              // For Mixcloud, fetch from metadata API
-              const response = await fetch(`/api/metadata/enrich?url=${encodeURIComponent(mix.url)}`);
-              if (response.ok) {
-                const metadata = await response.json();
-                thumbnail = metadata.imageUrl;
-              }
-            }
+            const thumbnail = await fetchSoundCloudThumbnail(mix.url);
             
             if (thumbnail) {
               setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));

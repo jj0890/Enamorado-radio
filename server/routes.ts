@@ -313,17 +313,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedSubmissions.map(async (submission) => {
           let thumbnail = null;
           
-          // Try to get thumbnail from external URLs
-          if (submission.mixcloudUrl) {
-            try {
-              const metadata = await metadataService.fetchMetadata(submission.mixcloudUrl);
-              if (metadata?.imageUrl) {
-                thumbnail = metadata.imageUrl;
-              }
-            } catch (error) {
-              console.log(`Failed to fetch Mixcloud metadata for submission ${submission.id}`);
-            }
-          } else if (submission.soundcloudUrl) {
+          // Only process SoundCloud URLs for thumbnail enrichment
+          if (submission.soundcloudUrl) {
             try {
               const metadata = await metadataService.fetchMetadata(submission.soundcloudUrl);
               if (metadata?.imageUrl) {
