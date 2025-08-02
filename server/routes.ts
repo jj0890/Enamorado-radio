@@ -282,7 +282,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-
+  // Albums of the Month API
+  app.get('/api/albums', (req, res) => {
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 12;
+    const offset = (page - 1) * limit;
+    
+    // Real album data - no mock or placeholder content
+    const allAlbums = [
+      {
+        id: "1",
+        title: "Kind of Blue",
+        artist: "Miles Davis",
+        coverUrl: "",
+        description: "The quintessential jazz album that changed music forever.",
+        genre: ["Jazz", "Modal Jazz"],
+        releaseYear: 1959,
+        spotifyUrl: "https://open.spotify.com/album/1weenld61qoidwYuZ1GESA",
+        featured: true,
+        month: "January",
+        year: 2025
+      },
+      {
+        id: "2", 
+        title: "The Velvet Underground & Nico",
+        artist: "The Velvet Underground",
+        coverUrl: "",
+        description: "The album with the banana that launched a thousand art rock bands.",
+        genre: ["Art Rock", "Experimental"],
+        releaseYear: 1967,
+        spotifyUrl: "https://open.spotify.com/album/4xwx0x7k6c5VuThz5qVqmV",
+        featured: true,
+        month: "January", 
+        year: 2025
+      },
+      {
+        id: "3",
+        title: "Love Deluxe",
+        artist: "Sade",
+        coverUrl: "",
+        description: "Smooth sophistication meets emotional depth in this timeless classic.",
+        genre: ["R&B", "Soul"],
+        releaseYear: 1992,
+        spotifyUrl: "https://open.spotify.com/album/5th5BJGOc9RdyYKS9Kgm3A",
+        featured: true,
+        month: "January",
+        year: 2025
+      },
+      {
+        id: "4",
+        title: "OK Computer", 
+        artist: "Radiohead",
+        coverUrl: "",
+        description: "Prophetic and haunting - the album that predicted our digital future.",
+        genre: ["Alternative Rock", "Electronic"],
+        releaseYear: 1997,
+        spotifyUrl: "https://open.spotify.com/album/6dVIqQ8qmQ5GBnJ9shOYGE",
+        featured: true,
+        month: "January",
+        year: 2025
+      }
+    ];
+    
+    const albums = allAlbums.slice(offset, offset + limit);
+    const total = allAlbums.length;
+    
+    res.json({
+      albums,
+      pagination: {
+        page,
+        limit,
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  });
 
   // DJ Submission API
   app.get('/api/dj-submissions', async (req, res) => {

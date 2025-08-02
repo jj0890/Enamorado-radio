@@ -11,13 +11,13 @@ export interface AlbumInfo {
 
 import { MusicBrainzSearchResponse } from './schemas';
 
-// MusicBrainz API for album artwork with proper error handling
-export async function getAlbumArtwork(artist: string, album: string): Promise<string | null> {
+// MusicBrainz API for album artwork with improved matching
+export async function getAlbumArtwork(artist: string, album: string, releaseYear?: number): Promise<string | null> {
   try {
-    console.log(`[MusicBrainz] Fetching artwork for: ${artist} - ${album}`);
+    console.log(`[MusicBrainz] Fetching artwork for: ${artist} - ${album} (${releaseYear || 'unknown year'})`);
     
-    // Use proper MusicBrainz search syntax
-    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:${encodeURIComponent(artist)} AND release:${encodeURIComponent(album)}&fmt=json&limit=1`;
+    // Use release-group endpoint for better matching
+    const searchUrl = `https://musicbrainz.org/ws/2/release-group/?query=release:${encodeURIComponent(album)} AND artist:${encodeURIComponent(artist)}&fmt=json&limit=5`;
     
     console.log(`[MusicBrainz] Search URL: ${searchUrl}`);
     
@@ -33,41 +33,61 @@ export async function getAlbumArtwork(artist: string, album: string): Promise<st
     }
     
     const data = await response.json();
-    console.log(`[MusicBrainz] Raw response:`, JSON.stringify(data, null, 2));
+    console.log(`[MusicBrainz] Found ${data['release-groups']?.length || 0} release groups for ${album}`);
     
-    // Validate response with Zod schema
-    const validatedData = MusicBrainzSearchResponse.safeParse(data);
-    if (!validatedData.success) {
-      console.error(`[MusicBrainz] Schema validation failed:`, validatedData.error);
-      return null;
-    }
-    
-    const releases = validatedData.data.releases;
-    console.log(`[MusicBrainz] Found ${releases.length} releases for ${album}`);
-    
-    if (releases.length > 0) {
-      const mbid = releases[0].id;
-      console.log(`[MusicBrainz] Found MBID for ${album}: ${mbid}`);
+    if (data['release-groups'] && data['release-groups'].length > 0) {
+      // Sort by score and try to match year if provided
+      const releaseGroups = data['release-groups'].sort((a: any, b: any) => (b.score || 0) - (a.score || 0));
       
-      // Always try the Cover Art Archive regardless of cover-art-archive field
-      const coverUrl = `https://coverartarchive.org/release/${mbid}/front-500`;
-      
-      // Verify cover exists
-      try {
-        const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
-        if (coverResponse.ok) {
-          console.log(`✓ [MusicBrainz] Found cover art for ${album}: ${coverUrl}`);
-          return coverUrl;
-        } else {
-          console.log(`✗ [MusicBrainz] Cover art not accessible for ${album} (${coverResponse.status})`);
+      for (const rg of releaseGroups) {
+        console.log(`[MusicBrainz] Trying release group: ${rg.id} (score: ${rg.score})`);
+        
+        // Get releases for this release group
+        const releasesUrl = `https://musicbrainz.org/ws/2/release/?release-group=${rg.id}&fmt=json&limit=10`;
+        const releasesResponse = await fetch(releasesUrl, {
+          headers: {
+            'User-Agent': 'EnamoradoRadio/1.0 (contact@enamoradoradio.com)'
+          }
+        });
+        
+        if (releasesResponse.ok) {
+          const releasesData = await releasesResponse.json();
+          const releases = releasesData.releases || [];
+          
+          // Sort releases by score and prefer ones matching the year
+          const sortedReleases = releases.sort((a: any, b: any) => {
+            const aScore = a.score || 0;
+            const bScore = b.score || 0;
+            const aYear = a.date ? parseInt(a.date.split('-')[0]) : 0;
+            const bYear = b.date ? parseInt(b.date.split('-')[0]) : 0;
+            
+            // Prefer exact year match
+            if (releaseYear) {
+              if (aYear === releaseYear && bYear !== releaseYear) return -1;
+              if (bYear === releaseYear && aYear !== releaseYear) return 1;
+            }
+            
+            return bScore - aScore;
+          });
+          
+          for (const release of sortedReleases) {
+            const coverUrl = `https://coverartarchive.org/release/${release.id}/front-500`;
+            
+            try {
+              const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
+              if (coverResponse.ok) {
+                console.log(`✓ [MusicBrainz] Found cover art for ${album}: ${coverUrl}`);
+                return coverUrl;
+              }
+            } catch (coverError) {
+              console.log(`✗ [MusicBrainz] Cover art request failed for release ${release.id}`);
+            }
+          }
         }
-      } catch (coverError) {
-        console.log(`✗ [MusicBrainz] Cover art request failed for ${album}:`, coverError);
       }
-    } else {
-      console.log(`✗ [MusicBrainz] No releases found for ${artist} - ${album}`);
     }
     
+    console.log(`✗ [MusicBrainz] No cover art found for ${artist} - ${album}`);
     return null;
   } catch (error) {
     console.error('[MusicBrainz] Error fetching album artwork:', error);
@@ -89,9 +109,9 @@ export async function getSpotifyAlbumUrl(artist: string, album: string): Promise
 }
 
 // Combined function to get both artwork and Spotify link
-export async function enrichAlbumData(albumInfo: AlbumInfo): Promise<AlbumInfo> {
+export async function enrichAlbumData(albumInfo: AlbumInfo & { releaseYear?: number }): Promise<AlbumInfo> {
   const [coverUrl, spotifyUrl] = await Promise.all([
-    getAlbumArtwork(albumInfo.artist, albumInfo.title),
+    getAlbumArtwork(albumInfo.artist, albumInfo.title, albumInfo.releaseYear),
     getSpotifyAlbumUrl(albumInfo.artist, albumInfo.title)
   ]);
   
@@ -102,8 +122,8 @@ export async function enrichAlbumData(albumInfo: AlbumInfo): Promise<AlbumInfo> 
   };
 }
 
-// Function to batch process multiple albums
-export async function enrichMultipleAlbums(albums: AlbumInfo[]): Promise<AlbumInfo[]> {
+// Function to batch process multiple albums with better matching
+export async function enrichMultipleAlbums(albums: (AlbumInfo & { releaseYear?: number })[]): Promise<AlbumInfo[]> {
   const enrichedAlbums = await Promise.all(
     albums.map(album => enrichAlbumData(album))
   );

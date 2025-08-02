@@ -26,101 +26,77 @@ export default function AlbumsOfTheMonth() {
   const [selectedAlbum, setSelectedAlbum] = useState<Album | null>(null);
   const [isVinylVisible, setIsVinylVisible] = useState<number | null>(null);
   const [enrichedAlbums, setEnrichedAlbums] = useState<Album[]>([]);
+  const [enrichmentFailed, setEnrichmentFailed] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Enrich albums with real artwork on component mount
+  // Fetch albums from API
+  const { data: albumsData, isLoading: isLoadingAlbums, error: albumsError } = useQuery({
+    queryKey: ['/api/albums'],
+    queryFn: async () => {
+      const response = await fetch('/api/albums?page=1&limit=12');
+      if (!response.ok) {
+        throw new Error('Failed to fetch albums');
+      }
+      return response.json();
+    }
+  });
+
+  const albums = albumsData?.albums || [];
+
+  // Enrich albums with real artwork when albums are loaded
   useEffect(() => {
+    if (albums.length === 0) return;
+
     const loadAlbumArtwork = async () => {
       console.log('[Albums] Starting artwork enrichment...');
+      setEnrichmentFailed(false);
       
-      const albumsToEnrich = albums.map(album => ({
-        id: album.id.toString(),
+      const albumsToEnrich = albums.map((album: any) => ({
+        id: album.id,
         title: album.title,
         artist: album.artist,
         coverUrl: album.coverUrl,
-        spotifyUrl: album.spotifyUrl
+        spotifyUrl: album.spotifyUrl,
+        releaseYear: album.releaseYear
       }));
 
       try {
         const enriched = await enrichMultipleAlbums(albumsToEnrich);
         console.log('[Albums] Enrichment complete:', enriched);
         
-        // Merge back with original album data
-        const updatedAlbums = albums.map(album => {
-          const enrichedData = enriched.find(e => e.id === album.id.toString());
+        // Merge back with original album data using title + artist matching for better reliability
+        const updatedAlbums = albums.map((album: any) => {
+          const enrichedData = enriched.find(e => 
+            e.title.toLowerCase() === album.title.toLowerCase() && 
+            e.artist.toLowerCase() === album.artist.toLowerCase()
+          );
           return {
             ...album,
-            coverUrl: enrichedData?.coverUrl || album.coverUrl,
-            spotifyUrl: enrichedData?.spotifyUrl || album.spotifyUrl
+            id: parseInt(album.id), // Ensure ID is number for consistency
+            coverUrl: enrichedData?.coverUrl || '/default-cover.jpg', // No AI fallback
+            spotifyUrl: enrichedData?.spotifyUrl || album.spotifyUrl || 
+              `https://open.spotify.com/search/${encodeURIComponent(album.artist + " " + album.title)}`
           };
         });
         
         setEnrichedAlbums(updatedAlbums);
       } catch (error) {
         console.error('[Albums] Enrichment failed:', error);
-        // Fallback to original album data
-        setEnrichedAlbums(albums);
+        setEnrichmentFailed(true);
+        // Fallback to original album data with default covers
+        const fallbackAlbums = albums.map((album: any) => ({
+          ...album,
+          id: parseInt(album.id),
+          coverUrl: '/default-cover.jpg', // No AI fallback
+          spotifyUrl: album.spotifyUrl || 
+            `https://open.spotify.com/search/${encodeURIComponent(album.artist + " " + album.title)}`
+        }));
+        setEnrichedAlbums(fallbackAlbums);
       }
     };
 
     loadAlbumArtwork();
-  }, []);
-
-  // Album data with real albums that exist in MusicBrainz
-  const albums: Album[] = [
-    {
-      id: 1,
-      title: "Kind of Blue",
-      artist: "Miles Davis", 
-      coverUrl: "https://upload.wikimedia.org/wikipedia/en/9/9c/MilesDavisKindofBlue.jpg",
-      description: "The quintessential jazz album that changed music forever.",
-      genre: ["Jazz", "Modal Jazz"],
-      releaseYear: 1959,
-      spotifyUrl: "https://open.spotify.com/album/1weenld61qoidwYuZ1GESA",
-      featured: true,
-      month: "January",
-      year: 2025
-    },
-    {
-      id: 2,
-      title: "The Velvet Underground & Nico",
-      artist: "The Velvet Underground",
-      coverUrl: "",
-      description: "The album with the banana that launched a thousand art rock bands.",
-      genre: ["Art Rock", "Experimental"],
-      releaseYear: 1967,
-      spotifyUrl: "https://open.spotify.com/album/4xwx0x7k6c5VuThz5qVqmV",
-      featured: true,
-      month: "January",
-      year: 2025
-    },
-    {
-      id: 3,
-      title: "Love Deluxe",
-      artist: "Sade",
-      coverUrl: "",
-      description: "Smooth sophistication meets emotional depth in this timeless classic.",
-      genre: ["R&B", "Soul"],
-      releaseYear: 1992,
-      spotifyUrl: "https://open.spotify.com/album/5th5BJGOc9RdyYKS9Kgm3A",
-      featured: true,
-      month: "January",
-      year: 2025
-    },
-    {
-      id: 4,
-      title: "OK Computer",
-      artist: "Radiohead",
-      coverUrl: "https://upload.wikimedia.org/wikipedia/en/b/ba/Radioheadokcomputer.png",
-      description: "Prophetic and haunting - the album that predicted our digital future.",
-      genre: ["Alternative Rock", "Electronic"],
-      releaseYear: 1997,
-      spotifyUrl: "https://open.spotify.com/album/6dVIqQ8qmQ5GBnJ9shOYGE",
-      featured: true,
-      month: "January",
-      year: 2025
-    }
-  ];
+  }, [albums]);
 
   const handleAlbumHover = (albumId: number | null) => {
     setIsVinylVisible(albumId);
@@ -192,7 +168,21 @@ export default function AlbumsOfTheMonth() {
 
             {/* Clean Album Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-0 border-2 border-black">
-              {(enrichedAlbums.length > 0 ? enrichedAlbums : albums).map((album, index) => (
+              {isLoadingAlbums ? (
+                // Loading state
+                Array.from({ length: 4 }).map((_, index) => (
+                  <div key={index} className="border-r-2 border-b-2 border-black p-6 bg-gray-50">
+                    <div className="aspect-square mb-4 bg-gray-200 flex items-center justify-center">
+                      <Disc className="w-16 h-16 text-gray-400 animate-spin" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-gray-200 rounded"></div>
+                      <div className="h-3 bg-gray-200 rounded w-3/4"></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                (enrichedAlbums.length > 0 ? enrichedAlbums : albums).map((album: any, index: number) => (
                 <div
                   key={album.id}
                   className="border-r-2 border-b-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer"
@@ -202,20 +192,34 @@ export default function AlbumsOfTheMonth() {
                 >
                   {/* Album Cover */}
                   <div className="aspect-square mb-4 relative overflow-hidden bg-white">
-                    {album.coverUrl ? (
+                    {album.coverUrl && album.coverUrl !== '/default-cover.jpg' ? (
                       <img 
                         src={album.coverUrl} 
                         alt={`${album.title} by ${album.artist}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
-                          e.currentTarget.style.display = 'none';
+                          // Replace with disc icon fallback when image fails
+                          const parent = e.currentTarget.parentElement;
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div class="w-full h-full bg-gray-200 flex items-center justify-center">
+                                <div class="text-center text-gray-400">
+                                  <svg class="w-16 h-16 mx-auto mb-2" fill="currentColor" viewBox="0 0 24 24">
+                                    <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" fill="none"/>
+                                    <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                                  </svg>
+                                  <p class="text-xs font-mono">No Cover Art</p>
+                                </div>
+                              </div>
+                            `;
+                          }
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full bg-white flex items-center justify-center">
-                        <div className="text-gray-400">
+                      <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                        <div className="text-center text-gray-400">
                           <Disc className="w-16 h-16 mx-auto mb-2" />
-                          <p className="text-xs font-mono">Loading...</p>
+                          <p className="text-xs font-mono">No Cover Art</p>
                         </div>
                       </div>
                     )}
@@ -240,13 +244,13 @@ export default function AlbumsOfTheMonth() {
                     </p>
                     
                     <div className="flex flex-wrap gap-1 pt-2">
-                      {album.genre.map((g, genreIndex) => (
+                      {album.genre.map((g: string, genreIndex: number) => (
                         <span key={genreIndex} className="text-xs font-mono bg-black text-white px-2 py-1">
                           {g}
                         </span>
                       ))}
                       <span className="text-xs font-mono bg-black text-white px-2 py-1">
-                        {album.releaseYear}
+                        {album.releaseYear ?? "Unknown Year"}
                       </span>
                     </div>
                     
@@ -266,8 +270,22 @@ export default function AlbumsOfTheMonth() {
                     )}
                   </div>
                 </div>
-              ))}
+                ))
+              )}
             </div>
+            
+            {/* Error UI */}
+            {enrichmentFailed && (
+              <div className="text-red-500 font-mono text-sm mt-4 p-4 border-2 border-red-200 bg-red-50">
+                ⚠️ Some album artwork couldn't be loaded from MusicBrainz.
+              </div>
+            )}
+            
+            {albumsError && (
+              <div className="text-red-500 font-mono text-sm mt-4 p-4 border-2 border-red-200 bg-red-50">
+                ⚠️ Failed to load albums. Please try again later.
+              </div>
+            )}
           </div>
         </div>
 

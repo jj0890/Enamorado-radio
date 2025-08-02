@@ -39,12 +39,12 @@ export const AlbumSchema = z.object({
   spotifyUrl: z.string().optional(),
   appleMusicUrl: z.string().optional(),
   bandcampUrl: z.string().optional(),
-  description: z.string().optional(),
-  genre: z.array(z.string()).optional(),
-  releaseYear: z.number().optional(),
+  description: z.string(),
+  genre: z.array(z.string()),
+  releaseYear: z.number(),
   featured: z.boolean().default(false),
-  month: z.string().optional(),
-  year: z.number().optional()
+  month: z.string(),
+  year: z.number()
 });
 
 export type Album = z.infer<typeof AlbumSchema>;
