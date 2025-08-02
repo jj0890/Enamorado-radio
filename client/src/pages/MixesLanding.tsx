@@ -252,13 +252,12 @@ export default function MixesLanding() {
           
           {/* Submit Mix Button */}
           <div className="mt-8">
-            <Button
-              onClick={() => setIsSubmissionModalOpen(true)}
-              className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3"
-            >
-              <Plus className="w-6 h-6" />
-              SUBMIT YOUR MIX
-            </Button>
+            <Link href="/submit-mix">
+              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
+                <Plus className="w-6 h-6" />
+                SUBMIT YOUR MIX
+              </Button>
+            </Link>
           </div>
         </div>
 

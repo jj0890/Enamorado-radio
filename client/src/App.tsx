@@ -20,6 +20,7 @@ import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 import MixesLanding from "./pages/MixesLanding";
+import SubmitMix from "./pages/SubmitMix";
 import AdminSongSubmissions from "./pages/AdminSongSubmissions";
 import AdminQueue from "./pages/AdminQueue";
 
@@ -47,6 +48,7 @@ function Router() {
       <Route path="/guide/:id" component={GuideDetail} />
       <Route path="/albums" component={AlbumsOfTheMonth} />
       <Route path="/mixes" component={MixesLanding} />
+      <Route path="/submit-mix" component={SubmitMix} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">
