@@ -31,6 +31,8 @@ export default function AlbumsOfTheMonth() {
   // Enrich albums with real artwork on component mount
   useEffect(() => {
     const loadAlbumArtwork = async () => {
+      console.log('[Albums] Starting artwork enrichment...');
+      
       const albumsToEnrich = albums.map(album => ({
         id: album.id.toString(),
         title: album.title,
@@ -39,19 +41,26 @@ export default function AlbumsOfTheMonth() {
         spotifyUrl: album.spotifyUrl
       }));
 
-      const enriched = await enrichMultipleAlbums(albumsToEnrich);
-      
-      // Merge back with original album data
-      const updatedAlbums = albums.map(album => {
-        const enrichedData = enriched.find(e => e.id === album.id.toString());
-        return {
-          ...album,
-          coverUrl: enrichedData?.coverUrl || album.coverUrl,
-          spotifyUrl: enrichedData?.spotifyUrl || album.spotifyUrl
-        };
-      });
-      
-      setEnrichedAlbums(updatedAlbums);
+      try {
+        const enriched = await enrichMultipleAlbums(albumsToEnrich);
+        console.log('[Albums] Enrichment complete:', enriched);
+        
+        // Merge back with original album data
+        const updatedAlbums = albums.map(album => {
+          const enrichedData = enriched.find(e => e.id === album.id.toString());
+          return {
+            ...album,
+            coverUrl: enrichedData?.coverUrl || album.coverUrl,
+            spotifyUrl: enrichedData?.spotifyUrl || album.spotifyUrl
+          };
+        });
+        
+        setEnrichedAlbums(updatedAlbums);
+      } catch (error) {
+        console.error('[Albums] Enrichment failed:', error);
+        // Fallback to original album data
+        setEnrichedAlbums(albums);
+      }
     };
 
     loadAlbumArtwork();

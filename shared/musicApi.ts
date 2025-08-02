@@ -9,39 +9,68 @@ export interface AlbumInfo {
   mbid?: string;
 }
 
-// MusicBrainz API for album artwork
+import { MusicBrainzSearchResponse } from './schemas';
+
+// MusicBrainz API for album artwork with proper error handling
 export async function getAlbumArtwork(artist: string, album: string): Promise<string | null> {
   try {
-    console.log(`Fetching artwork for: ${artist} - ${album}`);
+    console.log(`[MusicBrainz] Fetching artwork for: ${artist} - ${album}`);
     
-    // Search for the release on MusicBrainz
-    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:"${encodeURIComponent(artist)}" AND release:"${encodeURIComponent(album)}"&fmt=json&limit=1`;
+    // Use proper MusicBrainz search syntax
+    const searchUrl = `https://musicbrainz.org/ws/2/release/?query=artist:${encodeURIComponent(artist)} AND release:${encodeURIComponent(album)}&fmt=json&limit=1`;
     
-    const response = await fetch(searchUrl);
+    console.log(`[MusicBrainz] Search URL: ${searchUrl}`);
+    
+    const response = await fetch(searchUrl, {
+      headers: {
+        'User-Agent': 'EnamoradoRadio/1.0 (contact@enamoradoradio.com)'
+      }
+    });
+    
+    if (!response.ok) {
+      console.error(`[MusicBrainz] API error: ${response.status} ${response.statusText}`);
+      return null;
+    }
+    
     const data = await response.json();
+    console.log(`[MusicBrainz] Raw response:`, JSON.stringify(data, null, 2));
     
-    console.log(`MusicBrainz response for ${album}:`, data.releases?.length || 0, 'releases found');
+    // Validate response with Zod schema
+    const validatedData = MusicBrainzSearchResponse.safeParse(data);
+    if (!validatedData.success) {
+      console.error(`[MusicBrainz] Schema validation failed:`, validatedData.error);
+      return null;
+    }
     
-    if (data.releases && data.releases.length > 0) {
-      const mbid = data.releases[0].id;
-      console.log(`Found MBID for ${album}: ${mbid}`);
+    const releases = validatedData.data.releases;
+    console.log(`[MusicBrainz] Found ${releases.length} releases for ${album}`);
+    
+    if (releases.length > 0) {
+      const mbid = releases[0].id;
+      console.log(`[MusicBrainz] Found MBID for ${album}: ${mbid}`);
       
-      // Get cover art from Cover Art Archive
+      // Always try the Cover Art Archive regardless of cover-art-archive field
       const coverUrl = `https://coverartarchive.org/release/${mbid}/front-500`;
       
-      // Check if cover exists
-      const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
-      if (coverResponse.ok) {
-        console.log(`✓ Found cover art for ${album}: ${coverUrl}`);
-        return coverUrl;
-      } else {
-        console.log(`✗ No cover art found for ${album} (${coverResponse.status})`);
+      // Verify cover exists
+      try {
+        const coverResponse = await fetch(coverUrl, { method: 'HEAD' });
+        if (coverResponse.ok) {
+          console.log(`✓ [MusicBrainz] Found cover art for ${album}: ${coverUrl}`);
+          return coverUrl;
+        } else {
+          console.log(`✗ [MusicBrainz] Cover art not accessible for ${album} (${coverResponse.status})`);
+        }
+      } catch (coverError) {
+        console.log(`✗ [MusicBrainz] Cover art request failed for ${album}:`, coverError);
       }
+    } else {
+      console.log(`✗ [MusicBrainz] No releases found for ${artist} - ${album}`);
     }
     
     return null;
   } catch (error) {
-    console.error('Error fetching album artwork:', error);
+    console.error('[MusicBrainz] Error fetching album artwork:', error);
     return null;
   }
 }
