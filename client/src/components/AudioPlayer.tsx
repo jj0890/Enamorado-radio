@@ -60,6 +60,9 @@ export function AudioPlayer({ track, isExpanded, onToggleExpanded, className = "
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     setVolume(newVolume);
+    setIsMuted(false);
+    
+    // This line was missing - connect volume control to actual audio element
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
     }

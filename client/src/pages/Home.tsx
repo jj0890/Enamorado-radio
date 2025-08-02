@@ -136,11 +136,11 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-32 pb-32 px-4 max-w-7xl mx-auto">
+      <main className="pt-24 pb-32 px-4 max-w-7xl mx-auto">
         {/* Main Hero Section */}
-        <section className="mb-16">
-          <div className="text-center mb-8">
-            <h1 className="text-6xl font-bold mb-4">
+        <section className="mb-12">
+          <div className="text-center mb-6">
+            <h1 className="text-4xl lg:text-5xl font-bold mb-4">
               ENAMORADO RADIO
             </h1>
             <p className="text-xl text-white/80 max-w-2xl mx-auto">
