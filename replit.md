@@ -5,9 +5,10 @@ This is a full-stack web application for a radio station platform that allows us
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
-Technical approach: No mock data, placeholder content, or "vibey coding" - only authentic data sources and real functionality
+Technical approach: **ZERO TOLERANCE for artificial seed data** - only authentic data sources and real functionality. No mock data, placeholder content, or "vibey coding" ever.
 Design philosophy: Substance over style - every UI element must have tangible backend implementation
 Streaming approach: Self-hosted solution preferred over third-party services like Radio.co
+Data integrity: Clean slate storage with only essential admin account - all content must come from authentic user submissions
 
 ## System Architecture
 
