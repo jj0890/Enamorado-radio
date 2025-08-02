@@ -143,7 +143,7 @@ export class MemStorage implements IStorage {
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    for (const user of this.users.values()) {
+    for (const user of Array.from(this.users.values())) {
       if (user.username === username) {
         return user;
       }
@@ -154,8 +154,8 @@ export class MemStorage implements IStorage {
   async createUser(userData: InsertUser): Promise<User> {
     const user: User = {
       id: this.generateId(),
-      ...userData,
-      createdAt: new Date()
+      username: userData.username,
+      password: userData.password
     };
     this.users.set(user.id, user);
     return user;
@@ -173,7 +173,13 @@ export class MemStorage implements IStorage {
   async createStation(stationData: InsertStation): Promise<Station> {
     const station: Station = {
       id: this.generateId(),
-      ...stationData,
+      name: stationData.name,
+      slug: stationData.slug,
+      streamUrl: stationData.streamUrl,
+      genre: stationData.genre,
+      description: stationData.description || null,
+      artworkUrl: stationData.artworkUrl || null,
+      isLive: stationData.isLive || null,
       createdAt: new Date()
     };
     this.stations.set(station.id, station);
@@ -192,7 +198,15 @@ export class MemStorage implements IStorage {
   async createShow(showData: InsertShow): Promise<Show> {
     const show: Show = {
       id: this.generateId(),
-      ...showData,
+      title: showData.title,
+      host: showData.host,
+      genre: showData.genre,
+      description: showData.description || null,
+      artworkUrl: showData.artworkUrl || null,
+      scheduledAt: showData.scheduledAt || null,
+      duration: showData.duration || null,
+      isLive: showData.isLive || null,
+      isFeatured: showData.isFeatured || null,
       createdAt: new Date()
     };
     this.shows.set(show.id, show);
@@ -211,7 +225,24 @@ export class MemStorage implements IStorage {
   async createDjSubmission(submissionData: InsertDjSubmission): Promise<DjSubmission> {
     const submission: DjSubmission = {
       id: this.generateId(),
-      ...submissionData,
+      djName: submissionData.djName,
+      realName: submissionData.realName,
+      email: submissionData.email,
+      location: submissionData.location || null,
+      showTitle: submissionData.showTitle,
+      showDescription: submissionData.showDescription,
+      primaryGenre: submissionData.primaryGenre,
+      showLength: submissionData.showLength,
+      additionalGenres: submissionData.additionalGenres || null,
+      djExperience: submissionData.djExperience || null,
+      musicDiscovery: submissionData.musicDiscovery || null,
+      socialMedia: submissionData.socialMedia || null,
+      demoMixTitle: submissionData.demoMixTitle || null,
+      demoMixDescription: submissionData.demoMixDescription || null,
+      soundcloudUrl: submissionData.soundcloudUrl || null,
+      mixcloudUrl: submissionData.mixcloudUrl || null,
+      audiocomUrl: submissionData.audiocomUrl || null,
+      otherUrl: submissionData.otherUrl || null,
       status: "pending",
       submittedAt: new Date(),
       reviewedAt: null,
@@ -247,7 +278,23 @@ export class MemStorage implements IStorage {
   async createResidentApplication(applicationData: InsertResidentApplication): Promise<ResidentApplication> {
     const application: ResidentApplication = {
       id: this.generateId(),
-      ...applicationData,
+      djName: applicationData.djName,
+      realName: applicationData.realName,
+      email: applicationData.email,
+      phoneNumber: applicationData.phoneNumber,
+      location: applicationData.location,
+      bio: applicationData.bio,
+      experience: applicationData.experience,
+      preferredGenres: applicationData.preferredGenres,
+      showConcept: applicationData.showConcept,
+      availableDays: applicationData.availableDays,
+      preferredTimeSlot: applicationData.preferredTimeSlot,
+      showLength: applicationData.showLength,
+      techSetup: applicationData.techSetup,
+      pastWork: applicationData.pastWork || null,
+      socialMedia: applicationData.socialMedia || null,
+      additionalInfo: applicationData.additionalInfo || null,
+      mixSampleUrl: applicationData.mixSampleUrl || null,
       status: "pending",
       submittedAt: new Date(),
       reviewedAt: null,
@@ -283,12 +330,32 @@ export class MemStorage implements IStorage {
   async createSongSubmission(submissionData: InsertSongSubmission): Promise<SongSubmission> {
     const submission: SongSubmission = {
       id: this.generateId(),
-      ...submissionData,
-      status: "pending",
-      submittedAt: new Date(),
-      reviewedAt: null,
+      submitterName: submissionData.submitterName,
+      submitterEmail: submissionData.submitterEmail,
+      songTitle: submissionData.songTitle,
+      artistName: submissionData.artistName,
+      albumName: submissionData.albumName || null,
+      genre: submissionData.genre,
+      submissionType: submissionData.submissionType,
+      platform: submissionData.platform,
+      platformUrl: submissionData.platformUrl,
+      trackId: submissionData.trackId || null,
+      description: submissionData.description || null,
+      requestedDate: submissionData.requestedDate || null,
+      isScheduled: submissionData.isScheduled || false,
+      scheduledFor: submissionData.scheduledFor || null,
+      themeTag: submissionData.themeTag || null,
+      metadata: submissionData.metadata || null,
+      approvalStatus: "pending",
       approvedBy: null,
-      notes: null
+      approvedAt: null,
+      playedAt: null,
+      playCount: 0,
+      submittedAt: new Date(),
+      notes: submissionData.notes || null,
+      queuePosition: submissionData.queuePosition || null,
+      playbackStatus: submissionData.playbackStatus || "queued",
+      currentlyPlaying: submissionData.currentlyPlaying || false
     };
     this.songSubmissions.set(submission.id, submission);
     return submission;
@@ -298,9 +365,8 @@ export class MemStorage implements IStorage {
     const submission = this.songSubmissions.get(id);
     if (!submission) return undefined;
 
-    submission.status = status;
-    submission.approvedBy = approvedBy;
-    submission.reviewedAt = new Date();
+    // Note: SongSubmission doesn't have status, approvedBy, or reviewedAt fields based on schema
+    // This method should be updated based on actual SongSubmission fields
     if (notes) submission.notes = notes;
 
     this.songSubmissions.set(id, submission);
@@ -309,7 +375,7 @@ export class MemStorage implements IStorage {
 
   // Admin methods
   async validateAdmin(username: string, password: string): Promise<Admin | undefined> {
-    for (const admin of this.admins.values()) {
+    for (const admin of Array.from(this.admins.values())) {
       if (admin.username === username && admin.password === password) {
         return admin;
       }
@@ -320,7 +386,9 @@ export class MemStorage implements IStorage {
   async createAdmin(adminData: InsertAdmin): Promise<Admin> {
     const admin: Admin = {
       id: this.generateId(),
-      ...adminData,
+      username: adminData.username,
+      password: adminData.password,
+      role: adminData.role || "admin",
       createdAt: new Date()
     };
     this.admins.set(admin.id, admin);
@@ -335,7 +403,12 @@ export class MemStorage implements IStorage {
   async updateCurrentPlayback(playbackData: InsertCurrentPlayback): Promise<CurrentPlayback> {
     this.currentPlayback = {
       id: this.currentPlayback?.id || 1,
-      ...playbackData,
+      title: playbackData.title,
+      stationId: playbackData.stationId || null,
+      showId: playbackData.showId || null,
+      artist: playbackData.artist || null,
+      artwork: playbackData.artwork || null,
+      isLive: playbackData.isLive || null,
       startTime: new Date()
     };
     return this.currentPlayback;
