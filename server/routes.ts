@@ -534,11 +534,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/dj-submissions', async (req, res) => {
     try {
+      console.log('POST /api/dj-submissions - Received body:', JSON.stringify(req.body, null, 2));
+      
+      // Validate request body against schema
       const validatedData = insertDjSubmissionSchema.parse(req.body);
+      console.log('POST /api/dj-submissions - Validated data:', JSON.stringify(validatedData, null, 2));
+      
+      // Create submission with "pending" status
       const submission = await storage.createDjSubmission(validatedData);
-      res.status(201).json(submission);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid submission data' });
+      console.log('POST /api/dj-submissions - Created submission:', JSON.stringify(submission, null, 2));
+      
+      // Note: WebSocket broadcasting could be added later for real-time updates
+      
+      res.status(201).json({
+        success: true,
+        submission,
+        message: 'Mix submitted successfully! Your submission is now pending review.'
+      });
+    } catch (error: any) {
+      console.error('POST /api/dj-submissions - Error:', error);
+      
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Invalid submission data',
+          details: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to submit mix. Please try again.',
+        details: error?.message || 'Unknown error'
+      });
     }
   });
 
