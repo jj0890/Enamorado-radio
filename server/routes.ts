@@ -723,6 +723,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mix submission POST endpoint for frontend form
+  app.post('/api/mix-submissions', async (req, res) => {
+    try {
+      console.log('POST /api/mix-submissions - Received body:', JSON.stringify(req.body, null, 2));
+      
+      // Submit to mix storage directly
+      const mixSubmission = mixStorage.submitMix(req.body);
+      console.log('POST /api/mix-submissions - Created mix submission:', mixSubmission);
+      
+      res.status(201).json({
+        success: true,
+        submission: mixSubmission,
+        message: 'Mix submitted successfully! Your submission is now pending review.'
+      });
+    } catch (error: any) {
+      console.error('POST /api/mix-submissions - Error:', error);
+      res.status(500).json({ 
+        error: 'Failed to submit mix. Please try again.',
+        details: error?.message || 'Unknown error'
+      });
+    }
+  });
+
   // Admin endpoint to view all mix submissions
   app.get('/api/admin/mix-submissions', async (req, res) => {
     try {
