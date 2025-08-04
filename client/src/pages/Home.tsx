@@ -238,6 +238,58 @@ export default function Home() {
           </div>
         </section>
 
+        {/* Submit Content Section */}
+        <section className="mb-16">
+          <div className="text-center mb-8">
+            <h2 className="text-3xl font-bold mb-4">JOIN ENAMORADO</h2>
+            <p className="text-white/70 text-lg max-w-2xl mx-auto">
+              Share your music with our community. Submit your mixes or apply to become a resident DJ.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+            {/* Submit Mix */}
+            <Link href="/submit-mix">
+              <Card className="bg-black/40 border-white/10 hover:bg-black/60 transition-colors group cursor-pointer">
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-red-500/30 transition-colors">
+                    <Music className="w-10 h-10 text-red-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 group-hover:text-red-400 transition-colors">
+                    SUBMIT MIX
+                  </h3>
+                  <p className="text-white/70 text-lg mb-6">
+                    Share your latest mix with our community. Upload from SoundCloud, Mixcloud, or Audio.com.
+                  </p>
+                  <Button className="bg-red-500 hover:bg-red-600 text-white px-8 py-3 text-lg font-semibold">
+                    Submit Your Mix →
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+
+            {/* Resident Application */}
+            <Link href="/resident-application">
+              <Card className="bg-black/40 border-white/10 hover:bg-black/60 transition-colors group cursor-pointer">
+                <CardContent className="p-8 text-center">
+                  <div className="w-20 h-20 bg-blue-500/20 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:bg-blue-500/30 transition-colors">
+                    <Users className="w-10 h-10 text-blue-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold mb-4 group-hover:text-blue-400 transition-colors">
+                    BECOME RESIDENT
+                  </h3>
+                  <p className="text-white/70 text-lg mb-6">
+                    Apply to join our roster of resident DJs. Host your own regular show on Enamorado Radio.
+                  </p>
+                  <Button className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-3 text-lg font-semibold">
+                    Apply Now →
+                  </Button>
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
+        </section>
+
         {/* Recent Shows */}
         <section className="mb-16">
           <div className="flex items-center justify-between mb-8">
