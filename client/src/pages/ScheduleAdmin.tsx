@@ -89,7 +89,6 @@ export default function ScheduleAdmin() {
   // Fetch DJ submissions
   const { data: djSubmissions = [], isLoading: djSubmissionsLoading } = useQuery({
     queryKey: ['/api/dj-submissions'],
-    queryFn: () => apiRequest('/api/dj-submissions'),
   });
 
   // Fetch Mix submissions for management
@@ -102,16 +101,12 @@ export default function ScheduleAdmin() {
   // Fetch Resident applications
   const { data: residentApplications = [], isLoading: residentApplicationsLoading } = useQuery({
     queryKey: ['/api/resident-applications'],
-    queryFn: () => apiRequest('/api/resident-applications'),
   });
 
   // Update DJ submission status
   const updateDjSubmissionStatus = useMutation({
     mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
-      return await apiRequest(`/api/dj-submissions/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, notes, reviewedBy: 'Admin' }),
-      });
+      return await apiRequest('PATCH', `/api/dj-submissions/${id}/status`, { status, notes, reviewedBy: 'Admin' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dj-submissions'] });
@@ -121,10 +116,7 @@ export default function ScheduleAdmin() {
   // Approve mix submission
   const approveMixSubmission = useMutation({
     mutationFn: async ({ submissionId, status }: { submissionId: number; status: 'approved' | 'featured' }) => {
-      return await apiRequest('/api/approveMix', {
-        method: 'POST',
-        body: JSON.stringify({ submissionId, status, approvedBy: 'admin' }),
-      });
+      return await apiRequest('POST', '/api/approveMix', { submissionId, status, approvedBy: 'admin' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
@@ -134,9 +126,7 @@ export default function ScheduleAdmin() {
   // Delete mix submission
   const deleteMixSubmission = useMutation({
     mutationFn: async (submissionId: number) => {
-      return await apiRequest(`/api/admin/mix-submissions/${submissionId}`, {
-        method: 'DELETE',
-      });
+      return await apiRequest('DELETE', `/api/admin/mix-submissions/${submissionId}`, undefined);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
@@ -146,10 +136,7 @@ export default function ScheduleAdmin() {
   // Update Resident application status
   const updateResidentApplicationStatus = useMutation({
     mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
-      return await apiRequest(`/api/resident-applications/${id}/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ status, notes, reviewedBy: 'Admin' }),
-      });
+      return await apiRequest('PATCH', `/api/resident-applications/${id}/status`, { status, notes, reviewedBy: 'Admin' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/resident-applications'] });
