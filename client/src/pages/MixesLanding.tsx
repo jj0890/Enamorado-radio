@@ -3,7 +3,6 @@ import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import MixSubmissionModal from '@/components/MixSubmissionModal';
 
 interface DjSubmission {
   id: number;
@@ -77,7 +76,6 @@ const FEATURED_MIXES: Mix[] = [
 export default function MixesLanding() {
   const [currentMixIndex, setCurrentMixIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
-  const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
 
   // Fetch community submissions (recent submissions regardless of approval)
   const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
@@ -435,13 +433,12 @@ export default function MixesLanding() {
                 <p className="text-gray-600 font-mono mb-6 max-w-2xl mx-auto">
                   Share your mixes, playlists, or discoveries with our community. Every submission adds to our growing archive of music and creativity - no gatekeeping, just good vibes.
                 </p>
-                <Button
-                  onClick={() => setIsSubmissionModalOpen(true)}
-                  className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-3"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Be the first to submit!
-                </Button>
+                <Link href="/submit-mix">
+                  <Button className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-3">
+                    <Plus className="w-5 h-5 mr-2" />
+                    Be the first to submit!
+                  </Button>
+                </Link>
               </div>
             </div>
           ) : (
@@ -604,11 +601,6 @@ export default function MixesLanding() {
         </section>
       </div>
 
-      {/* Submission Modal */}
-      <MixSubmissionModal 
-        isOpen={isSubmissionModalOpen}
-        onClose={() => setIsSubmissionModalOpen(false)}
-      />
     </div>
   );
 }
