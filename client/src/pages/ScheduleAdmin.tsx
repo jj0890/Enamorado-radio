@@ -158,7 +158,6 @@ export default function ScheduleAdmin() {
   const analytics = {
     totalShows: shows.length,
     liveShows: shows.filter(s => s.isLive).length,
-    pendingDjSubmissions: djSubmissions.filter((s: DJSubmission) => s.status === 'pending').length,
     pendingResidentApplications: residentApplications.filter((s: any) => s.status === 'pending').length,
     pendingMixSubmissions: mixSubmissions.filter((s: MixSubmission) => s.status === 'pending').length,
     totalHours: shows.reduce((acc, show) => acc + show.duration, 0) / 60
@@ -237,17 +236,7 @@ export default function ScheduleAdmin() {
             <Calendar className="w-4 h-4 inline mr-2" />
             Manage Shows
           </button>
-          <button
-            onClick={() => setActiveSection('dj-submissions')}
-            className={`px-6 py-3 font-mono font-medium transition-all ${
-              activeSection === 'dj-submissions'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
-            }`}
-          >
-            <Users className="w-4 h-4 inline mr-2" />
-            DJ Applications
-          </button>
+
           <button
             onClick={() => setActiveSection('resident-applications')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
@@ -452,124 +441,7 @@ export default function ScheduleAdmin() {
           </div>
         )}
 
-        {/* DJ Submissions Section */}
-        {activeSection === 'dj-submissions' && (
-          <div className="space-y-6">
-            <div className="bg-gray-800 rounded-lg p-6">
-              <h2 className="text-2xl font-bold mb-6">DJ Submissions</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {djSubmissionsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
-                  </div>
-                ) : djSubmissions.length === 0 ? (
-                  <div className="text-center py-8 text-gray-400">
-                    <FileText className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>No DJ submissions yet</p>
-                  </div>
-                ) : (
-                  djSubmissions.map((submission: DJSubmission) => (
-                    <div key={submission.id} className="bg-gray-900 rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(submission.status)}`}>
-                          {submission.status.toUpperCase()}
-                        </span>
-                        <span className="text-gray-400 text-sm">{formatDate(submission.submittedAt)}</span>
-                      </div>
-                      <h3 className="font-semibold text-lg mb-2">{submission.showTitle}</h3>
-                      <p className="text-gray-400 mb-1">DJ: {submission.djName} ({submission.realName})</p>
-                      <p className="text-gray-400 mb-1">Genre: {submission.primaryGenre}</p>
-                      <p className="text-gray-400 mb-1">Location: {submission.location}</p>
-                      <p className="text-gray-400 mb-1">Show Length: {submission.showLength} minutes</p>
-                      <p className="text-gray-400 mb-4">{submission.email}</p>
-                      
-                      {submission.showDescription && (
-                        <p className="text-gray-300 mb-4 text-sm italic">"{submission.showDescription}"</p>
-                      )}
-                      
-                      {/* Demo Mix Information */}
-                      {submission.demoMixTitle && (
-                        <div className="bg-gray-800 rounded p-3 mb-4">
-                          <h4 className="font-semibold text-purple-400 mb-2">Demo Mix: {submission.demoMixTitle}</h4>
-                          {submission.demoMixDescription && (
-                            <p className="text-gray-300 text-sm mb-2">"{submission.demoMixDescription}"</p>
-                          )}
-                          
-                          {/* Streaming Platform Links */}
-                          <div className="flex flex-wrap gap-2 mt-2">
-                            {submission.soundcloudUrl && (
-                              <a 
-                                href={submission.soundcloudUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="bg-orange-500/20 text-orange-400 px-2 py-1 rounded text-xs hover:bg-orange-500/30 transition-colors"
-                              >
-                                SoundCloud
-                              </a>
-                            )}
-                            {submission.mixcloudUrl && (
-                              <a 
-                                href={submission.mixcloudUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="bg-blue-500/20 text-blue-400 px-2 py-1 rounded text-xs hover:bg-blue-500/30 transition-colors"
-                              >
-                                Mixcloud
-                              </a>
-                            )}
-                            {submission.audiocomUrl && (
-                              <a 
-                                href={submission.audiocomUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="bg-green-500/20 text-green-400 px-2 py-1 rounded text-xs hover:bg-green-500/30 transition-colors"
-                              >
-                                Audio.com
-                              </a>
-                            )}
-                            {submission.otherUrl && (
-                              <a 
-                                href={submission.otherUrl} 
-                                target="_blank" 
-                                rel="noopener noreferrer"
-                                className="bg-purple-500/20 text-purple-400 px-2 py-1 rounded text-xs hover:bg-purple-500/30 transition-colors"
-                              >
-                                Other Platform
-                              </a>
-                            )}
-                          </div>
-                        </div>
-                      )}
-                      
-                      <div className="flex space-x-2">
-                        <button 
-                          onClick={() => updateDjSubmissionStatus.mutate({ id: submission.id, status: 'approved' })}
-                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
-                          disabled={updateDjSubmissionStatus.isPending}
-                        >
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Approve
-                        </button>
-                        <button 
-                          onClick={() => updateDjSubmissionStatus.mutate({ id: submission.id, status: 'rejected' })}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
-                          disabled={updateDjSubmissionStatus.isPending}
-                        >
-                          <XCircle className="w-4 h-4 mr-1" />
-                          Reject
-                        </button>
-                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors">
-                          <Eye className="w-4 h-4 inline mr-1" />
-                          View Details
-                        </button>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
+
 
         {/* Resident Applications Section */}
         {activeSection === 'resident-applications' && (
@@ -921,7 +793,7 @@ export default function ScheduleAdmin() {
                 <div className="text-gray-400">Live Shows</div>
               </div>
               <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-yellow-500 mb-2">{analytics.pendingDjSubmissions + analytics.pendingResidentApplications + analytics.pendingMixSubmissions}</div>
+                <div className="text-3xl font-bold text-yellow-500 mb-2">{analytics.pendingResidentApplications + analytics.pendingMixSubmissions}</div>
                 <div className="text-gray-400">Total Pending</div>
               </div>
               <div className="bg-gray-800 rounded-lg p-6 text-center">
