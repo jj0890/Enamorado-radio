@@ -530,7 +530,14 @@ export default function ScheduleAdmin() {
                     <p>No mix submissions yet</p>
                   </div>
                 ) : (
-                  (Array.isArray(mixSubmissions) ? mixSubmissions : []).map((submission: MixSubmission) => (
+                  (Array.isArray(mixSubmissions) ? mixSubmissions : []).map((submission: MixSubmission) => {
+                    // Validate submission data to prevent DOMException
+                    if (!submission || !submission.id || !submission.name || !submission.title) {
+                      console.warn('Invalid submission data:', submission);
+                      return null;
+                    }
+                    
+                    return (
                     <div key={submission.id} className="bg-white border border-gray-200 rounded-lg p-4">
                       <div className="flex items-center justify-between mb-3">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium font-mono ${
@@ -549,7 +556,7 @@ export default function ScheduleAdmin() {
                       
                       {/* Platform Links */}
                       <div className="flex flex-wrap gap-2 mb-4">
-                        {submission.soundcloudUrl && (
+                        {submission.soundcloudUrl && submission.soundcloudUrl.includes("soundcloud.com") && (
                           <a 
                             href={submission.soundcloudUrl} 
                             target="_blank" 
@@ -559,7 +566,7 @@ export default function ScheduleAdmin() {
                             SoundCloud
                           </a>
                         )}
-                        {submission.mixcloudUrl && (
+                        {submission.mixcloudUrl && submission.mixcloudUrl.includes("mixcloud.com") && (
                           <a 
                             href={submission.mixcloudUrl} 
                             target="_blank" 
@@ -569,7 +576,7 @@ export default function ScheduleAdmin() {
                             Mixcloud
                           </a>
                         )}
-                        {submission.audiocomUrl && (
+                        {submission.audiocomUrl && submission.audiocomUrl.includes("audio.com") && (
                           <a 
                             href={submission.audiocomUrl} 
                             target="_blank" 
@@ -623,7 +630,8 @@ export default function ScheduleAdmin() {
                         </div>
                       )}
                     </div>
-                  ))
+                    );
+                  }).filter(Boolean)
                 )}
               </div>
             </div>
