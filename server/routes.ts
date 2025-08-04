@@ -21,10 +21,16 @@ import {
   insertEpisodeTracklistSchema,
   insertRadioPlaylistSchema,
   insertResidentApplicationSchema,
-  insertSongSubmissionSchema
+  insertSongSubmissionSchema,
+  insertMixSubmissionSchema
 } from "@shared/schema";
+import {
+  ObjectStorageService,
+  ObjectNotFoundError,
+} from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 
-// Mix submission schema
+// Mix submission schema - updated to include file uploads
 const mixSubmissionSchema = z.object({
   name: z.string().min(1, "Name is required"),
   title: z.string().min(1, "Title is required"),
@@ -32,9 +38,10 @@ const mixSubmissionSchema = z.object({
   about: z.string().min(1, "About description is required"),
   soundcloudUrl: z.string().url().optional(),
   mixcloudUrl: z.string().url().optional(),
-  audioUrl: z.string().url().optional()
-}).refine(data => data.soundcloudUrl || data.mixcloudUrl || data.audioUrl, {
-  message: "At least one audio URL (SoundCloud, Mixcloud, or Audio) is required"
+  audioUrl: z.string().url().optional(),
+  fileUrl: z.string().url().optional() // Direct MP3/WAV file upload
+}).refine(data => data.soundcloudUrl || data.mixcloudUrl || data.audioUrl || data.fileUrl, {
+  message: "At least one audio URL (SoundCloud, Mixcloud, Audio, or file upload) is required"
 });
 
 // Error logging middleware
@@ -723,10 +730,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Mix submission POST endpoint for frontend form
+  // Object Storage Service for MP3/WAV file uploads
+  const objectStorageService = new ObjectStorageService();
+  
+  // Object Storage Routes - File Upload Support
+  
+  // Serve public assets from object storage
+  app.get("/public-objects/:filePath(*)", async (req, res) => {
+    const filePath = req.params.filePath;
+    try {
+      const file = await objectStorageService.searchPublicObject(filePath);
+      if (!file) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      objectStorageService.downloadObject(file, res);
+    } catch (error) {
+      console.error("Error searching for public object:", error);
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Serve private objects (uploaded mix files) - public access for approved mixes
+  app.get("/objects/:objectPath(*)", async (req, res) => {
+    try {
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error accessing object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.sendStatus(404);
+      }
+      return res.sendStatus(500);
+    }
+  });
+
+  // Get upload URL for mix files
+  app.post("/api/objects/upload", async (req, res) => {
+    try {
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error generating upload URL:", error);
+      res.status(500).json({ error: "Failed to generate upload URL" });
+    }
+  });
+
+  // Mix submission POST endpoint for frontend form - Enhanced with file upload support
   app.post('/api/mix-submissions', async (req, res) => {
     try {
       console.log('POST /api/mix-submissions - Received body:', JSON.stringify(req.body, null, 2));
+      
+      // If fileUrl is provided, normalize it for object storage
+      if (req.body.fileUrl) {
+        try {
+          const normalizedPath = objectStorageService.normalizeObjectEntityPath(req.body.fileUrl);
+          req.body.fileUrl = normalizedPath;
+          
+          // Set ACL policy for public access to uploaded mixes
+          await objectStorageService.trySetObjectEntityAclPolicy(req.body.fileUrl, {
+            owner: "system",
+            visibility: "public", // Public access for radio streaming
+          });
+          
+          console.log('Processed uploaded file:', normalizedPath);
+        } catch (error) {
+          console.error("Error processing uploaded file:", error);
+          return res.status(400).json({ error: "Invalid file upload" });
+        }
+      }
       
       // Submit to mix storage directly
       const mixSubmission = mixStorage.submitMix(req.body);
@@ -743,6 +814,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: 'Failed to submit mix. Please try again.',
         details: error?.message || 'Unknown error'
       });
+    }
+  });
+
+  // Liquidsoap/Digital Ocean Integration - Approved Mixes Queue API
+  app.get('/api/v1/live/queue', async (req, res) => {
+    try {
+      const submissions = mixStorage.getAllSubmissions();
+      
+      // Filter for approved and featured mixes with fileUrl (uploaded MP3/WAV files)
+      const approvedMixes = submissions
+        .filter(mix => 
+          (mix.status === 'approved' || mix.status === 'featured') && 
+          mix.fileUrl
+        )
+        .map(mix => ({
+          title: mix.title,
+          artist: mix.name,
+          fileUrl: mix.fileUrl, // Direct file URL for Liquidsoap
+          genre: mix.genre,
+          status: mix.status,
+          approvedAt: mix.approvedAt,
+          // Schedule logic can be added here
+          startTime: new Date().toISOString(), // For now, immediate scheduling
+        }))
+        .sort((a, b) => {
+          // Featured mixes first, then by approval date
+          if (a.status === 'featured' && b.status !== 'featured') return -1;
+          if (b.status === 'featured' && a.status !== 'featured') return 1;
+          return new Date(b.approvedAt || 0).getTime() - new Date(a.approvedAt || 0).getTime();
+        });
+
+      console.log(`[Queue API] Serving ${approvedMixes.length} approved mixes for Liquidsoap`);
+      res.json(approvedMixes);
+    } catch (error: any) {
+      console.error('GET /api/v1/live/queue - Error:', error);
+      res.status(500).json({ error: 'Failed to fetch streaming queue' });
     }
   });
 

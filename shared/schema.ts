@@ -456,6 +456,36 @@ export const insertRadioRotationSchema = createInsertSchema(radioRotation).omit(
 export type RadioRotation = typeof radioRotation.$inferSelect;
 export type InsertRadioRotation = z.infer<typeof insertRadioRotationSchema>;
 
+// Mix Submissions table for community mix uploads with file support
+export const mixSubmissions = pgTable("mix_submissions", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(), // DJ/Artist name
+  title: text("title").notNull(), // Mix title
+  genre: text("genre").notNull(),
+  about: text("about").notNull(), // Description
+  soundcloudUrl: text("soundcloud_url"),
+  mixcloudUrl: text("mixcloud_url"), 
+  audioUrl: text("audio_url"),
+  fileUrl: text("file_url"), // Direct MP3/WAV file URL from object storage
+  status: text("status").notNull().default("pending"), // pending, approved, featured
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  approvedAt: timestamp("approved_at"),
+  approvedBy: text("approved_by"), // admin username
+  notes: text("notes"), // admin notes
+});
+
+export const insertMixSubmissionSchema = createInsertSchema(mixSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  approvedAt: true,
+  approvedBy: true,
+  status: true,
+  notes: true,
+});
+
+export type MixSubmission = typeof mixSubmissions.$inferSelect;
+export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;
+
 // Live Programming Schedule
 export const liveShows = pgTable("live_shows", {
   id: serial("id").primaryKey(),

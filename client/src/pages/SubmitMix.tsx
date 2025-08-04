@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { ObjectUploader } from '@/components/ObjectUploader';
+import type { UploadResult } from '@uppy/core';
 
 export default function SubmitMix() {
   const [, setLocation] = useLocation();
@@ -8,16 +10,45 @@ export default function SubmitMix() {
   const [description, setDescription] = useState('');
   const [soundcloudUrl, setSoundcloudUrl] = useState('');
   const [genre, setGenre] = useState('');
+  const [fileUrl, setFileUrl] = useState(''); // New state for uploaded file
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+
+  // Helper functions for upload process
+  const handleGetUploadParameters = async () => {
+    const response = await fetch('/api/objects/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    return {
+      method: 'PUT' as const,
+      url: data.uploadURL,
+    };
+  };
+
+  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      setFileUrl(uploadedFile.uploadURL || '');
+      console.log('File uploaded successfully:', uploadedFile.uploadURL);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
 
-    console.log('Submitting mix:', { djName, title, description, soundcloudUrl, genre });
+    // Validate that we have either a file upload OR a SoundCloud URL
+    if (!fileUrl && !soundcloudUrl) {
+      setError('Please either upload a file or provide a SoundCloud URL');
+      setIsSubmitting(false);
+      return;
+    }
+
+    console.log('Submitting mix:', { djName, title, description, soundcloudUrl, genre, fileUrl });
 
     try {
       const response = await fetch('/api/mix-submissions', {
@@ -28,7 +59,8 @@ export default function SubmitMix() {
           title: title,
           about: description,
           soundcloudUrl: soundcloudUrl,
-          genre: genre
+          genre: genre,
+          fileUrl: fileUrl // Include uploaded file URL
         }),
       });
 
@@ -134,16 +166,45 @@ export default function SubmitMix() {
               />
             </div>
 
+            {/* File Upload Section */}
             <div>
               <label className="block text-black font-mono font-medium mb-2">
-                SoundCloud URL *
+                Upload MP3/WAV File
+              </label>
+              <p className="text-gray-600 font-mono text-sm mb-3">
+                Upload your mix directly (MP3 or WAV, max 10MB)
+              </p>
+              <ObjectUploader
+                maxNumberOfFiles={1}
+                maxFileSize={10485760} // 10MB
+                onGetUploadParameters={handleGetUploadParameters}
+                onComplete={handleUploadComplete}
+                buttonClassName="w-full bg-red-500 hover:bg-red-600 text-white font-mono py-3 px-4 rounded-lg"
+              >
+                {fileUrl ? '✓ File Uploaded - Upload Another' : '📁 Upload Mix File'}
+              </ObjectUploader>
+              {fileUrl && (
+                <p className="text-green-600 font-mono text-sm mt-2">
+                  ✓ File uploaded successfully
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-gray-200 pt-6">
+              <p className="text-gray-600 font-mono text-sm mb-4 text-center">
+                OR provide a streaming URL
+              </p>
+            </div>
+
+            <div>
+              <label className="block text-black font-mono font-medium mb-2">
+                SoundCloud URL
               </label>
               <input
                 type="url"
                 value={soundcloudUrl}
                 onChange={e => setSoundcloudUrl(e.target.value)}
                 placeholder="SoundCloud URL"
-                required
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-red-500 font-mono"
               />
             </div>
