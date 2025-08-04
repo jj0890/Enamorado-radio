@@ -105,6 +105,11 @@ export default function ResidentApplication() {
 
   return (
     <div className="min-h-screen bg-white text-black">
+      {/* DEBUG: Diagnostic message */}
+      <div className="bg-blue-100 border border-blue-400 text-blue-700 px-4 py-2 text-center font-mono">
+        🔵 THIS IS THE RESIDENT-APPLICATION PAGE (Comprehensive DJ Application)
+      </div>
+      
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
