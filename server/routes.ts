@@ -640,10 +640,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/mixes', async (req, res) => {
     try {
-      const { featured, genre } = req.query;
+      const { featured, genre, community } = req.query;
       let status: 'approved' | 'featured' | undefined;
       
-      // Only return approved or featured mixes
+      if (community === 'true') {
+        // For community section, get recent submissions regardless of status
+        const allSubmissions = mixStorage.getAllSubmissions();
+        const recentMixes = allSubmissions.slice(0, 10); // Show last 10 submissions
+        console.log(`GET /api/mixes - Found ${recentMixes.length} community mixes`);
+        return res.json(recentMixes);
+      }
+      
+      // Only return approved or featured mixes for main sections
       if (featured === 'true') {
         status = 'featured';
       } else {

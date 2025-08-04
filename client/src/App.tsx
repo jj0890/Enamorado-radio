@@ -8,8 +8,7 @@ import DJSubmit from "./pages/DJSubmit";
 import ResidentApplication from "./pages/ResidentApplication";
 import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
-import ZineArchive from "./pages/ZineArchive";
-import ZineSubmit from "./pages/ZineSubmit";
+
 import EditorialWorkflow from "./pages/EditorialWorkflow";
 import Discover from "./pages/Discover";
 import MixUpload from "./pages/MixUpload";
@@ -38,8 +37,7 @@ function Router() {
       <Route path="/admin/queue" component={AdminQueue} />
       <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
       <Route path="/schedule" component={Schedule} />
-      <Route path="/zine" component={ZineArchive} />
-      <Route path="/zine/submit" component={ZineSubmit} />
+
       <Route path="/mix-upload" component={MixUpload} />
       <Route path="/live-mix-demo" component={LiveMixDemo} />
       <Route path="/episodes" component={EpisodesBrowser} />
