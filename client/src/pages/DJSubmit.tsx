@@ -116,6 +116,11 @@ export default function DJSubmit() {
 
   return (
     <div className="min-h-screen bg-white text-black">
+      {/* DEBUG: Diagnostic message */}
+      <div className="bg-orange-100 border border-orange-400 text-orange-700 px-4 py-2 text-center font-mono">
+        🟠 THIS IS THE DJ-SUBMIT PAGE (Complex DJ Application Form)
+      </div>
+      
       {/* Header */}
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
