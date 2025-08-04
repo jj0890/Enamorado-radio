@@ -711,6 +711,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint to delete a mix submission
+  app.delete('/api/admin/mix-submissions/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const deleted = mixStorage.deleteSubmission(id);
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Mix submission not found' });
+      }
+      
+      console.log(`Admin deleted mix submission ${id}`);
+      res.json({
+        success: true,
+        message: `Mix submission ${id} deleted successfully`
+      });
+    } catch (error: any) {
+      console.error('DELETE /api/admin/mix-submissions/:id - Error:', error);
+      logError('DELETE /api/admin/mix-submissions/:id', error, req);
+      res.status(500).json({ 
+        error: 'Failed to delete mix submission',
+        details: error?.message || 'Unknown error'
+      });
+    }
+  });
+
   // Resident Applications API
   app.get('/api/resident-applications', async (req, res) => {
     try {

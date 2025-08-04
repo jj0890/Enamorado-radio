@@ -116,6 +116,19 @@ class PersistentMixStorage {
     const data = this.loadData();
     return data.mixSubmissions;
   }
+
+  deleteSubmission(id: number): boolean {
+    const data = this.loadData();
+    const index = data.mixSubmissions.findIndex(submission => submission.id === id);
+    
+    if (index === -1) {
+      return false;
+    }
+    
+    data.mixSubmissions.splice(index, 1);
+    this.saveData(data);
+    return true;
+  }
 }
 
 export const mixStorage = new PersistentMixStorage();
