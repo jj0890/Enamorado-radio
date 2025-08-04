@@ -1,4 +1,4 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import HomePage from "./pages/HomePage";
@@ -47,6 +47,15 @@ function Router() {
       <Route path="/albums" component={AlbumsOfTheMonth} />
       <Route path="/mixes" component={MixesLanding} />
       <Route path="/submit-mix" component={SubmitMix} />
+      <Route path="/residents" component={() => (
+        <div className="min-h-screen bg-white text-black flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">RESIDENTS</h1>
+            <p className="text-gray-600 font-mono">Coming soon - Meet our resident DJs and radio hosts</p>
+            <Link href="/mixes" className="text-red-500 hover:underline font-mono mt-4 inline-block">← Back to Mixes</Link>
+          </div>
+        </div>
+      )} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">

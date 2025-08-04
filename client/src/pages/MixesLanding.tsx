@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import MixSubmissionModal from '@/components/MixSubmissionModal';
 
@@ -37,27 +37,58 @@ interface Mix {
   featured?: boolean;
 }
 
+// Hardcoded featured mixes as requested
+const FEATURED_MIXES: Mix[] = [
+  {
+    id: 1,
+    title: "New Mix (Mostly Footwork/Juke)",
+    artist: "Scumbag Jones",
+    description: "A high-energy mix featuring the best of Chicago footwork and juke music",
+    thumbnailUrl: "",
+    platform: 'soundcloud',
+    url: "https://soundcloud.com/scumbagjones1/new-mix-mostly-footwork-juke",
+    genre: ["Juke", "Footwork"],
+    featured: true
+  },
+  {
+    id: 2,
+    title: "GUMMP3",
+    artist: "Elevator Music",
+    description: "Experimental club sounds and boundary-pushing electronic music",
+    thumbnailUrl: "",
+    platform: 'soundcloud',
+    url: "https://soundcloud.com/elevatormusiclive/gummp3-elevator-music",
+    genre: ["Experimental", "Club"],
+    featured: true
+  },
+  {
+    id: 3,
+    title: "Florida Man FM (7/25/23)",
+    artist: "454",
+    description: "Florida-core rap meets underground sounds from the sunshine state",
+    thumbnailUrl: "",
+    platform: 'soundcloud',
+    url: "https://soundcloud.com/user-626444105/454-presents-florida-man-fm-250723",
+    genre: ["Rap", "Florida-core"],
+    featured: true
+  }
+];
+
 export default function MixesLanding() {
   const [currentMixIndex, setCurrentMixIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
 
-  // Fetch featured mix submissions from API
-  const { data: featuredSubmissions = [], isLoading } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/mixes', { featured: 'true' }],
-    refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
-  });
-
-  // Fetch all mix submissions 
-  const { data: allSubmissions = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/mixes'],
-    refetchInterval: 60000, // Refresh every minute
-  });
-
   // Fetch community submissions (recent submissions regardless of approval)
   const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
     queryKey: ['/api/mixes', { community: 'true' }],
     refetchInterval: 30000, // Refresh every 30 seconds for fresh content
+  });
+
+  // Fetch all approved submissions for the All Mixes section
+  const { data: allSubmissions = [] } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/mixes'],
+    refetchInterval: 60000, // Refresh every minute
   });
 
   // Function to fetch SoundCloud thumbnails using oEmbed API
@@ -117,8 +148,8 @@ export default function MixesLanding() {
     };
   };
 
-  // Convert approved submissions to featured mixes
-  const featuredMixes: Mix[] = featuredSubmissions.map(convertSubmissionToMix);
+  // Use hardcoded featured mixes
+  const featuredMixes: Mix[] = FEATURED_MIXES;
   
   // Convert all approved submissions to all mixes
   const approvedSubmissions = allSubmissions.filter(s => s.status === 'approved');
@@ -127,24 +158,35 @@ export default function MixesLanding() {
   // State for storing fetched thumbnails
   const [thumbnailCache, setThumbnailCache] = useState<Record<number, string>>({});
 
-  // Populate thumbnails from API data and fallback to SoundCloud oEmbed
+  // Populate thumbnails from API data and SoundCloud oEmbed for featured mixes
   useEffect(() => {
     const populateThumbnails = async () => {
-      // First, populate from API-enriched thumbnails
-      [...featuredSubmissions, ...allSubmissions].forEach(submission => {
+      // Populate from API-enriched thumbnails for community submissions
+      allSubmissions.forEach(submission => {
         if (submission.thumbnail && !thumbnailCache[submission.id]) {
           setThumbnailCache(prev => ({ ...prev, [submission.id]: submission.thumbnail! }));
         }
       });
 
-      // Then fetch any missing thumbnails via SoundCloud oEmbed as fallback
-      const allMixesToProcess = [...featuredMixes, ...allMixes];
-      
-      for (const mix of allMixesToProcess) {
+      // Fetch thumbnails for hardcoded featured mixes
+      for (const mix of featuredMixes) {
         if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
           try {
             const thumbnail = await fetchSoundCloudThumbnail(mix.url);
-            
+            if (thumbnail) {
+              setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));
+            }
+          } catch (error) {
+            console.log(`Failed to fetch thumbnail for featured mix ${mix.id}`);
+          }
+        }
+      }
+
+      // Then fetch any missing thumbnails for all mixes
+      for (const mix of allMixes) {
+        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
+          try {
+            const thumbnail = await fetchSoundCloudThumbnail(mix.url);
             if (thumbnail) {
               setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));
             }
@@ -155,10 +197,8 @@ export default function MixesLanding() {
       }
     };
 
-    if (featuredSubmissions.length > 0 || allSubmissions.length > 0) {
-      populateThumbnails();
-    }
-  }, [featuredSubmissions.length, allSubmissions.length]);
+    populateThumbnails();
+  }, [allSubmissions.length]);
 
   const scrollToMix = (index: number) => {
     setCurrentMixIndex(index);
@@ -250,12 +290,26 @@ export default function MixesLanding() {
             Curated collection of mixes from our community
           </p>
           
-          {/* Submit Mix Button */}
-          <div className="mt-8">
+          {/* Action Buttons */}
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/submit-mix">
               <Button className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
                 <Plus className="w-6 h-6" />
                 SUBMIT YOUR MIX
+              </Button>
+            </Link>
+            
+            <Link href="/resident-application">
+              <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
+                <Users className="w-6 h-6" />
+                BECOME A RESIDENT
+              </Button>
+            </Link>
+            
+            <Link href="/residents">
+              <Button variant="ghost" className="text-red-500 hover:bg-red-50 font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
+                <Users className="w-6 h-6" />
+                VIEW RESIDENTS
               </Button>
             </Link>
           </div>
@@ -265,57 +319,23 @@ export default function MixesLanding() {
         <section className="mb-16">
           <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">FEATURED MIXES</h2>
           
-          {/* Debug Info */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="mb-4 p-4 bg-yellow-100 border border-yellow-400 text-sm font-mono">
-              <p>🔍 Debug: Featured submissions count: {featuredSubmissions.length}</p>
-              <p>🔍 Debug: Featured mixes count: {featuredMixes.length}</p>
-              <p>🔍 Debug: Loading state: {isLoading ? 'true' : 'false'}</p>
-              {featuredMixes.length > 0 && (
-                <p>🔍 Debug: First mix URL: {featuredMixes[0]?.url}</p>
-              )}
-            </div>
-          )}
-          
-          {isLoading ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 flex items-center justify-center">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center animate-pulse">
-                  <Play className="w-8 h-8 text-white" />
-                </div>
-                <p className="text-gray-600 font-mono">Loading featured mixes...</p>
-              </div>
-            </div>
-          ) : featuredMixes.length === 0 ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-              <div className="text-gray-600 font-mono">
-                <p className="mb-4">No featured mixes available yet.</p>
-                <Button
-                  onClick={() => setIsSubmissionModalOpen(true)}
-                  className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-6 py-3"
-                >
-                  <Plus className="w-5 h-5 mr-2" />
-                  Be the first to submit!
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="relative">
-              {/* Carousel Navigation */}
-              <button
-                onClick={prevMix}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
-                disabled={featuredMixes.length <= 1}
-              >
-                <ChevronLeft className="w-6 h-6" />
-              </button>
-              <button
-                onClick={nextMix}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
-                disabled={featuredMixes.length <= 1}
-              >
-                <ChevronRight className="w-6 h-6" />
-              </button>
+          {/* SoundCloud Featured Carousel */}
+          <div className="relative">
+            {/* Carousel Navigation */}
+            <button
+              onClick={prevMix}
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
+              disabled={featuredMixes.length <= 1}
+            >
+              <ChevronLeft className="w-6 h-6" />
+            </button>
+            <button
+              onClick={nextMix}
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors"
+              disabled={featuredMixes.length <= 1}
+            >
+              <ChevronRight className="w-6 h-6" />
+            </button>
 
             {/* Carousel Container */}
             <div
@@ -329,48 +349,19 @@ export default function MixesLanding() {
                 >
                   <div className="bg-gray-50 border-2 border-black rounded-lg p-8 hover:border-red-500 hover:shadow-lg transition-all duration-300">
                     <div className="flex flex-col lg:flex-row gap-8">
-                      {/* Mix Cover/Embed */}
+                      {/* SoundCloud Embed */}
                       <div className="lg:w-1/2">
-                        {mix.platform === 'soundcloud' ? (
-                          <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
-                            {thumbnailCache[mix.id] ? (
-                              <img 
-                                src={thumbnailCache[mix.id]} 
-                                alt={`${mix.title} by ${mix.artist}`}
-                                className="w-full h-full object-cover"
-                                onError={(e) => {
-                                  e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400' viewBox='0 0 400 400'%3E%3Crect width='400' height='400' fill='%23f3f4f6'/%3E%3Ccircle cx='200' cy='200' r='60' fill='%23d1d5db'/%3E%3Cpath d='M200 140v120' stroke='%23374151' stroke-width='2'/%3E%3C/svg%3E";
-                                }}
-                              />
-                            ) : (
-                              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-                                <div className="text-center">
-                                  <div className="w-12 h-12 bg-gray-400 rounded-full mx-auto mb-2 flex items-center justify-center animate-pulse">
-                                    <Play className="w-6 h-6 text-white" />
-                                  </div>
-                                  <p className="text-xs text-gray-500 font-mono">Loading...</p>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="aspect-square bg-gray-200 rounded-lg flex items-center justify-center">
-                            {thumbnailCache[mix.id] ? (
-                              <img 
-                                src={thumbnailCache[mix.id]} 
-                                alt={`${mix.title} by ${mix.artist}`}
-                                className="w-full h-full object-cover rounded-lg"
-                              />
-                            ) : (
-                              <div className="text-center">
-                                <div className="w-16 h-16 bg-gray-400 rounded-full mx-auto mb-4 flex items-center justify-center">
-                                  <Play className="w-8 h-8 text-white" />
-                                </div>
-                                <p className="text-gray-600 font-mono">Loading...</p>
-                              </div>
-                            )}
-                          </div>
-                        )}
+                        <div className="aspect-square bg-gray-200 rounded-lg overflow-hidden">
+                          <iframe
+                            width="100%"
+                            height="100%"
+                            scrolling="no"
+                            frameBorder="no"
+                            allow="autoplay"
+                            src={`https://w.soundcloud.com/player/?url=${encodeURIComponent(mix.url)}&color=%23ff0000&auto_play=false&hide_related=false&show_comments=true&show_user=true&show_reposts=false&show_teaser=true&visual=true`}
+                            className="rounded-lg"
+                          />
+                        </div>
                       </div>
                       
                       {/* Mix Info */}
@@ -394,11 +385,6 @@ export default function MixesLanding() {
                               {g}
                             </span>
                           ))}
-                          {mix.duration && (
-                            <span className="bg-gray-600 text-white px-3 py-1 text-sm font-mono">
-                              {mix.duration}
-                            </span>
-                          )}
                         </div>
                         
                         {/* Action Buttons */}
@@ -410,7 +396,7 @@ export default function MixesLanding() {
                             className="flex items-center justify-center w-full bg-red-500 hover:bg-red-600 text-white font-mono font-semibold py-3 px-6 transition-colors"
                           >
                             <ExternalLink className="h-5 w-5 mr-2" />
-                            Listen on {mix.platform === 'soundcloud' ? 'SoundCloud' : mix.platform}
+                            Listen on SoundCloud
                           </a>
                         </div>
                       </div>
@@ -433,21 +419,11 @@ export default function MixesLanding() {
               ))}
             </div>
           </div>
-        )}
         </section>
 
         {/* Fresh Community Submissions */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold font-mono text-red-500">FRESH FROM THE COMMUNITY</h2>
-            <Button
-              onClick={() => setIsSubmissionModalOpen(true)}
-              className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-6 py-3"
-            >
-              <Plus className="w-5 h-5 mr-2" />
-              Submit Your Mix
-            </Button>
-          </div>
+          <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">FRESH FROM THE COMMUNITY</h2>
           
           {communitySubmissions.length === 0 ? (
             <div className="bg-gray-50 border-2 border-black rounded-lg p-6 mb-8">
@@ -463,7 +439,8 @@ export default function MixesLanding() {
                   onClick={() => setIsSubmissionModalOpen(true)}
                   className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-3"
                 >
-                  Submit Your Work
+                  <Plus className="w-5 h-5 mr-2" />
+                  Be the first to submit!
                 </Button>
               </div>
             </div>
