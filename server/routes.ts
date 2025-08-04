@@ -1,9 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./storage";
+import { storage, mixStorage } from "./storage";
 import { trackMetadataService } from "./trackMetadataService";
 import { metadataService } from "./metadataService";
+import { z } from "zod";
 import { 
   insertStationSchema, 
   insertShowSchema, 
@@ -22,6 +23,19 @@ import {
   insertResidentApplicationSchema,
   insertSongSubmissionSchema
 } from "@shared/schema";
+
+// Mix submission schema
+const mixSubmissionSchema = z.object({
+  name: z.string().min(1, "Name is required"),
+  title: z.string().min(1, "Title is required"),
+  genre: z.string().min(1, "Genre is required"),
+  about: z.string().min(1, "About description is required"),
+  soundcloudUrl: z.string().url().optional(),
+  mixcloudUrl: z.string().url().optional(),
+  audioUrl: z.string().url().optional()
+}).refine(data => data.soundcloudUrl || data.mixcloudUrl || data.audioUrl, {
+  message: "At least one audio URL (SoundCloud, Mixcloud, or Audio) is required"
+});
 
 // Error logging middleware
 function logError(endpoint: string, error: any, req?: any) {
@@ -585,6 +599,115 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(submission);
     } catch (error) {
       res.status(500).json({ error: 'Failed to update submission status' });
+    }
+  });
+
+  // Mix Submission API Routes (Persistent JSON Storage)
+  app.post('/api/submitMix', async (req, res) => {
+    try {
+      console.log('POST /api/submitMix - Received body:', JSON.stringify(req.body, null, 2));
+      
+      // Validate request body against schema
+      const validatedData = mixSubmissionSchema.parse(req.body);
+      console.log('POST /api/submitMix - Validated data:', JSON.stringify(validatedData, null, 2));
+      
+      // Create submission with "pending" status using persistent storage
+      const submission = mixStorage.submitMix(validatedData);
+      console.log('POST /api/submitMix - Created submission:', JSON.stringify(submission, null, 2));
+      
+      res.status(201).json({
+        success: true,
+        submission,
+        message: 'Mix submitted successfully! Your submission is now pending review.'
+      });
+    } catch (error: any) {
+      console.error('POST /api/submitMix - Error:', error);
+      logError('POST /api/submitMix', error, req);
+      
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Invalid submission data',
+          details: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to submit mix. Please try again.',
+        details: error?.message || 'Unknown error'
+      });
+    }
+  });
+
+  app.get('/api/mixes', async (req, res) => {
+    try {
+      const { featured, genre } = req.query;
+      let status: 'approved' | 'featured' | undefined;
+      
+      // Only return approved or featured mixes
+      if (featured === 'true') {
+        status = 'featured';
+      } else {
+        status = 'approved';
+      }
+      
+      const mixes = mixStorage.getMixes(status, genre as string);
+      
+      console.log(`GET /api/mixes - Found ${mixes.length} mixes with status: ${status}, genre: ${genre}`);
+      res.json(mixes);
+    } catch (error: any) {
+      console.error('GET /api/mixes - Error:', error);
+      logError('GET /api/mixes', error, req);
+      res.status(500).json({ error: 'Failed to fetch mixes' });
+    }
+  });
+
+  app.post('/api/approveMix', async (req, res) => {
+    try {
+      const { submissionId, status, approvedBy } = req.body;
+      
+      if (!submissionId || !status || !approvedBy) {
+        return res.status(400).json({ 
+          error: 'submissionId, status, and approvedBy are required' 
+        });
+      }
+      
+      if (!['approved', 'featured'].includes(status)) {
+        return res.status(400).json({ 
+          error: 'Status must be either "approved" or "featured"' 
+        });
+      }
+      
+      const approvedMix = mixStorage.approveMix(submissionId, status, approvedBy);
+      
+      if (!approvedMix) {
+        return res.status(404).json({ error: 'Mix submission not found' });
+      }
+      
+      console.log(`Mix ${submissionId} approved with status: ${status} by ${approvedBy}`);
+      res.json({
+        success: true,
+        mix: approvedMix,
+        message: `Mix ${status} successfully!`
+      });
+    } catch (error: any) {
+      console.error('POST /api/approveMix - Error:', error);
+      logError('POST /api/approveMix', error, req);
+      res.status(500).json({ 
+        error: 'Failed to approve mix',
+        details: error?.message || 'Unknown error'
+      });
+    }
+  });
+
+  // Admin endpoint to view all mix submissions
+  app.get('/api/admin/mix-submissions', async (req, res) => {
+    try {
+      const submissions = mixStorage.getAllSubmissions();
+      res.json(submissions);
+    } catch (error: any) {
+      console.error('GET /api/admin/mix-submissions - Error:', error);
+      logError('GET /api/admin/mix-submissions', error, req);
+      res.status(500).json({ error: 'Failed to fetch mix submissions' });
     }
   });
 

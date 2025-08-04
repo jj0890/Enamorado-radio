@@ -28,6 +28,7 @@ Data integrity: Clean slate storage with only essential admin account - all cont
 - **API Design**: RESTful API with real-time WebSocket enhancements
 - **Core Functionality**: Manages radio programs, schedules, content rotation, user submissions, and an admin approval queue.
 - **Streaming**: Supports live Icecast streaming with intelligent live/recorded switching and HTML5 audio for queued tracks.
+- **Data Persistence**: JSON file-based storage (`server/mixStorage.json`) ensures data survives server restarts and Replit environment changes.
 
 ### Database Architecture
 - **Database**: PostgreSQL with connection pooling
@@ -44,6 +45,7 @@ Data integrity: Clean slate storage with only essential admin account - all cont
 - **Mix Upload & Playback**: Custom MP3 upload system, LiveMixPlayer component with real-time track sync, professional audio player with seeking and volume controls.
 - **College Radio System**: Distinguishes live programming vs. auto-rotation modes, ProgramIndicator, track rotation system combining community uploads, SoundCloud, and DJ submissions.
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
+- **Mix Submission Backend**: Complete persistent JSON-based storage system for mix submissions with approval workflow. Supports SoundCloud, Mixcloud, and Audio.com URLs. Features admin approval pipeline with status management (pending → approved/featured).
 - **Admin Controls**: Stream control panel (play/pause/skip), manual now playing updates, comprehensive CRUD operations for content.
 
 ## External Dependencies

@@ -19,6 +19,106 @@ import type {
   CurrentPlayback, InsertCurrentPlayback,
   TrackMetadata
 } from "@shared/schema";
+import * as fs from 'fs';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// Persistent JSON file-based storage for mix submissions
+interface MixSubmissionData {
+  id: number;
+  name: string;
+  title: string;
+  genre: string;
+  about: string;
+  soundcloudUrl?: string;
+  mixcloudUrl?: string;
+  audioUrl?: string;
+  status: 'pending' | 'approved' | 'featured';
+  submittedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+}
+
+interface MixStorageData {
+  mixSubmissions: MixSubmissionData[];
+  nextId: number;
+}
+
+class PersistentMixStorage {
+  private storageFile = path.join(__dirname, 'mixStorage.json');
+  
+  private loadData(): MixStorageData {
+    try {
+      if (fs.existsSync(this.storageFile)) {
+        const data = fs.readFileSync(this.storageFile, 'utf8');
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      console.error('Error loading mix storage:', error);
+    }
+    return { mixSubmissions: [], nextId: 1 };
+  }
+  
+  private saveData(data: MixStorageData): void {
+    try {
+      fs.writeFileSync(this.storageFile, JSON.stringify(data, null, 2));
+    } catch (error) {
+      console.error('Error saving mix storage:', error);
+    }
+  }
+  
+  submitMix(submission: Omit<MixSubmissionData, 'id' | 'status' | 'submittedAt'>): MixSubmissionData {
+    const data = this.loadData();
+    const newSubmission: MixSubmissionData = {
+      ...submission,
+      id: data.nextId++,
+      status: 'pending',
+      submittedAt: new Date().toISOString()
+    };
+    data.mixSubmissions.push(newSubmission);
+    this.saveData(data);
+    return newSubmission;
+  }
+  
+  getMixes(status?: 'approved' | 'featured', genre?: string): MixSubmissionData[] {
+    const data = this.loadData();
+    let mixes = data.mixSubmissions;
+    
+    if (status) {
+      mixes = mixes.filter(mix => mix.status === status || (status === 'approved' && mix.status === 'featured'));
+    }
+    
+    if (genre) {
+      mixes = mixes.filter(mix => mix.genre.toLowerCase() === genre.toLowerCase());
+    }
+    
+    return mixes;
+  }
+  
+  approveMix(submissionId: number, status: 'approved' | 'featured', approvedBy: string): MixSubmissionData | null {
+    const data = this.loadData();
+    const submission = data.mixSubmissions.find(mix => mix.id === submissionId);
+    
+    if (!submission) return null;
+    
+    submission.status = status;
+    submission.approvedAt = new Date().toISOString();
+    submission.approvedBy = approvedBy;
+    
+    this.saveData(data);
+    return submission;
+  }
+  
+  getAllSubmissions(): MixSubmissionData[] {
+    const data = this.loadData();
+    return data.mixSubmissions;
+  }
+}
+
+export const mixStorage = new PersistentMixStorage();
 
 export interface IStorage {
   // User methods
@@ -72,6 +172,19 @@ export interface IStorage {
   // Track metadata
   storeTrackMetadata(filename: string, metadata: TrackMetadata): Promise<void>;
   getTrackMetadata(filename: string): Promise<TrackMetadata | undefined>;
+  
+  // Mix-related methods
+  getAllMixUploads(): Promise<MixUpload[]>;
+  getMixUpload(id: number): Promise<MixUpload | undefined>;
+  createMixUpload(upload: InsertMixUpload): Promise<MixUpload>;
+  updateMixUploadStatus(id: number, isLive: boolean, isFeatured: boolean): Promise<MixUpload | undefined>;
+  getMixTracklist(mixId: number): Promise<MixTracklist[]>;
+  createMixTrack(track: InsertMixTracklist): Promise<MixTracklist>;
+  getCurrentTrackByTime(mixId: number, currentTime: number): Promise<MixTracklist | null>;
+  
+  // Additional missing methods
+  getFeaturedShows(): Promise<Show[]>;
+  getLiveShows(): Promise<Show[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -442,6 +555,91 @@ export class MemStorage implements IStorage {
 
   async getTrackMetadata(filename: string): Promise<TrackMetadata | undefined> {
     return this.trackMetadataStore.get(filename);
+  }
+
+  // Mix-related methods
+  async getAllMixUploads(): Promise<MixUpload[]> {
+    return Array.from(this.mixUploads.values());
+  }
+
+  async getMixUpload(id: number): Promise<MixUpload | undefined> {
+    return this.mixUploads.get(id);
+  }
+
+  async createMixUpload(uploadData: InsertMixUpload): Promise<MixUpload> {
+    const upload: MixUpload = {
+      id: this.generateId(),
+      title: uploadData.title,
+      artist: uploadData.artist,
+      description: uploadData.description || null,
+      genre: uploadData.genre,
+      duration: uploadData.duration,
+      fileUrl: uploadData.fileUrl,
+      artworkUrl: uploadData.artworkUrl || null,
+      isLive: uploadData.isLive || false,
+      isFeatured: uploadData.isFeatured || false,
+      uploadedBy: uploadData.uploadedBy,
+      uploadedAt: new Date()
+    };
+    this.mixUploads.set(upload.id, upload);
+    return upload;
+  }
+
+  async updateMixUploadStatus(id: number, isLive: boolean, isFeatured: boolean): Promise<MixUpload | undefined> {
+    const upload = this.mixUploads.get(id);
+    if (!upload) return undefined;
+
+    upload.isLive = isLive;
+    upload.isFeatured = isFeatured;
+    this.mixUploads.set(id, upload);
+    return upload;
+  }
+
+  async getMixTracklist(mixId: number): Promise<MixTracklist[]> {
+    return Array.from(this.mixTracklist.values()).filter(track => track.mixId === mixId);
+  }
+
+  async createMixTrack(trackData: InsertMixTracklist): Promise<MixTracklist> {
+    const track: MixTracklist = {
+      id: this.generateId(),
+      mixId: trackData.mixId,
+      trackNumber: trackData.trackNumber,
+      title: trackData.title,
+      artist: trackData.artist,
+      startTime: trackData.startTime,
+      endTime: trackData.endTime || null,
+      label: trackData.label || null,
+      year: trackData.year || null,
+      genre: trackData.genre || null,
+      bpm: trackData.bpm || null,
+      key: trackData.key || null,
+      notes: trackData.notes || null,
+      spotifyId: trackData.spotifyId || null,
+      soundcloudUrl: trackData.soundcloudUrl || null,
+      youtubeUrl: trackData.youtubeUrl || null,
+      discogsUrl: trackData.discogsUrl || null,
+      isSpotifyAvailable: trackData.isSpotifyAvailable || false
+    };
+    this.mixTracklist.set(track.id, track);
+    return track;
+  }
+
+  async getCurrentTrackByTime(mixId: number, currentTime: number): Promise<MixTracklist | null> {
+    const tracklist = await this.getMixTracklist(mixId);
+    const currentTrack = tracklist.find(track => 
+      track.startTime <= currentTime && 
+      (track.endTime === null || track.endTime >= currentTime)
+    );
+    return currentTrack || null;
+  }
+
+  // Additional missing methods
+  async getFeaturedShows(): Promise<Show[]> {
+    return Array.from(this.shows.values()).filter(show => show.isFeatured === true);
+  }
+
+  async getLiveShows(): Promise<Show[]> {
+    return Array.from(this.shows.values()).filter(show => show.isLive === true);
   }
 }
 
