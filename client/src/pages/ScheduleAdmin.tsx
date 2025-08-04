@@ -97,8 +97,7 @@ export default function ScheduleAdmin() {
     queryKey: ['/api/admin/mix-submissions'],
   });
 
-  // Debug log
-  console.log('Mix submissions data:', mixSubmissions, 'Length:', mixSubmissions.length, 'Loading:', mixSubmissionsLoading);
+
 
   // Fetch Resident applications
   const { data: residentApplications = [], isLoading: residentApplicationsLoading } = useQuery({
@@ -538,7 +537,7 @@ export default function ScheduleAdmin() {
                 ) : !mixSubmissions || mixSubmissions.length === 0 ? (
                   <div className="text-center py-8 text-gray-600">
                     <Music className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                    <p>No mix submissions yet (Data: {JSON.stringify(mixSubmissions)})</p>
+                    <p>No mix submissions yet</p>
                   </div>
                 ) : (
                   mixSubmissions.map((submission: MixSubmission) => (
