@@ -785,11 +785,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/resident-applications', async (req, res) => {
     try {
+      console.log('POST /api/resident-applications - Received body:', JSON.stringify(req.body, null, 2));
+      
       const validatedData = insertResidentApplicationSchema.parse(req.body);
       const application = await storage.createResidentApplication(validatedData);
-      res.status(201).json(application);
-    } catch (error) {
-      res.status(400).json({ error: 'Invalid resident application data' });
+      
+      console.log('POST /api/resident-applications - Created application:', JSON.stringify(application, null, 2));
+      
+      // ALWAYS create a mix submission when resident applies with a mix sample
+      if (validatedData.mixSampleUrl) {
+        const mixSubmissionData = {
+          name: validatedData.djName,
+          title: `${validatedData.djName} - Resident Application Sample`,
+          genre: validatedData.preferredGenres.split(',')[0].trim(), // Use first genre
+          about: `Resident application sample from ${validatedData.djName}. Show concept: ${validatedData.showConcept.substring(0, 100)}...`,
+          audioUrl: validatedData.mixSampleUrl
+        };
+        
+        const mixSubmission = mixStorage.submitMix(mixSubmissionData);
+        console.log('POST /api/resident-applications - Also created mix submission:', mixSubmission);
+      }
+      
+      res.status(201).json({
+        success: true,
+        application,
+        message: 'Resident application submitted successfully! We\'ll review your application and get back to you soon.'
+      });
+    } catch (error: any) {
+      console.error('POST /api/resident-applications - Error:', error);
+      
+      if (error?.name === 'ZodError') {
+        return res.status(400).json({ 
+          error: 'Invalid resident application data',
+          details: error.errors 
+        });
+      }
+      
+      res.status(500).json({ 
+        error: 'Failed to submit resident application. Please try again.',
+        details: error?.message || 'Unknown error'
+      });
     }
   });
 

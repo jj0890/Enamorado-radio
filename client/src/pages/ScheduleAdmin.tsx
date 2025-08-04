@@ -71,7 +71,7 @@ interface MixSubmission {
 }
 
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'mix-submissions' | 'analytics'>('mix-submissions');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'resident-applications' | 'mix-submissions' | 'analytics'>('mix-submissions');
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState({
     title: '',
@@ -96,6 +96,12 @@ export default function ScheduleAdmin() {
   const { data: mixSubmissions = [], isLoading: mixSubmissionsLoading } = useQuery({
     queryKey: ['/api/admin/mix-submissions'],
     queryFn: () => apiRequest('/api/admin/mix-submissions'),
+  });
+
+  // Fetch Resident applications
+  const { data: residentApplications = [], isLoading: residentApplicationsLoading } = useQuery({
+    queryKey: ['/api/resident-applications'],
+    queryFn: () => apiRequest('/api/resident-applications'),
   });
 
   // Update DJ submission status
@@ -136,10 +142,25 @@ export default function ScheduleAdmin() {
     },
   });
 
+  // Update Resident application status
+  const updateResidentApplicationStatus = useMutation({
+    mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
+      return await apiRequest(`/api/resident-applications/${id}/status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ status, notes, reviewedBy: 'Admin' }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/resident-applications'] });
+    },
+  });
+
   const analytics = {
     totalShows: shows.length,
     liveShows: shows.filter(s => s.isLive).length,
     pendingDjSubmissions: djSubmissions.filter((s: DJSubmission) => s.status === 'pending').length,
+    pendingResidentApplications: residentApplications.filter((s: any) => s.status === 'pending').length,
+    pendingMixSubmissions: mixSubmissions.filter((s: MixSubmission) => s.status === 'pending').length,
     totalHours: shows.reduce((acc, show) => acc + show.duration, 0) / 60
   };
 
@@ -226,6 +247,17 @@ export default function ScheduleAdmin() {
           >
             <Users className="w-4 h-4 inline mr-2" />
             DJ Applications
+          </button>
+          <button
+            onClick={() => setActiveSection('resident-applications')}
+            className={`px-6 py-3 font-mono font-medium transition-all ${
+              activeSection === 'resident-applications'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+            }`}
+          >
+            <Users className="w-4 h-4 inline mr-2" />
+            Resident Apps
           </button>
           <button
             onClick={() => setActiveSection('mix-submissions')}
@@ -539,6 +571,86 @@ export default function ScheduleAdmin() {
           </div>
         )}
 
+        {/* Resident Applications Section */}
+        {activeSection === 'resident-applications' && (
+          <div className="space-y-6">
+            <div className="bg-blue-50 border-2 border-blue-500 rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-6 font-mono text-blue-500">Resident Applications</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {residentApplicationsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+                  </div>
+                ) : residentApplications.length === 0 ? (
+                  <div className="text-center py-8 text-gray-600">
+                    <Users className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>No resident applications yet</p>
+                  </div>
+                ) : (
+                  residentApplications.map((application: any) => (
+                    <div key={application.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium font-mono ${
+                          application.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          application.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          application.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {application.status.toUpperCase()}
+                        </span>
+                        <span className="text-gray-500 text-sm font-mono">{new Date(application.submittedAt).toLocaleDateString()}</span>
+                      </div>
+                      <h3 className="font-bold text-lg mb-2 text-black font-mono">{application.djName}</h3>
+                      <p className="text-gray-600 mb-1 font-mono">Real Name: {application.realName}</p>
+                      <p className="text-gray-600 mb-1 font-mono">Email: {application.email}</p>
+                      <p className="text-gray-600 mb-1 font-mono">Location: {application.location}</p>
+                      <p className="text-gray-600 mb-1 font-mono">Genres: {application.preferredGenres}</p>
+                      <p className="text-gray-600 mb-1 font-mono">Show Length: {application.showLength}</p>
+                      <p className="text-gray-600 mb-4 text-sm">Show Concept: {application.showConcept.length > 100 ? application.showConcept.substring(0, 100) + '...' : application.showConcept}</p>
+                      
+                      {/* Mix Sample Link */}
+                      {application.mixSampleUrl && (
+                        <div className="mb-4">
+                          <a 
+                            href={application.mixSampleUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs hover:bg-orange-200 transition-colors font-mono"
+                          >
+                            Mix Sample
+                          </a>
+                        </div>
+                      )}
+                      
+                      <div className="flex space-x-2">
+                        <button 
+                          onClick={() => updateResidentApplicationStatus.mutate({ id: application.id, status: 'approved' })}
+                          className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                          disabled={updateResidentApplicationStatus.isPending}
+                        >
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Approve
+                        </button>
+                        <button 
+                          onClick={() => updateResidentApplicationStatus.mutate({ id: application.id, status: 'rejected' })}
+                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                          disabled={updateResidentApplicationStatus.isPending}
+                        >
+                          <XCircle className="w-4 h-4 mr-1" />
+                          Reject
+                        </button>
+                        <button className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm transition-colors font-mono">
+                          <Eye className="w-4 h-4 inline mr-1" />
+                          View Details
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Mix Submissions Section */}
         {activeSection === 'mix-submissions' && (
           <div className="space-y-6">
@@ -809,7 +921,7 @@ export default function ScheduleAdmin() {
                 <div className="text-gray-400">Live Shows</div>
               </div>
               <div className="bg-gray-800 rounded-lg p-6 text-center">
-                <div className="text-3xl font-bold text-yellow-500 mb-2">{analytics.pendingDjSubmissions + analytics.pendingZineSubmissions}</div>
+                <div className="text-3xl font-bold text-yellow-500 mb-2">{analytics.pendingDjSubmissions + analytics.pendingResidentApplications + analytics.pendingMixSubmissions}</div>
                 <div className="text-gray-400">Total Pending</div>
               </div>
               <div className="bg-gray-800 rounded-lg p-6 text-center">
