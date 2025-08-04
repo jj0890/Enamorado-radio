@@ -558,6 +558,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const submission = await storage.createDjSubmission(validatedData);
       console.log('POST /api/dj-submissions - Created submission:', JSON.stringify(submission, null, 2));
       
+      // ALWAYS create a mix submission for the community section when someone submits a mix
+      if (validatedData.demoMixTitle && (validatedData.soundcloudUrl || validatedData.mixcloudUrl || validatedData.audiocomUrl || validatedData.otherUrl)) {
+        const mixSubmissionData = {
+          name: validatedData.djName,
+          title: validatedData.demoMixTitle,
+          genre: validatedData.primaryGenre,
+          about: validatedData.demoMixDescription || 'No description provided',
+          soundcloudUrl: validatedData.soundcloudUrl || '',
+          mixcloudUrl: validatedData.mixcloudUrl || '',
+          audioUrl: validatedData.audiocomUrl || validatedData.otherUrl || ''
+        };
+        
+        const mixSubmission = mixStorage.submitMix(mixSubmissionData);
+        console.log('POST /api/dj-submissions - Also created mix submission:', mixSubmission);
+      }
+      
       // Note: WebSocket broadcasting could be added later for real-time updates
       
       res.status(201).json({
