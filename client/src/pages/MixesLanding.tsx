@@ -42,21 +42,21 @@ export default function MixesLanding() {
   const carouselRef = useRef<HTMLDivElement>(null);
   const [isSubmissionModalOpen, setIsSubmissionModalOpen] = useState(false);
 
-  // Fetch featured DJ submissions from API
+  // Fetch featured mix submissions from API
   const { data: featuredSubmissions = [], isLoading } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/dj-submissions/featured'],
+    queryKey: ['/api/mixes', { featured: 'true' }],
     refetchInterval: 30000, // Refresh every 30 seconds for real-time updates
   });
 
-  // Fetch all DJ submissions 
+  // Fetch all mix submissions 
   const { data: allSubmissions = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/dj-submissions'],
+    queryKey: ['/api/mixes'],
     refetchInterval: 60000, // Refresh every minute
   });
 
   // Fetch community submissions (recent submissions regardless of approval)
   const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/dj-submissions/community'],
+    queryKey: ['/api/mixes', { community: 'true' }],
     refetchInterval: 30000, // Refresh every 30 seconds for fresh content
   });
 

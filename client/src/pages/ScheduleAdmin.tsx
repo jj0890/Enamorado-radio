@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Calendar, Clock, Users, BarChart3, Plus, Edit, Trash2, Eye, Upload, FileText, CheckCircle, XCircle, AlertCircle } from "lucide-react";
+import { Calendar, Clock, Users, BarChart3, Plus, Edit, Trash2, Eye, Upload, FileText, CheckCircle, XCircle, AlertCircle, Music } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Show {
@@ -55,8 +55,23 @@ interface ZineSubmission {
   notes?: string;
 }
 
+interface MixSubmission {
+  id: number;
+  name: string;
+  title: string;
+  genre: string;
+  about: string;
+  soundcloudUrl?: string;
+  mixcloudUrl?: string;
+  audiocomUrl?: string;
+  status: 'pending' | 'approved' | 'featured';
+  submittedAt: string;
+  approvedAt?: string;
+  approvedBy?: string;
+}
+
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'analytics'>('dj-submissions');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'mix-submissions' | 'analytics'>('mix-submissions');
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState({
     title: '',
@@ -77,6 +92,12 @@ export default function ScheduleAdmin() {
     queryFn: () => apiRequest('/api/dj-submissions'),
   });
 
+  // Fetch Mix submissions for management
+  const { data: mixSubmissions = [], isLoading: mixSubmissionsLoading } = useQuery({
+    queryKey: ['/api/admin/mix-submissions'],
+    queryFn: () => apiRequest('/api/admin/mix-submissions'),
+  });
+
   // Update DJ submission status
   const updateDjSubmissionStatus = useMutation({
     mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
@@ -87,6 +108,31 @@ export default function ScheduleAdmin() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/dj-submissions'] });
+    },
+  });
+
+  // Approve mix submission
+  const approveMixSubmission = useMutation({
+    mutationFn: async ({ submissionId, status }: { submissionId: number; status: 'approved' | 'featured' }) => {
+      return await apiRequest('/api/approveMix', {
+        method: 'POST',
+        body: JSON.stringify({ submissionId, status, approvedBy: 'admin' }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+    },
+  });
+
+  // Delete mix submission
+  const deleteMixSubmission = useMutation({
+    mutationFn: async (submissionId: number) => {
+      return await apiRequest(`/api/admin/mix-submissions/${submissionId}`, {
+        method: 'DELETE',
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
     },
   });
 
@@ -179,7 +225,18 @@ export default function ScheduleAdmin() {
             }`}
           >
             <Users className="w-4 h-4 inline mr-2" />
-            DJ Submissions
+            DJ Applications
+          </button>
+          <button
+            onClick={() => setActiveSection('mix-submissions')}
+            className={`px-6 py-3 font-mono font-medium transition-all ${
+              activeSection === 'mix-submissions'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+            }`}
+          >
+            <Music className="w-4 h-4 inline mr-2" />
+            Mix Submissions
           </button>
           <button
             onClick={() => setActiveSection('analytics')}
@@ -474,6 +531,122 @@ export default function ScheduleAdmin() {
                           View Details
                         </button>
                       </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Mix Submissions Section */}
+        {activeSection === 'mix-submissions' && (
+          <div className="space-y-6">
+            <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">Mix Submissions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {mixSubmissionsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                  </div>
+                ) : mixSubmissions.length === 0 ? (
+                  <div className="text-center py-8 text-gray-600">
+                    <Music className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                    <p>No mix submissions yet</p>
+                  </div>
+                ) : (
+                  mixSubmissions.map((submission: MixSubmission) => (
+                    <div key={submission.id} className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium font-mono ${
+                          submission.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                          submission.status === 'approved' ? 'bg-green-100 text-green-800' :
+                          submission.status === 'featured' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {submission.status.toUpperCase()}
+                        </span>
+                        <span className="text-gray-500 text-sm font-mono">{new Date(submission.submittedAt).toLocaleDateString()}</span>
+                      </div>
+                      <h3 className="font-bold text-lg mb-2 text-black font-mono">{submission.title}</h3>
+                      <p className="text-gray-600 mb-1 font-mono">DJ: {submission.name}</p>
+                      <p className="text-gray-600 mb-1 font-mono">Genre: {submission.genre}</p>
+                      <p className="text-gray-600 mb-4 text-sm">{submission.about}</p>
+                      
+                      {/* Platform Links */}
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        {submission.soundcloudUrl && (
+                          <a 
+                            href={submission.soundcloudUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs hover:bg-orange-200 transition-colors font-mono"
+                          >
+                            SoundCloud
+                          </a>
+                        )}
+                        {submission.mixcloudUrl && (
+                          <a 
+                            href={submission.mixcloudUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs hover:bg-blue-200 transition-colors font-mono"
+                          >
+                            Mixcloud
+                          </a>
+                        )}
+                        {submission.audiocomUrl && (
+                          <a 
+                            href={submission.audiocomUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs hover:bg-green-200 transition-colors font-mono"
+                          >
+                            Audio.com
+                          </a>
+                        )}
+                      </div>
+                      
+                      {submission.status === 'pending' && (
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => approveMixSubmission.mutate({ submissionId: submission.id, status: 'approved' })}
+                            className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                            disabled={approveMixSubmission.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4 mr-1" />
+                            Approve
+                          </button>
+                          <button 
+                            onClick={() => approveMixSubmission.mutate({ submissionId: submission.id, status: 'featured' })}
+                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                            disabled={approveMixSubmission.isPending}
+                          >
+                            <AlertCircle className="w-4 h-4 mr-1" />
+                            Feature
+                          </button>
+                          <button 
+                            onClick={() => deleteMixSubmission.mutate(submission.id)}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                            disabled={deleteMixSubmission.isPending}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                      
+                      {submission.status !== 'pending' && (
+                        <div className="flex space-x-2">
+                          <button 
+                            onClick={() => deleteMixSubmission.mutate(submission.id)}
+                            className="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                            disabled={deleteMixSubmission.isPending}
+                          >
+                            <Trash2 className="w-4 h-4 mr-1" />
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </div>
                   ))
                 )}
