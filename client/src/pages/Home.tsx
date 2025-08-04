@@ -27,6 +27,7 @@ import { Waveform } from '@/components/ui/waveform';
 
 export default function Home() {
   const [currentPlayback, setCurrentPlayback] = useState<CurrentPlayback | null>(null);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Fetch stations
   const { data: stations = [], isLoading: stationsLoading } = useQuery<AudioStation[]>({
@@ -112,14 +113,17 @@ export default function Home() {
                 <Link href="/explore" className="text-white/80 hover:text-white transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/mixtapes" className="text-white/80 hover:text-white transition-colors">
-                  INFINITE MIXTAPES
+                <Link href="/submit-mix" className="text-red-400 hover:text-red-300 transition-colors font-medium">
+                  SUBMIT
                 </Link>
-                <Link href="/shop" className="text-white/80 hover:text-white transition-colors">
-                  SHOP
+                <Link href="/mixes" className="text-white/80 hover:text-white transition-colors">
+                  MIXES
                 </Link>
                 <Link href="/radio" className="text-white hover:text-blue-400 transition-colors font-medium">
                   RADIO
+                </Link>
+                <Link href="/schedule" className="text-white/80 hover:text-white transition-colors">
+                  SCHEDULE
                 </Link>
               </nav>
             </div>
@@ -130,9 +134,77 @@ export default function Home() {
               <Button variant="ghost" size="sm" className="p-2 hover:bg-white/10">
                 <User className="w-5 h-5" />
               </Button>
+              {/* Mobile Menu Button */}
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="p-2 hover:bg-white/10 md:hidden"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                <Grid3x3 className="w-5 h-5" />
+              </Button>
             </div>
           </div>
         </div>
+        
+        {/* Mobile Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden bg-black/95 backdrop-blur-xl border-t border-white/10">
+            <nav className="px-4 py-6 space-y-4">
+              <Link 
+                href="/" 
+                className="block text-white/80 hover:text-white transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                LATEST
+              </Link>
+              <Link 
+                href="/explore" 
+                className="block text-white/80 hover:text-white transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                EXPLORE
+              </Link>
+              <Link 
+                href="/submit-mix" 
+                className="block text-red-400 hover:text-red-300 transition-colors font-medium py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                SUBMIT
+              </Link>
+              <Link 
+                href="/mixes" 
+                className="block text-white/80 hover:text-white transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                MIXES
+              </Link>
+              <Link 
+                href="/radio" 
+                className="block text-white hover:text-blue-400 transition-colors font-medium py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                RADIO
+              </Link>
+              <Link 
+                href="/schedule" 
+                className="block text-white/80 hover:text-white transition-colors py-2"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                SCHEDULE
+              </Link>
+              <div className="pt-4 border-t border-white/10">
+                <Link 
+                  href="/resident-application" 
+                  className="block text-blue-400 hover:text-blue-300 transition-colors font-medium py-2"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  BECOME RESIDENT
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
       </header>
 
       {/* Main Content */}
