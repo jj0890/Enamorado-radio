@@ -1,18 +1,6 @@
 {
   "mixSubmissions": [
     {
-      "name": "Hip Hop DJ",
-      "title": "Underground Vibes",
-      "genre": "Hip-Hop",
-      "about": "A collection of underground hip-hop tracks",
-      "mixcloudUrl": "https://mixcloud.com/user/underground-vibes",
-      "id": 2,
-      "status": "featured",
-      "submittedAt": "2025-08-04T02:40:16.253Z",
-      "approvedAt": "2025-08-04T02:40:17.058Z",
-      "approvedBy": "admin"
-    },
-    {
       "name": "Tee Vera",
       "title": "Tee Vera For The Zoo",
       "about": "testing",
