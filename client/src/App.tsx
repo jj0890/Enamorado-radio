@@ -4,7 +4,7 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import HomePage from "./pages/HomePage";
 import MobileRadio from "./pages/MobileRadio";
 import RadioLanding from "./pages/RadioLanding";
-import DJSubmit from "./pages/DJSubmit";
+
 import ResidentApplication from "./pages/ResidentApplication";
 import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
@@ -30,7 +30,7 @@ function Router() {
       <Route path="/mobile" component={MobileRadio} />
       <Route path="/radio" component={RadioLanding} />
       <Route path="/discover" component={Discover} />
-      <Route path="/dj-submit" component={DJSubmit} />
+
       <Route path="/resident-application" component={ResidentApplication} />
       <Route path="/admin" component={ScheduleAdmin} />
       <Route path="/admin/song-submissions" component={AdminSongSubmissions} />

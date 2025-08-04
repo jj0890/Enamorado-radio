@@ -125,7 +125,7 @@ export default function ResidentApplication() {
                 <Link href="/guides" className="text-gray-600 hover:text-red-500 transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/dj-submit" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/submit-mix" className="text-gray-600 hover:text-red-500 transition-colors">
                   SUBMIT
                 </Link>
                 <Link href="/albums" className="text-gray-600 hover:text-red-500 transition-colors">
