@@ -95,7 +95,6 @@ export default function ScheduleAdmin() {
   // Fetch Mix submissions for management
   const { data: mixSubmissions = [], isLoading: mixSubmissionsLoading } = useQuery({
     queryKey: ['/api/admin/mix-submissions'],
-    queryFn: () => apiRequest('/api/admin/mix-submissions'),
   });
 
   // Debug log
