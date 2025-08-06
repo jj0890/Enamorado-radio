@@ -147,6 +147,7 @@ export const insertSongSubmissionSchema = createInsertSchema(songSubmissions).om
   id: true,
   submittedAt: true,
   reviewedAt: true,
+  approvalStatus: true,
 });
 
 export const insertAdminSchema = createInsertSchema(admins).omit({
@@ -159,9 +160,7 @@ export const insertCurrentPlaybackSchema = createInsertSchema(currentPlayback).o
   startTime: true,
 });
 
-// Types
-// =====
-
+// Type exports  
 export type Episode = typeof episodes.$inferSelect;
 export type Guide = typeof guides.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
@@ -177,3 +176,4 @@ export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
+

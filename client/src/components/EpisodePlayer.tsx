@@ -4,7 +4,7 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, MoreHorizontal, ExternalLi
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import type { Episode, EpisodeTracklist } from '@shared/schema';
+import type { Episode } from '@shared/schema-clean';
 
 interface EpisodePlayerProps {
   episode: Episode;
@@ -17,21 +17,9 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
   const [showTracklist, setShowTracklist] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Fetch episode tracklist
-  const { data: tracks = [] } = useQuery<EpisodeTracklist[]>({
-    queryKey: ['/api/episode-tracklist', episode.id],
-    queryFn: async () => {
-      const response = await fetch(`/api/episode-tracklist/${episode.id}`);
-      if (!response.ok) throw new Error('Failed to fetch tracklist');
-      return response.json();
-    },
-  });
-
-  // Get current track based on time
-  const currentTrack = tracks.find(track => 
-    currentTime >= track.startTime && 
-    (track.endTime === null || currentTime < track.endTime)
-  );
+  // Mock tracklist for now (will be replaced with real data)
+  const tracks: any[] = [];
+  const currentTrack = null;
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -147,123 +135,15 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
         </div>
       </div>
 
-      {/* Current Track Display */}
-      {currentTrack && (
-        <div className="p-4 border-b border-gray-800 bg-gray-900">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="font-medium">{currentTrack.title}</p>
-              <p className="text-sm text-gray-400">{currentTrack.artist}</p>
-            </div>
-            <div className="flex space-x-2">
-              {currentTrack.spotifyId && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openSpotifyTrack(currentTrack.spotifyId!)}
-                  className="text-green-500 hover:text-green-400"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  Spotify
-                </Button>
-              )}
-              {currentTrack.soundcloudUrl && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => openSoundCloudTrack(currentTrack.soundcloudUrl!)}
-                  className="text-orange-500 hover:text-orange-400"
-                >
-                  <ExternalLink className="h-3 w-3" />
-                  SoundCloud
-                </Button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Current Track Display - disabled for now */}
 
       {/* Tracklist */}
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-4">TRACKLIST</h3>
         <div className="space-y-3">
-          {tracks.map((track) => (
-            <div key={track.id} className="group relative">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-sm text-gray-500 w-8">
-                      {track.trackNumber}
-                    </span>
-                    <div className="flex-1">
-                      <p className="font-medium">{track.title}</p>
-                      <p className="text-sm text-gray-400">{track.artist}</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="text-xs"
-                    onClick={() => setShowTracklist(!showTracklist)}
-                  >
-                    <MoreHorizontal className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Track actions (similar to NTS) */}
-              <div className="mt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="flex flex-col space-y-1 text-xs">
-                  {track.spotifyId && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openSpotifyTrack(track.spotifyId!)}
-                      className="justify-start h-8 text-green-500 hover:text-green-400"
-                    >
-                      <ExternalLink className="h-3 w-3 mr-2" />
-                      SEARCH ON SPOTIFY
-                    </Button>
-                  )}
-                  {track.soundcloudUrl && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openSoundCloudTrack(track.soundcloudUrl!)}
-                      className="justify-start h-8 text-orange-500 hover:text-orange-400"
-                    >
-                      <ExternalLink className="h-3 w-3 mr-2" />
-                      SEARCH ON SOUNDCLOUD
-                    </Button>
-                  )}
-                  {track.youtubeUrl && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openYouTubeTrack(track.youtubeUrl!)}
-                      className="justify-start h-8 text-red-500 hover:text-red-400"
-                    >
-                      <ExternalLink className="h-3 w-3 mr-2" />
-                      SEARCH ON YOUTUBE
-                    </Button>
-                  )}
-                  {track.discogsUrl && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => openDiscogsTrack(track.discogsUrl!)}
-                      className="justify-start h-8 text-purple-500 hover:text-purple-400"
-                    >
-                      <ExternalLink className="h-3 w-3 mr-2" />
-                      SEARCH ON DISCOGS
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+          <p className="text-gray-500 text-center py-8">
+            Tracklist functionality will be available when track data is integrated.
+          </p>
         </div>
       </div>
 

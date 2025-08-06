@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
 import { EpisodePlayer } from '@/components/EpisodePlayer';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import type { Episode } from '@shared/schema';
+import type { Episode } from '@shared/schema-clean';
 
 export default function EpisodeView() {
   const [, params] = useRoute('/episode/:id');

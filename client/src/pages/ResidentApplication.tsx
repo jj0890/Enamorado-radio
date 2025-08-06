@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { insertResidentApplicationSchema } from "@shared/schema";
+import { insertSongSubmissionSchema } from "@shared/schema-clean";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,11 +27,13 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Music, Calendar, Clock, Users } from "lucide-react";
 
-// Use the backend schema for validation
-// Remove character limits for user-friendly submission
-const applicationSchema = insertResidentApplicationSchema.extend({
-  bio: insertResidentApplicationSchema.shape.bio.min(1, "Bio is required"),
-  showConcept: insertResidentApplicationSchema.shape.showConcept.min(1, "Show concept is required"),
+// Use song submission schema as base for resident applications
+const applicationSchema = z.object({
+  djName: z.string().min(1, "DJ name is required"),
+  realName: z.string().min(1, "Real name is required"),
+  email: z.string().email("Valid email is required"),
+  bio: z.string().min(1, "Bio is required"),
+  showConcept: z.string().min(1, "Show concept is required"),
 });
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;

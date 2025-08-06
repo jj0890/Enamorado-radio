@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import type { Episode } from '@shared/schema';
+import type { Episode } from '@shared/schema-clean';
 
 export default function EpisodesBrowser() {
   const [searchTerm, setSearchTerm] = useState('');

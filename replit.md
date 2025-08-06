@@ -3,6 +3,15 @@
 ## Overview
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
+## Recent Changes
+**Clean Schema Migration Completed (January 2025)**
+- Successfully migrated from complex legacy schema to streamlined clean architecture
+- Consolidated all routing and type definitions into single source of truth files
+- Moved deprecated files (routes.ts, schema.ts, storage.ts) to dedicated deprecated/ folder
+- Updated all imports across client and server to use clean schema system
+- Resolved all TypeScript/LSP errors and ensured type consistency
+- Maintained full functionality while simplifying codebase structure
+
 ## User Preferences
 Preferred communication style: Simple, everyday language.
 Technical approach: **ZERO TOLERANCE for artificial seed data** - only authentic data sources and real functionality. No mock data, placeholder content, or "vibey coding" ever.
@@ -30,13 +39,14 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **API Design**: RESTful API with real-time WebSocket enhancements
 - **Core Functionality**: Manages radio programs, schedules, content rotation, user submissions, and an admin approval queue.
 - **Streaming**: Supports live Icecast streaming with intelligent live/recorded switching and HTML5 audio for queued tracks.
-- **Data Persistence**: JSON file-based storage (`server/mixStorage.json`) ensures data survives server restarts and Replit environment changes.
+- **Data Persistence**: In-memory storage with clean modular architecture (`server/storage.ts`) ensures data consistency and type safety.
 
 ### Database Architecture
-- **Database**: PostgreSQL with connection pooling
+- **Database**: PostgreSQL with connection pooling (ready for production)
 - **ORM**: Drizzle ORM
 - **Migrations**: Drizzle Kit
 - **Connection**: Neon serverless PostgreSQL
+- **Current Setup**: Clean schema architecture with streamlined types and consistent naming conventions
 
 ### Key Features
 - **Audio System**: Custom AudioManager and AudioPlayer components with real-time updates via WebSockets.
