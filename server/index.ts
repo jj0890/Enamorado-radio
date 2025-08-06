@@ -74,6 +74,11 @@ app.use('/attached_assets', express.static('attached_assets', {
   }
 }));
 
+// Redirect resident application route to Google Form (must be before Vite middleware)
+app.get('/resident-application', (req, res) => {
+  res.redirect(301, 'https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform');
+});
+
 (async () => {
   const server = await registerRoutes(app);
 

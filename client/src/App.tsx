@@ -5,7 +5,7 @@ import HomePage from "./pages/HomePage";
 import MobileRadio from "./pages/MobileRadio";
 import RadioLanding from "./pages/RadioLanding";
 
-import ResidentApplication from "./pages/ResidentApplication";
+// ResidentApplication removed - now redirects to Google Form via Express route
 import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
 
@@ -31,7 +31,7 @@ function Router() {
       <Route path="/radio" component={RadioLanding} />
       <Route path="/discover" component={Discover} />
 
-      <Route path="/resident-application" component={ResidentApplication} />
+      {/* /resident-application handled by Express redirect to Google Form */}
       <Route path="/admin" component={ScheduleAdmin} />
       <Route path="/admin/song-submissions" component={AdminSongSubmissions} />
       <Route path="/admin/queue" component={AdminQueue} />
