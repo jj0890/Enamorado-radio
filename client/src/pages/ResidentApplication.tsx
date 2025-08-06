@@ -28,7 +28,11 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Music, Calendar, Clock, Users } from "lucide-react";
 
 // Use the backend schema for validation
-const applicationSchema = insertResidentApplicationSchema;
+// Remove character limits for user-friendly submission
+const applicationSchema = insertResidentApplicationSchema.extend({
+  bio: insertResidentApplicationSchema.shape.bio.min(1, "Bio is required"),
+  showConcept: insertResidentApplicationSchema.shape.showConcept.min(1, "Show concept is required"),
+});
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
 
