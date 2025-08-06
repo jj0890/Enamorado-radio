@@ -135,7 +135,7 @@ export default function MixesLanding() {
     return {
       id: submission.id,
       title: submission.dynamicTitle || submission.title || submission.demoMixTitle,
-      artist: submission.dynamicArtist || submission.name || submission.djName,
+      artist: submission.name || submission.dynamicArtist || submission.djName,
       description: submission.about || submission.demoMixDescription,
       thumbnailUrl: submission.thumbnail || '', // Use thumbnail from API metadata
       platform: getPlatform(),
@@ -432,7 +432,7 @@ export default function MixesLanding() {
                     {submission.thumbnail ? (
                       <img 
                         src={submission.thumbnail} 
-                        alt={`${submission.dynamicTitle || submission.title} by ${submission.dynamicArtist || submission.name}`}
+                        alt={`${submission.dynamicTitle || submission.title} by ${submission.name || submission.dynamicArtist}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -482,7 +482,7 @@ export default function MixesLanding() {
                       {submission.dynamicTitle || submission.title || submission.demoMixTitle}
                     </h3>
                     <p className="text-gray-600 font-mono text-xs">
-                      {submission.dynamicArtist || submission.name || submission.djName}
+                      {submission.name || submission.dynamicArtist || submission.djName}
                     </p>
                     
                     {/* Genre & Duration */}
