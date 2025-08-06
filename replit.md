@@ -9,6 +9,8 @@ Technical approach: **ZERO TOLERANCE for artificial seed data** - only authentic
 Design philosophy: Substance over style - every UI element must have tangible backend implementation
 Streaming approach: Self-hosted solution preferred over third-party services like Radio.co
 Data integrity: Clean slate storage with only essential admin account - all content must come from authentic user submissions
+Metadata handling: Prioritize original submission names over enhanced metadata from external APIs (e.g., use submitted artist names over SoundCloud metadata)
+External forms: Prefer Google Forms for complex applications over custom form implementations
 
 ## System Architecture
 
@@ -46,6 +48,8 @@ Data integrity: Clean slate storage with only essential admin account - all cont
 - **College Radio System**: Distinguishes live programming vs. auto-rotation modes, ProgramIndicator, track rotation system combining community uploads, SoundCloud, and DJ submissions.
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
 - **Mix Submission Backend**: Complete persistent JSON-based storage system for mix submissions with approval workflow. Supports SoundCloud, Mixcloud, and Audio.com URLs. Features admin approval pipeline with status management (pending → approved/featured).
+- **SoundCloud Metadata Integration**: Automatic fetching and storage of enhanced metadata (titles, artists, thumbnails) via oEmbed API with intelligent display priority logic.
+- **Resident Application System**: Express redirect route from /resident-application to external Google Form for streamlined application processing.
 - **Admin Controls**: Stream control panel (play/pause/skip), manual now playing updates, comprehensive CRUD operations for content.
 
 ## External Dependencies
