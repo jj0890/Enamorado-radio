@@ -13,7 +13,7 @@ import {
   InsertSongSubmission,
   InsertAdmin,
   InsertCurrentPlayback
-} from "@shared/schema-clean";
+} from "@shared/schema";
 
 // Clean Storage Interface - Single source of truth for all data operations
 export interface IStorage {
@@ -360,4 +360,4 @@ class MemStorage implements IStorage {
   }
 }
 
-export const cleanStorage = new MemStorage();
+export const storage = new MemStorage();
