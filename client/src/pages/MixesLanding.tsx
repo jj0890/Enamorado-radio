@@ -460,7 +460,16 @@ export default function MixesLanding() {
 
                     {/* Play Button Overlay */}
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button size="sm" className="bg-white text-black hover:bg-gray-200 text-xs px-2 py-1">
+                      <Button 
+                        size="sm" 
+                        className="bg-white text-black hover:bg-gray-200 text-xs px-2 py-1"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (submission.soundcloudUrl) {
+                            window.open(submission.soundcloudUrl, '_blank');
+                          }
+                        }}
+                      >
                         <Play className="h-3 w-3 mr-1" />
                         LISTEN
                       </Button>
@@ -537,7 +546,16 @@ export default function MixesLanding() {
                   
                   {/* Play Button Overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button size="sm" className="bg-white text-black hover:bg-gray-200">
+                    <Button 
+                      size="sm" 
+                      className="bg-white text-black hover:bg-gray-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (mix.url) {
+                          window.open(mix.url, '_blank');
+                        }
+                      }}
+                    >
                       <Play className="h-4 w-4 mr-1" />
                       PLAY
                     </Button>
