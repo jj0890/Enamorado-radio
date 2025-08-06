@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage-clean";
 import LatestPage from "./pages/LatestPage";
 import ExplorePage from "./pages/ExplorePage";  
 import SchedulePage from "./pages/SchedulePage";
+import EpisodesPage from "./pages/EpisodesPage";
 import EpisodeView from "./pages/EpisodeView-clean";
 import GuideDetail from "./pages/GuideDetail-clean";
 import MixesPage from "./pages/MixesPage";
@@ -23,11 +24,10 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/latest" component={LatestPage} />
       <Route path="/explore" component={ExplorePage} />
-      <Route path="/schedule" component={SchedulePage} />
-      
-      {/* Content Pages */}
+      <Route path="/explore/:slug" component={GuideDetail} />
+      <Route path="/episodes" component={EpisodesPage} />
       <Route path="/episode/:id" component={EpisodeView} />
-      <Route path="/guide/:slug" component={GuideDetail} />
+      <Route path="/schedule" component={SchedulePage} />
       <Route path="/mixes" component={MixesPage} />
       <Route path="/submit-mix" component={SubmitMix} />
       

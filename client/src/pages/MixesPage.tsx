@@ -46,6 +46,9 @@ export default function MixesPage() {
                 <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
                   EXPLORE
                 </Link>
+                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                  EPISODES
+                </Link>
                 <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
                   SCHEDULE
                 </Link>

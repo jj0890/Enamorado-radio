@@ -51,6 +51,9 @@ export default function ExplorePage() {
                 <Link href="/explore" className="text-red-500 font-medium">
                   EXPLORE
                 </Link>
+                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                  EPISODES
+                </Link>
                 <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
                   SCHEDULE
                 </Link>
@@ -149,7 +152,7 @@ export default function ExplorePage() {
         {filteredGuides.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredGuides.map((guide: any) => (
-              <Link key={guide.id} href={`/guide/${guide.slug}`}>
+              <Link key={guide.id} href={`/explore/${guide.slug}`}>
                 <div className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group cursor-pointer h-full">
                   {/* Cover Image */}
                   {guide.coverImageUrl && (

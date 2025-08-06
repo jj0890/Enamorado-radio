@@ -51,6 +51,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **SoundCloud Metadata Integration**: Automatic fetching and storage of enhanced metadata (titles, artists, thumbnails) via oEmbed API with intelligent display priority logic.
 - **Resident Application System**: Express redirect route from /resident-application to external Google Form for streamlined application processing.
 - **Admin Controls**: Stream control panel (play/pause/skip), manual now playing updates, comprehensive CRUD operations for content.
+- **Enhanced Routing Structure**: Complete navigation system with Latest, Explore (guides), Episodes (archive), Schedule (live programming), and Mixes (community) sections. Guides are treated as collections/editorials distinct from individual episodes, following a magazine-style content architecture.
 
 ## External Dependencies
 
