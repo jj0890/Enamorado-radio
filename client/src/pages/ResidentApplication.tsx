@@ -5,6 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
+import { insertResidentApplicationSchema } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -26,25 +27,8 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Music, Calendar, Clock, Users } from "lucide-react";
 
-const applicationSchema = z.object({
-  djName: z.string().min(1, "DJ name is required"),
-  realName: z.string().min(1, "Real name is required"),
-  email: z.string().email("Valid email is required"),
-  phoneNumber: z.string().min(1, "Phone number is required"),
-  location: z.string().min(1, "Location is required"),
-  bio: z.string().min(50, "Bio must be at least 50 characters"),
-  experience: z.string().min(1, "Experience level is required"),
-  preferredGenres: z.string().min(1, "Preferred genres are required"),
-  showConcept: z.string().min(100, "Show concept must be at least 100 characters"),
-  availableDays: z.string().min(1, "Available days are required"),
-  preferredTimeSlot: z.string().min(1, "Preferred time slot is required"),
-  showLength: z.string().min(1, "Show length preference is required"),
-  techSetup: z.string().min(1, "Technical setup description is required"),
-  pastWork: z.string().optional(),
-  socialMedia: z.string().optional(),
-  additionalInfo: z.string().optional(),
-  mixSampleUrl: z.string().url().optional().or(z.literal("")),
-});
+// Use the backend schema for validation
+const applicationSchema = insertResidentApplicationSchema;
 
 type ApplicationFormData = z.infer<typeof applicationSchema>;
 
@@ -453,6 +437,7 @@ export default function ResidentApplication() {
                       <FormControl>
                         <Textarea 
                           {...field} 
+                          value={field.value || ""}
                           placeholder="Previous radio shows, events, releases, or other relevant experience..."
                           rows={3}
                         />
@@ -470,7 +455,7 @@ export default function ResidentApplication() {
                       <FormItem>
                         <FormLabel className="font-mono font-medium">Social Media / Website</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Instagram, SoundCloud, website, etc." />
+                          <Input {...field} value={field.value || ""} placeholder="Instagram, SoundCloud, website, etc." />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -484,7 +469,7 @@ export default function ResidentApplication() {
                       <FormItem>
                         <FormLabel className="font-mono font-medium">Sample Mix URL</FormLabel>
                         <FormControl>
-                          <Input {...field} placeholder="Link to a representative mix" />
+                          <Input {...field} value={field.value || ""} placeholder="Link to a representative mix" />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -501,6 +486,7 @@ export default function ResidentApplication() {
                       <FormControl>
                         <Textarea 
                           {...field} 
+                          value={field.value || ""}
                           placeholder="Anything else you'd like us to know about your application..."
                           rows={3}
                         />
