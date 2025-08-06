@@ -683,8 +683,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const mixes = mixStorage.getMixes(status, genre as string);
       
-      console.log(`GET /api/mixes - Found ${mixes.length} mixes with status: ${status}, genre: ${genre}`);
-      res.json(mixes);
+      // Enrich mixes with metadata if not already present
+      const enrichedMixes = await Promise.all(
+        mixes.map(async (mix) => {
+          // If metadata is already fetched, return as-is
+          if (mix.metadataFetched && mix.dynamicTitle) {
+            return mix;
+          }
+          
+          // If SoundCloud URL exists but no metadata, try to fetch it
+          if (mix.soundcloudUrl && !mix.metadataFetched) {
+            try {
+              const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(mix.soundcloudUrl)}`);
+              if (response.ok) {
+                const data = await response.json();
+                const titleParts = data.title.split(' by ');
+                const dynamicTitle = titleParts[0];
+                const dynamicArtist = titleParts[1] || data.author_name;
+                const thumbnail = data.thumbnail_url;
+                
+                // Update the mix with metadata in storage
+                mixStorage.updateSubmissionMetadata(mix.id, {
+                  dynamicTitle,
+                  dynamicArtist,
+                  thumbnail,
+                  metadataFetched: true
+                });
+                
+                return {
+                  ...mix,
+                  dynamicTitle,
+                  dynamicArtist,
+                  thumbnail,
+                  metadataFetched: true
+                };
+              }
+            } catch (error) {
+              console.log(`Failed to fetch metadata for mix ${mix.id}:`, error);
+            }
+          }
+          
+          return mix;
+        })
+      );
+      
+      console.log(`GET /api/mixes - Found ${enrichedMixes.length} mixes with status: ${status}, genre: ${genre}`);
+      res.json(enrichedMixes);
     } catch (error: any) {
       console.error('GET /api/mixes - Error:', error);
       logError('GET /api/mixes', error, req);
@@ -706,6 +750,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ 
           error: 'Status must be either "approved" or "featured"' 
         });
+      }
+      
+      // Get the submission before approval to fetch metadata
+      const submission = mixStorage.getSubmission(submissionId);
+      if (!submission) {
+        return res.status(404).json({ error: 'Mix submission not found' });
+      }
+      
+      // Fetch and update metadata if SoundCloud URL exists
+      if (submission.soundcloudUrl) {
+        try {
+          console.log(`[metadata] Fetching metadata for: ${submission.soundcloudUrl}`);
+          const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(submission.soundcloudUrl)}`);
+          
+          if (response.ok) {
+            const data = await response.json();
+            
+            // Parse artist and title from the title field
+            const titleParts = data.title.split(' by ');
+            const dynamicTitle = titleParts[0];
+            const dynamicArtist = titleParts[1] || data.author_name;
+            const thumbnail = data.thumbnail_url;
+            
+            // Update the submission with metadata
+            mixStorage.updateSubmissionMetadata(submissionId, {
+              dynamicTitle,
+              dynamicArtist,
+              thumbnail,
+              metadataFetched: true
+            });
+            
+            console.log(`[metadata] Successfully fetched metadata: "${dynamicTitle}" by ${dynamicArtist}`);
+          } else {
+            console.log(`[metadata] Failed to fetch metadata for ${submission.soundcloudUrl}: ${response.status}`);
+          }
+        } catch (error) {
+          console.error(`[metadata] Error fetching metadata for submission ${submissionId}:`, error);
+        }
       }
       
       const approvedMix = mixStorage.approveMix(submissionId, status, approvedBy);

@@ -134,14 +134,14 @@ export default function MixesLanding() {
 
     return {
       id: submission.id,
-      title: submission.dynamicTitle || submission.demoMixTitle,
-      artist: submission.dynamicArtist || submission.djName,
-      description: submission.demoMixDescription,
-      thumbnailUrl: '', // Will be populated by useEffect below
+      title: submission.dynamicTitle || submission.title || submission.demoMixTitle,
+      artist: submission.dynamicArtist || submission.name || submission.djName,
+      description: submission.about || submission.demoMixDescription,
+      thumbnailUrl: submission.thumbnail || '', // Use thumbnail from API metadata
       platform: getPlatform(),
       url: getMainUrl(),
       duration: getDuration(),
-      genre: [submission.primaryGenre],
+      genre: [submission.genre || submission.primaryGenre],
       featured: true
     };
   };
@@ -153,20 +153,13 @@ export default function MixesLanding() {
   const approvedSubmissions = allSubmissions.filter(s => s.status === 'approved');
   const allMixes: Mix[] = approvedSubmissions.map(convertSubmissionToMix);
 
-  // State for storing fetched thumbnails
+  // State for storing fetched thumbnails (now primarily for featured mixes only)
   const [thumbnailCache, setThumbnailCache] = useState<Record<number, string>>({});
 
-  // Populate thumbnails from API data and SoundCloud oEmbed for featured mixes
+  // Populate thumbnails for hardcoded featured mixes only - submissions now come with metadata from API
   useEffect(() => {
     const populateThumbnails = async () => {
-      // Populate from API-enriched thumbnails for community submissions
-      allSubmissions.forEach(submission => {
-        if (submission.thumbnail && !thumbnailCache[submission.id]) {
-          setThumbnailCache(prev => ({ ...prev, [submission.id]: submission.thumbnail! }));
-        }
-      });
-
-      // Fetch thumbnails for hardcoded featured mixes
+      // Fetch thumbnails for hardcoded featured mixes only
       for (const mix of featuredMixes) {
         if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
           try {
@@ -179,24 +172,10 @@ export default function MixesLanding() {
           }
         }
       }
-
-      // Then fetch any missing thumbnails for all mixes
-      for (const mix of allMixes) {
-        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
-          try {
-            const thumbnail = await fetchSoundCloudThumbnail(mix.url);
-            if (thumbnail) {
-              setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));
-            }
-          } catch (error) {
-            console.log(`Failed to fetch thumbnail for mix ${mix.id}`);
-          }
-        }
-      }
     };
 
     populateThumbnails();
-  }, [allSubmissions.length]);
+  }, [featuredMixes.length]);
 
   const scrollToMix = (index: number) => {
     setCurrentMixIndex(index);
@@ -453,7 +432,7 @@ export default function MixesLanding() {
                     {submission.thumbnail ? (
                       <img 
                         src={submission.thumbnail} 
-                        alt={`${submission.dynamicTitle || submission.demoMixTitle} by ${submission.dynamicArtist || submission.djName}`}
+                        alt={`${submission.dynamicTitle || submission.title} by ${submission.dynamicArtist || submission.name}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none';
@@ -491,10 +470,10 @@ export default function MixesLanding() {
                   {/* Community Submission Info */}
                   <div className="space-y-1">
                     <h3 className="font-bold text-sm leading-tight font-mono">
-                      {submission.dynamicTitle || submission.demoMixTitle}
+                      {submission.dynamicTitle || submission.title || submission.demoMixTitle}
                     </h3>
                     <p className="text-gray-600 font-mono text-xs">
-                      {submission.dynamicArtist || submission.djName}
+                      {submission.dynamicArtist || submission.name || submission.djName}
                     </p>
                     
                     {/* Genre & Duration */}
@@ -538,9 +517,9 @@ export default function MixesLanding() {
               >
                 {/* Mix Thumbnail */}
                 <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative border-2 border-black">
-                  {thumbnailCache[mix.id] ? (
+                  {mix.thumbnailUrl ? (
                     <img 
-                      src={thumbnailCache[mix.id]} 
+                      src={mix.thumbnailUrl} 
                       alt={`${mix.title} by ${mix.artist}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {

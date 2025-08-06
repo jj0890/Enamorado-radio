@@ -40,6 +40,11 @@ interface MixSubmissionData {
   submittedAt: string;
   approvedAt?: string;
   approvedBy?: string;
+  // Metadata fields for SoundCloud/external platform integration
+  dynamicTitle?: string;
+  dynamicArtist?: string;
+  thumbnail?: string;
+  metadataFetched?: boolean;
 }
 
 interface MixStorageData {
@@ -128,6 +133,29 @@ class PersistentMixStorage {
     data.mixSubmissions.splice(index, 1);
     this.saveData(data);
     return true;
+  }
+
+  getSubmission(id: number): MixSubmissionData | null {
+    const data = this.loadData();
+    return data.mixSubmissions.find(submission => submission.id === id) || null;
+  }
+
+  updateSubmissionMetadata(id: number, metadata: {
+    dynamicTitle?: string;
+    dynamicArtist?: string;
+    thumbnail?: string;
+    metadataFetched?: boolean;
+  }): MixSubmissionData | null {
+    const data = this.loadData();
+    const submission = data.mixSubmissions.find(mix => mix.id === id);
+    
+    if (!submission) return null;
+    
+    // Update metadata fields
+    Object.assign(submission, metadata);
+    
+    this.saveData(data);
+    return submission;
   }
 }
 

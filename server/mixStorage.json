@@ -7,8 +7,14 @@
       "soundcloudUrl": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24",
       "genre": "dnb",
       "id": 3,
-      "status": "pending",
-      "submittedAt": "2025-08-04T04:20:20.070Z"
+      "status": "approved",
+      "submittedAt": "2025-08-04T04:20:20.070Z",
+      "approvedAt": "2025-08-06T09:43:17.026Z",
+      "approvedBy": "admin",
+      "dynamicTitle": "Tee Vera for \"The Zoo\" @ Empire Control Room in ATX (6-21-24)",
+      "dynamicArtist": "Teala Vera",
+      "thumbnail": "https://i1.sndcdn.com/artworks-W0AsF9z5Brpt2N9e-5mzyzw-t500x500.jpg",
+      "metadataFetched": true
     }
   ],
   "nextId": 4
