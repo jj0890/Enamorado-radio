@@ -1,8 +1,22 @@
+import 'express-async-errors';
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
+import cors from 'cors';
+import helmet from 'helmet';
+import pino from 'pino';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+const logger = pino();
+
 const app = express();
+
+// Security and CORS middleware
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for dev - enable in production
+}));
+app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -30,10 +44,25 @@ app.use((req, res, next) => {
       }
 
       log(logLine);
+      logger.info({ method: req.method, path, statusCode: res.statusCode, duration }, 'API Request');
     }
   });
 
   next();
+});
+
+// Global error handler
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  logger.error({ err, req: { method: req.method, url: req.url } }, 'Server Error');
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+  
+  res.status(500).json({ 
+    error: 'Internal Server Error',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
+  });
 });
 
 // Serve audio files statically from attached_assets directory (before routes)
