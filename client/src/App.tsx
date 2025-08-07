@@ -19,7 +19,7 @@ import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 import MixesLanding from "./pages/MixesLanding";
-import SubmitMix from "./pages/SubmitMix";
+import SubmitMix from "./pages/SubmitMix-clean";
 import AdminSongSubmissions from "./pages/AdminSongSubmissions";
 import AdminQueue from "./pages/AdminQueue";
 
