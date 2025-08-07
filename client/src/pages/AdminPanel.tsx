@@ -6,20 +6,35 @@ import { ArrowLeft, Settings, Music, Calendar, Users, Star, Check, X } from "luc
 import { useToast } from "@/hooks/use-toast";
 import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
 
+interface MixSubmission {
+  id: number;
+  name: string;
+  title: string;
+  genre: string;
+  about: string;
+  url: string;
+  metadata?: any;
+  status: string;
+  submittedAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  notes?: string;
+}
+
 export default function AdminPanel() {
   const [activeTab, setActiveTab] = useState<'mixes' | 'schedule' | 'episodes'>('mixes');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch pending mix submissions
-  const { data: pendingMixes = [] } = useQuery({
+  const { data: pendingMixes = [] } = useQuery<MixSubmission[]>({
     queryKey: ["/api/mixes", { status: 'pending' }],
     refetchInterval: 10000,
   });
 
-  // Fetch all mixes for management
-  const { data: allMixes = [] } = useQuery({
-    queryKey: ["/api/mixes", { status: 'approved' }],
+  // Fetch all mixes for management  
+  const { data: allMixes = [] } = useQuery<MixSubmission[]>({
+    queryKey: ["/api/mixes"],
   });
 
   // Fetch schedule items
@@ -64,7 +79,7 @@ export default function AdminPanel() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <PersistentRadioPlayer isActive={false} onToggle={() => {}} />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

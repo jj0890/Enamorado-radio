@@ -5,6 +5,139 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Music, Upload, Clock, User, Star } from "lucide-react";
 import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
 
+// All Mixes Component
+function AllMixesSection() {
+  const [allMixesFilter, setAllMixesFilter] = useState<'all' | 'pending' | 'approved' | 'featured'>('all');
+  
+  const { data: allMixes = [], isLoading } = useQuery({
+    queryKey: ["/api/mixes", { status: allMixesFilter === 'all' ? undefined : allMixesFilter, limit: 50 }],
+    refetchInterval: 30000,
+  });
+
+  const getStatusBadge = (status: string) => {
+    const styles = {
+      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
+      approved: "bg-green-100 text-green-800 border-green-300", 
+      featured: "bg-red-100 text-red-800 border-red-300"
+    };
+    return (
+      <span className={`px-2 py-1 text-xs font-mono border rounded ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800 border-gray-300"}`}>
+        {status.toUpperCase()}
+      </span>
+    );
+  };
+
+  if (isLoading) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-600 font-mono">Loading all mixes...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      {/* Filter Controls for All Mixes */}
+      <div className="mb-6">
+        <div className="flex gap-2 flex-wrap">
+          {['all', 'pending', 'approved', 'featured'].map((filterOption) => (
+            <Button
+              key={filterOption}
+              size="sm"
+              variant={allMixesFilter === filterOption ? 'default' : 'outline'}
+              onClick={() => setAllMixesFilter(filterOption as typeof allMixesFilter)}
+              className={allMixesFilter === filterOption 
+                ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
+                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
+              }
+            >
+              {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
+            </Button>
+          ))}
+        </div>
+      </div>
+
+      {/* All Mixes Grid */}
+      {allMixes.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {allMixes.map((mix: any) => {
+            const metadata = mix.metadata && typeof mix.metadata === 'object' ? mix.metadata : {};
+            const title = metadata.title || mix.title;
+            const artist = metadata.artist || mix.name;
+            const artwork = metadata.artwork || null;
+
+            return (
+              <div 
+                key={mix.id} 
+                className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group"
+              >
+                {/* Compact Artwork */}
+                <div className="aspect-square bg-gray-200 overflow-hidden relative">
+                  {artwork ? (
+                    <img 
+                      src={artwork} 
+                      alt={title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
+                      <Music className="w-8 h-8 text-gray-400" />
+                    </div>
+                  )}
+                  
+                  {/* Status Badge */}
+                  <div className="absolute top-2 right-2">
+                    {getStatusBadge(mix.status)}
+                  </div>
+                </div>
+                
+                <div className="p-4">
+                  {/* Genre and Date */}
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-xs font-mono text-red-500 uppercase bg-red-50 px-2 py-1 rounded">
+                      {mix.genre}
+                    </span>
+                    <div className="text-xs font-mono text-gray-500 flex items-center">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {new Date(mix.submittedAt).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  {/* Title and Artist */}
+                  <div className="mb-3">
+                    <h4 className="text-sm font-bold font-mono text-gray-900 mb-1 group-hover:text-red-500 transition-colors line-clamp-1">
+                      {title}
+                    </h4>
+                    <div className="flex items-center text-gray-600 font-mono text-xs">
+                      <User className="w-3 h-3 mr-1" />
+                      {artist}
+                    </div>
+                  </div>
+
+                  {/* Listen Button */}
+                  <Button 
+                    size="sm" 
+                    className="bg-red-500 hover:bg-red-600 text-white font-mono w-full text-xs"
+                    onClick={() => window.open(mix.url, '_blank')}
+                  >
+                    <Play className="w-3 h-3 mr-1" />
+                    Listen
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="text-center py-8">
+          <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+          <div className="text-gray-600 font-mono">No mixes found for {allMixesFilter} status.</div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function MixesPage() {
   const [filter, setFilter] = useState<'approved' | 'featured' | 'pending'>('approved');
 
@@ -83,12 +216,22 @@ export default function MixesPage() {
                 Discover fresh sounds from our community of DJs, producers, and music lovers
               </p>
             </div>
-            <Link href="/submit-mix">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
-                <Upload className="w-4 h-4 mr-2" />
-                Submit Your Mix
+            <div className="flex gap-4">
+              <Button 
+                onClick={() => document.getElementById('all-mixes')?.scrollIntoView({ behavior: 'smooth' })}
+                variant="outline"
+                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+              >
+                <Music className="w-4 h-4 mr-2" />
+                View All Mixes
               </Button>
-            </Link>
+              <Link href="/submit-mix">
+                <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+                  <Upload className="w-4 h-4 mr-2" />
+                  Submit Your Mix
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
 
@@ -228,14 +371,21 @@ export default function MixesPage() {
             <p className="text-gray-500 font-mono text-sm mb-6">
               Be the first to share your work with our community!
             </p>
-            <Link href="/submit-mix" className="inline-block">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
-                <Upload className="w-4 h-4 mr-2" />
-                Submit Your Mix
-              </Button>
-            </Link>
+            <Button 
+              onClick={() => document.getElementById('all-mixes')?.scrollIntoView({ behavior: 'smooth' })}
+              className="bg-red-500 hover:bg-red-600 text-white font-mono"
+            >
+              <Music className="w-4 h-4 mr-2" />
+              View All Mixes
+            </Button>
           </div>
         )}
+
+        {/* All Mixes Section */}
+        <div id="all-mixes" className="mt-20 pt-12 border-t border-gray-200">
+          <h2 className="text-4xl font-bold mb-8 font-mono text-red-500">ALL COMMUNITY MIXES</h2>
+          <AllMixesSection />
+        </div>
 
         {/* Community Guidelines */}
         <div className="mt-16 pt-8 border-t border-gray-200">
