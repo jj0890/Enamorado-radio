@@ -27,11 +27,21 @@ export default function AdminPanel() {
   const queryClient = useQueryClient();
 
   // Fetch pending mix submissions
-  const { data: pendingMixes = [] } = useQuery<MixSubmission[]>({
+  const { data: pendingMixes = [], error: pendingError, isLoading: pendingLoading } = useQuery<MixSubmission[]>({
     queryKey: ["/api/mixes?status=pending"],
-    refetchInterval: 5000, // Faster refresh for debugging
-    staleTime: 0, // Always consider data stale
-    cacheTime: 0, // Don't cache the response
+    refetchInterval: 3000, // Even faster refresh
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
+    staleTime: 0,
+    cacheTime: 0,
+  });
+
+  // Debug logging
+  console.log("Admin Panel Debug:", {
+    pendingCount: pendingMixes?.length || 0,
+    isLoading: pendingLoading,
+    error: pendingError,
+    mixes: pendingMixes
   });
 
   // Fetch all mixes for management  
@@ -56,7 +66,9 @@ export default function AdminPanel() {
       return response.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/mixes?status=pending"] });
       queryClient.invalidateQueries({ queryKey: ["/api/mixes"] });
+      queryClient.refetchQueries({ queryKey: ["/api/mixes?status=pending"] });
       toast({
         title: "Mix status updated successfully",
         description: "The community will see the updated status immediately.",

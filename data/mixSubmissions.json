@@ -40,5 +40,28 @@
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null
+  },
+  {
+    "name": "Teala Vera",
+    "title": "Tee Vera for The Zoo @ Empire Control Room in ATX (6-21-24)",
+    "genre": "Electronic",
+    "about": "Live set from Teala Vera at The Zoo in Austin, Texas on June 21st, 2024",
+    "url": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24",
+    "metadata": {
+      "platform": "soundcloud",
+      "trackId": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24",
+      "title": "Tee Vera for \"The Zoo\" @ Empire Control Room in ATX (6-21-24)",
+      "artist": "Teala Vera",
+      "imageUrl": "https://i1.sndcdn.com/artworks-W0AsF9z5Brpt2N9e-5mzyzw-t500x500.jpg",
+      "externalUrls": {
+        "soundcloud": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24"
+      }
+    },
+    "id": 4,
+    "status": "pending",
+    "submittedAt": "2025-08-07T04:57:32.982Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null
   }
 ]
