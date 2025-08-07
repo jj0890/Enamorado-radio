@@ -4,6 +4,15 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**Mix Submission System Working with Persistent Storage (August 2025)**
+- Fixed critical admin panel issue where pending submissions weren't displaying
+- Implemented persistent file-based storage system (`server/persistentStorage.ts`) to replace memory cache
+- Successfully verified mix submission workflow with SoundCloud integration
+- Admin panel now correctly shows pending submissions with blue styling
+- System survives server restarts with data persistence in `./data/` directory
+- Fixed frontend caching issues with proper query invalidation
+- Proven working submission path ready for Audio.com and Mixcloud testing
+
 **Clean Schema Migration Completed (January 2025)**
 - Successfully migrated from complex legacy schema to streamlined clean architecture
 - Consolidated all routing and type definitions into single source of truth files
@@ -39,7 +48,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **API Design**: RESTful API with real-time WebSocket enhancements
 - **Core Functionality**: Manages radio programs, schedules, content rotation, user submissions, and an admin approval queue.
 - **Streaming**: Supports live Icecast streaming with intelligent live/recorded switching and HTML5 audio for queued tracks.
-- **Data Persistence**: In-memory storage with clean modular architecture (`server/storage.ts`) ensures data consistency and type safety.
+- **Data Persistence**: File-based persistent storage (`server/persistentStorage.ts`) with JSON files in `./data/` directory ensures data survives server restarts and maintains consistency.
 
 ### Database Architecture
 - **Database**: PostgreSQL with connection pooling (ready for production)
