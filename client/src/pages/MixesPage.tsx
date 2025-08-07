@@ -426,7 +426,7 @@ export default function MixesPage() {
         <div className="mt-12 text-center bg-red-50 border-2 border-red-200 rounded-lg p-8">
           <h3 className="text-2xl font-bold mb-4 font-mono text-red-500">Ready to Share Your Sound?</h3>
           <p className="text-gray-600 font-mono mb-6">
-            Join our community of music creators and help shape the future of college radio
+            Join our community of music creators and help shape the future of Enamorado Radio
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href="/submit-mix">

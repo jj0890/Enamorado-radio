@@ -71,10 +71,10 @@ export default function HomePage() {
       <main className="max-w-7xl mx-auto px-4 py-12">
         <section className="text-center mb-16">
           <h2 className="text-6xl font-bold mb-6 font-mono text-red-500">
-            COLLEGE RADIO
+            ENAMORADO RADIO
           </h2>
           <p className="text-2xl text-gray-600 max-w-3xl mx-auto mb-8 font-mono">
-            Discover new music, explore curated guides, and connect with a community of music lovers
+            A space dedicated to the things we are enamored with
           </p>
           
           {/* Quick Actions */}
