@@ -1,4 +1,6 @@
-import { 
+import fs from 'fs/promises';
+import path from 'path';
+import {
   Episode, 
   Guide, 
   MixSubmission, 
@@ -14,51 +16,13 @@ import {
   InsertAdmin,
   InsertCurrentPlayback
 } from "@shared/schema";
+import { IStorage } from "./storage";
 
-// Clean Storage Interface - Single source of truth for all data operations
-export interface IStorage {
-  // Episodes - Latest content
-  getEpisodes(filters?: { featured?: boolean; genre?: string; limit?: number }): Promise<Episode[]>;
-  getEpisodeById(id: number): Promise<Episode | undefined>;
-  createEpisode(episode: InsertEpisode): Promise<Episode>;
-  updateEpisode(id: number, episode: Partial<Episode>): Promise<Episode>;
-  deleteEpisode(id: number): Promise<void>;
-
-  // Guides - Explore content
-  getGuides(filters?: { featured?: boolean; type?: string; limit?: number }): Promise<Guide[]>;
-  getGuideById(id: number): Promise<Guide | undefined>;
-  getGuideBySlug(slug: string): Promise<Guide | undefined>;
-  createGuide(guide: InsertGuide): Promise<Guide>;
-  updateGuide(id: number, guide: Partial<Guide>): Promise<Guide>;
-  deleteGuide(id: number): Promise<void>;
-
-  // Mix Submissions - Community content
-  getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number }): Promise<MixSubmission[]>;
-  getMixSubmissionById(id: number): Promise<MixSubmission | undefined>;
-  createMixSubmission(submission: InsertMixSubmission): Promise<MixSubmission>;
-  updateMixSubmissionStatus(id: number, status: string, notes?: string): Promise<MixSubmission>;
-
-  // Schedule - Programming grid
-  getSchedule(filters?: { upcoming?: boolean; date?: Date; limit?: number }): Promise<Schedule[]>;
-  getScheduleById(id: number): Promise<Schedule | undefined>;
-  createScheduleItem(schedule: InsertSchedule): Promise<Schedule>;
-  updateScheduleItem(id: number, schedule: Partial<Schedule>): Promise<Schedule>;
-  deleteScheduleItem(id: number): Promise<void>;
-
-  // Song Submissions - Community suggestions
-  getSongSubmissions(filters?: { status?: string; limit?: number }): Promise<SongSubmission[]>;
-  createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission>;
-  updateSongSubmissionStatus(id: number, status: string): Promise<SongSubmission>;
-
-  // Admin & System
-  getAdminByUsername(username: string): Promise<Admin | undefined>;
-  createAdmin(admin: InsertAdmin): Promise<Admin>;
-  getCurrentPlayback(): Promise<CurrentPlayback | undefined>;
-  updateCurrentPlayback(playback: InsertCurrentPlayback): Promise<CurrentPlayback>;
-}
-
-// In-Memory Implementation
-class MemStorage implements IStorage {
+// File-based persistent storage to solve the memory reset issue
+export class FileStorage implements IStorage {
+  private dataDir = './data';
+  private nextIdFile = path.join(this.dataDir, 'nextId.json');
+  
   private episodes: Episode[] = [];
   private guides: Guide[] = [];
   private mixSubmissions: MixSubmission[] = [];
@@ -67,6 +31,97 @@ class MemStorage implements IStorage {
   private admins: Admin[] = [];
   private currentPlayback: CurrentPlayback | null = null;
   private nextId = 1;
+
+  constructor() {
+    this.loadData();
+  }
+
+  private async ensureDataDir() {
+    try {
+      await fs.mkdir(this.dataDir, { recursive: true });
+    } catch (error) {
+      // Directory already exists or other error
+    }
+  }
+
+  private async loadData() {
+    await this.ensureDataDir();
+    
+    try {
+      // Load all data files
+      const files = [
+        'episodes.json',
+        'guides.json', 
+        'mixSubmissions.json',
+        'scheduleItems.json',
+        'songSubmissions.json',
+        'admins.json',
+        'currentPlayback.json'
+      ];
+
+      for (const file of files) {
+        try {
+          const filePath = path.join(this.dataDir, file);
+          const data = await fs.readFile(filePath, 'utf8');
+          const parsed = JSON.parse(data);
+          
+          switch (file) {
+            case 'episodes.json':
+              this.episodes = parsed || [];
+              break;
+            case 'guides.json':
+              this.guides = parsed || [];
+              break;
+            case 'mixSubmissions.json':
+              this.mixSubmissions = parsed || [];
+              break;
+            case 'scheduleItems.json':
+              this.scheduleItems = parsed || [];
+              break;
+            case 'songSubmissions.json':
+              this.songSubmissions = parsed || [];
+              break;
+            case 'admins.json':
+              this.admins = parsed || [];
+              break;
+            case 'currentPlayback.json':
+              this.currentPlayback = parsed || null;
+              break;
+          }
+        } catch (error) {
+          // File doesn't exist yet - start with empty array
+          console.log(`No existing ${file} found, starting fresh`);
+        }
+      }
+
+      // Load next ID
+      try {
+        const idData = await fs.readFile(this.nextIdFile, 'utf8');
+        this.nextId = JSON.parse(idData).nextId || 1;
+      } catch (error) {
+        this.nextId = 1;
+      }
+
+      console.log(`Loaded persistent data: ${this.mixSubmissions.length} mix submissions found`);
+      
+    } catch (error) {
+      console.error('Error loading persistent data:', error);
+    }
+  }
+
+  private async saveData(type: string, data: any) {
+    await this.ensureDataDir();
+    
+    try {
+      const filePath = path.join(this.dataDir, `${type}.json`);
+      await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+      
+      // Save next ID
+      await fs.writeFile(this.nextIdFile, JSON.stringify({ nextId: this.nextId }));
+    } catch (error) {
+      console.error(`Error saving ${type}:`, error);
+    }
+  }
 
   // Episodes
   async getEpisodes(filters?: { featured?: boolean; genre?: string; limit?: number }): Promise<Episode[]> {
@@ -80,7 +135,6 @@ class MemStorage implements IStorage {
       filtered = filtered.filter(e => e.genre.toLowerCase().includes(filters.genre!.toLowerCase()));
     }
     
-    // Sort by air date descending (most recent first)
     filtered.sort((a, b) => new Date(b.airDate).getTime() - new Date(a.airDate).getTime());
     
     if (filters?.limit) {
@@ -99,9 +153,11 @@ class MemStorage implements IStorage {
       ...episode,
       id: this.nextId++,
       viewCount: 0,
-      createdAt: new Date(),
+      airDate: new Date(),
+      updatedAt: new Date(),
     };
     this.episodes.push(newEpisode);
+    await this.saveData('episodes', this.episodes);
     return newEpisode;
   }
 
@@ -109,7 +165,8 @@ class MemStorage implements IStorage {
     const index = this.episodes.findIndex(e => e.id === id);
     if (index === -1) throw new Error('Episode not found');
     
-    this.episodes[index] = { ...this.episodes[index], ...episode };
+    this.episodes[index] = { ...this.episodes[index], ...episode, updatedAt: new Date() };
+    await this.saveData('episodes', this.episodes);
     return this.episodes[index];
   }
 
@@ -117,6 +174,7 @@ class MemStorage implements IStorage {
     const index = this.episodes.findIndex(e => e.id === id);
     if (index !== -1) {
       this.episodes.splice(index, 1);
+      await this.saveData('episodes', this.episodes);
     }
   }
 
@@ -125,14 +183,13 @@ class MemStorage implements IStorage {
     let filtered = [...this.guides];
     
     if (filters?.featured !== undefined) {
-      filtered = filtered.filter(g => g.isFeatured === filters.featured);
+      filtered = filtered.filter(g => g.featured === filters.featured);
     }
     
     if (filters?.type) {
-      filtered = filtered.filter(g => g.guideType === filters.type);
+      filtered = filtered.filter(g => g.type === filters.type);
     }
     
-    // Sort by published date descending
     filtered.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
     
     if (filters?.limit) {
@@ -159,6 +216,7 @@ class MemStorage implements IStorage {
       updatedAt: new Date(),
     };
     this.guides.push(newGuide);
+    await this.saveData('guides', this.guides);
     return newGuide;
   }
 
@@ -167,6 +225,7 @@ class MemStorage implements IStorage {
     if (index === -1) throw new Error('Guide not found');
     
     this.guides[index] = { ...this.guides[index], ...guide, updatedAt: new Date() };
+    await this.saveData('guides', this.guides);
     return this.guides[index];
   }
 
@@ -174,10 +233,11 @@ class MemStorage implements IStorage {
     const index = this.guides.findIndex(g => g.id === id);
     if (index !== -1) {
       this.guides.splice(index, 1);
+      await this.saveData('guides', this.guides);
     }
   }
 
-  // Mix Submissions
+  // Mix Submissions - PERSISTENT STORAGE FOR YOUR MIX!
   async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number }): Promise<MixSubmission[]> {
     let filtered = [...this.mixSubmissions];
     
@@ -189,13 +249,13 @@ class MemStorage implements IStorage {
       filtered = filtered.filter(m => m.genre.toLowerCase().includes(filters.genre!.toLowerCase()));
     }
     
-    // Sort by submitted date descending
     filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
     }
     
+    console.log(`FileStorage: Found ${filtered.length} mixes with status: ${filters?.status || 'all'}`);
     return filtered;
   }
 
@@ -212,9 +272,12 @@ class MemStorage implements IStorage {
       reviewedAt: null,
       reviewedBy: null,
       notes: null,
-      metadata: null,
+      metadata: submission.metadata || null,
     };
     this.mixSubmissions.push(newSubmission);
+    await this.saveData('mixSubmissions', this.mixSubmissions);
+    
+    console.log(`FileStorage: Created mix submission ${newSubmission.id}: "${newSubmission.title}" by ${newSubmission.name}`);
     return newSubmission;
   }
 
@@ -225,10 +288,13 @@ class MemStorage implements IStorage {
     this.mixSubmissions[index] = {
       ...this.mixSubmissions[index],
       status,
-      notes: notes || this.mixSubmissions[index].notes,
+      notes: notes || null,
       reviewedAt: new Date(),
       reviewedBy: 'Admin'
     };
+    
+    await this.saveData('mixSubmissions', this.mixSubmissions);
+    console.log(`FileStorage: Updated mix ${id} status to "${status}"`);
     return this.mixSubmissions[index];
   }
 
@@ -236,21 +302,20 @@ class MemStorage implements IStorage {
   async getSchedule(filters?: { upcoming?: boolean; date?: Date; limit?: number }): Promise<Schedule[]> {
     let filtered = [...this.scheduleItems];
     
+    const now = new Date();
     if (filters?.upcoming) {
-      const now = new Date();
-      filtered = filtered.filter(s => new Date(s.scheduledAt) > now);
+      filtered = filtered.filter(s => new Date(s.startTime) > now);
     }
     
     if (filters?.date) {
-      const targetDate = filters.date;
+      const targetDate = new Date(filters.date);
       filtered = filtered.filter(s => {
-        const scheduleDate = new Date(s.scheduledAt);
+        const scheduleDate = new Date(s.startTime);
         return scheduleDate.toDateString() === targetDate.toDateString();
       });
     }
     
-    // Sort by scheduled time
-    filtered.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
+    filtered.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -268,8 +333,10 @@ class MemStorage implements IStorage {
       ...schedule,
       id: this.nextId++,
       createdAt: new Date(),
+      updatedAt: new Date(),
     };
     this.scheduleItems.push(newSchedule);
+    await this.saveData('scheduleItems', this.scheduleItems);
     return newSchedule;
   }
 
@@ -278,6 +345,7 @@ class MemStorage implements IStorage {
     if (index === -1) throw new Error('Schedule item not found');
     
     this.scheduleItems[index] = { ...this.scheduleItems[index], ...schedule };
+    await this.saveData('scheduleItems', this.scheduleItems);
     return this.scheduleItems[index];
   }
 
@@ -285,6 +353,7 @@ class MemStorage implements IStorage {
     const index = this.scheduleItems.findIndex(s => s.id === id);
     if (index !== -1) {
       this.scheduleItems.splice(index, 1);
+      await this.saveData('scheduleItems', this.scheduleItems);
     }
   }
 
@@ -296,7 +365,6 @@ class MemStorage implements IStorage {
       filtered = filtered.filter(s => s.approvalStatus === filters.status);
     }
     
-    // Sort by submitted date descending
     filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
     
     if (filters?.limit) {
@@ -315,6 +383,7 @@ class MemStorage implements IStorage {
       reviewedAt: null,
     };
     this.songSubmissions.push(newSubmission);
+    await this.saveData('songSubmissions', this.songSubmissions);
     return newSubmission;
   }
 
@@ -327,6 +396,8 @@ class MemStorage implements IStorage {
       approvalStatus: status,
       reviewedAt: new Date()
     };
+    
+    await this.saveData('songSubmissions', this.songSubmissions);
     return this.songSubmissions[index];
   }
 
@@ -342,6 +413,7 @@ class MemStorage implements IStorage {
       createdAt: new Date(),
     };
     this.admins.push(newAdmin);
+    await this.saveData('admins', this.admins);
     return newAdmin;
   }
 
@@ -356,10 +428,7 @@ class MemStorage implements IStorage {
       startTime: new Date(),
     };
     this.currentPlayback = newPlayback;
+    await this.saveData('currentPlayback', this.currentPlayback);
     return newPlayback;
   }
 }
-
-import { FileStorage } from './persistentStorage';
-
-export const storage = new FileStorage();

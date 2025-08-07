@@ -171,11 +171,11 @@ export default function AdminPanel() {
               {pendingMixes.length > 0 ? (
                 <div className="space-y-4">
                   {pendingMixes.map((mix: any) => (
-                    <div key={mix.id} className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-6">
+                    <div key={mix.id} className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
                           <div className="flex items-center gap-3 mb-3">
-                            <span className="text-xs font-mono bg-yellow-500 text-black px-2 py-1 rounded">
+                            <span className="text-xs font-mono bg-blue-500 text-white px-2 py-1 rounded">
                               PENDING REVIEW
                             </span>
                             <span className="text-xs font-mono text-gray-500">
