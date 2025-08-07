@@ -36,13 +36,7 @@ export default function AdminPanel() {
     cacheTime: 0,
   });
 
-  // Debug logging
-  console.log("Admin Panel Debug:", {
-    pendingCount: pendingMixes?.length || 0,
-    isLoading: pendingLoading,
-    error: pendingError,
-    mixes: pendingMixes
-  });
+  // System is working - debug logs removed
 
   // Fetch all mixes for management  
   const { data: allMixes = [] } = useQuery<MixSubmission[]>({
