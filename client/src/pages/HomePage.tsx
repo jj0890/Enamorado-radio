@@ -8,6 +8,7 @@ import ProgramIndicator from "../components/ProgramIndicator";
 import SimpleSongForm from "../components/SimpleSongForm";
 import LastFmDebugPanel from "../components/LastFmDebugPanel";
 import { getTrackThumbnail } from "../utils/soundcloud";
+import { AudioPlayer } from "../components/AudioPlayer";
 
 interface FeaturedSubmission {
   id: number;

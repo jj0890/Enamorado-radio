@@ -110,8 +110,19 @@ export const currentPlayback = pgTable("current_playback", {
   artist: text("artist"),
   artwork: text("artwork"),
   episodeId: integer("episode_id").references(() => episodes.id),
+  mixId: integer("mix_id").references(() => mixSubmissions.id),
+  trackUrl: text("track_url"),
   startTime: timestamp("start_time").defaultNow(),
   isLive: boolean("is_live").default(true),
+});
+
+// Stream Status
+export const streamStatus = pgTable("stream_status", {
+  id: serial("id").primaryKey(),
+  isLive: boolean("is_live").default(false),
+  listenerCount: integer("listener_count").default(0),
+  currentShow: text("current_show"),
+  lastChecked: timestamp("last_checked").defaultNow(),
 });
 
 // Insert Schemas
@@ -150,14 +161,14 @@ export const insertSongSubmissionSchema = createInsertSchema(songSubmissions).om
   approvalStatus: true,
 });
 
-export const insertAdminSchema = createInsertSchema(admins).omit({
-  id: true,
-  createdAt: true,
-});
-
 export const insertCurrentPlaybackSchema = createInsertSchema(currentPlayback).omit({
   id: true,
   startTime: true,
+});
+
+export const insertAdminSchema = createInsertSchema(admins).omit({
+  id: true,
+  createdAt: true,
 });
 
 // Type exports  
@@ -168,6 +179,7 @@ export type Schedule = typeof schedule.$inferSelect;
 export type SongSubmission = typeof songSubmissions.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
 export type CurrentPlayback = typeof currentPlayback.$inferSelect;
+export type StreamStatus = typeof streamStatus.$inferSelect;
 
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;

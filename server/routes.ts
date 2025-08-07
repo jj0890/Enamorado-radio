@@ -213,6 +213,118 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
+  // AUDIO MANAGEMENT API
+  // =================
+  
+  // Get stream status for smart homepage CTA
+  app.get("/api/stream-status", async (req, res) => {
+    try {
+      // Check Icecast stream status
+      const icecastUrl = 'http://24.199.109.18:8000/stream';
+      let isLive = false;
+      let listenerCount = 0;
+      
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+        const response = await fetch(icecastUrl, { 
+          method: 'HEAD', 
+          signal: controller.signal 
+        });
+        clearTimeout(timeoutId);
+        isLive = response.ok;
+        // Could parse Icecast stats if available
+      } catch (error) {
+        console.log('Icecast stream check failed:', error);
+        isLive = false;
+      }
+
+      res.json({
+        isLive,
+        listenerCount,
+        currentShow: isLive ? 'Live Broadcast' : null,
+        lastChecked: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error('Error checking stream status:', error);
+      res.status(500).json({ error: 'Failed to check stream status' });
+    }
+  });
+
+  // Get current playback for player display
+  app.get("/api/current-playback", async (req, res) => {
+    try {
+      const currentPlayback = await storage.getCurrentPlayback();
+      res.json(currentPlayback);
+    } catch (error) {
+      console.error('Error fetching current playback:', error);
+      res.status(500).json({ error: 'Failed to fetch current playback' });
+    }
+  });
+
+  // Update current playback (admin control)
+  app.post("/api/current-playback", async (req, res) => {
+    try {
+      const { title, artist, artwork, mixId, trackUrl, isLive } = req.body;
+      const playback = await storage.updateCurrentPlayback({
+        title,
+        artist,
+        artwork,
+        mixId,
+        trackUrl,
+        isLive: isLive || false
+      });
+      res.json(playback);
+    } catch (error) {
+      console.error('Error updating current playback:', error);
+      res.status(500).json({ error: 'Failed to update current playback' });
+    }
+  });
+
+  // =================
+  // SONG SUBMISSIONS API
+  // =================
+  
+  app.get("/api/song-submissions", async (req, res) => {
+    try {
+      const { status, limit } = req.query;
+      const submissions = await storage.getSongSubmissions({
+        status: status as string || 'pending',
+        limit: limit ? parseInt(limit as string) : undefined
+      });
+      res.json(submissions);
+    } catch (error) {
+      console.error('Error fetching song submissions:', error);
+      res.status(500).json({ error: 'Failed to fetch song submissions' });
+    }
+  });
+
+  app.post("/api/song-submissions", async (req, res) => {
+    try {
+      const validatedData = insertSongSubmissionSchema.parse(req.body);
+      const submission = await storage.createSongSubmission(validatedData);
+      res.status(201).json(submission);
+    } catch (error) {
+      console.error('Error creating song submission:', error);
+      res.status(400).json({ error: 'Invalid song submission data' });
+    }
+  });
+
+  app.patch("/api/song-submissions/:id/status", async (req, res) => {
+    try {
+      const { approvalStatus } = req.body;
+      const submission = await storage.updateSongSubmissionStatus(
+        parseInt(req.params.id),
+        approvalStatus
+      );
+      res.json(submission);
+    } catch (error) {
+      console.error('Error updating song submission status:', error);
+      res.status(500).json({ error: 'Failed to update song submission status' });
+    }
+  });
+
+  // =================
   // SCHEDULE API - Programming grid
   // =================
 
@@ -221,7 +333,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { upcoming, date, limit } = req.query;
       const schedule = await storage.getSchedule({
         upcoming: upcoming === 'true' ? true : undefined,
-        date: date ? new Date(date as string) : undefined,
+        date: date ? new Date(date as string) : null,
         limit: limit ? parseInt(limit as string) : undefined
       });
       res.json(schedule);

@@ -1,284 +1,129 @@
-import { useState, useRef, useEffect } from 'react';
-import { Play, Pause, Volume2, VolumeX } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-
-interface TrackMetadata {
-  filename: string;
-  artist?: string;
-  trackName?: string;
-  album?: string;
-  imageUrl?: string;
-  lastfmUrl?: string;
-  duration?: number;
-  displayTitle: string;
-}
-
-interface FeaturedSubmission {
-  id: number;
-  djName: string;
-  demoMixTitle: string;
-  demoMixDescription: string;
-  primaryGenre: string;
-  showLength: number;
-  soundcloudUrl?: string;
-  mixcloudUrl?: string;
-  audiocomUrl?: string;
-  otherUrl?: string;
-}
+import { Play, ExternalLink, User } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { useAudioManager } from '@/lib/audioManager';
+import type { FeaturedMix } from '@/lib/audioManager';
 
 interface FeaturedMixCardProps {
-  submission: FeaturedSubmission;
-  thumbnail?: string;
+  mix: {
+    id: number;
+    title: string;
+    name: string;
+    genre: string;
+    about: string;
+    url: string;
+    metadata?: {
+      imageUrl?: string;
+      platform?: string;
+      artist?: string;
+    };
+  };
 }
 
-export default function FeaturedMixCard({ submission, thumbnail }: FeaturedMixCardProps) {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(0.7);
-  const [isMuted, setIsMuted] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [duration, setDuration] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
+export function FeaturedMixCard({ mix }: FeaturedMixCardProps) {
+  const { playUserSelectedMix, currentTrack, isPlaying } = useAudioManager();
 
-  // Use proper audio source based on submission
-  const getAudioSource = () => {
-    // If there's a direct upload file, use it
-    if (submission.djName === "Jarrad" && submission.demoMixTitle?.includes("How Did I Do")) {
-      return `/attached_assets/how did i do_1753594094475.mp3`;
-    }
-    
-    // For other submissions, use SoundCloud URL if available
-    if (submission.soundcloudUrl) {
-      return submission.soundcloudUrl;
-    }
-    
-    // Fallback to other URLs
-    return submission.mixcloudUrl || submission.audiocomUrl || submission.otherUrl;
-  };
+  const isCurrentlyPlaying = currentTrack?.id === mix.id && isPlaying;
 
-  const audioSrc = getAudioSource();
-  
-  // Use proper filename for metadata lookup
-  const getMetadataKey = () => {
-    if (submission.djName === "Jarrad" && submission.demoMixTitle?.includes("How Did I Do")) {
-      return 'how did i do_1753594094475.mp3';
-    }
-    return `${submission.djName}_${submission.demoMixTitle}`.toLowerCase().replace(/\s+/g, '_');
-  };
-  
-  // Fetch track metadata
-  const { data: trackMetadata } = useQuery<TrackMetadata>({
-    queryKey: ['track-metadata', getMetadataKey()],
-    queryFn: async () => {
-      const response = await fetch(`/api/track-metadata/${encodeURIComponent(getMetadataKey())}`);
-      if (!response.ok) throw new Error('Failed to fetch track metadata');
-      return response.json();
-    },
-    staleTime: 1000 * 60 * 10,
-    enabled: !!submission,
-  });
-
-  useEffect(() => {
-    const audio = audioRef.current;
-    if (!audio) return;
-
-    const updateProgress = () => {
-      const current = audio.currentTime;
-      const total = audio.duration;
-      setProgress((current / total) * 100);
-      setCurrentTime(current);
-      setDuration(total);
+  const handlePlayClick = () => {
+    const featuredMix: FeaturedMix = {
+      id: mix.id,
+      title: mix.title,
+      name: mix.name,
+      url: mix.url,
+      metadata: mix.metadata,
     };
+    playUserSelectedMix(featuredMix);
+  };
 
-    const handleEnded = () => {
-      setIsPlaying(false);
-      setProgress(0);
-      setCurrentTime(0);
-    };
-
-    audio.addEventListener('timeupdate', updateProgress);
-    audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('loadedmetadata', () => setDuration(audio.duration));
-
-    return () => {
-      audio.removeEventListener('timeupdate', updateProgress);
-      audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('loadedmetadata', () => setDuration(audio.duration));
-    };
-  }, []);
-
-  const togglePlay = async () => {
-    const audio = audioRef.current;
-    if (!audio || !audioSrc) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      try {
-        // Ensure the audio source is set
-        if (audio.src !== audioSrc) {
-          audio.src = audioSrc;
-        }
-        await audio.play();
-        setIsPlaying(true);
-      } catch (error) {
-        console.error('Playback failed:', error);
-        // If direct playback fails, open SoundCloud as fallback
-        if (submission.soundcloudUrl) {
-          window.open(submission.soundcloudUrl, '_blank');
-        }
-      }
+  const getImageUrl = () => {
+    if (mix.metadata?.imageUrl) {
+      return mix.metadata.imageUrl;
     }
-  };
-
-  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
+    // Default image based on platform
+    if (mix.url.includes('soundcloud.com')) {
+      return 'https://via.placeholder.com/300x300/ff5500/ffffff?text=SoundCloud';
     }
-    setIsMuted(newVolume === 0);
-  };
-
-  const toggleMute = () => {
-    if (audioRef.current) {
-      if (isMuted) {
-        audioRef.current.volume = volume;
-        setIsMuted(false);
-      } else {
-        audioRef.current.volume = 0;
-        setIsMuted(true);
-      }
+    if (mix.url.includes('mixcloud.com')) {
+      return 'https://via.placeholder.com/300x300/314359/ffffff?text=Mixcloud';
     }
-  };
-
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
-    
-    const newTime = (parseFloat(e.target.value) / 100) * duration;
-    audio.currentTime = newTime;
-    setProgress(parseFloat(e.target.value));
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    if (mix.url.includes('audio.com')) {
+      return 'https://via.placeholder.com/300x300/8b5cf6/ffffff?text=Audio.com';
+    }
+    return 'https://via.placeholder.com/300x300/ef4444/ffffff?text=Mix';
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      {/* Featured Mix Badge */}
-      <div className="text-center mb-6">
-        <span className="inline-flex items-center gap-2 text-red-500 text-sm font-mono font-medium">
-          <div className="w-2 h-2 bg-red-500 rounded-full"></div>
-          FEATURED MIX
-        </span>
+    <div className={`bg-white border-2 rounded-lg p-6 transition-all duration-200 ${
+      isCurrentlyPlaying 
+        ? 'border-red-500 shadow-lg scale-105' 
+        : 'border-gray-200 hover:border-red-300 hover:shadow-md'
+    }`}>
+      {/* Mix Image */}
+      <div className="relative mb-4">
+        <img 
+          src={getImageUrl()} 
+          alt={mix.title}
+          className="w-full h-48 object-cover rounded-lg"
+        />
+        {isCurrentlyPlaying && (
+          <div className="absolute inset-0 bg-red-500/20 rounded-lg flex items-center justify-center">
+            <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-mono">
+              NOW PLAYING
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Main Card */}
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
-        {/* Mix Artwork */}
-        <div className="flex">
-          <div className="w-48 h-48 bg-gray-100 flex-shrink-0">
-            {thumbnail ? (
-              <img 
-                src={thumbnail} 
-                alt={submission.demoMixTitle}
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <div className="text-gray-400 text-center">
-                  <div className="text-4xl mb-2">🎵</div>
-                  <div className="text-xs font-mono">{submission.primaryGenre}</div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Mix Info and Controls */}
-          <div className="flex-1 p-6">
-            <h1 className="text-2xl font-bold mb-2 font-mono text-gray-800">
-              {submission.demoMixTitle || `New Mix (Mostly ${submission.primaryGenre})`}
-            </h1>
-            <p className="text-lg text-gray-600 mb-4 font-mono">{submission.djName}</p>
-            
-            <p className="text-gray-600 mb-6 text-sm leading-relaxed">
-              {submission.demoMixDescription || `High energy ${submission.primaryGenre.toLowerCase()} tracks for the dance floor`}
-            </p>
-
-            <div className="flex items-center gap-4 text-sm text-gray-500 mb-6 font-mono">
-              <span>{submission.primaryGenre}</span>
-              <span>•</span>
-              <span>{submission.showLength}min</span>
-            </div>
-
-            {/* Audio Controls */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-4">
-                <button
-                  onClick={togglePlay}
-                  className="bg-red-500 hover:bg-red-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors font-mono"
-                >
-                  {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5" />}
-                  {isPlaying ? 'Pause' : 'Play Mix'}
-                </button>
-
-                <div className="flex items-center space-x-2 text-xs font-mono text-gray-500">
-                  <span>Play in browser</span>
-                </div>
-              </div>
-
-              {/* Progress Bar */}
-              {duration > 0 && (
-                <div className="space-y-2">
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={progress}
-                    onChange={handleSeek}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                    style={{
-                      background: `linear-gradient(to right, #ef4444 0%, #ef4444 ${progress}%, #e5e7eb ${progress}%, #e5e7eb 100%)`
-                    }}
-                  />
-                  <div className="flex justify-between text-xs text-gray-500 font-mono">
-                    <span>{formatTime(currentTime)}</span>
-                    <span>{formatTime(duration)}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Volume Control */}
-              <div className="flex items-center gap-2">
-                <button onClick={toggleMute} className="text-gray-500 hover:text-gray-700">
-                  {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-                </button>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={isMuted ? 0 : volume}
-                  onChange={handleVolumeChange}
-                  className="w-20 h-1 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-                />
-              </div>
-            </div>
-          </div>
+      {/* Mix Info */}
+      <div className="mb-4">
+        <h3 className="text-xl font-bold font-mono text-gray-900 mb-2 line-clamp-2">
+          {mix.title}
+        </h3>
+        <div className="flex items-center gap-2 mb-2">
+          <User className="w-4 h-4 text-gray-500" />
+          <span className="font-mono text-sm text-gray-600">{mix.name}</span>
+          <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded font-mono">
+            {mix.genre}
+          </span>
         </div>
+        <p className="text-sm text-gray-600 font-mono line-clamp-3">
+          {mix.about}
+        </p>
       </div>
 
-      {/* Hidden Audio Element */}
-      <audio
-        ref={audioRef}
-        src={audioSrc}
-        preload="metadata"
-      />
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3">
+        <Button
+          onClick={handlePlayClick}
+          className={`flex-1 font-mono ${
+            isCurrentlyPlaying
+              ? 'bg-red-600 hover:bg-red-700'
+              : 'bg-red-500 hover:bg-red-600'
+          } text-white`}
+          disabled={isCurrentlyPlaying}
+        >
+          <Play className="w-4 h-4 mr-2" />
+          {isCurrentlyPlaying ? 'Playing' : 'Play Mix'}
+        </Button>
+        
+        <Button
+          variant="outline"
+          size="sm"
+          className="border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-500"
+          onClick={() => window.open(mix.url, '_blank')}
+        >
+          <ExternalLink className="w-4 h-4" />
+        </Button>
+      </div>
+
+      {/* Platform Badge */}
+      {mix.metadata?.platform && (
+        <div className="mt-3 text-center">
+          <span className="text-xs text-gray-500 font-mono">
+            via {mix.metadata.platform}
+          </span>
+        </div>
+      )}
     </div>
   );
 }
