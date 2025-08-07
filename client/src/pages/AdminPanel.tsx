@@ -29,7 +29,9 @@ export default function AdminPanel() {
   // Fetch pending mix submissions
   const { data: pendingMixes = [] } = useQuery<MixSubmission[]>({
     queryKey: ["/api/mixes", { status: 'pending' }],
-    refetchInterval: 10000,
+    refetchInterval: 5000, // Faster refresh for debugging
+    staleTime: 0, // Always consider data stale
+    cacheTime: 0, // Don't cache the response
   });
 
   // Fetch all mixes for management  
