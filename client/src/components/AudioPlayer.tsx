@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import type { CurrentPlayback } from '@shared/schema';
-import { audioManager } from '@/lib/audioManager';
+// Simple player for AzuraCast compatibility - complex features handled by AzuraCast
 
 interface AudioPlayerProps {
   className?: string;
@@ -133,22 +133,8 @@ export function AudioPlayer({ className = '' }: AudioPlayerProps) {
   };
 
   const handleNextTrack = async () => {
-    // Get next track from audio manager rotation
-    try {
-      const nextTrack = audioManager.getCurrentTrack();
-      if (nextTrack) {
-        updatePlaybackMutation.mutate({
-          title: nextTrack.title,
-          artist: nextTrack.artist,
-          artwork: nextTrack.artwork,
-          trackUrl: nextTrack.trackUrl,
-          mixId: nextTrack.mixId,
-          isLive: false,
-        });
-      }
-    } catch (error) {
-      console.error('Failed to get next track:', error);
-    }
+    // AzuraCast will handle track progression
+    console.log('Next track requested - AzuraCast will handle this');
   };
 
   const formatTime = (seconds: number) => {

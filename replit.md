@@ -4,14 +4,13 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
-**Mix Submission System Working with Persistent Storage (August 2025)**
-- Fixed critical admin panel issue where pending submissions weren't displaying
-- Implemented persistent file-based storage system (`server/persistentStorage.ts`) to replace memory cache
-- Successfully verified mix submission workflow with SoundCloud integration
-- Admin panel now correctly shows pending submissions with blue styling
-- System survives server restarts with data persistence in `./data/` directory
-- Fixed frontend caching issues with proper query invalidation
-- Proven working submission path ready for Audio.com and Mixcloud testing
+**AzuraCast Integration Compatibility (January 2025)**
+- Simplified audio architecture to work with AzuraCast backend instead of custom Icecast
+- Removed complex auto-playlist rotation logic - AzuraCast will handle this
+- Streamlined AudioManager to basic track info and manual overrides only
+- Updated audio player to be compatible with AzuraCast streams
+- Maintained mix submission system and admin workflow for community content
+- AzuraCast will handle: auto-playlists, stream management, rotation scheduling
 
 **Clean Schema Migration Completed (January 2025)**
 - Successfully migrated from complex legacy schema to streamlined clean architecture
@@ -47,7 +46,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Real-time Communication**: WebSocket server for live updates
 - **API Design**: RESTful API with real-time WebSocket enhancements
 - **Core Functionality**: Manages radio programs, schedules, content rotation, user submissions, and an admin approval queue.
-- **Streaming**: Supports live Icecast streaming with intelligent live/recorded switching and HTML5 audio for queued tracks.
+- **Streaming**: Integrated with AzuraCast for professional radio streaming - AzuraCast handles stream management, scheduling, and auto-playlists.
 - **Data Persistence**: File-based persistent storage (`server/persistentStorage.ts`) with JSON files in `./data/` directory ensures data survives server restarts and maintains consistency.
 
 ### Database Architecture
@@ -58,13 +57,13 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Current Setup**: Clean schema architecture with streamlined types and consistent naming conventions
 
 ### Key Features
-- **Audio System**: Custom AudioManager and AudioPlayer components with real-time updates via WebSockets.
+- **Audio System**: Simplified AudioPlayer compatible with AzuraCast backend - AzuraCast handles complex audio features like auto-playlists and rotation.
 - **Station Management**: Browse stations by genre, featured shows, live status indicators, and organized content.
 - **Editorial Workflow System**: Supports newsroom-style stages (Submitted → Copy Ready → Web Ready → Published) for zine content (though currently de-emphasized).
 - **Physical Media Generation**: Functionality for creating NFC tags, QR stickers, and mini CDs linked to digital publications (Issuu.com integration).
 - **Content Discovery**: NTS-inspired episode system, Spotify integration for music discovery, curated guides, and monthly album picks.
-- **Mix Upload & Playback**: Custom MP3 upload system, LiveMixPlayer component with real-time track sync, professional audio player with seeking and volume controls.
-- **Enamorado Radio System**: Distinguishes live programming vs. auto-rotation modes, ProgramIndicator, track rotation system combining community uploads, SoundCloud, and DJ submissions.
+- **Mix Upload & Playback**: Community mix submission system with manual playback - AzuraCast handles scheduling and rotation.
+- **AzuraCast Integration**: Backend handles live programming, auto-rotation, scheduling - frontend focuses on community content and manual selection.
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
 - **Mix Submission Backend**: Complete persistent JSON-based storage system for mix submissions with approval workflow. Supports SoundCloud, Mixcloud, and Audio.com URLs. Features admin approval pipeline with status management (pending → approved/featured).
 - **SoundCloud Metadata Integration**: Automatic fetching and storage of enhanced metadata (titles, artists, thumbnails) via oEmbed API with intelligent display priority logic.

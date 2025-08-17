@@ -58,11 +58,11 @@
       }
     },
     "id": 4,
-    "status": "pending",
+    "status": "featured",
     "submittedAt": "2025-08-07T04:57:32.982Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null
+    "reviewedAt": "2025-08-07T07:01:25.574Z",
+    "reviewedBy": "Admin",
+    "notes": "Featured mix - exceptional quality"
   },
   {
     "name": "jarrad",
@@ -71,11 +71,11 @@
     "about": "i tried my best fr man no cap i hope its not bad i really hope i did good man no cap.",
     "url": "https://audio.com/jarrad-jones/audio/maybe-man-idk",
     "id": 5,
-    "status": "pending",
+    "status": "approved",
     "submittedAt": "2025-08-07T05:38:26.828Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null,
+    "reviewedAt": "2025-08-07T07:01:27.260Z",
+    "reviewedBy": "Admin",
+    "notes": "Approved for community showcase",
     "metadata": null
   },
   {
@@ -85,11 +85,11 @@
     "about": "new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix ",
     "url": "https://www.mixcloud.com/jarradjones7/new-mixmp3/",
     "id": 6,
-    "status": "pending",
+    "status": "approved",
     "submittedAt": "2025-08-07T06:12:31.610Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null,
+    "reviewedAt": "2025-08-07T07:01:16.906Z",
+    "reviewedBy": "Admin",
+    "notes": "Approved for community showcase",
     "metadata": null
   }
 ]
