@@ -8,5 +8,28 @@
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Sticky Player -->
+    <div id="radio-bar">
+      <button id="radio-toggle" aria-label="Play/Pause">▶️</button>
+      <div id="radio-meta">
+        <div id="radio-title">Loading…</div>
+        <div id="radio-sub">Enamorado Radio • Live</div>
+      </div>
+      <input id="radio-volume" type="range" min="0" max="1" step="0.01" value="0.9" />
+      <audio id="radio-audio" preload="none" crossorigin="anonymous"></audio>
+    </div>
+
+    <style>
+      #radio-bar{position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#111;color:#fff;border-top:1px solid #222}
+      #radio-toggle{background:#ff0000;color:#fff;border:0;border-radius:9999px;width:40px;height:40px;font-size:16px;cursor:pointer}
+      #radio-meta{display:flex;flex-direction:column;gap:.15rem;min-width:0}
+      #radio-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      #radio-sub{font-size:12px;opacity:.8}
+      #radio-volume{margin-left:auto;width:160px}
+      body{padding-bottom:64px}
+    </style>
+
+    <script type="module" src="/sticky-player.js"></script>
   </body>
 </html>

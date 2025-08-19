@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Audio Test</title>
+</head>
+<body>
+    <h1>Audio Test Page</h1>
+    
+    <!-- Test the basic HTML5 audio element -->
+    <audio controls src="/stream.mp3" style="position:fixed;bottom:72px;left:12px;z-index:99999;background:#000"></audio>
+    
+    <br><br>
+    
+    <!-- Test console command -->
+    <button onclick="testAudio()">Test Audio via JavaScript</button>
+    
+    <div id="status"></div>
+    
+    <script>
+        async function testAudio() {
+            const status = document.getElementById('status');
+            status.innerHTML = 'Testing audio...';
+            
+            try {
+                const a = new Audio('/stream.mp3');
+                a.volume = 0.5;
+                
+                await a.play();
+                console.log('✅ Audio playing successfully');
+                status.innerHTML = '✅ Audio playing successfully';
+            } catch (error) {
+                console.error('❌ Audio failed:', error);
+                status.innerHTML = '❌ Audio failed: ' + error.message;
+            }
+        }
+        
+        // Test nowplaying endpoint
+        fetch('/nowplaying')
+            .then(r => r.json())
+            .then(data => {
+                console.log('📡 Now playing data:', data);
+                document.body.insertAdjacentHTML('beforeend', 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>');
+            })
+            .catch(e => {
+                console.error('❌ Nowplaying failed:', e);
+            });
+    </script>
+</body>
+</html>
