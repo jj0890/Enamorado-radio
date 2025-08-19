@@ -46,7 +46,7 @@ export const guides = pgTable("guides", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Mix Submissions - Community submissions
+// Mix Submissions - Community submissions with routing control
 export const mixSubmissions = pgTable("mix_submissions", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // Submitter name
@@ -55,11 +55,27 @@ export const mixSubmissions = pgTable("mix_submissions", {
   about: text("about").notNull(), // Description
   url: text("url").notNull(), // SoundCloud, Mixcloud, Audio.com URL
   metadata: jsonb("metadata"), // Enhanced metadata from APIs
-  status: text("status").notNull().default("pending"), // pending, approved, featured
+  status: text("status").notNull().default("pending"), // pending, approved, featured, rejected
+  
+  // ROUTING FLAGS - Control where approved mixes go
+  featureOnSite: boolean("feature_on_site").default(true), // Show on website pages/cards
+  pushToAzura: boolean("push_to_azura").default(false), // Send to AzuraCast library
+  targetPlaylist: text("target_playlist").default("General Rotation"), // AzuraCast playlist
+  airDate: timestamp("air_date"), // Optional: first play scheduling
+  
+  // AZURACAST TRACKING - Monitor upload progress
+  azuraFilePath: text("azura_file_path"), // Path after SFTP upload
+  azuraPlaylistId: text("azura_playlist_id"), // AzuraCast playlist ID
+  
+  // AUDIT TRAIL - Complete lifecycle tracking
   submittedAt: timestamp("submitted_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),
   reviewedBy: text("reviewed_by"),
   notes: text("notes"),
+  approvedAt: timestamp("approved_at"), // When routing started
+  uploadedAt: timestamp("uploaded_at"), // SFTP completion
+  rescannedAt: timestamp("rescanned_at"), // AzuraCast library rescan
+  playlistLinkedAt: timestamp("playlist_linked_at"), // Added to playlist
 });
 
 // Schedule - Upcoming and past shows

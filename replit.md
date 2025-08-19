@@ -4,13 +4,13 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
-**AzuraCast Integration Complete (January 2025)**
-- ✅ Full SFTP integration with AzuraCast backend at 24.199.109.18:2022
-- ✅ Automated pipeline: community mix approval → SFTP upload → AzuraCast rotation
-- ✅ Real-time API integration showing live now playing and listener data
-- ✅ AzuraCast admin panel at `/admin/azuracast` for managing uploads
-- ✅ Simplified audio architecture - AzuraCast handles complex playlist features
-- ✅ Production-ready integration with ssh2-sftp-client and AzuraCast API
+**Standardized Mix Routing System (January 2025)**
+- ✅ Complete routing control system with featureOnSite/pushToAzura flags
+- ✅ Single backend router handling all post-approval workflows
+- ✅ Admin interface at `/admin/routing` for granular control over mix destinations
+- ✅ Audit trail tracking: approval → upload → rescan → playlist addition
+- ✅ Idempotent operations supporting retries and routing updates
+- ✅ AzuraCast integration with SFTP upload and playlist management
 - Stream URL: http://24.199.109.18/listen/enamorado_radio/radio.mp3
 
 **Clean Schema Migration Completed (January 2025)**

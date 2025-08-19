@@ -4,6 +4,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { metadataService } from "./metadataService";
 import { azuracastService } from "./azuracastService";
+import { mixRouter } from "./mixRouter";
 import { z } from "zod";
 import { 
   insertEpisodeSchema,
