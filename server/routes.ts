@@ -561,5 +561,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Initialize featured mixes on server start
   initFeaturedMixes().catch(console.error);
 
+  // =================
+  // AZURACAST INTEGRATION ROUTES
+  // =================
+
+  // Test AzuraCast connection
+  app.get('/api/azuracast/test', async (req, res) => {
+    try {
+      // Test connection by getting now playing
+      const nowPlaying = await azuracastService.getNowPlaying();
+      const stationInfo = await azuracastService.getStationInfo();
+      
+      res.json({
+        success: true,
+        nowPlaying,
+        stationInfo,
+        streamUrl: azuracastService.getStreamUrl(),
+        publicPlayerUrl: azuracastService.getPublicPlayerUrl()
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        error: 'Failed to connect to AzuraCast',
+        message: error.message
+      });
+    }
+  });
+
+  // Get AzuraCast now playing info
+  app.get('/api/azuracast/nowplaying', async (req, res) => {
+    try {
+      const nowPlaying = await azuracastService.getNowPlaying();
+      res.json(nowPlaying || {});
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to get now playing info' });
+    }
+  });
+
+  // Process approved mix for AzuraCast upload
+  app.post('/api/azuracast/process-mix/:id', async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(mixId);
+      
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+
+      if (mix.status !== 'approved') {
+        return res.status(400).json({ error: 'Mix must be approved before processing' });
+      }
+
+      // Process for AzuraCast
+      const processed = await audioProcessor.processSubmissionForAzuraCast(mix);
+      
+      if (processed) {
+        res.json({ 
+          success: true, 
+          message: 'Mix processed for AzuraCast upload',
+          tempDir: audioProcessor.getTempDirectory()
+        });
+      } else {
+        res.status(500).json({ error: 'Failed to process mix' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Processing failed', message: error.message });
+    }
+  });
+
+  // Upload processed audio to AzuraCast
+  app.post('/api/azuracast/upload/:id', async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(mixId);
+      
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+
+      const uploaded = await audioProcessor.uploadToAzuraCast(mix);
+      
+      if (uploaded) {
+        // Update mix status to indicate it's been uploaded to AzuraCast
+        await storage.updateMixSubmission(mixId, { 
+          ...mix, 
+          status: 'featured', // Mark as featured since it's now in AzuraCast rotation
+          azuracastUploaded: true 
+        });
+        
+        res.json({ success: true, message: 'Mix uploaded to AzuraCast successfully' });
+      } else {
+        res.status(500).json({ error: 'Failed to upload to AzuraCast' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: 'Upload failed', message: error.message });
+    }
+  });
+
+  // List files ready for AzuraCast upload
+  app.get('/api/azuracast/ready-files', (req, res) => {
+    try {
+      const readyFiles = audioProcessor.listReadyFiles();
+      res.json({ 
+        readyFiles,
+        tempDir: audioProcessor.getTempDirectory(),
+        count: readyFiles.length
+      });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to list ready files' });
+    }
+  });
+
   return httpServer;
 }
