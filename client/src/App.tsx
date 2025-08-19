@@ -24,6 +24,7 @@ import AdminSongSubmissions from "./pages/AdminSongSubmissions";
 import AdminQueue from "./pages/AdminQueue";
 import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";
+import StickyRadioPlayer from "./components/StickyRadioPlayer";
 
 function Router() {
   return (
@@ -78,7 +79,10 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Router />
+      <div className="min-h-screen bg-[#FEFCF9]">
+        <Router />
+        <StickyRadioPlayer />
+      </div>
     </QueryClientProvider>
   );
 }
