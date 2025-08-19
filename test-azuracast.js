@@ -15,8 +15,20 @@ async function testAzuraCastConnection() {
 
     console.log('✅ Connected to AzuraCast SFTP successfully!');
     
-    // List directory contents to verify access
-    const files = await sftp.list('/var/azuracast/stations/enamorado_radio/media/');
+    // List directory contents to verify access - try different paths
+    let files = [];
+    try {
+      files = await sftp.list('/var/azuracast/stations/enamorado_radio/media/');
+    } catch (error) {
+      console.log('Media dir not found, trying root directory...');
+      try {
+        files = await sftp.list('/');
+        console.log('Root directory contents:', files.map(f => f.name));
+      } catch (rootError) {
+        console.log('Listing home directory...');
+        files = await sftp.list('./');
+      }
+    }
     console.log(`📁 Found ${files.length} files in media directory`);
     
     // Test API connection

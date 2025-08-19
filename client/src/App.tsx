@@ -22,6 +22,7 @@ import MixesLanding from "./pages/MixesLanding";
 import SubmitMix from "./pages/SubmitMix-clean";
 import AdminSongSubmissions from "./pages/AdminSongSubmissions";
 import AdminQueue from "./pages/AdminQueue";
+import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 
 function Router() {
   return (
@@ -35,6 +36,7 @@ function Router() {
       <Route path="/admin" component={ScheduleAdmin} />
       <Route path="/admin/song-submissions" component={AdminSongSubmissions} />
       <Route path="/admin/queue" component={AdminQueue} />
+      <Route path="/admin/azuracast" component={AzuraCastAdmin} />
       <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
       <Route path="/schedule" component={Schedule} />
 
