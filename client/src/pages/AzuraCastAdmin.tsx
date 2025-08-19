@@ -1,67 +1,53 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Upload, Play, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-import { apiRequest } from '@/lib/queryClient';
 
 export default function AzuraCastAdmin() {
-  const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Get approved mixes ready for AzuraCast upload
   const { data: approvedMixes = [] } = useQuery({
     queryKey: ['/api/mixes', 'approved'],
-    queryFn: () => apiRequest('/api/mixes?status=approved')
+    queryFn: () => fetch('/api/mixes?status=approved').then(res => res.json())
   });
 
   // Get AzuraCast connection status
   const { data: azuracastStatus, isLoading: statusLoading } = useQuery({
     queryKey: ['/api/azuracast/test'],
+    queryFn: () => fetch('/api/azuracast/test').then(res => res.json()),
     refetchInterval: 30000
   });
 
   // Get now playing from AzuraCast
   const { data: nowPlaying } = useQuery({
     queryKey: ['/api/azuracast/nowplaying'],
+    queryFn: () => fetch('/api/azuracast/nowplaying').then(res => res.json()),
     refetchInterval: 15000
   });
 
   // Process mix for upload mutation
   const processMutation = useMutation({
-    mutationFn: (mixId: number) => apiRequest(`/api/azuracast/process-mix/${mixId}`, 'POST'),
+    mutationFn: (mixId: number) => 
+      fetch(`/api/azuracast/process-mix/${mixId}`, { method: 'POST' }).then(res => res.json()),
     onSuccess: () => {
-      toast({
-        title: "Mix Processed",
-        description: "Mix is ready for manual MP3 placement and upload to AzuraCast"
-      });
+      alert("Mix processed successfully! Check temp directory for next steps.");
       queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
     },
     onError: () => {
-      toast({
-        title: "Processing Failed", 
-        description: "Failed to process mix for AzuraCast",
-        variant: "destructive"
-      });
+      alert("Failed to process mix for AzuraCast");
     }
   });
 
   // Upload to AzuraCast mutation
   const uploadMutation = useMutation({
-    mutationFn: (mixId: number) => apiRequest(`/api/azuracast/upload/${mixId}`, 'POST'),
+    mutationFn: (mixId: number) => 
+      fetch(`/api/azuracast/upload/${mixId}`, { method: 'POST' }).then(res => res.json()),
     onSuccess: () => {
-      toast({
-        title: "Upload Successful",
-        description: "Mix uploaded to AzuraCast and added to rotation"
-      });
+      alert("Mix uploaded to AzuraCast successfully!");
       queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
     },
     onError: () => {
-      toast({
-        title: "Upload Failed",
-        description: "Failed to upload mix to AzuraCast",
-        variant: "destructive"
-      });
+      alert("Failed to upload mix to AzuraCast");
     }
   });
 

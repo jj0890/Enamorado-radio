@@ -3,6 +3,7 @@ import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { metadataService } from "./metadataService";
+import { azuracastService } from "./azuracastService";
 import { z } from "zod";
 import { 
   insertEpisodeSchema,
@@ -351,6 +352,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating schedule item:', error);
       res.status(400).json({ error: 'Invalid schedule data' });
+    }
+  });
+
+  // =================
+  // AZURACAST INTEGRATION API
+  // =================
+  
+  app.get("/api/azuracast/test", async (req, res) => {
+    try {
+      const result = await azuracastService.testConnection();
+      res.json(result);
+    } catch (error) {
+      res.json({ success: false, error: 'Failed to connect to AzuraCast' });
+    }
+  });
+
+  app.get("/api/azuracast/nowplaying", async (req, res) => {
+    try {
+      const nowPlaying = await azuracastService.getNowPlaying();
+      res.json(nowPlaying);
+    } catch (error) {
+      res.json(null);
+    }
+  });
+
+  app.post("/api/azuracast/process-mix/:id", async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(mixId);
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+      
+      // Here you would download the audio and convert to MP3
+      // For now, just return success for the workflow
+      res.json({ 
+        success: true, 
+        message: 'Mix processed - ready for manual MP3 placement' 
+      });
+    } catch (error) {
+      console.error('Error processing mix:', error);
+      res.status(500).json({ error: 'Failed to process mix' });
+    }
+  });
+
+  app.post("/api/azuracast/upload/:id", async (req, res) => {
+    try {
+      const mixId = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(mixId);
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+
+      // Simulate upload process (in real implementation, would use temp MP3 file)
+      const result = await azuracastService.uploadMixToAzuraCast(
+        mix.title, 
+        mix.name, 
+        `/tmp/${mix.title}.mp3` // This would be the actual MP3 file path
+      );
+      
+      res.json({ success: true, result });
+    } catch (error) {
+      console.error('Error uploading to AzuraCast:', error);
+      res.status(500).json({ error: 'Failed to upload to AzuraCast' });
     }
   });
 

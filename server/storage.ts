@@ -35,6 +35,7 @@ export interface IStorage {
   // Mix Submissions - Community content
   getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number }): Promise<MixSubmission[]>;
   getMixSubmissionById(id: number): Promise<MixSubmission | undefined>;
+  getMixSubmission(id: number): Promise<MixSubmission | undefined>;
   createMixSubmission(submission: InsertMixSubmission): Promise<MixSubmission>;
   updateMixSubmissionStatus(id: number, status: string, notes?: string): Promise<MixSubmission>;
 
