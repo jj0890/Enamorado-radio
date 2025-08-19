@@ -20,35 +20,47 @@ interface NowPlayingData {
 export default function StickyRadioPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [volume, setVolume] = useState(0.9);
   const [nowPlaying, setNowPlaying] = useState({
-    title: 'Loading…',
-    subtitle: 'Enamorado Radio • Live'
+    title: 'Enamorado Radio',
+    subtitle: 'Click to tune in'
   });
   const [sourceSet, setSourceSet] = useState(false);
 
   // Ensure audio source is set only when user plays (saves bandwidth)
   const ensureSource = () => {
+    console.log('🎵 ensureSource called, sourceSet:', sourceSet);
     if (!sourceSet && audioRef.current) {
-      audioRef.current.src = `${STREAM_URL}?t=${Date.now()}`;
+      const streamUrl = `${STREAM_URL}?t=${Date.now()}`;
+      audioRef.current.src = streamUrl;
       setSourceSet(true);
+      console.log('🎵 Audio source set to:', streamUrl);
     }
   };
 
   // Play/Pause toggle
   const handleToggle = async () => {
-    if (!audioRef.current) return;
+    console.log('🎵 handleToggle called, isPlaying:', isPlaying);
+    if (!audioRef.current) {
+      console.error('❌ audioRef.current is null');
+      return;
+    }
     
     ensureSource();
     
     if (!isPlaying) {
       try {
+        console.log('🎵 Attempting to play audio...');
         await audioRef.current.play();
         setIsPlaying(true);
+        console.log('✅ Audio playing successfully');
       } catch (error) {
-        console.error('Audio play failed:', error);
+        console.error('❌ Audio play failed:', error);
+        alert('Failed to start audio: ' + (error as Error).message);
       }
     } else {
+      console.log('⏸ Pausing audio...');
       audioRef.current.pause();
       setIsPlaying(false);
     }
@@ -61,28 +73,43 @@ export default function StickyRadioPlayer() {
     if (audioRef.current) {
       audioRef.current.volume = newVolume;
     }
+    console.log('🔊 Volume set to:', newVolume);
   };
 
   // Poll AzuraCast for now playing info
   const pollNowPlaying = async () => {
     try {
+      console.log('📡 Polling now playing...');
       const response = await fetch(NOWPLAYING_URL, { cache: 'no-store' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
       const data: NowPlayingData = await response.json();
+      console.log('📡 Now playing response:', data);
 
       const song = data.now_playing?.song || {};
       const artist = song.artist || '';
       const track = song.title || 'Live Stream';
 
-      const title = artist && track ? `${artist} — ${track}` : track;
+      const title = artist && track && track !== 'Station Offline' 
+        ? `${artist} — ${track}` 
+        : 'Enamorado Radio';
       
       const isLive = data.live?.is_live;
       const subtitle = isLive
         ? `LIVE • ${data.live.streamer_name || 'On Air'}`
-        : 'Enamorado Radio • AutoDJ';
+        : track === 'Station Offline' ? 'Station Offline' : 'AutoDJ';
 
       setNowPlaying({ title, subtitle });
+      console.log('✅ Metadata updated:', { title, subtitle });
     } catch (error) {
-      console.debug('NowPlaying fetch error:', error);
+      console.error('❌ NowPlaying fetch error:', error);
+      setNowPlaying({ 
+        title: 'Enamorado Radio', 
+        subtitle: 'Connection Error' 
+      });
     }
   };
 
@@ -90,59 +117,106 @@ export default function StickyRadioPlayer() {
   useEffect(() => {
     if (audioRef.current) {
       audioRef.current.volume = volume;
+      
+      // Add event listeners for debugging
+      const audio = audioRef.current;
+      
+      const onLoadStart = () => console.log('🎵 Audio loadstart');
+      const onCanPlay = () => console.log('🎵 Audio canplay');
+      const onPlaying = () => console.log('🎵 Audio playing event');
+      const onPause = () => console.log('🎵 Audio pause event');
+      const onError = (e: Event) => console.error('🎵 Audio error:', e);
+      
+      audio.addEventListener('loadstart', onLoadStart);
+      audio.addEventListener('canplay', onCanPlay);
+      audio.addEventListener('playing', onPlaying);
+      audio.addEventListener('pause', onPause);
+      audio.addEventListener('error', onError);
+      
+      return () => {
+        audio.removeEventListener('loadstart', onLoadStart);
+        audio.removeEventListener('canplay', onCanPlay);
+        audio.removeEventListener('playing', onPlaying);
+        audio.removeEventListener('pause', onPause);
+        audio.removeEventListener('error', onError);
+      };
     }
     
     // Initial poll and set up interval
     pollNowPlaying();
-    const interval = setInterval(pollNowPlaying, 10000); // Poll every 10 seconds
+    const interval = setInterval(pollNowPlaying, 15000); // Poll every 15 seconds
     
     return () => clearInterval(interval);
   }, [volume]);
 
   return (
     <>
-      {/* Sticky Radio Player Bar - matches lyl.live/sharedfrequenciesradio.com */}
-      <div className="fixed left-0 right-0 bottom-0 z-50 flex items-center gap-3 px-4 py-3 bg-black text-white border-t border-gray-800 shadow-lg">
-        {/* Play/Pause Button */}
-        <button
-          onClick={handleToggle}
-          aria-label="Play/Pause"
-          className="bg-red-600 hover:bg-red-700 text-white border-0 rounded-full w-10 h-10 text-base cursor-pointer flex items-center justify-center transition-all duration-200 shadow-md"
-        >
-          {isPlaying ? '⏸' : '▶️'}
-        </button>
-
-        {/* Metadata Display */}
-        <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <div className="font-bold whitespace-nowrap overflow-hidden text-ellipsis text-sm">
-            {nowPlaying.title}
-          </div>
-          <div className="text-xs opacity-70 text-gray-300">
-            {nowPlaying.subtitle}
-          </div>
+      {/* Top-right "Listen Live" button - matches sharedfrequenciesradio.com */}
+      <div className="fixed top-4 right-4 z-50">
+        <div className={`transition-all duration-300 ${isExpanded ? 'w-80' : 'w-auto'}`}>
+          {isExpanded ? (
+            // Expanded player
+            <div className="bg-black text-white rounded-lg shadow-xl p-4 border border-red-600">
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-sm font-mono text-red-500">ENAMORADO RADIO</div>
+                <button
+                  onClick={() => setIsExpanded(false)}
+                  className="text-gray-400 hover:text-white text-lg"
+                >
+                  ×
+                </button>
+              </div>
+              
+              <div className="flex items-center gap-3 mb-3">
+                <button
+                  onClick={handleToggle}
+                  className="bg-red-600 hover:bg-red-700 rounded-full w-12 h-12 flex items-center justify-center text-lg transition-colors"
+                >
+                  {isPlaying ? '⏸' : '▶️'}
+                </button>
+                
+                <div className="flex-1 min-w-0">
+                  <div className="font-medium text-sm whitespace-nowrap overflow-hidden text-ellipsis">
+                    {nowPlaying.title}
+                  </div>
+                  <div className="text-xs text-gray-400">
+                    {nowPlaying.subtitle}
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-400">🔊</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="flex-1 accent-red-600"
+                />
+              </div>
+            </div>
+          ) : (
+            // Collapsed "Listen Live" button - exactly like sharedfrequenciesradio.com
+            <button
+              onClick={() => setIsExpanded(true)}
+              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full font-mono text-sm transition-all duration-200 shadow-lg flex items-center gap-2"
+            >
+              🎵 Listen Live
+              {isPlaying && <span className="animate-pulse">●</span>}
+            </button>
+          )}
         </div>
-
-        {/* Volume Control */}
-        <input
-          type="range"
-          min="0"
-          max="1"
-          step="0.01"
-          value={volume}
-          onChange={handleVolumeChange}
-          className="w-32 accent-red-600"
-        />
-
-        {/* Audio Element */}
-        <audio
-          ref={audioRef}
-          preload="none"
-          crossOrigin="anonymous"
-        />
       </div>
 
-      {/* Spacer to prevent content from being hidden behind the sticky player */}
-      <div className="h-16" />
+      {/* Audio Element */}
+      <audio
+        ref={audioRef}
+        preload="none"
+        crossOrigin="anonymous"
+      />
     </>
   );
 }
