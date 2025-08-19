@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 
-// AzuraCast URLs for Enamorado Radio
-const STREAM_URL = 'http://24.199.109.18/radio/8000/radio.mp3'; // HTTPS-safe proxy stream
-const NOWPLAYING_URL = 'http://24.199.109.18/api/nowplaying/enamorado_radio';
+// HTTPS-safe proxy URLs (routes through our server)
+const STREAM_URL = '/stream.mp3'; // Proxied stream
+const NOWPLAYING_URL = '/nowplaying'; // Proxied now playing
 
 interface NowPlayingData {
   now_playing?: {
@@ -101,23 +101,23 @@ export default function StickyRadioPlayer() {
 
   return (
     <>
-      {/* Sticky Radio Player Bar */}
-      <div className="fixed left-0 right-0 bottom-0 z-50 flex items-center gap-3 px-4 py-3 bg-gray-900 text-white border-t border-gray-700">
+      {/* Sticky Radio Player Bar - matches lyl.live/sharedfrequenciesradio.com */}
+      <div className="fixed left-0 right-0 bottom-0 z-50 flex items-center gap-3 px-4 py-3 bg-black text-white border-t border-gray-800 shadow-lg">
         {/* Play/Pause Button */}
         <button
           onClick={handleToggle}
           aria-label="Play/Pause"
-          className="bg-red-500 hover:bg-red-600 text-white border-0 rounded-full w-10 h-10 text-base cursor-pointer flex items-center justify-center transition-colors"
+          className="bg-red-600 hover:bg-red-700 text-white border-0 rounded-full w-10 h-10 text-base cursor-pointer flex items-center justify-center transition-all duration-200 shadow-md"
         >
           {isPlaying ? '⏸' : '▶️'}
         </button>
 
         {/* Metadata Display */}
         <div className="flex flex-col gap-1 min-w-0 flex-1">
-          <div className="font-bold whitespace-nowrap overflow-hidden text-ellipsis">
+          <div className="font-bold whitespace-nowrap overflow-hidden text-ellipsis text-sm">
             {nowPlaying.title}
           </div>
-          <div className="text-xs opacity-80">
+          <div className="text-xs opacity-70 text-gray-300">
             {nowPlaying.subtitle}
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function StickyRadioPlayer() {
           step="0.01"
           value={volume}
           onChange={handleVolumeChange}
-          className="w-40 accent-red-500"
+          className="w-32 accent-red-600"
         />
 
         {/* Audio Element */}

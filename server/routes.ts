@@ -6,6 +6,7 @@ import { metadataService } from "./metadataService";
 import { azuracastService } from "./azuracastService";
 import { mixRouter } from "./mixRouter";
 import { z } from "zod";
+import http from "http";
 import { 
   insertEpisodeSchema,
   insertGuideSchema,
@@ -38,6 +39,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     });
   }
+
+  // =================
+  // HTTPS PROXY for AzuraCast (fixes mixed-content blocking)
+  // =================
+  
+  const AZ_BASE = 'http://24.199.109.18';
+  const STREAM_PATH = '/radio/8000/radio.mp3';
+  const NOWPLAYING_PATH = '/api/nowplaying/enamorado_radio';
+
+  // Proxy the MP3 stream (HTTPS-safe)
+  app.get('/stream.mp3', (req, res) => {
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Transfer-Encoding', 'chunked');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+
+    const upstream = http.request(`${AZ_BASE}${STREAM_PATH}`, { method: 'GET' }, up => {
+      up.on('error', () => res.end());
+      up.pipe(res);
+    });
+
+    upstream.on('error', () => {
+      res.status(502).end('Stream error');
+    });
+
+    upstream.end();
+  });
+
+  // Proxy the nowplaying JSON
+  app.get('/nowplaying', async (req, res) => {
+    try {
+      const response = await fetch(`${AZ_BASE}${NOWPLAYING_PATH}`, { 
+        headers: { 'Accept': 'application/json' } 
+      });
+      const data = await response.json();
+      res.set('Cache-Control', 'no-store');
+      res.set('Access-Control-Allow-Origin', '*');
+      res.json(data);
+    } catch (error) {
+      console.error('Nowplaying proxy error:', error);
+      res.status(502).json({ error: 'nowplaying failed' });
+    }
+  });
 
   // =================
   // LATEST API - Recent episodes, shows, and mixes
