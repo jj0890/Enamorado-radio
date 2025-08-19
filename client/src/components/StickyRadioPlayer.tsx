@@ -151,65 +151,62 @@ export default function StickyRadioPlayer() {
 
   return (
     <>
-      {/* Top-right "Listen Live" button - matches sharedfrequenciesradio.com */}
-      <div className="fixed top-4 right-4 z-50">
-        <div className={`transition-all duration-300 ${isExpanded ? 'w-80' : 'w-auto'}`}>
-          {isExpanded ? (
-            // Expanded player
-            <div className="bg-black text-white rounded-lg shadow-xl p-4 border border-red-600">
-              <div className="flex items-center justify-between mb-3">
-                <div className="text-sm font-mono text-red-500">ENAMORADO RADIO</div>
-                <button
-                  onClick={() => setIsExpanded(false)}
-                  className="text-gray-400 hover:text-white text-lg"
-                >
-                  ×
-                </button>
-              </div>
-              
-              <div className="flex items-center gap-3 mb-3">
-                <button
-                  onClick={handleToggle}
-                  className="bg-red-600 hover:bg-red-700 rounded-full w-12 h-12 flex items-center justify-center text-lg transition-colors"
-                >
-                  {isPlaying ? '⏸' : '▶️'}
-                </button>
-                
-                <div className="flex-1 min-w-0">
-                  <div className="font-medium text-sm whitespace-nowrap overflow-hidden text-ellipsis">
-                    {nowPlaying.title}
-                  </div>
-                  <div className="text-xs text-gray-400">
-                    {nowPlaying.subtitle}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-gray-400">🔊</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="1"
-                  step="0.01"
-                  value={volume}
-                  onChange={handleVolumeChange}
-                  className="flex-1 accent-red-600"
-                />
-              </div>
+      {/* Top banner player - exactly like sharedfrequenciesradio.com */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-black text-white border-b border-gray-800">
+        <div className="flex items-center h-16 px-4">
+          {/* Station Logo/Brand */}
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-bold text-lg">
+              E
             </div>
-          ) : (
-            // Collapsed "Listen Live" button - exactly like sharedfrequenciesradio.com
+            <div className="font-mono text-sm">
+              <div className="text-red-500 font-bold">ENAMORADO</div>
+              <div className="text-gray-400 text-xs">RADIO</div>
+            </div>
+          </div>
+
+          {/* Play/Pause Controls */}
+          <div className="flex items-center gap-2 ml-6">
             <button
-              onClick={() => setIsExpanded(true)}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-full font-mono text-sm transition-all duration-200 shadow-lg flex items-center gap-2"
+              onClick={handleToggle}
+              className="w-8 h-8 bg-white text-black flex items-center justify-center text-sm hover:bg-gray-200 transition-colors"
+              title={isPlaying ? 'Pause' : 'Play'}
             >
-              🎵 Listen Live
-              {isPlaying && <span className="animate-pulse">●</span>}
+              {isPlaying ? '⏸' : '▶'}
             </button>
-          )}
+            <div className="text-sm font-medium">
+              {isPlaying ? 'On Air' : 'Off Air'}
+            </div>
+          </div>
+
+          {/* Now Playing Info */}
+          <div className="flex-1 mx-6 text-center">
+            <div className="text-sm font-medium">
+              {nowPlaying.title}
+            </div>
+            <div className="text-xs text-gray-400">
+              {nowPlaying.subtitle}
+            </div>
+          </div>
+
+          {/* Volume Control */}
+          <div className="flex items-center gap-2">
+            <span className="text-xs">🔊</span>
+            <input
+              type="range"
+              min="0"
+              max="1"
+              step="0.01"
+              value={volume}
+              onChange={handleVolumeChange}
+              className="w-20 accent-red-600"
+            />
+          </div>
         </div>
       </div>
+
+      {/* Spacer for fixed top bar */}
+      <div className="h-16" />
 
       {/* Audio Element */}
       <audio

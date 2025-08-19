@@ -4,6 +4,14 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**Working Sticky Radio Player Implementation (January 2025)**
+- ✅ HTTPS proxy endpoints (/stream.mp3 and /nowplaying) fix mixed-content blocking
+- ✅ Top banner player matching sharedfrequenciesradio.com design exactly
+- ✅ Real-time AzuraCast integration with live metadata polling
+- ✅ Functional play/pause controls with proper error handling and debugging
+- ✅ Volume controls and responsive design
+- Stream URL proxied through: /stream.mp3 (HTTPS-safe)
+
 **Standardized Mix Routing System (January 2025)**
 - ✅ Complete routing control system with featureOnSite/pushToAzura flags
 - ✅ Single backend router handling all post-approval workflows
@@ -11,7 +19,6 @@ This is a full-stack web application for a radio station platform that allows us
 - ✅ Audit trail tracking: approval → upload → rescan → playlist addition
 - ✅ Idempotent operations supporting retries and routing updates
 - ✅ AzuraCast integration with SFTP upload and playlist management
-- Stream URL: http://24.199.109.18/listen/enamorado_radio/radio.mp3
 
 **Clean Schema Migration Completed (January 2025)**
 - Successfully migrated from complex legacy schema to streamlined clean architecture
