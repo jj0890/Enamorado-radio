@@ -93,16 +93,20 @@ export default function StickyRadioPlayer() {
       const artist = song.artist || '';
       const track = song.title || 'Live Stream';
 
-      const title = artist && track && track !== 'Station Offline' 
-        ? `${artist} — ${track}` 
-        : 'Enamorado Radio';
+      // Enhanced title mapping for uploaded episodes
+      let displayTitle = 'Enamorado Radio';
+      if (artist && track && track !== 'Station Offline') {
+        displayTitle = `${artist} — ${track}`;
+      } else if (track && track !== 'Station Offline' && track !== 'Live Stream') {
+        displayTitle = track;
+      }
       
       const isLive = data.live?.is_live;
       const subtitle = isLive
         ? `LIVE • ${data.live.streamer_name || 'On Air'}`
         : track === 'Station Offline' ? 'Station Offline' : 'AutoDJ';
 
-      setNowPlaying({ title, subtitle });
+      setNowPlaying({ title: displayTitle, subtitle });
       console.log('✅ Metadata updated:', { title, subtitle });
     } catch (error) {
       console.error('❌ NowPlaying fetch error:', error);

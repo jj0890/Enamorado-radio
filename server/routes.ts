@@ -5,8 +5,10 @@ import { storage } from "./storage";
 import { metadataService } from "./metadataService";
 import { azuracastService } from "./azuracastService";
 import { mixRouter } from "./mixRouter";
+import { azuraCastManager } from "./azuracastManager";
 import { z } from "zod";
 import http from "http";
+import multer from "multer";
 import { 
   insertEpisodeSchema,
   insertGuideSchema,
@@ -79,6 +81,162 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Nowplaying proxy error:', error);
       res.status(502).json({ error: 'nowplaying failed' });
+    }
+  });
+
+  // =================
+  // ADMIN UPLOAD API - Complete AzuraCast Integration
+  // =================
+  
+  // Configure multer for file uploads
+  const upload = multer({ 
+    dest: '/tmp/uploads/',
+    limits: {
+      fileSize: 500 * 1024 * 1024 // 500MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      if (file.mimetype.startsWith('audio/') || file.originalname.endsWith('.mp3')) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only audio files are allowed'));
+      }
+    }
+  });
+
+  // Upload episode to AzuraCast
+  app.post("/api/admin/episode/upload", upload.single('audioFile'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Audio file is required' });
+      }
+
+      const { 
+        title, 
+        showId, 
+        showSlug, 
+        airDate, 
+        tags, 
+        featureOnHome = false, 
+        artworkUrl 
+      } = req.body;
+
+      console.log(`🎵 Processing upload: ${title} for show ${showSlug}`);
+
+      // Create episode record
+      const episode = await storage.createEpisode({
+        title,
+        showId: parseInt(showId),
+        slug: title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        airDate: new Date(airDate),
+        artworkUrl,
+        tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
+        status: 'uploading',
+        featureOnHome: featureOnHome === 'true'
+      });
+
+      // Upload to AzuraCast
+      const uploadResult = await azuraCastManager.uploadEpisode(episode.id, req.file.path, {
+        title,
+        showSlug,
+        artist: 'Enamorado Radio',
+        album: title
+      });
+
+      if (uploadResult.success) {
+        // Get or create playlist
+        const show = await storage.getShow(parseInt(showId));
+        const playlistResult = await azuraCastManager.ensurePlaylist(showSlug, show?.title || showSlug);
+        
+        if (playlistResult.playlistId && uploadResult.azuraFilePath) {
+          // Add to playlist
+          await azuraCastManager.addToPlaylist(playlistResult.playlistId, uploadResult.azuraFilePath);
+          
+          // Update episode with playlist info
+          await storage.updateEpisode(episode.id, {
+            azuraPlaylistId: playlistResult.playlistId
+          });
+        }
+
+        broadcast({
+          type: 'episodeUploaded',
+          episodeId: episode.id,
+          title,
+          showSlug,
+          status: 'uploaded'
+        });
+
+        res.json({
+          success: true,
+          episode,
+          azuraFilePath: uploadResult.azuraFilePath,
+          message: 'Episode uploaded successfully'
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: uploadResult.error,
+          message: 'Upload to AzuraCast failed'
+        });
+      }
+
+    } catch (error) {
+      console.error('Episode upload failed:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Upload failed',
+        success: false
+      });
+    }
+  });
+
+  // Schedule episode for specific air time
+  app.post("/api/admin/episode/:id/schedule", async (req, res) => {
+    try {
+      const episodeId = parseInt(req.params.id);
+      const { startTime, duration = 3600 } = req.body;
+
+      const episode = await storage.getEpisode(episodeId);
+      if (!episode) {
+        return res.status(404).json({ error: 'Episode not found' });
+      }
+
+      if (!episode.azuraPlaylistId) {
+        return res.status(400).json({ error: 'Episode not uploaded to AzuraCast yet' });
+      }
+
+      const scheduleResult = await azuraCastManager.scheduleEpisode(
+        episode.azuraPlaylistId,
+        new Date(startTime),
+        duration
+      );
+
+      if (scheduleResult.success) {
+        await storage.updateEpisode(episodeId, {
+          status: 'scheduled'
+        });
+
+        broadcast({
+          type: 'episodeScheduled',
+          episodeId,
+          startTime,
+          duration
+        });
+
+        res.json({
+          success: true,
+          message: 'Episode scheduled successfully'
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: scheduleResult.error
+        });
+      }
+
+    } catch (error) {
+      console.error('Episode scheduling failed:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Scheduling failed' 
+      });
     }
   });
 
