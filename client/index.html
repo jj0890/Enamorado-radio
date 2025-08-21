@@ -11,9 +11,24 @@
 
     <!-- Kill any old floating live button -->
     <style>
-      .listen-live, .listen-live-btn, [data-live-button], .live-button {
-        display:none !important;
-        visibility:hidden !important;
+      /* kill the legacy header player/badge */
+      #listen-live,
+      .listen-live,
+      .listen-live-btn,
+      .header-player,
+      .header .player,
+      .header .listen-live,
+      button[data-player],
+      a[href*="listen"], 
+      a[aria-label*="Listen Live"],
+      [data-live-button], 
+      .live-button,
+      .fixed.top-4.right-4,
+      .fixed.top-0.right-0,
+      .fixed.top-2.right-2,
+      .fixed.top-6.right-6 {
+        display: none !important;
+        visibility: hidden !important;
       }
     </style>
 

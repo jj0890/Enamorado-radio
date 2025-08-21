@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 
 // HTTPS-safe proxy URLs (routes through our server)
 const STREAM_URL = '/stream.mp3'; // Proxied stream
-const NOWPLAYING_URL = '/nowplaying'; // Proxied now playing
+const NOWPLAYING_URL = '/api/now'; // Proxied now playing
 
 interface NowPlayingData {
   now_playing?: {
@@ -103,11 +103,11 @@ export default function StickyRadioPlayer() {
       
       const isLive = data.live?.is_live;
       const subtitle = isLive
-        ? `LIVE • ${data.live.streamer_name || 'On Air'}`
+        ? `LIVE • ${data.live?.streamer_name || 'On Air'}`
         : track === 'Station Offline' ? 'Station Offline' : 'AutoDJ';
 
       setNowPlaying({ title: displayTitle, subtitle });
-      console.log('✅ Metadata updated:', { title, subtitle });
+      console.log('✅ Metadata updated:', { title: displayTitle, subtitle });
     } catch (error) {
       console.error('❌ NowPlaying fetch error:', error);
       setNowPlaying({ 

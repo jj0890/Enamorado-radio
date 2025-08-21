@@ -25,6 +25,7 @@ import AdminQueue from "./pages/AdminQueue";
 import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";
 import AdminEpisodeUpload from "./pages/AdminEpisodeUpload";
+import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
 
 function Router() {
@@ -42,6 +43,16 @@ function Router() {
       <Route path="/admin/azuracast" component={AzuraCastAdmin} />
       <Route path="/admin/routing" component={AdminMixRouting} />
       <Route path="/admin/upload" component={AdminEpisodeUpload} />
+      <Route path="/admin/azuracast-upload" component={() => (
+        <div className="min-h-screen bg-[#FEFCF9] p-6">
+          <div className="max-w-4xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+              AZURACAST UPLOAD
+            </h1>
+            <MixUploadToAzuraCast />
+          </div>
+        </div>
+      )} />
       <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
       <Route path="/schedule" component={Schedule} />
 
