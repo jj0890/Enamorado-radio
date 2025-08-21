@@ -161,10 +161,6 @@ export default function RadioLanding() {
                 <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
                 <span className="text-xs font-medium text-white/80">LIVE NOW</span>
               </div>
-              <Button className="bg-blue-500 hover:bg-blue-600 text-white">
-                <Play className="w-4 h-4 mr-2" />
-                Listen Live
-              </Button>
             </div>
           </div>
         </div>
