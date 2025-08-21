@@ -26,6 +26,7 @@ import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";
 import AdminEpisodeUpload from "./pages/AdminEpisodeUpload";
 import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
+import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
 
 function Router() {
@@ -50,6 +51,16 @@ function Router() {
               AZURACAST UPLOAD
             </h1>
             <MixUploadToAzuraCast />
+          </div>
+        </div>
+      )} />
+      <Route path="/admin/mix-manager" component={() => (
+        <div className="min-h-screen bg-[#FEFCF9] p-6">
+          <div className="max-w-6xl mx-auto">
+            <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+              MIX MANAGER - Upload, Publish & Schedule
+            </h1>
+            <AzuraCastMixManager />
           </div>
         </div>
       )} />

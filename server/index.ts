@@ -5,9 +5,9 @@ import cors from 'cors';
 import helmet from 'helmet';
 import pino from 'pino';
 import multer from 'multer';
-import SftpClient from 'ssh2-sftp-client';
-import axios from 'axios';
 import path from 'path';
+import fs from 'fs/promises';
+import { uploadViaSftp, rescanLibrary, ensurePlaylist, addMediaToPlaylist, createSchedule, getNowPlaying } from './azuracastHelpers';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -85,84 +85,105 @@ app.get('/resident-application', (req, res) => {
 
 // Set up multer for file uploads
 const upload = multer({ 
-  storage: multer.memoryStorage(), 
+  dest: '/tmp/uploads/',
   limits: { fileSize: 1024 * 1024 * 300 } // 300MB
 });
-
-// Environment variables for AzuraCast integration
-const {
-  AZURACAST_BASE_URL,
-  AZURACAST_API_KEY,
-  SFTP_HOST, 
-  SFTP_PORT, 
-  SFTP_USER, 
-  SFTP_PASS
-} = process.env;
-
-const MEDIA_DIR = '/var/azuracast/stations/enamorado_radio/media';
 
 // Health check endpoint
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
-// Upload mix to AzuraCast via SFTP and trigger library rescan
-app.post('/api/mixes/upload', upload.single('file'), async (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file provided' });
-  }
-  
-  if (!AZURACAST_BASE_URL || !AZURACAST_API_KEY || !SFTP_HOST || !SFTP_USER || !SFTP_PASS) {
-    return res.status(500).json({ error: 'Missing AzuraCast configuration' });
-  }
-
-  const sftp = new SftpClient();
-  
-  // Create a clean filename
-  const safeName = req.body.filename || req.file.originalname.replace(/[^\w.\- ]+/g, '_');
-  const remotePath = path.posix.join(MEDIA_DIR, safeName);
-
+// Upload mix file to AzuraCast
+app.post('/api/mix/upload', upload.single('file'), async (req, res) => {
   try {
-    // Connect to SFTP and upload file
-    await sftp.connect({ 
-      host: SFTP_HOST, 
-      port: Number(SFTP_PORT || 22), 
-      username: SFTP_USER, 
-      password: SFTP_PASS 
-    });
-    
-    await sftp.put(req.file.buffer, remotePath);
-    await sftp.end();
-    
-    log(`File uploaded to AzuraCast: ${safeName}`);
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: 'No file provided' });
+    }
 
-    // Trigger AzuraCast library rescan
-    await axios.post(
-      `${AZURACAST_BASE_URL}/api/station/enamorado_radio/files/rescan`,
-      {},
-      { headers: { 'X-API-Key': AZURACAST_API_KEY } }
-    );
+    const localPath = req.file.path;
+    const finalFilename = req.body.final_filename || req.file.originalname.replace(/\s+/g, '_');
     
-    log(`Library rescan triggered for: ${safeName}`);
-
-    res.json({ ok: true, file: safeName, message: 'File uploaded and library scan triggered' });
+    await uploadViaSftp(localPath, finalFilename);
+    await rescanLibrary();
+    
+    // Clean up temp file
+    await fs.unlink(localPath).catch(() => {});
+    
+    log(`File uploaded to AzuraCast: ${finalFilename}`);
+    res.json({ ok: true, filename: finalFilename });
   } catch (err) {
     logger.error({ err }, 'Upload to AzuraCast failed');
-    try { await sftp.end(); } catch {}
-    res.status(500).json({ error: (err as Error).message || 'Upload failed' });
+    res.status(500).json({ ok: false, error: (err as Error).message });
+  }
+});
+
+// Publish mix to playlist
+app.post('/api/mix/publish', async (req, res) => {
+  try {
+    const { show_slug, filenames } = req.body;
+    
+    if (!show_slug || !Array.isArray(filenames) || filenames.length === 0) {
+      return res.status(400).json({ ok: false, error: 'show_slug and filenames[] required' });
+    }
+    
+    const playlistName = `show__${show_slug}`;
+    const playlist = await ensurePlaylist(playlistName);
+    await addMediaToPlaylist(playlist.id, filenames);
+    
+    log(`Added ${filenames.length} files to playlist: ${playlistName}`);
+    res.json({ ok: true, playlist_id: playlist.id });
+  } catch (err) {
+    logger.error({ err }, 'Failed to publish to playlist');
+    res.status(500).json({ ok: false, error: (err as Error).message });
+  }
+});
+
+// Schedule playlist
+app.post('/api/mix/schedule', async (req, res) => {
+  try {
+    const { playlist_id, show_slug, days, start, end, loopOnce = true } = req.body;
+    
+    let playlistId = playlist_id;
+    if (!playlistId && show_slug) {
+      const playlist = await ensurePlaylist(`show__${show_slug}`);
+      playlistId = playlist.id;
+    }
+    
+    if (!playlistId || !Array.isArray(days) || !start || !end) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: 'playlist_id/show_slug, days[], start, end required' 
+      });
+    }
+    
+    const schedule = await createSchedule(playlistId, days, start, end, loopOnce);
+    
+    log(`Created schedule for playlist ${playlistId}: ${days.join(',')} ${start}-${end}`);
+    res.json({ ok: true, schedule });
+  } catch (err) {
+    logger.error({ err }, 'Failed to create schedule');
+    res.status(500).json({ ok: false, error: (err as Error).message });
   }
 });
 
 // Proxy AzuraCast now playing data
-app.get('/api/now', async (_req, res) => {
+app.get('/api/nowplaying', async (_req, res) => {
   try {
-    if (!AZURACAST_BASE_URL) {
-      return res.status(500).json({ error: 'AzuraCast URL not configured' });
-    }
-    
-    const { data } = await axios.get(`${AZURACAST_BASE_URL}/api/nowplaying/enamorado_radio`);
+    const data = await getNowPlaying();
     res.json(data);
   } catch (err) {
     logger.error({ err }, 'Failed to fetch now playing data');
-    res.status(500).json({ error: 'Failed to fetch now playing data' });
+    res.status(500).json({ ok: false, error: 'Failed to fetch now playing data' });
+  }
+});
+
+// Legacy endpoint for existing player
+app.get('/api/now', async (_req, res) => {
+  try {
+    const data = await getNowPlaying();
+    res.json(data);
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch now playing data');
+    res.status(500).json({ ok: false, error: 'Failed to fetch now playing data' });
   }
 });
 
