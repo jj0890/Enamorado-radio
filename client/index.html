@@ -9,25 +9,59 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
+    <!-- Kill any old floating live button -->
+    <style>
+      .listen-live, .listen-live-btn, [data-live-button], .live-button {
+        display:none !important;
+        visibility:hidden !important;
+      }
+    </style>
+
     <!-- Sticky Player -->
-    <div id="radio-bar">
-      <button id="radio-toggle" aria-label="Play/Pause">▶️</button>
+    <div id="radio-bar" role="region" aria-label="Radio player">
+      <button id="radio-toggle" class="rp-btn" aria-label="Play" data-state="paused">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path d="M8 5v14l11-7z" fill="currentColor"></path>
+        </svg>
+      </button>
+
       <div id="radio-meta">
-        <div id="radio-title">Loading…</div>
-        <div id="radio-sub">Enamorado Radio • Live</div>
+        <div id="radio-title">Enamorado Radio</div>
+        <div id="radio-sub">Live</div>
       </div>
-      <input id="radio-volume" type="range" min="0" max="1" step="0.01" value="0.9" />
-      <audio id="radio-audio" preload="none" crossorigin="anonymous"></audio>
+
+      <div class="rp-right">
+        <input id="radio-volume" type="range" min="0" max="1" step="0.01" value="0.9" aria-label="Volume"/>
+      </div>
+
+      <audio id="radio-audio" preload="none" crossorigin="anonymous" playsinline></audio>
     </div>
 
     <style>
-      #radio-bar{position:fixed;left:0;right:0;bottom:0;z-index:9999;display:flex;align-items:center;gap:.75rem;padding:.75rem 1rem;background:#111;color:#fff;border-top:1px solid #222}
-      #radio-toggle{background:#ff0000;color:#fff;border:0;border-radius:9999px;width:40px;height:40px;font-size:16px;cursor:pointer}
-      #radio-meta{display:flex;flex-direction:column;gap:.15rem;min-width:0}
-      #radio-title{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-      #radio-sub{font-size:12px;opacity:.8}
-      #radio-volume{margin-left:auto;width:160px}
-      body{padding-bottom:64px}
+      :root{
+        --rp-bg:#111; --rp-fg:#fff; --rp-accent:#ff453a; --rp-dim:#9aa0a6;
+        --rp-border:#222; --rp-height:64px;
+      }
+      #radio-bar{
+        position:fixed; left:0; right:0; bottom:0; z-index:9999;
+        display:flex; align-items:center; gap:12px;
+        height:var(--rp-height); padding:10px 14px;
+        background:var(--rp-bg); color:var(--rp-fg); border-top:1px solid var(--rp-border);
+        box-shadow:0 -2px 14px rgba(0,0,0,.25);
+        font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+      }
+      .rp-btn{
+        display:grid; place-items:center; width:40px; height:40px; border-radius:999rem;
+        border:1px solid rgba(255,255,255,.15); background:var(--rp-accent); color:#fff; cursor:pointer;
+        transition:transform .08s ease, filter .2s ease;
+      }
+      .rp-btn:active{ transform:scale(.97); }
+      #radio-meta{ min-width:0; display:flex; flex-direction:column; line-height:1.15; }
+      #radio-title{ font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      #radio-sub{ font-size:12px; color:var(--rp-dim); }
+      .rp-right{ margin-left:auto; display:flex; align-items:center; gap:10px; }
+      #radio-volume{ width:160px; accent-color:var(--rp-accent); }
+      body{ padding-bottom:var(--rp-height); }
     </style>
 
     <script type="module" src="/sticky-player.js"></script>

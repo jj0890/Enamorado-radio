@@ -1,102 +1,75 @@
-// Radio player functionality
-class RadioPlayer {
-  constructor() {
-    this.audio = document.getElementById('radio-audio');
-    this.toggleBtn = document.getElementById('radio-toggle');
-    this.volumeSlider = document.getElementById('radio-volume');
-    this.titleElement = document.getElementById('radio-title');
-    
-    this.isPlaying = false;
-    this.streamUrl = 'https://radio.enamorado.co/live'; // Default stream URL
-    
-    this.init();
-  }
+const STREAM_URL   = '/stream.mp3';            // proxied by your Replit server
+const NOWPLAYING   = '/nowplaying';            // proxied by your Replit server
+const RETRY_SECS   = 6;                        // retry fetch cadence
 
-  init() {
-    if (!this.audio || !this.toggleBtn || !this.volumeSlider) {
-      console.warn('Radio player elements not found');
-      return;
-    }
+const audio = document.getElementById('radio-audio');
+const btn   = document.getElementById('radio-toggle');
+const vol   = document.getElementById('radio-volume');
+const title = document.getElementById('radio-title');
+const sub   = document.getElementById('radio-sub');
 
-    // Set up event listeners
-    this.toggleBtn.addEventListener('click', () => this.toggle());
-    this.volumeSlider.addEventListener('input', (e) => this.setVolume(e.target.value));
-    
-    // Audio events
-    this.audio.addEventListener('loadstart', () => this.updateTitle('Connecting...'));
-    this.audio.addEventListener('canplay', () => this.updateTitle('Ready to play'));
-    this.audio.addEventListener('playing', () => {
-      this.isPlaying = true;
-      this.updateButton();
-      this.updateTitle('Now Playing');
-    });
-    this.audio.addEventListener('pause', () => {
-      this.isPlaying = false;
-      this.updateButton();
-      this.updateTitle('Paused');
-    });
-    this.audio.addEventListener('error', (e) => {
-      console.error('Audio error:', e);
-      this.updateTitle('Stream unavailable');
-      this.isPlaying = false;
-      this.updateButton();
-    });
+let userInteracted = false;
 
-    // Set initial volume
-    this.audio.volume = parseFloat(this.volumeSlider.value);
-    
-    // Set the stream URL
-    this.audio.src = this.streamUrl;
-  }
+audio.src    = STREAM_URL;
+audio.volume = parseFloat(vol.value || '0.9');
 
-  toggle() {
-    if (this.isPlaying) {
-      this.pause();
-    } else {
-      this.play();
-    }
-  }
+function setBtn(state){
+  // swap play/pause icon
+  btn.setAttribute('data-state', state);
+  btn.innerHTML = (state === 'playing')
+    ? `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M6 5h4v14H6zM14 5h4v14h-4z" fill="currentColor"/></svg>`
+    : `<svg viewBox="0 0 24 24" width="18" height="18"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>`;
+}
 
-  async play() {
-    try {
-      if (!this.audio.src) {
-        this.audio.src = this.streamUrl;
-      }
-      
-      await this.audio.play();
-    } catch (error) {
-      console.error('Error playing audio:', error);
-      this.updateTitle('Failed to play');
-    }
-  }
-
-  pause() {
-    this.audio.pause();
-  }
-
-  setVolume(value) {
-    this.audio.volume = parseFloat(value);
-  }
-
-  updateButton() {
-    if (this.toggleBtn) {
-      this.toggleBtn.textContent = this.isPlaying ? '⏸️' : '▶️';
-      this.toggleBtn.setAttribute('aria-label', this.isPlaying ? 'Pause' : 'Play');
-    }
-  }
-
-  updateTitle(title) {
-    if (this.titleElement) {
-      this.titleElement.textContent = title;
+async function tryPlay() {
+  try {
+    await audio.play();
+    setBtn('playing');
+    sub.textContent = 'Live';
+  } catch (err) {
+    // autoplay will fail until user clicks
+    setBtn('paused');
+    if (userInteracted) {
+      sub.textContent = 'Tap play to listen';
     }
   }
 }
 
-// Initialize the radio player when the DOM is ready
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    new RadioPlayer();
-  });
-} else {
-  new RadioPlayer();
+btn.addEventListener('click', async () => {
+  userInteracted = true;
+  if (audio.paused) {
+    // cache-bust in case the proxy or browser held a dead connection
+    audio.src = `${STREAM_URL}?t=${Date.now()}`;
+    await tryPlay();
+  } else {
+    audio.pause();
+    setBtn('paused');
+  }
+});
+
+vol.addEventListener('input', () => { audio.volume = parseFloat(vol.value); });
+
+audio.addEventListener('error', () => {
+  setBtn('paused');
+  sub.textContent = 'Failed to play';
+});
+
+async function tickNowPlaying(){
+  try {
+    const r = await fetch(NOWPLAYING, { cache:'no-store' });
+    const data = await r.json();
+    // AzuraCast formats may differ slightly between versions
+    const s  = data?.now_playing?.song || data?.playing?.song || {};
+    const st = data?.live?.is_live ? 'Live' : (data?.station?.name || 'Enamorado Radio');
+
+    title.textContent = (s.artist && s.title) ? `${s.artist} — ${s.title}` :
+                        s.title || 'Enamorado Radio';
+    sub.textContent   = st;
+
+  } catch(e){
+    // keep last known
+  } finally {
+    setTimeout(tickNowPlaying, RETRY_SECS * 1000);
+  }
 }
+tickNowPlaying();
