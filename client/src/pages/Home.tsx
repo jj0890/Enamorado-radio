@@ -73,31 +73,9 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white">
-      {/* Live Player Bar */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-black border-b border-white/10">
-        <div className="flex items-center justify-between px-4 py-2 text-sm">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-white/80">LIVE NOW</span>
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <span className="text-white">DEEP ROUTES</span>
-              <Volume2 className="w-4 h-4 text-white/60" />
-            </div>
-          </div>
-          <div className="flex items-center space-x-4">
-            <span className="text-white/60">LONDON</span>
-            <Button size="sm" variant="outline" className="border-white/20 text-white hover:bg-white/10 h-8">
-              <Play className="w-3 h-3 mr-1" />
-              Listen
-            </Button>
-          </div>
-        </div>
-      </div>
 
       {/* Main Header */}
-      <header className="fixed top-10 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-40 bg-black/90 backdrop-blur-xl border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -208,7 +186,7 @@ export default function Home() {
       </header>
 
       {/* Main Content */}
-      <main className="pt-24 pb-32 px-4 max-w-7xl mx-auto">
+      <main className="pt-20 pb-32 px-4 max-w-7xl mx-auto">
         {/* Main Hero Section */}
         <section className="mb-12">
           <div className="text-center mb-6">
