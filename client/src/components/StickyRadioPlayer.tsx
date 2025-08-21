@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 
 // HTTPS-safe proxy URLs (routes through our server)
 const STREAM_URL = '/stream.mp3'; // Proxied stream
-const NOWPLAYING_URL = '/api/now'; // Proxied now playing
+const NOWPLAYING_URL = '/api/nowplaying'; // Proxied now playing
+const ARTWORK_URL = '/api/artwork'; // Spotify artwork
 
 interface NowPlayingData {
   now_playing?: {
@@ -26,6 +27,7 @@ export default function StickyRadioPlayer() {
     title: 'Enamorado Radio',
     subtitle: 'Click to tune in'
   });
+  const [artwork, setArtwork] = useState<string | null>(null);
   const [sourceSet, setSourceSet] = useState(false);
 
   // Ensure audio source is set only when user plays (saves bandwidth)
@@ -108,6 +110,31 @@ export default function StickyRadioPlayer() {
 
       setNowPlaying({ title: displayTitle, subtitle });
       console.log('✅ Metadata updated:', { title: displayTitle, subtitle });
+      
+      // Fetch artwork if we have artist and title
+      if (artist && track && track !== 'Station Offline' && track !== 'Live Stream') {
+        try {
+          const artworkResponse = await fetch(
+            `${ARTWORK_URL}?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(track)}`,
+            { cache: 'no-store' }
+          );
+          
+          if (artworkResponse.ok) {
+            const artworkData = await artworkResponse.json();
+            if (artworkData.artwork) {
+              setArtwork(artworkData.artwork);
+              console.log('🎨 Artwork updated:', artworkData.artwork);
+            } else {
+              setArtwork(null);
+            }
+          }
+        } catch (artworkError) {
+          console.error('❌ Artwork fetch error:', artworkError);
+          setArtwork(null);
+        }
+      } else {
+        setArtwork(null);
+      }
     } catch (error) {
       console.error('❌ NowPlaying fetch error:', error);
       setNowPlaying({ 
@@ -148,7 +175,7 @@ export default function StickyRadioPlayer() {
     
     // Initial poll and set up interval
     pollNowPlaying();
-    const interval = setInterval(pollNowPlaying, 15000); // Poll every 15 seconds
+    const interval = setInterval(pollNowPlaying, 10000); // Poll every 10 seconds
     
     return () => clearInterval(interval);
   }, [volume]);
@@ -183,13 +210,28 @@ export default function StickyRadioPlayer() {
             </div>
           </div>
 
-          {/* Now Playing Info */}
-          <div className="flex-1 mx-6 text-center">
-            <div className="text-sm font-medium">
-              {nowPlaying.title}
-            </div>
-            <div className="text-xs text-gray-400">
-              {nowPlaying.subtitle}
+          {/* Now Playing Info with Artwork */}
+          <div className="flex-1 mx-6 flex items-center justify-center gap-3">
+            {/* Album Artwork */}
+            {artwork && (
+              <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
+                <img 
+                  src={artwork} 
+                  alt="Album artwork" 
+                  className="w-full h-full object-cover"
+                  onError={() => setArtwork(null)}
+                />
+              </div>
+            )}
+            
+            {/* Track Info */}
+            <div className="text-center">
+              <div className="text-sm font-medium">
+                {nowPlaying.title}
+              </div>
+              <div className="text-xs text-gray-400">
+                {nowPlaying.subtitle}
+              </div>
             </div>
           </div>
 

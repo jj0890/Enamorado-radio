@@ -1,6 +1,7 @@
 import 'express-async-errors';
 import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
+// @ts-ignore - No type definitions available
 import cors from 'cors';
 import helmet from 'helmet';
 import pino from 'pino';
@@ -8,6 +9,8 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 import { uploadViaSftp, rescanLibrary, ensurePlaylist, addMediaToPlaylist, createSchedule, getNowPlaying } from './azuracastHelpers';
+// @ts-ignore - No type definitions available
+import fetch from 'node-fetch';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -184,6 +187,104 @@ app.get('/api/now', async (_req, res) => {
   } catch (err) {
     logger.error({ err }, 'Failed to fetch now playing data');
     res.status(500).json({ ok: false, error: 'Failed to fetch now playing data' });
+  }
+});
+
+// Spotify artwork endpoint
+app.get('/api/artwork', async (req, res) => {
+  try {
+    const { artist, title } = req.query;
+    
+    if (!artist || !title) {
+      return res.status(400).json({ error: 'artist and title parameters required' });
+    }
+
+    // Get Spotify access token
+    const tokenResponse = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${Buffer.from(`${process.env.SPOTIFY_CLIENT_ID}:${process.env.SPOTIFY_CLIENT_SECRET}`).toString('base64')}`
+      },
+      body: 'grant_type=client_credentials'
+    });
+
+    if (!tokenResponse.ok) {
+      throw new Error('Failed to get Spotify token');
+    }
+
+    const { access_token } = await tokenResponse.json();
+
+    // Search for track
+    const searchQuery = `artist:${artist} track:${title}`;
+    const searchResponse = await fetch(`https://api.spotify.com/v1/search?q=${encodeURIComponent(searchQuery)}&type=track&limit=1`, {
+      headers: {
+        'Authorization': `Bearer ${access_token}`
+      }
+    });
+
+    if (!searchResponse.ok) {
+      throw new Error('Spotify search failed');
+    }
+
+    const searchData = await searchResponse.json();
+    const track = searchData.tracks?.items?.[0];
+    
+    if (!track) {
+      return res.json({ artwork: null, message: 'No artwork found' });
+    }
+
+    const artwork = track.album?.images?.[0]?.url || null;
+    
+    res.json({ 
+      artwork,
+      track: track.name,
+      artist: track.artists?.[0]?.name,
+      album: track.album?.name
+    });
+    
+  } catch (err) {
+    logger.error({ err }, 'Failed to fetch artwork');
+    res.status(500).json({ error: 'Failed to fetch artwork' });
+  }
+});
+
+// Optional rescan endpoint
+app.post('/api/rescan', async (_req, res) => {
+  try {
+    await rescanLibrary();
+    log('Library rescan triggered manually');
+    res.json({ ok: true, message: 'Library rescan triggered' });
+  } catch (err) {
+    logger.error({ err }, 'Manual rescan failed');
+    res.status(500).json({ ok: false, error: 'Rescan failed' });
+  }
+});
+
+// Stream proxy endpoint (HTTPS-safe)
+app.get('/stream.mp3', async (_req, res) => {
+  try {
+    const streamUrl = process.env.AZ_STREAM_URL || 'http://24.199.109.18/radio/8000/radio.mp3';
+    
+    // Proxy the stream
+    const response = await fetch(streamUrl);
+    
+    if (!response.ok) {
+      throw new Error(`Stream unavailable: ${response.status}`);
+    }
+    
+    // Set appropriate headers for audio streaming
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    
+    // Pipe the stream
+    // @ts-ignore
+    response.body?.pipe(res);
+    
+  } catch (err) {
+    logger.error({ err }, 'Stream proxy failed');
+    res.status(500).json({ error: 'Stream unavailable' });
   }
 });
 
