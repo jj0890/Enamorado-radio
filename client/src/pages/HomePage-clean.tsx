@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Music, Compass, Calendar, Heart, Settings, Play } from "lucide-react";
 import SimpleSongForm from "@/components/SimpleSongForm";
 import LastFmDebugPanel from "@/components/LastFmDebugPanel";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 export default function HomePage() {
   const [showSongSubmission, setShowSongSubmission] = useState(false);
@@ -24,8 +24,8 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      {/* Audio Manager - Persistent Radio Player */}
-      <PersistentRadioPlayer />
+      {/* Bottom Sticky Radio Player */}
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

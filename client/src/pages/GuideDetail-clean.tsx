@@ -2,7 +2,7 @@ import { Link, useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen, User, Calendar, Tags, ExternalLink } from "lucide-react";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 export default function GuideDetail() {
   const { slug } = useParams();
@@ -15,7 +15,7 @@ export default function GuideDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">Loading guide...</div>
@@ -28,7 +28,7 @@ export default function GuideDetail() {
   if (!guide) {
     return (
       <div className="min-h-screen bg-white">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">Guide not found</div>
@@ -45,7 +45,7 @@ export default function GuideDetail() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

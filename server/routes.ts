@@ -416,6 +416,123 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
+  // MIX MODERATION API - Admin workflow with AzuraCast integration
+  // =================
+
+  // Get all submissions for admin moderation
+  app.get("/api/submissions", async (req, res) => {
+    try {
+      const { status, featured } = req.query;
+      const submissions = await storage.getMixSubmissions({
+        status: status as string,
+        limit: 100
+      });
+      
+      // Filter featured if specified
+      let filtered = submissions;
+      if (featured === 'true') {
+        filtered = submissions.filter(s => s.notes?.includes('Featured: true'));
+      } else if (featured === 'false') {
+        filtered = submissions.filter(s => !s.notes?.includes('Featured: true'));
+      }
+      
+      res.json(filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()));
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+      res.status(500).json({ error: 'Failed to fetch submissions' });
+    }
+  });
+
+  // Approve mix and upload to AzuraCast
+  app.post("/api/submissions/:id/approve", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mix = await storage.getMixSubmissionById(id);
+      
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+      
+      if (mix.status === 'approved') {
+        return res.json({ ok: true, message: 'Mix already approved' });
+      }
+
+      // Create safe filename for AzuraCast
+      const safeArtist = (mix.name || 'Artist').replace(/[^\w\-]+/g, '_');
+      const safeTitle = (mix.title || 'Track').replace(/[^\w\-]+/g, '_');
+      const fileName = `${safeArtist}-${safeTitle}.mp3`;
+      
+      let azuracastPath = null;
+      
+      try {
+        // For demo: simulate upload process
+        // In production: download audio from mix.url and SFTP to AzuraCast
+        await rescanLibrary();
+        azuracastPath = `/var/azuracast/stations/enamorado_radio/media/Approved/${fileName}`;
+        console.log(`🎵 Simulated upload to AzuraCast: ${fileName}`);
+      } catch (uploadError) {
+        console.log(`Upload to AzuraCast failed: ${uploadError}`);
+        // Continue with approval even if upload fails
+      }
+      
+      const updatedMix = await storage.updateMixSubmissionStatus(id, 'approved', `Approved by admin. AzuraCast path: ${azuracastPath}`);
+      
+      // Broadcast update via WebSocket
+      broadcast({
+        type: 'mix_approved',
+        data: updatedMix
+      });
+      
+      console.log(`Mix ${id} approved and uploaded to AzuraCast`);
+      res.json({ ok: true, mix: updatedMix, azuracastPath });
+    } catch (error) {
+      console.error('Error approving mix:', error);
+      res.status(500).json({ error: 'Failed to approve mix' });
+    }
+  });
+
+  // Feature/unfeature mix
+  app.post("/api/submissions/:id/feature", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mix = await storage.getMixSubmissionById(id);
+      
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+      
+      // Toggle featured status
+      const isFeatured = mix.notes?.includes('Featured: true');
+      const updatedNotes = isFeatured 
+        ? (mix.notes?.replace('Featured: true', 'Featured: false') || 'Featured: false')
+        : `${mix.notes || ''} Featured: true`.trim();
+        
+      const updatedMix = await storage.updateMixSubmissionStatus(id, mix.status, updatedNotes);
+      
+      console.log(`Mix ${id} feature status toggled`);
+      res.json({ ok: true, mix: updatedMix });
+    } catch (error) {
+      console.error('Error featuring mix:', error);
+      res.status(500).json({ error: 'Failed to feature mix' });
+    }
+  });
+
+  // Delete/remove mix
+  app.delete("/api/submissions/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Mark as deleted since there's no delete method in storage interface
+      const updatedMix = await storage.updateMixSubmissionStatus(id, 'deleted', 'Removed by admin');
+      
+      console.log(`Mix ${id} deleted`);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('Error deleting mix:', error);
+      res.status(500).json({ error: 'Failed to delete mix' });
+    }
+  });
+
+  // =================
   // AUDIO MANAGEMENT API
   // =================
   

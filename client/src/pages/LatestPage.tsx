@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Calendar, User, Music } from "lucide-react";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 export default function LatestPage() {
   const [filter, setFilter] = useState<'all' | 'episodes' | 'mixes'>('all');
@@ -24,7 +24,7 @@ export default function LatestPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">Loading latest content...</div>
@@ -36,7 +36,7 @@ export default function LatestPage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

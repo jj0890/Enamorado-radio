@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Music, Upload, Clock, User, Star } from "lucide-react";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 // All Mixes Component
 function AllMixesSection() {
@@ -150,7 +150,7 @@ export default function MixesPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">Loading community mixes...</div>
@@ -162,7 +162,7 @@ export default function MixesPage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

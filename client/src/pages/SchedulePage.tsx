@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Calendar, Clock, User, Radio, Music } from "lucide-react";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<'upcoming' | 'past' | 'all'>('upcoming');
@@ -17,7 +17,7 @@ export default function SchedulePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">Loading schedule...</div>
@@ -29,7 +29,7 @@ export default function SchedulePage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

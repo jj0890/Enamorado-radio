@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, Music, Calendar, Users, Star, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import MixCard from "@/components/MixCard";
 
 interface MixSubmission {
   id: number;
@@ -22,25 +22,28 @@ interface MixSubmission {
 }
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'mixes' | 'schedule' | 'episodes'>('mixes');
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'featured' | 'schedule'>('pending');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch pending mix submissions
   const { data: pendingMixes = [], error: pendingError, isLoading: pendingLoading } = useQuery<MixSubmission[]>({
-    queryKey: ["/api/mixes?status=pending"],
-    refetchInterval: 3000, // Even faster refresh
+    queryKey: ["/api/submissions?status=pending"],
+    refetchInterval: 3000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     staleTime: 0,
     cacheTime: 0,
   });
 
-  // System is working - debug logs removed
+  // Fetch approved mixes
+  const { data: approvedMixes = [] } = useQuery<MixSubmission[]>({
+    queryKey: ["/api/submissions?status=approved"],
+  });
 
-  // Fetch all mixes for management  
-  const { data: allMixes = [] } = useQuery<MixSubmission[]>({
-    queryKey: ["/api/mixes"],
+  // Fetch featured mixes
+  const { data: featuredMixes = [] } = useQuery<MixSubmission[]>({
+    queryKey: ["/api/submissions?featured=true"],
   });
 
   // Fetch schedule items
@@ -48,47 +51,76 @@ export default function AdminPanel() {
     queryKey: ["/api/schedule"],
   });
 
-  // Mix status update mutation
-  const updateMixStatus = useMutation({
-    mutationFn: async ({ id, status, notes }: { id: number; status: string; notes?: string }) => {
-      const response = await fetch(`/api/mixes/${id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, notes }),
+  // Approve mix mutation
+  const approveMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/submissions/${id}/approve`, {
+        method: 'POST',
       });
-      if (!response.ok) throw new Error('Failed to update mix status');
+      if (!response.ok) throw new Error('Failed to approve mix');
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/mixes?status=pending"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/mixes"] });
-      queryClient.refetchQueries({ queryKey: ["/api/mixes?status=pending"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
       toast({
-        title: "Mix status updated successfully",
-        description: "The community will see the updated status immediately.",
+        title: "Mix approved successfully",
+        description: "Mix has been uploaded to AzuraCast and approved for community showcase.",
       });
     },
-    onError: () => {
+  });
+
+  // Feature mix mutation
+  const featureMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/submissions/${id}/feature`, {
+        method: 'POST',
+      });
+      if (!response.ok) throw new Error('Failed to feature mix');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
       toast({
-        title: "Failed to update mix status",
-        description: "Please try again.",
-        variant: "destructive",
+        title: "Mix featured status updated",
+        description: "Featured status has been toggled.",
+      });
+    },
+  });
+
+  // Delete mix mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/submissions/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete mix');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
+      toast({
+        title: "Mix deleted successfully",
+        description: "Mix has been removed from the system.",
       });
     },
   });
 
   const handleApprove = (id: number) => {
-    updateMixStatus.mutate({ id, status: 'approved', notes: 'Approved for community showcase' });
+    approveMutation.mutate(id);
   };
 
   const handleFeature = (id: number) => {
-    updateMixStatus.mutate({ id, status: 'featured', notes: 'Featured mix - exceptional quality' });
+    featureMutation.mutate(id);
+  };
+
+  const handleDelete = (id: number) => {
+    if (confirm('Are you sure you want to delete this mix?')) {
+      deleteMutation.mutate(id);
+    }
   };
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer isActive={false} onToggle={() => {}} />
-
       {/* Header */}
       <header className="border-b border-black bg-white">
         <div className="max-w-7xl mx-auto px-4 py-6">
@@ -128,204 +160,190 @@ export default function AdminPanel() {
 
         {/* Tab Navigation */}
         <div className="mb-8">
-          <div className="flex gap-4">
-            <Button
-              variant={activeTab === 'mixes' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('mixes')}
-              className={activeTab === 'mixes' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
-              }
+          <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
+                activeTab === 'pending'
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-600 hover:text-red-500'
+              }`}
             >
-              <Music className="w-4 h-4 mr-2" />
-              Mix Submissions ({pendingMixes.length} pending)
-            </Button>
-            <Button
-              variant={activeTab === 'schedule' ? 'default' : 'outline'}
+              <Music className="w-4 h-4 mr-2 inline" />
+              Pending ({pendingMixes.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('approved')}
+              className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
+                activeTab === 'approved'
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-600 hover:text-red-500'
+              }`}
+            >
+              <Check className="w-4 h-4 mr-2 inline" />
+              Approved ({approvedMixes.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('featured')}
+              className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
+                activeTab === 'featured'
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-600 hover:text-red-500'
+              }`}
+            >
+              <Star className="w-4 h-4 mr-2 inline" />
+              Featured ({featuredMixes.length})
+            </button>
+            <button
               onClick={() => setActiveTab('schedule')}
-              className={activeTab === 'schedule' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
-              }
+              className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
+                activeTab === 'schedule'
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-600 hover:text-red-500'
+              }`}
             >
-              <Calendar className="w-4 h-4 mr-2" />
-              Schedule Management
-            </Button>
-            <Button
-              variant={activeTab === 'episodes' ? 'default' : 'outline'}
-              onClick={() => setActiveTab('episodes')}
-              className={activeTab === 'episodes' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
-              }
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Episodes & Content
-            </Button>
+              <Calendar className="w-4 h-4 mr-2 inline" />
+              Schedule
+            </button>
           </div>
         </div>
 
-        {/* Mix Submissions Tab */}
-        {activeTab === 'mixes' && (
-          <div className="space-y-6">
-            {/* Pending Reviews */}
-            <div>
-              <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">
-                PENDING SUBMISSIONS ({pendingMixes.length})
-              </h2>
-              
-              {pendingMixes.length > 0 ? (
-                <div className="space-y-4">
-                  {pendingMixes.map((mix: any) => (
-                    <div key={mix.id} className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-3">
-                            <span className="text-xs font-mono bg-blue-500 text-white px-2 py-1 rounded">
-                              PENDING REVIEW
-                            </span>
-                            <span className="text-xs font-mono text-gray-500">
-                              Submitted {new Date(mix.submittedAt).toLocaleDateString()}
-                            </span>
-                          </div>
-                          
-                          <h3 className="text-xl font-bold font-mono text-gray-900 mb-2">
-                            {mix.title}
-                          </h3>
-                          <div className="text-gray-600 font-mono text-sm mb-2">
-                            by {mix.name} • {mix.genre}
-                          </div>
-                          <p className="text-gray-600 font-mono text-sm mb-4">
-                            {mix.about}
-                          </p>
-                          
-                          <div className="flex items-center gap-4">
-                            <Button 
-                              size="sm"
-                              className="bg-green-500 hover:bg-green-600 text-white font-mono"
-                              onClick={() => handleApprove(mix.id)}
-                              disabled={updateMixStatus.isPending}
-                            >
-                              <Check className="w-4 h-4 mr-1" />
-                              Approve
-                            </Button>
-                            <Button 
-                              size="sm"
-                              className="bg-yellow-500 hover:bg-yellow-600 text-black font-mono"
-                              onClick={() => handleFeature(mix.id)}
-                              disabled={updateMixStatus.isPending}
-                            >
-                              <Star className="w-4 h-4 mr-1" />
-                              Feature
-                            </Button>
-                            <Button 
-                              size="sm"
-                              variant="outline"
-                              className="border-blue-500 text-blue-500 hover:bg-blue-500 hover:text-white font-mono"
-                              onClick={() => window.open(mix.url, '_blank')}
-                            >
-                              Listen
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-600 font-mono">
-                  No pending submissions to review
-                </div>
-              )}
-            </div>
+        {/* Content Sections */}
+        
+        {/* Pending Mixes */}
+        {activeTab === 'pending' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-red-500 font-mono flex items-center">
+              <Music className="w-6 h-6 mr-3" />
+              PENDING REVIEW ({pendingMixes.length})
+            </h2>
+            
+            {pendingLoading && (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <p className="text-gray-600 font-mono">Loading submissions...</p>
+              </div>
+            )}
+            
+            {pendingError && (
+              <div className="text-center py-8 text-red-600 font-mono">
+                <p>Error loading submissions. Please refresh the page.</p>
+              </div>
+            )}
+            
+            {!pendingLoading && !pendingError && pendingMixes.length === 0 && (
+              <div className="text-center py-16">
+                <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-600 font-mono mb-2">No pending submissions</p>
+                <p className="text-gray-500 font-mono">All caught up! Check back later for new submissions.</p>
+              </div>
+            )}
+            
+            {!pendingLoading && !pendingError && pendingMixes.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {pendingMixes.map((mix) => (
+                  <MixCard 
+                    key={mix.id}
+                    mix={mix}
+                    showAdminActions={true}
+                    onApprove={handleApprove}
+                    onFeature={handleFeature}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Approved Mixes */}
+        {activeTab === 'approved' && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-green-600 font-mono flex items-center">
+              <Check className="w-6 h-6 mr-3" />
+              APPROVED MIXES ({approvedMixes.length})
+            </h2>
+            
+            {approvedMixes.length === 0 ? (
+              <div className="text-center py-16">
+                <Check className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-600 font-mono mb-2">No approved mixes yet</p>
+                <p className="text-gray-500 font-mono">Approved mixes will appear here.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {approvedMixes.map((mix) => (
+                  <MixCard 
+                    key={mix.id}
+                    mix={mix}
+                    showAdminActions={true}
+                    onFeature={handleFeature}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Featured Mixes */}
+        {activeTab === 'featured' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-yellow-600 font-mono flex items-center">
+              <Star className="w-6 h-6 mr-3" />
+              FEATURED MIXES ({featuredMixes.length})
+            </h2>
+            
+            {featuredMixes.length === 0 ? (
+              <div className="text-center py-16">
+                <Star className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-600 font-mono mb-2">No featured mixes yet</p>
+                <p className="text-gray-500 font-mono">Featured mixes will appear here.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredMixes.map((mix) => (
+                  <MixCard 
+                    key={mix.id}
+                    mix={mix}
+                    showAdminActions={true}
+                    onFeature={handleFeature}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
-            {/* Recent Approved */}
-            <div>
-              <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">
-                RECENT COMMUNITY MIXES ({allMixes.length})
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {allMixes.slice(0, 9).map((mix: any) => (
-                  <div key={mix.id} className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className={`text-xs font-mono px-2 py-1 rounded ${
-                        mix.status === 'featured' 
-                          ? 'bg-yellow-500 text-black' 
-                          : 'bg-green-500 text-white'
-                      }`}>
-                        {mix.status.toUpperCase()}
-                      </span>
-                    </div>
-                    <h4 className="font-bold font-mono text-gray-900 text-sm mb-1">
-                      {mix.title}
-                    </h4>
-                    <div className="text-xs font-mono text-gray-600">
-                      {mix.name} • {mix.genre}
-                    </div>
+        {activeTab === 'schedule' && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-blue-500 font-mono flex items-center">
+              <Calendar className="w-6 h-6 mr-3" />
+              SCHEDULE MANAGEMENT
+            </h2>
+            
+            {scheduleItems.length === 0 ? (
+              <div className="text-center py-16">
+                <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-600 font-mono mb-2">No scheduled items</p>
+                <p className="text-gray-500 font-mono">Schedule will appear here once items are added.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {scheduleItems.map((item: any) => (
+                  <div key={item.id} className="bg-white rounded-lg border p-4">
+                    <h3 className="font-bold text-blue-500 font-mono">{item.title}</h3>
+                    <p className="text-gray-700">{item.description}</p>
+                    <p className="text-sm text-gray-500 mt-2">
+                      {new Date(item.startTime).toLocaleString()}
+                    </p>
                   </div>
                 ))}
               </div>
-            </div>
+            )}
           </div>
         )}
-
-        {/* Schedule Tab */}
-        {activeTab === 'schedule' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">PROGRAMMING SCHEDULE</h2>
-            <div className="text-center py-16">
-              <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <div className="text-gray-600 font-mono mb-4">
-                Schedule management coming soon
-              </div>
-              <p className="text-gray-500 font-mono text-sm">
-                Advanced scheduling tools for live shows and content programming
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Episodes Tab */}
-        {activeTab === 'episodes' && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">EPISODES & CONTENT</h2>
-            <div className="text-center py-16">
-              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <div className="text-gray-600 font-mono mb-4">
-                Episode management coming soon
-              </div>
-              <p className="text-gray-500 font-mono text-sm">
-                Tools for creating and managing radio episodes, shows, and series
-              </p>
-            </div>
-          </div>
-        )}
-
-        {/* Quick Stats */}
-        <div className="mt-16 pt-8 border-t border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">QUICK STATS</h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold font-mono text-red-500">{pendingMixes.length}</div>
-              <div className="text-sm font-mono text-gray-600">Pending Reviews</div>
-            </div>
-            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold font-mono text-red-500">{allMixes.length}</div>
-              <div className="text-sm font-mono text-gray-600">Approved Mixes</div>
-            </div>
-            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold font-mono text-red-500">{scheduleItems.length}</div>
-              <div className="text-sm font-mono text-gray-600">Scheduled Shows</div>
-            </div>
-            <div className="bg-gray-50 border border-gray-300 rounded-lg p-4 text-center">
-              <div className="text-2xl font-bold font-mono text-red-500">
-                {allMixes.filter((m: any) => m.status === 'featured').length}
-              </div>
-              <div className="text-sm font-mono text-gray-600">Featured Content</div>
-            </div>
-          </div>
-        </div>
       </main>
     </div>
   );

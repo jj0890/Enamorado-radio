@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Upload, CheckCircle, Music, ExternalLink } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 export default function SubmitMix() {
   const [, setLocation] = useLocation();
@@ -105,7 +105,7 @@ export default function SubmitMix() {
   if (showSuccess) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-mono font-bold text-red-500 mb-4">Mix Submitted!</h1>
@@ -118,7 +118,7 @@ export default function SubmitMix() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

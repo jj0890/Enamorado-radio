@@ -3,7 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BookOpen, Music, GraduationCap, Star, User, Tags } from "lucide-react";
-import PersistentRadioPlayer from "@/components/PersistentRadioPlayer";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
 export default function ExplorePage() {
   const [filter, setFilter] = useState<'all' | 'artist' | 'genre' | 'tutorial' | 'editorial'>('all');
@@ -22,7 +22,7 @@ export default function ExplorePage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-white">
-        <PersistentRadioPlayer />
+        <StickyRadioPlayer />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">Loading guides...</div>
@@ -34,7 +34,7 @@ export default function ExplorePage() {
 
   return (
     <div className="min-h-screen bg-white text-black">
-      <PersistentRadioPlayer />
+      <StickyRadioPlayer />
 
       {/* Header */}
       <header className="border-b border-black bg-white">

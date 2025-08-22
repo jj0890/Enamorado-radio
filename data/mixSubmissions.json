@@ -91,5 +91,28 @@
     "reviewedBy": "Admin",
     "notes": "Approved for community showcase",
     "metadata": null
+  },
+  {
+    "name": "Tee Vera",
+    "title": "Tee Vera for \"THe Zoo\"",
+    "genre": "house",
+    "about": "Tee Vera Tee VeraTee Tee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee Vera",
+    "url": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24?si=85a17e6fc99e4805bc8e3617c1cd4b34&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+    "metadata": {
+      "platform": "soundcloud",
+      "trackId": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24?si=85a17e6fc99e4805bc8e3617c1cd4b34&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+      "title": "Tee Vera for \"The Zoo\" @ Empire Control Room in ATX (6-21-24)",
+      "artist": "Teala Vera",
+      "imageUrl": "https://i1.sndcdn.com/artworks-W0AsF9z5Brpt2N9e-5mzyzw-t500x500.jpg",
+      "externalUrls": {
+        "soundcloud": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24?si=85a17e6fc99e4805bc8e3617c1cd4b34&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+      }
+    },
+    "id": 7,
+    "status": "pending",
+    "submittedAt": "2025-08-22T08:57:53.356Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null
   }
 ]
