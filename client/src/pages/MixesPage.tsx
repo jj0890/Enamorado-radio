@@ -15,32 +15,6 @@ function AllMixesSection() {
     refetchInterval: 30000,
   });
 
-  const getStatusBadge = (mix: any) => {
-    // Derive status from new boolean structure
-    const isApproved = mix.pushToAzura || false;
-    const isFeatured = mix.featureOnSite || false;
-    
-    let status: string;
-    let statusClass: string;
-    
-    if (isFeatured) {
-      status = 'featured';
-      statusClass = "bg-red-100 text-red-800 border-red-300";
-    } else if (isApproved) {
-      status = 'approved';
-      statusClass = "bg-green-100 text-green-800 border-green-300";
-    } else {
-      status = 'pending';
-      statusClass = "bg-yellow-100 text-yellow-800 border-yellow-300";
-    }
-    
-    return (
-      <span className={`px-2 py-1 text-xs font-mono border rounded ${statusClass}`}>
-        {status.toUpperCase()}
-      </span>
-    );
-  };
-
   if (isLoading) {
     return (
       <div className="text-center py-8">
@@ -74,73 +48,9 @@ function AllMixesSection() {
       {/* Public Mixes Grid */}
       {publicMixes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {publicMixes.map((mix: any) => {
-            const metadata = mix.metadata && typeof mix.metadata === 'object' ? mix.metadata : {};
-            const title = metadata.title || mix.title;
-            const artist = metadata.artist || mix.name;
-            const artwork = metadata.artwork || null;
-
-            return (
-              <div 
-                key={mix.id} 
-                className="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group"
-              >
-                {/* Compact Artwork */}
-                <div className="aspect-square bg-gray-200 overflow-hidden relative">
-                  {artwork ? (
-                    <img 
-                      src={artwork} 
-                      alt={title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-                      <Music className="w-8 h-8 text-gray-400" />
-                    </div>
-                  )}
-                  
-                  {/* Status Badge */}
-                  <div className="absolute top-2 right-2">
-                    {getStatusBadge(mix)}
-                  </div>
-                </div>
-                
-                <div className="p-4">
-                  {/* Genre and Date */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-mono text-red-500 uppercase bg-red-50 px-2 py-1 rounded">
-                      {mix.genre}
-                    </span>
-                    <div className="text-xs font-mono text-gray-500 flex items-center">
-                      <Clock className="w-3 h-3 mr-1" />
-                      {new Date(mix.submittedAt).toLocaleDateString()}
-                    </div>
-                  </div>
-
-                  {/* Title and Artist */}
-                  <div className="mb-3">
-                    <h4 className="text-sm font-bold font-mono text-gray-900 mb-1 group-hover:text-red-500 transition-colors line-clamp-1">
-                      {title}
-                    </h4>
-                    <div className="flex items-center text-gray-600 font-mono text-xs">
-                      <User className="w-3 h-3 mr-1" />
-                      {artist}
-                    </div>
-                  </div>
-
-                  {/* Listen Button */}
-                  <Button 
-                    size="sm" 
-                    className="bg-red-500 hover:bg-red-600 text-white font-mono w-full text-xs"
-                    onClick={() => window.open(mix.url, '_blank')}
-                  >
-                    <Play className="w-3 h-3 mr-1" />
-                    Listen
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+          {publicMixes.map((mix: any) => (
+            <PublicMixCard key={mix.id} mix={mix} />
+          ))}
         </div>
       ) : (
         <div className="text-center py-8">
