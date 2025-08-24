@@ -1359,9 +1359,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const data = await response.json();
+      
+      // Ensure we return the correct field names
       res.json({ 
-        thumbnail_url: data.thumbnail_url || null, 
-        title: data.title || null 
+        thumbnail_url: data.thumbnail_url || null,
+        artUrl: data.thumbnail_url || null, // Also provide as artUrl for compatibility
+        title: data.title || null,
+        artist: data.author_name || null
       });
     } catch (error) {
       res.status(500).json({ error: 'proxy-failed', detail: String(error) });

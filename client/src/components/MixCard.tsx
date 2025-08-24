@@ -48,7 +48,9 @@ export default function MixCard({
   const rerender = () => forceRender(v => v + 1);
   
   // SoundCloud artwork via CORS-safe proxy
-  const [artwork, setArtwork] = useState<string | null>(mix.coverUrl || mix.metadata?.thumbnail_url || mix.metadata?.artwork_url || null);
+  const [artwork, setArtwork] = useState<string | null>(
+    (mix as any).artUrl || mix.coverUrl || mix.metadata?.thumbnail_url || mix.metadata?.imageUrl || mix.metadata?.artwork_url || null
+  );
   
   useEffect(() => {
     let ignore = false;
@@ -57,9 +59,10 @@ export default function MixCard({
       
       try {
         const response = await fetch(`/api/oembed?url=${encodeURIComponent(mix.url)}`);
+        if (!response.ok) return;
         const data = await response.json();
-        if (!ignore && data?.thumbnail_url) {
-          setArtwork(data.thumbnail_url);
+        if (!ignore && (data?.thumbnail_url || data?.artUrl)) {
+          setArtwork(data.thumbnail_url || data.artUrl);
         }
       } catch (error) {
         console.warn('Failed to fetch SoundCloud artwork:', error);

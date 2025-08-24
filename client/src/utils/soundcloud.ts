@@ -12,7 +12,7 @@ export async function extractSoundCloudThumbnail(url: string): Promise<string | 
     const data = await response.json();
     
     // Return the thumbnail URL from oEmbed response
-    return data.artUrl || null;
+    return data.thumbnail_url || data.artUrl || null;
   } catch (error) {
     console.error('Error fetching SoundCloud thumbnail:', error);
     
