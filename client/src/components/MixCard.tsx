@@ -75,22 +75,26 @@ export default function MixCard({
   
   // Admin toggle functions
   async function toggleApprove() {
-    try {
-      console.log('Calling approve for mix:', mix.id);
-      const response = await fetch(`/api/admin/mixes/${mix.id}/approve`, { method: 'POST' });
-      const result = await response.json();
-      console.log('Approve response:', response.status, result);
-      if (response.ok) {
-        (mix as any).approved = result.approved;
-        mix.status = result.approved ? 'approved' : 'pending';
-        rerender();
-        onApprove?.(mix.id);
-      } else {
-        alert(result.error || 'Approve failed');
+    if (onApprove) {
+      console.log('Using AdminPanel approve handler for mix:', mix.id);
+      onApprove(mix.id);
+    } else {
+      console.log('Calling approve API directly for mix:', mix.id);
+      try {
+        const response = await fetch(`/api/admin/mixes/${mix.id}/approve`, { method: 'POST' });
+        const result = await response.json();
+        console.log('Approve response:', response.status, result);
+        if (response.ok) {
+          (mix as any).approved = result.approved;
+          mix.status = result.approved ? 'approved' : 'pending';
+          rerender();
+        } else {
+          alert(result.error || 'Approve failed');
+        }
+      } catch (error) {
+        console.error('Approve error:', error);
+        alert('Network error');
       }
-    } catch (error) {
-      console.error('Approve error:', error);
-      alert('Network error');
     }
   }
   
@@ -99,25 +103,30 @@ export default function MixCard({
       alert('Mix must be approved first before featuring');
       return;
     }
-    try {
-      console.log('Calling feature for mix:', mix.id);
-      const response = await fetch(`/api/admin/mixes/${mix.id}/feature`, { method: 'POST' });
-      const result = await response.json();
-      console.log('Feature response:', response.status, result);
-      if (response.ok) {
-        (mix as any).featured = result.featured;
-        rerender();
-        onFeature?.(mix.id);
-      } else {
-        if (result.error === 'approve-first') {
-          alert('Mix must be approved first before featuring');
+    
+    if (onFeature) {
+      console.log('Using AdminPanel feature handler for mix:', mix.id);
+      onFeature(mix.id);
+    } else {
+      console.log('Calling feature API directly for mix:', mix.id);
+      try {
+        const response = await fetch(`/api/admin/mixes/${mix.id}/feature`, { method: 'POST' });
+        const result = await response.json();
+        console.log('Feature response:', response.status, result);
+        if (response.ok) {
+          (mix as any).featured = result.featured;
+          rerender();
         } else {
-          alert(result.error || 'Feature failed');
+          if (result.error === 'approve-first') {
+            alert('Mix must be approved first before featuring');
+          } else {
+            alert(result.error || 'Feature failed');
+          }
         }
+      } catch (error) {
+        console.error('Feature error:', error);
+        alert('Network error');
       }
-    } catch (error) {
-      console.error('Feature error:', error);
-      alert('Network error');
     }
   }
   
@@ -239,10 +248,10 @@ export default function MixCard({
                   disabled={false}
                   className={`${
                     isFeatured 
-                      ? "bg-yellow-600 hover:bg-yellow-700" 
+                      ? "bg-yellow-600 hover:bg-yellow-700 cursor-pointer" 
                       : !isApproved 
                         ? "text-gray-400 border-gray-400 cursor-not-allowed" 
-                        : "text-yellow-600 border-yellow-600 hover:bg-yellow-50"
+                        : "text-yellow-600 border-yellow-600 hover:bg-yellow-50 cursor-pointer"
                   }`}
                 >
                   <Star className="h-3 w-3 mr-1" />
