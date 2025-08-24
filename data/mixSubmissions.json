@@ -11,7 +11,7 @@
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null,
-    "featureOnSite": false,
+    "featureOnSite": true,
     "pushToAzura": true
   },
   {
@@ -26,7 +26,7 @@
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null,
-    "featureOnSite": false,
+    "featureOnSite": true,
     "pushToAzura": true
   },
   {
@@ -121,7 +121,7 @@
     "notes": null,
     "approved": true,
     "featured": true,
-    "featureOnSite": false,
+    "featureOnSite": true,
     "pushToAzura": true
   }
 ]
