@@ -24,6 +24,7 @@ import {
   insertCurrentPlaybackSchema
 } from "@shared/schema";
 import { getOEmbedThumbSafe } from './lib/oembed';
+import { rescanLibrary } from './azuracastHelpers';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);

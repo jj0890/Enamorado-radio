@@ -7,12 +7,13 @@
     "about": "A wild exploration through electronic soundscapes and experimental beats from Stream 454.",
     "id": 1,
     "submittedAt": "2025-08-07T04:55:31.111Z",
-    "reviewedAt": "2025-08-07T04:55:31.137Z",
+    "reviewedAt": "2025-08-24T10:46:18.443Z",
     "reviewedBy": "Admin",
-    "notes": "Initial featured mix",
+    "notes": "Approved by admin. AzuraCast path: null",
     "metadata": null,
     "featureOnSite": true,
-    "pushToAzura": true
+    "pushToAzura": true,
+    "status": "approved"
   },
   {
     "title": "gum.mp3 Elevator Music",
