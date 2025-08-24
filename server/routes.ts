@@ -1344,8 +1344,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public mixes (approved only)
   app.get('/api/public/mixes', async (req, res) => {
     try {
-      const mixes = await storage.getMixSubmissions({ approved: true });
-      res.json(mixes.map(sanitizeMix));
+      const { limit } = req.query;
+      const allMixes = await storage.getMixSubmissions({});
+      
+      // Filter for approved mixes only, featured first
+      const approvedMixes = allMixes
+        .filter(mix => (mix as any).pushToAzura)
+        .sort((a, b) => {
+          // Featured mixes first
+          const aFeatured = (a as any).featureOnSite || false;
+          const bFeatured = (b as any).featureOnSite || false;
+          if (aFeatured && !bFeatured) return -1;
+          if (!aFeatured && bFeatured) return 1;
+          return 0;
+        })
+        .slice(0, limit ? parseInt(limit as string) : 12); // Limit to 12 to avoid endless scroll
+      
+      res.json(approvedMixes.map(sanitizeMix));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch mixes' });
     }
@@ -1359,7 +1374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Filter for approved AND featured mixes only
       const featuredMixes = allMixes
-        .filter(mix => (mix as any).approved && (mix as any).featured)
+        .filter(mix => (mix as any).pushToAzura && (mix as any).featureOnSite)
         .slice(0, limit ? parseInt(limit as string) : 8);
       
       res.json(featuredMixes.map(sanitizeMix));
@@ -1374,7 +1389,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(id);
       
-      if (!mix || !(mix as any).approved) {
+      if (!mix || !(mix as any).pushToAzura) {
         return res.status(404).json({ error: 'Mix not found' });
       }
       

@@ -14,14 +14,27 @@ function AllMixesSection() {
     refetchInterval: 30000,
   });
 
-  const getStatusBadge = (status: string) => {
-    const styles = {
-      pending: "bg-yellow-100 text-yellow-800 border-yellow-300",
-      approved: "bg-green-100 text-green-800 border-green-300", 
-      featured: "bg-red-100 text-red-800 border-red-300"
-    };
+  const getStatusBadge = (mix: any) => {
+    // Derive status from new boolean structure
+    const isApproved = mix.pushToAzura || false;
+    const isFeatured = mix.featureOnSite || false;
+    
+    let status: string;
+    let statusClass: string;
+    
+    if (isFeatured) {
+      status = 'featured';
+      statusClass = "bg-red-100 text-red-800 border-red-300";
+    } else if (isApproved) {
+      status = 'approved';
+      statusClass = "bg-green-100 text-green-800 border-green-300";
+    } else {
+      status = 'pending';
+      statusClass = "bg-yellow-100 text-yellow-800 border-yellow-300";
+    }
+    
     return (
-      <span className={`px-2 py-1 text-xs font-mono border rounded ${styles[status as keyof typeof styles] || "bg-gray-100 text-gray-800 border-gray-300"}`}>
+      <span className={`px-2 py-1 text-xs font-mono border rounded ${statusClass}`}>
         {status.toUpperCase()}
       </span>
     );
@@ -87,7 +100,7 @@ function AllMixesSection() {
                   
                   {/* Status Badge */}
                   <div className="absolute top-2 right-2">
-                    {getStatusBadge(mix.status)}
+                    {getStatusBadge(mix)}
                   </div>
                 </div>
                 
