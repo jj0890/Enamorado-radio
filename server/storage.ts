@@ -33,11 +33,15 @@ export interface IStorage {
   deleteGuide(id: number): Promise<void>;
 
   // Mix Submissions - Community content
-  getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number }): Promise<MixSubmission[]>;
+  getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number; featured?: boolean; approved?: boolean }): Promise<MixSubmission[]>;
   getMixSubmissionById(id: number): Promise<MixSubmission | undefined>;
   getMixSubmission(id: number): Promise<MixSubmission | undefined>;
   createMixSubmission(submission: InsertMixSubmission): Promise<MixSubmission>;
   updateMixSubmissionStatus(id: number, status: string, notes?: string): Promise<MixSubmission>;
+  updateMixSubmission(id: number, updates: Partial<MixSubmission>): Promise<MixSubmission>;
+  toggleMixFeature(id: number): Promise<MixSubmission>;
+  toggleMixApproval(id: number): Promise<MixSubmission>;
+  deleteMixSubmission(id: number): Promise<void>;
 
   // Schedule - Programming grid
   getSchedule(filters?: { upcoming?: boolean; date?: Date; limit?: number }): Promise<Schedule[]>;
@@ -179,7 +183,7 @@ class MemStorage implements IStorage {
   }
 
   // Mix Submissions
-  async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number }): Promise<MixSubmission[]> {
+  async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number; featured?: boolean; approved?: boolean }): Promise<MixSubmission[]> {
     let filtered = [...this.mixSubmissions];
     
     if (filters?.status) {
@@ -188,6 +192,14 @@ class MemStorage implements IStorage {
     
     if (filters?.genre) {
       filtered = filtered.filter(m => m.genre.toLowerCase().includes(filters.genre!.toLowerCase()));
+    }
+    
+    if (filters?.featured !== undefined) {
+      filtered = filtered.filter(m => (m as any).featured === filters.featured);
+    }
+    
+    if (filters?.approved !== undefined) {
+      filtered = filtered.filter(m => (m as any).approved === filters.approved);
     }
     
     // Sort by submitted date descending
@@ -231,6 +243,46 @@ class MemStorage implements IStorage {
       reviewedBy: 'Admin'
     };
     return this.mixSubmissions[index];
+  }
+
+  async updateMixSubmission(id: number, updates: Partial<MixSubmission>): Promise<MixSubmission> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    this.mixSubmissions[index] = { ...this.mixSubmissions[index], ...updates };
+    return this.mixSubmissions[index];
+  }
+
+  async toggleMixFeature(id: number): Promise<MixSubmission> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    (this.mixSubmissions[index] as any).featured = !(this.mixSubmissions[index] as any).featured;
+    return this.mixSubmissions[index];
+  }
+
+  async toggleMixApproval(id: number): Promise<MixSubmission> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    const currentApproved = (this.mixSubmissions[index] as any).approved;
+    (this.mixSubmissions[index] as any).approved = !currentApproved;
+    
+    if ((this.mixSubmissions[index] as any).approved) {
+      (this.mixSubmissions[index] as any).approvedAt = new Date();
+      this.mixSubmissions[index].status = 'approved';
+    } else {
+      this.mixSubmissions[index].status = 'pending';
+    }
+    
+    return this.mixSubmissions[index];
+  }
+
+  async deleteMixSubmission(id: number): Promise<void> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    this.mixSubmissions.splice(index, 1);
   }
 
   // Schedule

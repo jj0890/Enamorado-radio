@@ -26,9 +26,9 @@ export default function AdminPanel() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch pending mix submissions
-  const { data: pendingMixes = [], error: pendingError, isLoading: pendingLoading } = useQuery<MixSubmission[]>({
-    queryKey: ["/api/submissions?status=pending"],
+  // Fetch all mix submissions for admin view
+  const { data: allMixes = [], error: mixesError, isLoading: mixesLoading } = useQuery<MixSubmission[]>({
+    queryKey: ["/api/submissions"],
     refetchInterval: 3000,
     refetchOnWindowFocus: true,
     refetchOnMount: true,
@@ -36,46 +36,43 @@ export default function AdminPanel() {
     cacheTime: 0,
   });
 
-  // Fetch approved mixes
-  const { data: approvedMixes = [] } = useQuery<MixSubmission[]>({
-    queryKey: ["/api/submissions?status=approved"],
-  });
-
-  // Fetch featured mixes
-  const { data: featuredMixes = [] } = useQuery<MixSubmission[]>({
-    queryKey: ["/api/submissions?featured=true"],
-  });
+  // Filter mixes by status locally for better performance
+  const pendingMixes = allMixes.filter(mix => mix.status === 'pending');
+  const approvedMixes = allMixes.filter(mix => (mix as any).approved);
+  const featuredMixes = allMixes.filter(mix => (mix as any).featured);
 
   // Fetch schedule items
   const { data: scheduleItems = [] } = useQuery({
     queryKey: ["/api/schedule"],
   });
 
-  // Approve mix mutation
+  // Toggle approve mutation
   const approveMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/submissions/${id}/approve`, {
+      const response = await fetch(`/api/mixes/${id}/toggle-approve`, {
         method: 'POST',
+        credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to approve mix');
+      if (!response.ok) throw new Error('Failed to toggle approval');
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
       toast({
-        title: "Mix approved successfully",
-        description: "Mix has been uploaded to AzuraCast and approved for community showcase.",
+        title: "Mix approval toggled",
+        description: "Mix approval status has been updated.",
       });
     },
   });
 
-  // Feature mix mutation
+  // Toggle feature mutation
   const featureMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/submissions/${id}/feature`, {
+      const response = await fetch(`/api/mixes/${id}/toggle-feature`, {
         method: 'POST',
+        credentials: 'include'
       });
-      if (!response.ok) throw new Error('Failed to feature mix');
+      if (!response.ok) throw new Error('Failed to toggle feature');
       return response.json();
     },
     onSuccess: () => {
@@ -90,8 +87,9 @@ export default function AdminPanel() {
   // Delete mix mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/submissions/${id}`, {
+      const response = await fetch(`/api/mixes/${id}`, {
         method: 'DELETE',
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to delete mix');
       return response.json();
@@ -101,6 +99,57 @@ export default function AdminPanel() {
       toast({
         title: "Mix deleted successfully",
         description: "Mix has been removed from the system.",
+      });
+    },
+  });
+
+  // Attach file mutation
+  const attachFileMutation = useMutation({
+    mutationFn: async ({ id, file }: { id: number; file: File }) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await fetch(`/api/mixes/${id}/attach-file`, {
+        method: 'POST',
+        body: formData,
+        credentials: 'include'
+      });
+      if (!response.ok) throw new Error('Failed to attach file');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
+      toast({
+        title: "File attached successfully",
+        description: "MP3 file has been attached to the mix.",
+      });
+    },
+  });
+
+  // Push to AzuraCast mutation
+  const pushToAzuraMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/azuracast/push/${id}`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to push to AzuraCast');
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
+      toast({
+        title: "Successfully uploaded to AzuraCast!",
+        description: `File uploaded and library rescanned.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "AzuraCast upload failed",
+        description: error.message,
+        variant: "destructive",
       });
     },
   });
@@ -116,6 +165,16 @@ export default function AdminPanel() {
   const handleDelete = (id: number) => {
     if (confirm('Are you sure you want to delete this mix?')) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleAttachFile = (id: number, file: File) => {
+    attachFileMutation.mutate({ id, file });
+  };
+
+  const handlePushToAzura = (id: number) => {
+    if (confirm('Push this mix to AzuraCast? This will upload the file and add it to the radio rotation.')) {
+      pushToAzuraMutation.mutate(id);
     }
   };
 
@@ -218,20 +277,20 @@ export default function AdminPanel() {
               PENDING REVIEW ({pendingMixes.length})
             </h2>
             
-            {pendingLoading && (
+            {mixesLoading && (
               <div className="text-center py-8">
                 <div className="animate-spin w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-gray-600 font-mono">Loading submissions...</p>
               </div>
             )}
             
-            {pendingError && (
+            {mixesError && (
               <div className="text-center py-8 text-red-600 font-mono">
                 <p>Error loading submissions. Please refresh the page.</p>
               </div>
             )}
             
-            {!pendingLoading && !pendingError && pendingMixes.length === 0 && (
+            {!mixesLoading && !mixesError && pendingMixes.length === 0 && (
               <div className="text-center py-16">
                 <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
                 <p className="text-xl text-gray-600 font-mono mb-2">No pending submissions</p>
@@ -239,16 +298,19 @@ export default function AdminPanel() {
               </div>
             )}
             
-            {!pendingLoading && !pendingError && pendingMixes.length > 0 && (
+            {!mixesLoading && !mixesError && pendingMixes.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pendingMixes.map((mix) => (
                   <MixCard 
                     key={mix.id}
                     mix={mix}
+                    showAdminBadges={true}
                     showAdminActions={true}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}
+                    onAttachFile={handleAttachFile}
+                    onPushToAzura={handlePushToAzura}
                   />
                 ))}
               </div>
@@ -276,9 +338,13 @@ export default function AdminPanel() {
                   <MixCard 
                     key={mix.id}
                     mix={mix}
+                    showAdminBadges={true}
                     showAdminActions={true}
+                    onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}
+                    onAttachFile={handleAttachFile}
+                    onPushToAzura={handlePushToAzura}
                   />
                 ))}
               </div>
@@ -306,9 +372,13 @@ export default function AdminPanel() {
                   <MixCard 
                     key={mix.id}
                     mix={mix}
+                    showAdminBadges={true}
                     showAdminActions={true}
+                    onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}
+                    onAttachFile={handleAttachFile}
+                    onPushToAzura={handlePushToAzura}
                   />
                 ))}
               </div>

@@ -14,17 +14,36 @@ interface MixCardProps {
     submittedAt: string;
     metadata?: any;
     notes?: string;
+    // New admin fields
+    featured?: boolean;
+    approved?: boolean;
+    coverUrl?: string;
+    filePath?: string;
+    fileName?: string;
   };
-  showAdminActions?: boolean;
+  showAdminBadges?: boolean; // Show admin status badges
+  showAdminActions?: boolean; // Show admin action buttons
   onApprove?: (id: number) => void;
   onFeature?: (id: number) => void;
   onDelete?: (id: number) => void;
+  onAttachFile?: (id: number, file: File) => void;
+  onPushToAzura?: (id: number) => void;
 }
 
-export default function MixCard({ mix, showAdminActions = false, onApprove, onFeature, onDelete }: MixCardProps) {
-  // Get artwork with fallback
-  const artwork = mix.metadata?.thumbnail_url || mix.metadata?.artwork_url;
-  const isFeatured = mix.notes?.includes('Featured: true');
+export default function MixCard({ 
+  mix, 
+  showAdminBadges = false, 
+  showAdminActions = false, 
+  onApprove, 
+  onFeature, 
+  onDelete, 
+  onAttachFile, 
+  onPushToAzura 
+}: MixCardProps) {
+  // Get artwork with fallback (priority: coverUrl > metadata > fallback)
+  const artwork = mix.coverUrl || mix.metadata?.thumbnail_url || mix.metadata?.artwork_url;
+  const isFeatured = mix.featured || mix.notes?.includes('Featured: true');
+  const isApproved = mix.approved || mix.status === 'approved';
   
   // Format date
   const submittedDate = new Date(mix.submittedAt).toLocaleDateString();
@@ -107,56 +126,98 @@ export default function MixCard({ mix, showAdminActions = false, onApprove, onFe
           <p className="text-sm text-neutral-600 mb-4 line-clamp-2">{mix.about}</p>
         )}
         
+        {/* File attachment status (admin only) */}
+        {showAdminBadges && mix.fileName && (
+          <p className="text-xs text-green-600 mb-2">
+            📎 {mix.fileName}
+          </p>
+        )}
+        
         {/* Actions */}
-        <div className="flex gap-2 flex-wrap">
+        <div className="space-y-3">
           {showAdminActions ? (
             <>
-              {mix.status === 'pending' && (
-                <Button 
-                  size="sm" 
+              {/* Toggle Buttons */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
                   onClick={() => onApprove?.(mix.id)}
-                  className="bg-green-600 hover:bg-green-700"
+                  variant={isApproved ? "default" : "outline"}
+                  size="sm"
+                  className={isApproved ? "bg-green-600 hover:bg-green-700" : "text-green-600 border-green-600 hover:bg-green-50"}
                 >
-                  <Check className="w-4 h-4 mr-1" />
-                  Approve
+                  <Check className="h-3 w-3 mr-1" />
+                  {isApproved ? 'Approved' : 'Approve'}
                 </Button>
-              )}
+                
+                <Button
+                  onClick={() => onFeature?.(mix.id)}
+                  variant={isFeatured ? "default" : "outline"}
+                  size="sm"
+                  className={isFeatured ? "bg-yellow-600 hover:bg-yellow-700" : "text-yellow-600 border-yellow-600 hover:bg-yellow-50"}
+                >
+                  <Star className="h-3 w-3 mr-1" />
+                  {isFeatured ? 'Featured' : 'Feature'}
+                </Button>
+                
+                <Button
+                  onClick={() => onDelete?.(mix.id)}
+                  variant="outline"
+                  size="sm"
+                  className="text-red-600 border-red-600 hover:bg-red-50 ml-auto"
+                >
+                  <X className="h-3 w-3 mr-1" />
+                  Delete
+                </Button>
+              </div>
               
+              {/* File Attachment Section */}
+              <div className="border-t pt-2">
+                {mix.filePath ? (
+                  <div className="space-y-2">
+                    <p className="text-xs text-green-600">✅ File attached: {mix.fileName}</p>
+                    <Button
+                      onClick={() => onPushToAzura?.(mix.id)}
+                      variant="outline"
+                      size="sm"
+                      className="w-full text-blue-600 border-blue-600 hover:bg-blue-50"
+                    >
+                      Send to AzuraCast
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="text-xs text-gray-500">No file attached</p>
+                    <input
+                      type="file"
+                      accept=".mp3,audio/mpeg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) onAttachFile?.(mix.id, file);
+                      }}
+                      className="text-xs w-full"
+                    />
+                    <p className="text-muted-foreground text-xs">Attach MP3 to enable AzuraCast push</p>
+                  </div>
+                )}
+              </div>
+              
+              {/* Listen Button */}
               <Button 
                 size="sm" 
-                variant="outline"
-                onClick={() => onFeature?.(mix.id)}
-                className={isFeatured ? "border-yellow-500 text-yellow-700" : ""}
-              >
-                <Star className={`w-4 h-4 mr-1 ${isFeatured ? 'fill-yellow-500 text-yellow-500' : ''}`} />
-                {isFeatured ? 'Unfeature' : 'Feature'}
-              </Button>
-              
-              <Button 
-                size="sm" 
-                variant="outline"
                 onClick={() => window.open(mix.url, '_blank')}
-                className="border-blue-500 text-blue-700"
+                className="w-full bg-neutral-900 text-white hover:bg-neutral-800"
               >
                 <ExternalLink className="w-4 h-4 mr-1" />
-                Listen
-              </Button>
-              
-              <Button 
-                size="sm" 
-                variant="destructive"
-                onClick={() => onDelete?.(mix.id)}
-              >
-                <X className="w-4 h-4 mr-1" />
-                Delete
+                Listen to Original
               </Button>
             </>
           ) : (
             <Button 
               size="sm" 
               onClick={() => window.open(mix.url, '_blank')}
-              className="bg-neutral-900 text-white hover:bg-neutral-800"
+              className="w-full bg-neutral-900 text-white hover:bg-neutral-800"
             >
+              <Play className="w-4 h-4 mr-1" />
               Listen
             </Button>
           )}

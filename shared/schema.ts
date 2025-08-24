@@ -57,6 +57,15 @@ export const mixSubmissions = pgTable("mix_submissions", {
   metadata: jsonb("metadata"), // Enhanced metadata from APIs
   status: text("status").notNull().default("pending"), // pending, approved, featured, rejected
   
+  // ADMIN WORKFLOW FIELDS
+  featured: boolean("featured").default(false), // Featured status for homepage
+  approved: boolean("approved").default(false), // Approval status
+  coverUrl: text("cover_url"), // SoundCloud/oEmbed artwork URL
+  source: text("source").default("url"), // "upload"|"soundcloud"|"mixcloud"|"url"
+  sourceUrl: text("source_url"), // Original source URL
+  filePath: text("file_path"), // Local file path for uploads
+  fileName: text("file_name"), // Original filename
+  
   // ROUTING FLAGS - Control where approved mixes go
   featureOnSite: boolean("feature_on_site").default(true), // Show on website pages/cards
   pushToAzura: boolean("push_to_azura").default(false), // Send to AzuraCast library
@@ -76,6 +85,7 @@ export const mixSubmissions = pgTable("mix_submissions", {
   uploadedAt: timestamp("uploaded_at"), // SFTP completion
   rescannedAt: timestamp("rescanned_at"), // AzuraCast library rescan
   playlistLinkedAt: timestamp("playlist_linked_at"), // Added to playlist
+  createdAt: timestamp("created_at").defaultNow(), // Creation timestamp
 });
 
 // Schedule - Upcoming and past shows

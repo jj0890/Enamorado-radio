@@ -1,185 +1,114 @@
-// AzuraCast Integration Module
-// Handles SFTP uploads, API calls, and synchronization
-
-import Client from 'ssh2-sftp-client';
-import fs from 'fs';
+import SftpClient from 'ssh2-sftp-client';
 import path from 'path';
+import fs from 'fs';
 
-export interface AzuraCastConfig {
-  baseUrl: string;
-  apiKey: string;
-  stationId: string;
-  sftp: {
-    host: string;
-    port: number;
-    username: string;
-    password: string;
-  };
-}
+export class AzuraCastIntegration {
+  private readonly baseUrl: string;
+  private readonly station: string;
+  private readonly apiKey: string;
+  private readonly sftpHost: string;
+  private readonly sftpPort: number;
+  private readonly sftpUser: string;
+  private readonly sftpPass: string;
 
-export class AzuraCastService {
-  private config: AzuraCastConfig;
-  
   constructor() {
-    this.config = {
-      baseUrl: process.env.AZURACAST_BASE_URL || 'http://24.199.109.18',
-      apiKey: process.env.AZURACAST_API_KEY || '',
-      stationId: 'enamorado_radio',
-      sftp: {
-        host: process.env.SFTP_HOST || '24.199.109.18',
-        port: parseInt(process.env.SFTP_PORT || '2022'),
-        username: process.env.SFTP_USER || 'dj1',
-        password: process.env.SFTP_PASS || ''
-      }
-    };
+    this.baseUrl = process.env.AZURACAST_BASE_URL || '';
+    this.station = process.env.AZURACAST_STATION || '';
+    this.apiKey = process.env.AZURACAST_API_KEY || '';
+    this.sftpHost = process.env.AZ_SFTP_HOST || '';
+    this.sftpPort = Number(process.env.AZ_SFTP_PORT) || 2022;
+    this.sftpUser = process.env.AZ_SFTP_USER || '';
+    this.sftpPass = process.env.AZ_SFTP_PASS || '';
   }
 
-  // Upload audio file to AzuraCast media library
-  async uploadAudioFile(localFilePath: string, remoteFileName: string): Promise<boolean> {
-    const sftp = new Client();
+  // Upload file to AzuraCast via SFTP
+  async uploadFile(localPath: string, fileName: string): Promise<string> {
+    if (!fs.existsSync(localPath)) {
+      throw new Error(`Local file not found: ${localPath}`);
+    }
+
+    const targetDir = `/var/azuracast/stations/${this.station}/media`;
+    const remotePath = `${targetDir}/${fileName}`;
+
+    const sftp = new SftpClient();
     
     try {
-      await sftp.connect(this.config.sftp);
-      console.log('✅ Connected to AzuraCast SFTP');
+      await sftp.connect({
+        host: this.sftpHost,
+        port: this.sftpPort,
+        username: this.sftpUser,
+        password: this.sftpPass,
+      });
+
+      // Create target directory if it doesn't exist
+      try {
+        await sftp.mkdir(targetDir, true);
+      } catch (err) {
+        // Directory might already exist
+      }
+
+      // Upload file
+      await sftp.fastPut(localPath, remotePath);
+      console.log(`✅ Uploaded ${fileName} to AzuraCast: ${remotePath}`);
       
-      const remotePath = `/var/azuracast/stations/${this.config.stationId}/media/${remoteFileName}`;
-      await sftp.put(localFilePath, remotePath);
-      
-      console.log(`🎵 Uploaded ${remoteFileName} to AzuraCast`);
+      return remotePath;
+    } finally {
       await sftp.end();
-      
-      // Trigger library rescan
-      await this.rescanLibrary();
-      
-      return true;
-    } catch (error) {
-      console.error('❌ SFTP upload failed:', error);
-      await sftp.end().catch(() => {});
-      return false;
     }
   }
 
-  // Trigger library rescan after uploads
+  // Trigger AzuraCast library rescan
   async rescanLibrary(): Promise<boolean> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/api/station/${this.config.stationId}/files/rescan`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${this.baseUrl}/api/station/${this.station}/files/rescan`,
+        {
+          method: 'POST',
+          headers: {
+            'X-API-Key': this.apiKey,
+            'Content-Type': 'application/json',
+          },
         }
-      });
-      
-      if (response.ok) {
-        console.log('📁 Library rescan initiated');
-        return true;
-      } else {
-        console.error('❌ Library rescan failed:', response.status);
-        return false;
+      );
+
+      if (!response.ok) {
+        throw new Error(`Rescan failed: ${response.status} ${response.statusText}`);
       }
+
+      console.log('✅ AzuraCast library rescan triggered');
+      return true;
     } catch (error) {
-      console.error('❌ Library rescan error:', error);
+      console.error('❌ AzuraCast rescan failed:', error);
       return false;
     }
   }
 
-  // Get current now playing info
-  async getNowPlaying(): Promise<any> {
+  // Full workflow: upload file and rescan
+  async pushFileToAzuraCast(localPath: string, fileName: string): Promise<{ 
+    success: boolean; 
+    remotePath?: string; 
+    error?: string 
+  }> {
     try {
-      const response = await fetch(`${this.config.baseUrl}/api/nowplaying/${this.config.stationId}`, {
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`
-        }
-      });
+      const remotePath = await this.uploadFile(localPath, fileName);
+      const rescanSuccess = await this.rescanLibrary();
       
-      if (response.ok) {
-        return await response.json();
+      if (!rescanSuccess) {
+        console.warn('⚠️ File uploaded but rescan failed - file may not appear in AzuraCast immediately');
       }
-      return null;
+
+      return {
+        success: true,
+        remotePath,
+      };
     } catch (error) {
-      console.error('❌ Failed to get now playing:', error);
-      return null;
+      console.error('❌ AzuraCast push failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
     }
-  }
-
-  // Get station info and listener count
-  async getStationInfo(): Promise<any> {
-    try {
-      const response = await fetch(`${this.config.baseUrl}/api/station/${this.config.stationId}`, {
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`
-        }
-      });
-      
-      if (response.ok) {
-        return await response.json();
-      }
-      return null;
-    } catch (error) {
-      console.error('❌ Failed to get station info:', error);
-      return null;
-    }
-  }
-
-  // Create or update playlist
-  async createPlaylist(name: string, type: string = 'default'): Promise<any> {
-    try {
-      const response = await fetch(`${this.config.baseUrl}/api/station/${this.config.stationId}/playlists`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name,
-          type,
-          is_enabled: true,
-          playback_order: 'shuffle'
-        })
-      });
-      
-      if (response.ok) {
-        const playlist = await response.json();
-        console.log(`📋 Created playlist: ${name}`);
-        return playlist;
-      }
-      return null;
-    } catch (error) {
-      console.error('❌ Failed to create playlist:', error);
-      return null;
-    }
-  }
-
-  // Add file to playlist
-  async addToPlaylist(playlistId: number, mediaPath: string): Promise<boolean> {
-    try {
-      const response = await fetch(`${this.config.baseUrl}/api/station/${this.config.stationId}/playlists/${playlistId}/files`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.config.apiKey}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          media_path: mediaPath
-        })
-      });
-      
-      return response.ok;
-    } catch (error) {
-      console.error('❌ Failed to add to playlist:', error);
-      return false;
-    }
-  }
-
-  // Get public stream URL
-  getStreamUrl(): string {
-    return `${this.config.baseUrl}/listen/${this.config.stationId}/radio.mp3`;
-  }
-
-  // Get public player URL
-  getPublicPlayerUrl(): string {
-    return `${this.config.baseUrl}/public/${this.config.stationId}`;
   }
 }
 
-export const azuracastService = new AzuraCastService();
+export const azuracastIntegration = new AzuraCastIntegration();

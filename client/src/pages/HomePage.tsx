@@ -34,6 +34,16 @@ export default function HomePage() {
     queryKey: ['/api/dj-submissions/featured'],
   });
 
+  // Fetch featured community mixes
+  const { data: featuredMixes = [] } = useQuery({
+    queryKey: ['/api/public/mixes/featured'],
+    queryFn: async () => {
+      const response = await fetch('/api/public/mixes/featured?limit=6');
+      if (!response.ok) throw new Error('Failed to fetch featured mixes');
+      return response.json();
+    },
+  });
+
   // Fetch thumbnails for featured submissions
   useEffect(() => {
     const fetchThumbnails = async () => {
@@ -239,6 +249,75 @@ export default function HomePage() {
               </div>
             </button>
           </div>
+        </section>
+
+        {/* Fresh from the Community */}
+        {featuredMixes.length > 0 && (
+          <section className="py-16 px-4 max-w-6xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold mb-4 font-mono text-gray-900">FRESH FROM THE COMMUNITY</h2>
+              <p className="text-gray-600 font-mono">
+                Featured mixes from community submissions
+              </p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredMixes.map((mix: any) => (
+                <div key={mix.id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                  {/* Cover Art */}
+                  <div className="relative h-48">
+                    {mix.coverUrl ? (
+                      <img 
+                        src={mix.coverUrl} 
+                        alt={`${mix.title} cover`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          e.currentTarget.style.display = 'none';
+                          e.currentTarget.nextElementSibling!.style.display = 'flex';
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className={`absolute inset-0 bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center ${mix.coverUrl ? 'hidden' : 'flex'}`}
+                    >
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-gray-300 rounded-full mx-auto mb-3 flex items-center justify-center">
+                          <Music className="w-8 h-8 text-gray-600" />
+                        </div>
+                        <div className="text-sm text-gray-500 font-mono">MIX</div>
+                      </div>
+                    </div>
+                    
+                    {/* Featured Star */}
+                    <div className="absolute top-3 right-3">
+                      <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                    </div>
+                  </div>
+                  
+                  {/* Content */}
+                  <div className="p-4">
+                    <h3 className="font-bold text-lg mb-1 truncate">{mix.title}</h3>
+                    <p className="text-gray-600 text-sm mb-2">by {mix.name}</p>
+                    <p className="text-xs text-gray-500 mb-3">{mix.genre?.toUpperCase()}</p>
+                    
+                    {/* Description */}
+                    {mix.about && (
+                      <p className="text-sm text-gray-600 mb-4 line-clamp-2">{mix.about}</p>
+                    )}
+                    
+                    {/* Listen Button */}
+                    <button 
+                      onClick={() => window.open(mix.url, '_blank')}
+                      className="w-full bg-black text-white py-2 px-4 rounded font-mono text-sm hover:bg-gray-800 transition-colors"
+                    >
+                      LISTEN
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         </section>
       </main>
 

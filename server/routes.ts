@@ -6,9 +6,15 @@ import { metadataService } from "./metadataService";
 import { azuracastService } from "./azuracastService";
 import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
+import { oembedService } from "./oembedProxy";
+import { requireAdmin } from "./adminAuth";
+import { azuracastIntegration } from "./azuracastIntegration";
 import { z } from "zod";
 import http from "http";
 import multer from "multer";
+import path from "path";
+import fs from "fs";
+import mimeTypes from "mime-types";
 import { 
   insertEpisodeSchema,
   insertGuideSchema,
@@ -1053,6 +1059,269 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       res.status(500).json({ error: 'Failed to list ready files' });
+    }
+  });
+
+  // =================
+  // ADMIN WORKFLOW API - Feature/Approve toggles, file attachment, AzuraCast push
+  // =================
+
+  // Toggle mix featured status
+  app.post('/api/mixes/:id/toggle-feature', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedMix = await storage.toggleMixFeature(id);
+      res.json(updatedMix);
+    } catch (error) {
+      res.status(404).json({ error: error.message });
+    }
+  });
+
+  // Toggle mix approval status
+  app.post('/api/mixes/:id/toggle-approve', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedMix = await storage.toggleMixApproval(id);
+      res.json(updatedMix);
+    } catch (error) {
+      res.status(404).json({ error: error.message });
+    }
+  });
+
+  // Delete mix submission
+  app.delete('/api/mixes/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteMixSubmission(id);
+      res.json({ success: true });
+    } catch (error) {
+      res.status(404).json({ error: error.message });
+    }
+  });
+
+  // Configure multer for file uploads (200MB limit)
+  const uploadMixer = multer({
+    dest: './uploads/',
+    limits: {
+      fileSize: 200 * 1024 * 1024 // 200MB
+    },
+    fileFilter: (req, file, cb) => {
+      const isAudio = /^audio\//.test(file.mimetype) || /\.mp3$/i.test(file.originalname);
+      if (isAudio) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only MP3 files are allowed'));
+      }
+    }
+  });
+
+  // Attach MP3 file to mix
+  app.post('/api/mixes/:id/attach-file', requireAdmin, uploadMixer.single('file'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(id);
+      
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+      
+      if (!req.file) {
+        return res.status(400).json({ error: 'File required (field name "file")' });
+      }
+
+      const filePath = req.file.path;
+      const fileName = req.file.originalname || `mix-${id}.mp3`;
+      const ext = mimeTypes.extension(req.file.mimetype) || 'mp3';
+      const finalFileName = `${Date.now()}_${fileName.replace(/\s+/g, '_').replace(/[^\w\.-]/g, '')}.${ext}`;
+
+      // Create uploads directory if it doesn't exist
+      const uploadsDir = path.resolve('./uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const updatedMix = await storage.updateMixSubmission(id, {
+        filePath,
+        fileName: finalFileName,
+        source: 'upload'
+      });
+
+      res.json({ success: true, mix: updatedMix });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Attach MP3 from URL
+  app.post('/api/mixes/:id/attach-url', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { url } = req.body;
+      
+      if (!url || !/\.mp3(\?|$)/i.test(url)) {
+        return res.status(400).json({ error: 'Valid MP3 URL required' });
+      }
+
+      const mix = await storage.getMixSubmission(id);
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+
+      // Download the file
+      const response = await fetch(url);
+      if (!response.ok) {
+        return res.status(400).json({ error: `Download failed: ${response.status}` });
+      }
+
+      // Save to uploads directory
+      const uploadsDir = path.resolve('./uploads');
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const fileName = `${Date.now()}_${path.basename(url.split('?')[0])}`;
+      const filePath = path.join(uploadsDir, fileName);
+      
+      const fileStream = fs.createWriteStream(filePath);
+      await new Promise((resolve, reject) => {
+        response.body.pipe(fileStream);
+        response.body.on('error', reject);
+        fileStream.on('finish', resolve);
+      });
+
+      const updatedMix = await storage.updateMixSubmission(id, {
+        filePath,
+        fileName,
+        source: 'upload'
+      });
+
+      res.json({ success: true, mix: updatedMix });
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Push mix to AzuraCast via SFTP
+  app.post('/api/azuracast/push/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(id);
+      
+      if (!mix) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+      
+      if (!(mix as any).filePath) {
+        return res.status(400).json({ 
+          error: 'No local file associated. Upload an MP3 for this mix first.' 
+        });
+      }
+
+      const fileName = (mix as any).fileName || `mix-${id}.mp3`;
+      const result = await azuracastIntegration.pushFileToAzuraCast(
+        (mix as any).filePath, 
+        fileName
+      );
+
+      if (result.success) {
+        // Update mix with AzuraCast info
+        await storage.updateMixSubmission(id, {
+          azuraFilePath: result.remotePath,
+          uploadedAt: new Date().toISOString()
+        });
+        
+        res.json({ 
+          success: true, 
+          uploaded: result.remotePath,
+          message: 'Uploaded and library rescanned successfully!' 
+        });
+      } else {
+        res.status(500).json({ error: result.error || 'Upload failed' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // =================
+  // OEMBED PROXY - SoundCloud artwork fetching
+  // =================
+
+  app.get('/api/oembed/soundcloud', async (req, res) => {
+    try {
+      const { url } = req.query;
+      
+      if (!url) {
+        return res.status(400).json({ error: 'URL parameter required' });
+      }
+      
+      const metadata = await oembedService.fetchSoundCloudMetadata(url as string);
+      
+      if (metadata) {
+        res.json(metadata);
+      } else {
+        res.status(500).json({ error: 'Failed to fetch SoundCloud metadata' });
+      }
+    } catch (error) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // =================
+  // PUBLIC API - Sanitized endpoints without admin fields
+  // =================
+
+  const sanitizeMix = (mix: any) => ({
+    id: mix.id,
+    name: mix.name,
+    title: mix.title,
+    genre: mix.genre,
+    about: mix.about,
+    url: mix.url,
+    coverUrl: mix.coverUrl,
+    metadata: mix.metadata,
+    submittedAt: mix.submittedAt,
+    // DO NOT include: approved, featured, status, filePath, notes, etc.
+  });
+
+  // Public mixes (approved only)
+  app.get('/api/public/mixes', async (req, res) => {
+    try {
+      const mixes = await storage.getMixSubmissions({ approved: true });
+      res.json(mixes.map(sanitizeMix));
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch mixes' });
+    }
+  });
+
+  // Public featured mixes (approved + featured)
+  app.get('/api/public/mixes/featured', async (req, res) => {
+    try {
+      const { limit } = req.query;
+      const mixes = await storage.getMixSubmissions({ 
+        approved: true, 
+        featured: true,
+        limit: limit ? parseInt(limit as string) : undefined
+      });
+      res.json(mixes.map(sanitizeMix));
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch featured mixes' });
+    }
+  });
+
+  // Public single mix (approved only)
+  app.get('/api/public/mixes/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(id);
+      
+      if (!mix || !(mix as any).approved) {
+        return res.status(404).json({ error: 'Mix not found' });
+      }
+      
+      res.json(sanitizeMix(mix));
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch mix' });
     }
   });
 
