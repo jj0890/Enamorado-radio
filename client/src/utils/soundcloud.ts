@@ -1,8 +1,8 @@
 // SoundCloud thumbnail extraction utility using oEmbed API
 export async function extractSoundCloudThumbnail(url: string): Promise<string | null> {
   try {
-    // Use SoundCloud's oEmbed API to get track information
-    const oembedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`;
+    // Use our server proxy to avoid CORS issues
+    const oembedUrl = `/api/oembed?url=${encodeURIComponent(url)}`;
     
     const response = await fetch(oembedUrl);
     if (!response.ok) {
@@ -12,7 +12,7 @@ export async function extractSoundCloudThumbnail(url: string): Promise<string | 
     const data = await response.json();
     
     // Return the thumbnail URL from oEmbed response
-    return data.thumbnail_url || null;
+    return data.artUrl || null;
   } catch (error) {
     console.error('Error fetching SoundCloud thumbnail:', error);
     

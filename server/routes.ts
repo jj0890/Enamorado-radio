@@ -23,17 +23,18 @@ import {
   insertSongSubmissionSchema,
   insertCurrentPlaybackSchema
 } from "@shared/schema";
+import { getOEmbedThumbSafe } from './lib/oembed';
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  
+
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   const clients = new Set<WebSocket>();
-  
+
   wss.on('connection', (ws) => {
     clients.add(ws);
-    
+
     ws.on('close', () => {
       clients.delete(ws);
     });
@@ -51,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =================
   // HTTPS PROXY for AzuraCast (fixes mixed-content blocking)
   // =================
-  
+
   const AZ_BASE = 'http://24.199.109.18';
   const STREAM_PATH = '/radio/8000/radio.mp3';
   const NOWPLAYING_PATH = '/api/nowplaying/enamorado_radio';
@@ -93,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =================
   // ADMIN UPLOAD API - Complete AzuraCast Integration
   // =================
-  
+
   // Configure multer for file uploads
   const upload = multer({ 
     dest: '/tmp/uploads/',
@@ -152,11 +153,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get or create playlist
         const show = await storage.getShow(parseInt(showId));
         const playlistResult = await azuraCastManager.ensurePlaylist(showSlug, show?.title || showSlug);
-        
+
         if (playlistResult.playlistId && uploadResult.azuraFilePath) {
           // Add to playlist
           await azuraCastManager.addToPlaylist(playlistResult.playlistId, uploadResult.azuraFilePath);
-          
+
           // Update episode with playlist info
           await storage.updateEpisode(episode.id, {
             azuraPlaylistId: playlistResult.playlistId
@@ -253,13 +254,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/latest", async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 12;
-      
+
       // Get recent episodes and approved mix submissions
       const [episodes, mixes] = await Promise.all([
         storage.getEpisodes({ limit: Math.ceil(limit / 2) }),
         storage.getMixSubmissions({ status: 'approved', limit: Math.ceil(limit / 2) })
       ]);
-      
+
       // Combine and sort by date
       const latest = [
         ...episodes.map(e => ({ ...e, type: 'episode' })),
@@ -269,7 +270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const dateB = 'airDate' in b ? new Date(b.airDate) : new Date(b.submittedAt);
         return dateB.getTime() - dateA.getTime();
       }).slice(0, limit);
-      
+
       res.json(latest);
     } catch (error) {
       console.error('Error fetching latest content:', error);
@@ -375,7 +376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         genre: genre as string,
         limit: limit ? parseInt(limit as string) : undefined
       });
-      
+
       console.log(`GET /api/mixes - Found ${mixes.length} mixes with status: ${status || 'approved'}, genre: ${genre || 'undefined'}`);
       res.json(mixes);
     } catch (error) {
@@ -387,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/mixes", async (req, res) => {
     try {
       const validatedData = insertMixSubmissionSchema.parse(req.body);
-      
+
       // Enhance metadata for SoundCloud URLs
       if (validatedData.url && validatedData.url.includes('soundcloud.com')) {
         try {
@@ -397,7 +398,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn('Failed to fetch SoundCloud metadata:', metaError);
         }
       }
-      
+
       const mixSubmission = await storage.createMixSubmission(validatedData);
       res.status(201).json(mixSubmission);
     } catch (error) {
@@ -433,7 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: status as string,
         limit: 100
       });
-      
+
       // Filter featured if specified
       let filtered = submissions;
       if (featured === 'true') {
@@ -441,7 +442,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (featured === 'false') {
         filtered = submissions.filter(s => !s.notes?.includes('Featured: true'));
       }
-      
+
       res.json(filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()));
     } catch (error) {
       console.error('Error fetching submissions:', error);
@@ -454,11 +455,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmissionById(id);
-      
+
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
-      
+
       if (mix.status === 'approved') {
         return res.json({ ok: true, message: 'Mix already approved' });
       }
@@ -467,9 +468,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const safeArtist = (mix.name || 'Artist').replace(/[^\w\-]+/g, '_');
       const safeTitle = (mix.title || 'Track').replace(/[^\w\-]+/g, '_');
       const fileName = `${safeArtist}-${safeTitle}.mp3`;
-      
+
       let azuracastPath = null;
-      
+
       try {
         // For demo: simulate upload process
         // In production: download audio from mix.url and SFTP to AzuraCast
@@ -480,15 +481,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`Upload to AzuraCast failed: ${uploadError}`);
         // Continue with approval even if upload fails
       }
-      
+
       const updatedMix = await storage.updateMixSubmissionStatus(id, 'approved', `Approved by admin. AzuraCast path: ${azuracastPath}`);
-      
+
       // Broadcast update via WebSocket
       broadcast({
         type: 'mix_approved',
         data: updatedMix
       });
-      
+
       console.log(`Mix ${id} approved and uploaded to AzuraCast`);
       res.json({ ok: true, mix: updatedMix, azuracastPath });
     } catch (error) {
@@ -502,19 +503,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmissionById(id);
-      
+
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
-      
+
       // Toggle featured status
       const isFeatured = mix.notes?.includes('Featured: true');
       const updatedNotes = isFeatured 
         ? (mix.notes?.replace('Featured: true', 'Featured: false') || 'Featured: false')
         : `${mix.notes || ''} Featured: true`.trim();
-        
+
       const updatedMix = await storage.updateMixSubmissionStatus(id, mix.status, updatedNotes);
-      
+
       console.log(`Mix ${id} feature status toggled`);
       res.json({ ok: true, mix: updatedMix });
     } catch (error) {
@@ -529,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       // Mark as deleted since there's no delete method in storage interface
       const updatedMix = await storage.updateMixSubmissionStatus(id, 'deleted', 'Removed by admin');
-      
+
       console.log(`Mix ${id} deleted`);
       res.json({ ok: true });
     } catch (error) {
@@ -541,7 +542,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =================
   // AUDIO MANAGEMENT API
   // =================
-  
+
   // Get stream status for smart homepage CTA
   app.get("/api/stream-status", async (req, res) => {
     try {
@@ -549,7 +550,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const icecastUrl = 'http://24.199.109.18:8000/stream';
       let isLive = false;
       let listenerCount = 0;
-      
+
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
@@ -610,7 +611,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =================
   // SONG SUBMISSIONS API
   // =================
-  
+
   app.get("/api/song-submissions", async (req, res) => {
     try {
       const { status, limit } = req.query;
@@ -683,7 +684,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =================
   // AZURACAST INTEGRATION API
   // =================
-  
+
   app.get("/api/azuracast/test", async (req, res) => {
     try {
       const result = await azuracastService.testConnection();
@@ -709,7 +710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
-      
+
       // Here you would download the audio and convert to MP3
       // For now, just return success for the workflow
       res.json({ 
@@ -736,7 +737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mix.name, 
         `/tmp/${mix.title}.mp3` // This would be the actual MP3 file path
       );
-      
+
       res.json({ success: true, result });
     } catch (error) {
       console.error('Error uploading to AzuraCast:', error);
@@ -813,10 +814,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertCurrentPlaybackSchema.parse(req.body);
       const playback = await storage.updateCurrentPlayback(validatedData);
-      
+
       // Broadcast to all connected clients
       broadcast({ type: 'track-update', data: playback });
-      
+
       res.json(playback);
     } catch (error) {
       console.error('Error updating current track:', error);
@@ -883,13 +884,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         storage.getGuides(),
         storage.getMixSubmissions()
       ]);
-      
+
       const allTags = new Set<string>();
-      
+
       episodes.forEach(e => e.tags?.forEach(tag => allTags.add(tag)));
       guides.forEach(g => g.tags?.forEach(tag => allTags.add(tag)));
       mixes.forEach(m => m.genre && allTags.add(m.genre));
-      
+
       res.json(Array.from(allTags).sort());
     } catch (error) {
       console.error('Error fetching tags:', error);
@@ -924,18 +925,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     ];
 
     console.log('Initializing featured mixes...');
-    
+
     // Check if featured mixes already exist
     const existingFeatured = await storage.getMixSubmissions({ status: 'featured' });
     console.log(`Found ${existingFeatured.length} existing featured mixes`);
-    
+
     if (existingFeatured.length === 0) {
       for (const mix of featuredMixes) {
         try {
           console.log(`Creating mix: ${mix.title}`);
           const submission = await storage.createMixSubmission(mix);
           console.log(`Created submission with ID: ${submission.id}`);
-          
+
           const updatedSubmission = await storage.updateMixSubmissionStatus(submission.id, 'featured', 'Initial featured mix');
           console.log(`Updated submission ${submission.id} to featured status`);
         } catch (error) {
@@ -961,7 +962,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Test connection by getting now playing
       const nowPlaying = await azuracastService.getNowPlaying();
       const stationInfo = await azuracastService.getStationInfo();
-      
+
       res.json({
         success: true,
         nowPlaying,
@@ -993,7 +994,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const mixId = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(mixId);
-      
+
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
@@ -1004,7 +1005,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Process for AzuraCast
       const processed = await audioProcessor.processSubmissionForAzuraCast(mix);
-      
+
       if (processed) {
         res.json({ 
           success: true, 
@@ -1024,13 +1025,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const mixId = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(mixId);
-      
+
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
 
       const uploaded = await audioProcessor.uploadToAzuraCast(mix);
-      
+
       if (uploaded) {
         // Update mix status to indicate it's been uploaded to AzuraCast
         await storage.updateMixSubmission(mixId, { 
@@ -1038,7 +1039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           status: 'featured', // Mark as featured since it's now in AzuraCast rotation
           azuracastUploaded: true 
         });
-        
+
         res.json({ success: true, message: 'Mix uploaded to AzuraCast successfully' });
       } else {
         res.status(500).json({ error: 'Failed to upload to AzuraCast' });
@@ -1074,14 +1075,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!mix) {
         return res.status(404).json({ error: 'not found' });
       }
-      
+
       const currentlyApproved = (mix as any).pushToAzura || false;
       const newApprovalStatus = !currentlyApproved;
-      
+
       const updates: any = {
         pushToAzura: newApprovalStatus
       };
-      
+
       // If approving for the first time, try to populate art_url via oEmbed
       if (newApprovalStatus && !(mix as any).artUrl && mix.url) {
         try {
@@ -1094,12 +1095,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn('Failed to fetch thumbnail for mix', id, error);
         }
       }
-      
+
       // If unapproving, also remove from featured
       if (!newApprovalStatus) {
         updates.featureOnSite = false;
       }
-      
+
       const updatedMix = await storage.updateMixSubmission(id, updates);
       res.json({ ok: true, approved: newApprovalStatus });
     } catch (error) {
@@ -1115,19 +1116,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!mix) {
         return res.status(404).json({ error: 'not found' });
       }
-      
+
       // Check if mix is approved (has pushToAzura = true)
       if (!(mix as any).pushToAzura) {
         return res.status(400).json({ error: 'approve-first' });
       }
-      
+
       const currentlyFeatured = (mix as any).featureOnSite || false;
       const newFeaturedStatus = !currentlyFeatured;
-      
+
       const updatedMix = await storage.updateMixSubmission(id, {
         featureOnSite: newFeaturedStatus
       });
-      
+
       // Optional: Auto-push to AzuraCast when featuring with MP3
       if (newFeaturedStatus && (mix as any).filePath) {
         try {
@@ -1137,7 +1138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             (mix as any).filePath, 
             fileName
           );
-          
+
           if (result.success) {
             await storage.updateMixSubmission(id, {
               azuraFilePath: fileName,
@@ -1148,7 +1149,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           console.warn('AzuraCast auto-push failed:', e);
         }
       }
-      
+
       res.json({ ok: true, featured: newFeaturedStatus });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -1160,15 +1161,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(id);
-      
+
       if (!mix || !(mix as any).filePath) {
         return res.status(400).json({ error: 'No MP3 file attached to this mix' });
       }
-      
+
       const { pushToAzuraCast } = await import('./lib/azuracast');
       const fileName = (mix as any).fileName || `mix-${id}.mp3`;
       const result = await pushToAzuraCast((mix as any).filePath, fileName);
-      
+
       if (result.success) {
         await storage.updateMixSubmission(id, {
           azuraFilePath: fileName,
@@ -1216,11 +1217,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(id);
-      
+
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
-      
+
       if (!req.file) {
         return res.status(400).json({ error: 'File required (field name "file")' });
       }
@@ -1253,7 +1254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { url } = req.body;
-      
+
       if (!url || !/\.mp3(\?|$)/i.test(url)) {
         return res.status(400).json({ error: 'Valid MP3 URL required' });
       }
@@ -1277,7 +1278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const fileName = `${Date.now()}_${path.basename(url.split('?')[0])}`;
       const filePath = path.join(uploadsDir, fileName);
-      
+
       const fileStream = fs.createWriteStream(filePath);
       await new Promise((resolve, reject) => {
         response.body.pipe(fileStream);
@@ -1302,11 +1303,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(id);
-      
+
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
-      
+
       if (!(mix as any).filePath) {
         return res.status(400).json({ 
           error: 'No local file associated. Upload an MP3 for this mix first.' 
@@ -1325,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           azuraFilePath: result.remotePath,
           uploadedAt: new Date().toISOString()
         });
-        
+
         res.json({ 
           success: true, 
           uploaded: result.remotePath,
@@ -1346,17 +1347,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/oembed', async (req, res) => {
     try {
       const { url } = req.query;
-      
+
       if (!url) {
         return res.status(400).json({ error: 'Missing url' });
       }
-      
+
       const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url as string)}`);
-      
+
       if (!response.ok) {
         return res.status(502).json({ error: 'oembed-failed', status: response.status });
       }
-      
+
       const data = await response.json();
       res.json({ 
         thumbnail_url: data.thumbnail_url || null, 
@@ -1391,7 +1392,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { limit } = req.query;
       const allMixes = await storage.getMixSubmissions({});
-      
+
       // Filter for approved mixes only, featured first
       const approvedMixes = allMixes
         .filter(mix => (mix as any).pushToAzura)
@@ -1404,7 +1405,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return 0;
         })
         .slice(0, limit ? parseInt(limit as string) : 12); // Limit to 12 to avoid endless scroll
-      
+
       res.json(approvedMixes.map(sanitizeMix));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch mixes' });
@@ -1416,12 +1417,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { limit } = req.query;
       const allMixes = await storage.getMixSubmissions({});
-      
+
       // Filter for approved AND featured mixes only
       const featuredMixes = allMixes
         .filter(mix => (mix as any).pushToAzura && (mix as any).featureOnSite)
         .slice(0, limit ? parseInt(limit as string) : 8);
-      
+
       res.json(featuredMixes.map(sanitizeMix));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch featured mixes' });
@@ -1433,11 +1434,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(id);
-      
+
       if (!mix || !(mix as any).pushToAzura) {
         return res.status(404).json({ error: 'Mix not found' });
       }
-      
+
       res.json(sanitizeMix(mix));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch mix' });

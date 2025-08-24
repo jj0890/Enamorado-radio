@@ -89,14 +89,14 @@ export default function MixesLanding() {
     refetchInterval: 60000, // Refresh every minute
   });
 
-  // Function to fetch SoundCloud thumbnails using oEmbed API
+  // Function to fetch SoundCloud thumbnails using our server proxy
   const fetchSoundCloudThumbnail = async (soundcloudUrl: string): Promise<string> => {
     try {
-      const oEmbedUrl = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(soundcloudUrl)}`;
+      const oEmbedUrl = `/api/oembed?url=${encodeURIComponent(soundcloudUrl)}`;
       const response = await fetch(oEmbedUrl);
       if (response.ok) {
         const data = await response.json();
-        return data.thumbnail_url || '';
+        return data.artUrl || '';
       }
     } catch (error) {
       console.log('Could not fetch SoundCloud thumbnail:', error);

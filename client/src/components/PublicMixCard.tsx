@@ -23,7 +23,7 @@ interface PublicMixCardProps {
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
   // Use server-fetched artUrl first, then metadata imageUrl, then placeholder
   const artwork = mix.artUrl || (mix.metadata?.imageUrl) || null;
-  
+
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
       {/* Artwork */}
@@ -40,7 +40,7 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
           </div>
         )}
       </div>
-      
+
       <div className="p-4">
         {/* Genre and Date */}
         <div className="flex items-center justify-between mb-3">
