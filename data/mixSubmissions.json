@@ -136,6 +136,7 @@
     "submittedAt": "2025-08-24T08:28:23.830Z",
     "reviewedAt": null,
     "reviewedBy": null,
-    "notes": null
+    "notes": null,
+    "approved": false
   }
 ]
