@@ -1352,22 +1352,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Missing url' });
       }
 
-      const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url as string)}`);
+      console.log('Fetching oEmbed for URL:', url);
+
+      const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url as string)}`, {
+        headers: {
+          'User-Agent': 'EnamoradoRadio/1.0'
+        }
+      });
 
       if (!response.ok) {
+        console.error('oEmbed fetch failed:', response.status, response.statusText);
         return res.status(502).json({ error: 'oembed-failed', status: response.status });
       }
 
       const data = await response.json();
+      console.log('Raw oEmbed response:', data);
       
-      // Ensure we return the correct field names
-      res.json({ 
-        thumbnail_url: data.thumbnail_url || null,
-        artUrl: data.thumbnail_url || null, // Also provide as artUrl for compatibility
+      // Upgrade thumbnail to higher quality if available
+      let thumbnail = data.thumbnail_url;
+      if (thumbnail) {
+        thumbnail = thumbnail
+          .replace('large.jpg', 't500x500.jpg')
+          .replace('t67x67.jpg', 't500x500.jpg')
+          .replace('badge.jpg', 't500x500.jpg')
+          .replace('crop.jpg', 't500x500.jpg');
+      }
+
+      const result = { 
+        thumbnail_url: thumbnail || null,
+        artUrl: thumbnail || null,
         title: data.title || null,
-        artist: data.author_name || null
-      });
+        artist: data.author_name || null,
+        html: data.html || null,
+        width: data.width || null,
+        height: data.height || null
+      };
+
+      console.log('Returning oEmbed result:', result);
+      res.json(result);
     } catch (error) {
+      console.error('oEmbed proxy error:', error);
       res.status(500).json({ error: 'proxy-failed', detail: String(error) });
     }
   });

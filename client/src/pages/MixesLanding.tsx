@@ -101,11 +101,21 @@ export default function MixesLanding() {
       const response = await fetch(oEmbedUrl);
       if (response.ok) {
         const data = await response.json();
-        // 'thumbnail_url' is the correct key for the image URL from SoundCloud's oEmbed
-        return data.thumbnail_url || ''; 
+        console.log('oEmbed response for', soundcloudUrl, ':', data);
+        // Return the thumbnail URL, preferring higher quality versions
+        const thumbnail = data.thumbnail_url || data.artUrl || '';
+        if (thumbnail) {
+          // Upgrade to higher quality if possible
+          const highQualityThumbnail = thumbnail
+            .replace('large.jpg', 't500x500.jpg')
+            .replace('t67x67.jpg', 't500x500.jpg')
+            .replace('badge.jpg', 't500x500.jpg');
+          console.log('Found thumbnail:', highQualityThumbnail);
+          return highQualityThumbnail;
+        }
       }
     } catch (error) {
-      console.log('Could not fetch SoundCloud thumbnail:', error);
+      console.error('Could not fetch SoundCloud thumbnail:', error);
     }
     return '';
   };
@@ -116,13 +126,14 @@ export default function MixesLanding() {
       if (submission.soundcloudUrl) return submission.soundcloudUrl;
       if (submission.audiocomUrl) return submission.audiocomUrl;
       if (submission.otherUrl) return submission.otherUrl;
-      return '';
+      return submission.url || '';
     };
 
     const getPlatform = (): 'soundcloud' | 'mixcloud' | 'audio' | 'mp3' | 'wav' => {
-      if (submission.soundcloudUrl) return 'soundcloud';
-      // Add more platform checks if needed
-      return 'audio'; // Default to audio if no specific platform is identified
+      const url = getMainUrl();
+      if (url.includes('soundcloud.com')) return 'soundcloud';
+      if (url.includes('mixcloud.com')) return 'mixcloud';
+      return 'audio';
     };
 
     const getDuration = () => {
@@ -134,25 +145,26 @@ export default function MixesLanding() {
       return undefined;
     };
 
-    // Attempt to fetch thumbnail for SoundCloud URLs directly if not provided by API
-    // The API should ideally provide a thumbnail field, but this is a fallback.
-    // Note: Direct oEmbed calls here might be rate-limited or blocked. The API proxy is preferred.
-    const thumbnailUrl = submission.soundcloudUrl 
-      ? '' // Rely on the `thumbnail` field from the submission or `thumbnailCache`
-      : submission.thumbnail || '';
+    // Get the best available thumbnail
+    const thumbnailUrl = submission.thumbnail || 
+                         (submission as any).artUrl || 
+                         submission.metadata?.imageUrl || 
+                         submission.metadata?.thumbnail_url || 
+                         '';
 
     return {
       id: submission.id,
       title: submission.dynamicTitle || submission.title || submission.demoMixTitle,
       artist: submission.name || submission.dynamicArtist || submission.djName,
       description: submission.about || submission.demoMixDescription,
-      thumbnailUrl: submission.thumbnail || '', // Use thumbnail from API metadata if available
+      thumbnailUrl,
       platform: getPlatform(),
       url: getMainUrl(),
       duration: getDuration(),
       genre: submission.genre ? [submission.genre] : (submission.primaryGenre ? [submission.primaryGenre] : []),
-      featured: true // This flag might be better determined by submission status or a dedicated field
-    };
+      featured: (submission as any).featureOnSite || false,
+      metadata: submission.metadata // Preserve metadata for fallback
+    } as Mix & { metadata?: any };
   };
 
   // Use hardcoded featured mixes
@@ -447,23 +459,31 @@ export default function MixesLanding() {
                 >
                   {/* Community Submission Thumbnail */}
                   <div className="aspect-square bg-white rounded-lg mb-3 overflow-hidden relative border-2 border-black">
-                    {submission.thumbnail ? (
+                    {(submission.thumbnail || submission.metadata?.imageUrl || submission.metadata?.thumbnail_url || (submission as any).artUrl) ? (
                       <img 
-                        src={submission.thumbnail} 
+                        src={submission.thumbnail || submission.metadata?.imageUrl || submission.metadata?.thumbnail_url || (submission as any).artUrl} 
                         alt={`${submission.dynamicTitle || submission.title} by ${submission.name || submission.dynamicArtist}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
+                          console.log('Thumbnail failed to load:', e.currentTarget.src);
                           e.currentTarget.style.display = 'none';
+                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (nextElement) {
+                            nextElement.style.display = 'flex';
+                          }
                         }}
                       />
-                    ) : (
-                      <div className="w-full h-full bg-white flex items-center justify-center">
-                        <div className="text-gray-400 text-center">
-                          <Play className="w-12 h-12 mx-auto mb-2" />
-                          <p className="text-xs font-mono">New Submission</p>
-                        </div>
+                    ) : null}
+                    <div 
+                      className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
+                        (submission.thumbnail || submission.metadata?.imageUrl || submission.metadata?.thumbnail_url || (submission as any).artUrl) ? 'hidden' : 'flex'
+                      }`}
+                    >
+                      <div className="text-gray-400 text-center">
+                        <Play className="w-12 h-12 mx-auto mb-2" />
+                        <p className="text-xs font-mono">New Submission</p>
                       </div>
-                    )}
+                    </div>
 
                     {/* Status Badge */}
                     <div className="absolute top-2 right-2">
@@ -544,25 +564,31 @@ export default function MixesLanding() {
               >
                 {/* Mix Thumbnail */}
                 <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative border-2 border-black">
-                  {(mix.thumbnailUrl || thumbnailCache[mix.id]) ? (
+                  {(mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? (
                     <img 
-                      src={mix.thumbnailUrl || thumbnailCache[mix.id]} 
+                      src={mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl} 
                       alt={`${mix.title} by ${mix.artist}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        // If the provided thumbnailUrl or cached thumbnail fails to load,
-                        // hide the image and potentially show a placeholder.
-                        e.currentTarget.style.display = 'none'; 
+                        console.log('Mix thumbnail failed to load:', e.currentTarget.src);
+                        e.currentTarget.style.display = 'none';
+                        const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                        if (nextElement) {
+                          nextElement.style.display = 'flex';
+                        }
                       }}
                     />
-                  ) : (
-                    <div className="w-full h-full bg-white flex items-center justify-center">
-                      <div className="text-gray-400 text-center">
-                        <Play className="w-16 h-16 mx-auto mb-2" />
-                        <p className="text-xs font-mono">Audio Mix</p>
-                      </div>
+                  ) : null}
+                  <div 
+                    className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
+                      (mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? 'hidden' : 'flex'
+                    }`}
+                  >
+                    <div className="text-gray-400 text-center">
+                      <Play className="w-16 h-16 mx-auto mb-2" />
+                      <p className="text-xs font-mono">Audio Mix</p>
                     </div>
-                  )}
+                  </div>
 
                   {/* Play Button Overlay */}
                   <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">

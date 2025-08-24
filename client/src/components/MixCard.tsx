@@ -47,31 +47,44 @@ export default function MixCard({
   const [, forceRender] = useState(0);
   const rerender = () => forceRender(v => v + 1);
   
-  // SoundCloud artwork via CORS-safe proxy
-  const [artwork, setArtwork] = useState<string | null>(
-    (mix as any).artUrl || mix.coverUrl || mix.metadata?.thumbnail_url || mix.metadata?.imageUrl || mix.metadata?.artwork_url || null
-  );
+  // Get the best available artwork
+  const getInitialArtwork = () => {
+    return (mix as any).artUrl || 
+           mix.coverUrl || 
+           mix.metadata?.thumbnail_url || 
+           mix.metadata?.imageUrl || 
+           mix.metadata?.artwork_url || 
+           null;
+  };
+
+  const [artwork, setArtwork] = useState<string | null>(getInitialArtwork());
   
   useEffect(() => {
     let ignore = false;
     async function fetchSoundCloudArtwork() {
+      // Only fetch if we don't already have artwork and it's a SoundCloud URL
       if (artwork || !mix.url?.includes('soundcloud.com')) return;
       
       try {
+        console.log('Fetching artwork for mix:', mix.id, mix.url);
         const response = await fetch(`/api/oembed?url=${encodeURIComponent(mix.url)}`);
-        if (!response.ok) return;
+        if (!response.ok) {
+          console.warn('Failed to fetch artwork, status:', response.status);
+          return;
+        }
         const data = await response.json();
+        console.log('Received artwork data for mix:', mix.id, data);
         if (!ignore && (data?.thumbnail_url || data?.artUrl)) {
           setArtwork(data.thumbnail_url || data.artUrl);
         }
       } catch (error) {
-        console.warn('Failed to fetch SoundCloud artwork:', error);
+        console.error('Failed to fetch SoundCloud artwork for mix:', mix.id, error);
       }
     }
     
     fetchSoundCloudArtwork();
     return () => { ignore = true; };
-  }, [mix.url, artwork]);
+  }, [mix.url, mix.id]);
   
   // Use new boolean structure from migrated data
   const isFeatured = (mix as any).featureOnSite || false;
