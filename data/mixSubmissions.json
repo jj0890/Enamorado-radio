@@ -137,6 +137,7 @@
     "reviewedAt": null,
     "reviewedBy": null,
     "notes": null,
-    "approved": false
+    "approved": true,
+    "featured": true
   }
 ]

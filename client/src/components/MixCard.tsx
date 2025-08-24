@@ -70,8 +70,9 @@ export default function MixCard({
     return () => { ignore = true; };
   }, [mix.url, artwork]);
   
-  const isFeatured = mix.featured || mix.notes?.includes('Featured: true');
-  const isApproved = mix.approved || mix.status === 'approved';
+  // Use new boolean structure from migrated data
+  const isFeatured = (mix as any).featureOnSite || false;
+  const isApproved = (mix as any).pushToAzura || false;
   
   // Admin toggle functions
   async function toggleApprove() {

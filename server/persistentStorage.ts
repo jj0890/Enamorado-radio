@@ -36,6 +36,28 @@ export class FileStorage implements IStorage {
     this.loadData();
   }
 
+  // Migrate old status-based data to new boolean flag structure
+  private migrateMixData(mix: any): MixSubmission {
+    // Handle old string-based status format
+    if (mix.status && typeof mix.status === 'string') {
+      const newMix = {
+        ...mix,
+        featureOnSite: mix.status === 'featured' || mix.status === 'approved',
+        pushToAzura: mix.status === 'featured' || mix.status === 'approved'
+      };
+      // Remove old status field
+      delete newMix.status;
+      return newMix;
+    }
+    
+    // Ensure boolean fields exist with defaults
+    return {
+      ...mix,
+      featureOnSite: mix.featureOnSite ?? false,
+      pushToAzura: mix.pushToAzura ?? false
+    };
+  }
+
   private async ensureDataDir() {
     try {
       await fs.mkdir(this.dataDir, { recursive: true });
@@ -73,7 +95,7 @@ export class FileStorage implements IStorage {
               this.guides = parsed || [];
               break;
             case 'mixSubmissions.json':
-              this.mixSubmissions = parsed || [];
+              this.mixSubmissions = (parsed || []).map((mix: any) => this.migrateMixData(mix));
               break;
             case 'scheduleItems.json':
               this.scheduleItems = parsed || [];
@@ -241,17 +263,33 @@ export class FileStorage implements IStorage {
   async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number; approved?: boolean; featured?: boolean }): Promise<MixSubmission[]> {
     let filtered = [...this.mixSubmissions];
     
+    // Handle legacy status filtering by mapping to new boolean structure
     if (filters?.status) {
-      filtered = filtered.filter(m => m.status === filters.status);
+      console.log(`FileStorage: Filtering by status: ${filters.status}`);
+      if (filters.status === 'approved') {
+        filtered = filtered.filter(m => (m as any).featureOnSite === true || (m as any).pushToAzura === true);
+      } else if (filters.status === 'featured') {
+        filtered = filtered.filter(m => (m as any).featureOnSite === true);
+      } else if (filters.status === 'pending') {
+        filtered = filtered.filter(m => !(m as any).featureOnSite && !(m as any).pushToAzura);
+      } else if (filters.status === 'all') {
+        // Return all mixes
+      }
+    }
+    
+    // New boolean-based filtering
+    if (filters?.approved !== undefined) {
+      filtered = filtered.filter(m => ((m as any).featureOnSite || (m as any).pushToAzura) === filters.approved);
+    }
+    
+    if (filters?.featured !== undefined) {
+      filtered = filtered.filter(m => (m as any).featureOnSite === filters.featured);
     }
     
     if (filters?.genre) {
       filtered = filtered.filter(m => m.genre.toLowerCase().includes(filters.genre!.toLowerCase()));
     }
     
-    if (filters?.approved !== undefined) {
-      filtered = filtered.filter(m => (m as any).approved === filters.approved);
-    }
     
     if (filters?.featured !== undefined) {
       filtered = filtered.filter(m => (m as any).featured === filters.featured);
@@ -324,7 +362,12 @@ export class FileStorage implements IStorage {
     const index = this.mixSubmissions.findIndex(m => m.id === id);
     if (index === -1) throw new Error('Mix submission not found');
     
-    (this.mixSubmissions[index] as any).featured = !(this.mixSubmissions[index] as any).featured;
+    // Check if mix is approved first (has pushToAzura = true)
+    if (!(this.mixSubmissions[index] as any).pushToAzura) {
+      throw new Error('Mix must be approved before featuring');
+    }
+    
+    (this.mixSubmissions[index] as any).featureOnSite = !(this.mixSubmissions[index] as any).featureOnSite;
     await this.saveData('mixSubmissions', this.mixSubmissions);
     return this.mixSubmissions[index];
   }
@@ -336,11 +379,13 @@ export class FileStorage implements IStorage {
     const currentApproved = (this.mixSubmissions[index] as any).approved;
     (this.mixSubmissions[index] as any).approved = !currentApproved;
     
+    // Update new boolean fields instead of old status
     if ((this.mixSubmissions[index] as any).approved) {
       (this.mixSubmissions[index] as any).approvedAt = new Date();
-      this.mixSubmissions[index].status = 'approved';
+      (this.mixSubmissions[index] as any).pushToAzura = true;
     } else {
-      this.mixSubmissions[index].status = 'pending';
+      (this.mixSubmissions[index] as any).pushToAzura = false;
+      (this.mixSubmissions[index] as any).featureOnSite = false; // If unapproving, also unfeature
     }
     
     await this.saveData('mixSubmissions', this.mixSubmissions);

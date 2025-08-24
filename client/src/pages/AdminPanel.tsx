@@ -36,10 +36,10 @@ export default function AdminPanel() {
     cacheTime: 0,
   });
 
-  // Filter mixes by status locally for better performance
-  const pendingMixes = allMixes.filter(mix => mix.status === 'pending');
-  const approvedMixes = allMixes.filter(mix => (mix as any).approved);
-  const featuredMixes = allMixes.filter(mix => (mix as any).featured);
+  // Filter mixes by new boolean structure for better performance
+  const pendingMixes = allMixes.filter(mix => !(mix as any).pushToAzura && !(mix as any).featureOnSite);
+  const approvedMixes = allMixes.filter(mix => (mix as any).pushToAzura && !(mix as any).featureOnSite);
+  const featuredMixes = allMixes.filter(mix => (mix as any).featureOnSite);
 
   // Fetch schedule items
   const { data: scheduleItems = [] } = useQuery({

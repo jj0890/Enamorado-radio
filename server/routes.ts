@@ -1075,11 +1075,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'not found' });
       }
       
-      const newApprovalStatus = !((mix as any).approved || false);
-      const updatedMix = await storage.updateMixSubmission(id, {
-        approved: newApprovalStatus
-      });
+      const currentlyApproved = (mix as any).pushToAzura || false;
+      const newApprovalStatus = !currentlyApproved;
       
+      const updates: any = {
+        pushToAzura: newApprovalStatus
+      };
+      
+      // If unapproving, also remove from featured
+      if (!newApprovalStatus) {
+        updates.featureOnSite = false;
+      }
+      
+      const updatedMix = await storage.updateMixSubmission(id, updates);
       res.json({ ok: true, approved: newApprovalStatus });
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -1095,13 +1103,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'not found' });
       }
       
-      if (!((mix as any).approved)) {
+      // Check if mix is approved (has pushToAzura = true)
+      if (!(mix as any).pushToAzura) {
         return res.status(400).json({ error: 'approve-first' });
       }
       
-      const newFeaturedStatus = !((mix as any).featured || false);
+      const currentlyFeatured = (mix as any).featureOnSite || false;
+      const newFeaturedStatus = !currentlyFeatured;
+      
       const updatedMix = await storage.updateMixSubmission(id, {
-        featured: newFeaturedStatus
+        featureOnSite: newFeaturedStatus
       });
       
       // Optional: Auto-push to AzuraCast when featuring with MP3
