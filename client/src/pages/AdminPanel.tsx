@@ -49,7 +49,7 @@ export default function AdminPanel() {
   // Toggle approve mutation
   const approveMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/mixes/${id}/toggle-approve`, {
+      const response = await fetch(`/api/admin/mixes/${id}/approve`, {
         method: 'POST',
         credentials: 'include'
       });
@@ -68,7 +68,7 @@ export default function AdminPanel() {
   // Toggle feature mutation
   const featureMutation = useMutation({
     mutationFn: async (id: number) => {
-      const response = await fetch(`/api/mixes/${id}/toggle-feature`, {
+      const response = await fetch(`/api/admin/mixes/${id}/feature`, {
         method: 'POST',
         credentials: 'include'
       });

@@ -114,5 +114,28 @@
     "reviewedAt": "2025-08-24T07:36:00.352Z",
     "reviewedBy": "Admin",
     "notes": "Approved by admin. AzuraCast path: null Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false"
+  },
+  {
+    "name": "Juuud0",
+    "title": "KNGDM SERIES 005",
+    "genre": "techno",
+    "about": "juuud0 juuud0 juuud0juuud0 juuud0juuud0juuud0juuud0",
+    "url": "https://soundcloud.com/kingdom-nightclub/juuud0-kingdom-mix-july-2025?si=23f16a9208744a9c8496f8c7b4eb8d64&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+    "metadata": {
+      "platform": "soundcloud",
+      "trackId": "https://soundcloud.com/kingdom-nightclub/juuud0-kingdom-mix-july-2025?si=23f16a9208744a9c8496f8c7b4eb8d64&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+      "title": "KNGDM Mix Series 005 - Juuud0",
+      "artist": "Kingdom Nightclub",
+      "imageUrl": "https://i1.sndcdn.com/artworks-9oX5lNrXENPSJClC-3kO6SQ-t500x500.jpg",
+      "externalUrls": {
+        "soundcloud": "https://soundcloud.com/kingdom-nightclub/juuud0-kingdom-mix-july-2025?si=23f16a9208744a9c8496f8c7b4eb8d64&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+      }
+    },
+    "id": 8,
+    "status": "pending",
+    "submittedAt": "2025-08-24T08:28:23.830Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null
   }
 ]

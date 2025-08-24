@@ -1066,25 +1066,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ADMIN WORKFLOW API - Feature/Approve toggles, file attachment, AzuraCast push
   // =================
 
-  // Toggle mix featured status
-  app.post('/api/mixes/:id/toggle-feature', requireAdmin, async (req, res) => {
+  // Toggle mix approval status
+  app.post('/api/admin/mixes/:id/approve', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updatedMix = await storage.toggleMixFeature(id);
-      res.json(updatedMix);
+      const mix = await storage.getMixSubmission(id);
+      if (!mix) {
+        return res.status(404).json({ error: 'not found' });
+      }
+      
+      const newApprovalStatus = !((mix as any).approved || false);
+      const updatedMix = await storage.updateMixSubmission(id, {
+        approved: newApprovalStatus
+      });
+      
+      res.json({ ok: true, approved: newApprovalStatus });
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
-  // Toggle mix approval status
-  app.post('/api/mixes/:id/toggle-approve', requireAdmin, async (req, res) => {
+  // Toggle mix featured status
+  app.post('/api/admin/mixes/:id/feature', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const updatedMix = await storage.toggleMixApproval(id);
-      res.json(updatedMix);
+      const mix = await storage.getMixSubmission(id);
+      if (!mix) {
+        return res.status(404).json({ error: 'not found' });
+      }
+      
+      if (!((mix as any).approved)) {
+        return res.status(400).json({ error: 'approve-first' });
+      }
+      
+      const newFeaturedStatus = !((mix as any).featured || false);
+      const updatedMix = await storage.updateMixSubmission(id, {
+        featured: newFeaturedStatus
+      });
+      
+      // Optional: Auto-push to AzuraCast when featuring with MP3
+      if (newFeaturedStatus && (mix as any).filePath) {
+        try {
+          const fileName = (mix as any).fileName || `mix-${id}.mp3`;
+          const result = await azuracastIntegration.pushFileToAzuraCast(
+            (mix as any).filePath, 
+            fileName
+          );
+          
+          if (result.success) {
+            await storage.updateMixSubmission(id, {
+              azuraFilePath: result.remotePath,
+              uploadedAt: new Date().toISOString()
+            });
+          }
+        } catch (e) {
+          console.warn('AzuraCast auto-push failed:', e);
+        }
+      }
+      
+      res.json({ ok: true, featured: newFeaturedStatus });
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      res.status(500).json({ error: error.message });
     }
   });
 
@@ -1244,26 +1286,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
-  // OEMBED PROXY - SoundCloud artwork fetching
+  // OEMBED PROXY - SoundCloud artwork fetching (CORS-safe)
   // =================
 
-  app.get('/api/oembed/soundcloud', async (req, res) => {
+  app.get('/api/oembed', async (req, res) => {
     try {
       const { url } = req.query;
       
       if (!url) {
-        return res.status(400).json({ error: 'URL parameter required' });
+        return res.status(400).json({ error: 'Missing url' });
       }
       
-      const metadata = await oembedService.fetchSoundCloudMetadata(url as string);
+      const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url as string)}`);
       
-      if (metadata) {
-        res.json(metadata);
-      } else {
-        res.status(500).json({ error: 'Failed to fetch SoundCloud metadata' });
+      if (!response.ok) {
+        return res.status(502).json({ error: 'oembed-failed', status: response.status });
       }
+      
+      const data = await response.json();
+      res.json({ 
+        thumbnail_url: data.thumbnail_url || null, 
+        title: data.title || null 
+      });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: 'proxy-failed', detail: String(error) });
     }
   });
 
@@ -1298,12 +1344,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/public/mixes/featured', async (req, res) => {
     try {
       const { limit } = req.query;
-      const mixes = await storage.getMixSubmissions({ 
-        approved: true, 
-        featured: true,
-        limit: limit ? parseInt(limit as string) : undefined
-      });
-      res.json(mixes.map(sanitizeMix));
+      const allMixes = await storage.getMixSubmissions({});
+      
+      // Filter for approved AND featured mixes only
+      const featuredMixes = allMixes
+        .filter(mix => (mix as any).approved && (mix as any).featured)
+        .slice(0, limit ? parseInt(limit as string) : 8);
+      
+      res.json(featuredMixes.map(sanitizeMix));
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch featured mixes' });
     }

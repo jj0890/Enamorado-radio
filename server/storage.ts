@@ -216,6 +216,10 @@ class MemStorage implements IStorage {
     return this.mixSubmissions.find(m => m.id === id);
   }
 
+  async getMixSubmission(id: number): Promise<MixSubmission | undefined> {
+    return this.mixSubmissions.find(m => m.id === id);
+  }
+
   async createMixSubmission(submission: InsertMixSubmission): Promise<MixSubmission> {
     const newSubmission: MixSubmission = {
       ...submission,

@@ -1,3 +1,5 @@
+import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Star, Check, X, ExternalLink } from 'lucide-react';
@@ -40,10 +42,69 @@ export default function MixCard({
   onAttachFile, 
   onPushToAzura 
 }: MixCardProps) {
-  // Get artwork with fallback (priority: coverUrl > metadata > fallback)
-  const artwork = mix.coverUrl || mix.metadata?.thumbnail_url || mix.metadata?.artwork_url;
+  const [location] = useLocation();
+  const isAdmin = location.startsWith('/admin');
+  const [, forceRender] = useState(0);
+  const rerender = () => forceRender(v => v + 1);
+  
+  // SoundCloud artwork via CORS-safe proxy
+  const [artwork, setArtwork] = useState<string | null>(mix.coverUrl || mix.metadata?.thumbnail_url || mix.metadata?.artwork_url || null);
+  
+  useEffect(() => {
+    let ignore = false;
+    async function fetchSoundCloudArtwork() {
+      if (artwork || !mix.url?.includes('soundcloud.com')) return;
+      
+      try {
+        const response = await fetch(`/api/oembed?url=${encodeURIComponent(mix.url)}`);
+        const data = await response.json();
+        if (!ignore && data?.thumbnail_url) {
+          setArtwork(data.thumbnail_url);
+        }
+      } catch (error) {
+        console.warn('Failed to fetch SoundCloud artwork:', error);
+      }
+    }
+    
+    fetchSoundCloudArtwork();
+    return () => { ignore = true; };
+  }, [mix.url, artwork]);
+  
   const isFeatured = mix.featured || mix.notes?.includes('Featured: true');
   const isApproved = mix.approved || mix.status === 'approved';
+  
+  // Admin toggle functions
+  async function toggleApprove() {
+    try {
+      const response = await fetch(`/api/admin/mixes/${mix.id}/approve`, { method: 'POST' });
+      const result = await response.json();
+      if (response.ok) {
+        (mix as any).approved = result.approved;
+        rerender();
+        onApprove?.(mix.id);
+      } else {
+        alert(result.error || 'Approve failed');
+      }
+    } catch (error) {
+      alert('Network error');
+    }
+  }
+  
+  async function toggleFeature() {
+    try {
+      const response = await fetch(`/api/admin/mixes/${mix.id}/feature`, { method: 'POST' });
+      const result = await response.json();
+      if (response.ok) {
+        (mix as any).featured = result.featured;
+        rerender();
+        onFeature?.(mix.id);
+      } else {
+        alert(result.error || 'Feature failed');
+      }
+    } catch (error) {
+      alert('Network error');
+    }
+  }
   
   // Format date
   const submittedDate = new Date(mix.submittedAt).toLocaleDateString();
@@ -59,7 +120,7 @@ export default function MixCard({
             className="w-full h-48 object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling.style.display = 'flex';
+              e.currentTarget.nextElementSibling!.style.display = 'flex';
             }}
           />
         ) : null}
@@ -76,28 +137,35 @@ export default function MixCard({
           </div>
         </div>
         
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3">
-          <Badge 
-            variant={mix.status === 'approved' ? 'default' : mix.status === 'pending' ? 'secondary' : 'destructive'}
-            className="text-xs font-mono"
-          >
-            {mix.status === 'pending' ? 'PENDING REVIEW' : 
-             mix.status === 'approved' ? 'APPROVED' : 
-             mix.status === 'featured' ? 'FEATURED' : 
-             mix.status?.toUpperCase()}
-          </Badge>
-        </div>
+        {/* Admin Badges (only show on admin pages) */}
+        {isAdmin && (
+          <div className="absolute top-3 left-3 space-y-1">
+            {isApproved ? (
+              <Badge variant="default" className="text-xs font-mono bg-green-600">
+                APPROVED
+              </Badge>
+            ) : (
+              <Badge variant="secondary" className="text-xs font-mono">
+                PENDING
+              </Badge>
+            )}
+            {isFeatured && (
+              <Badge variant="default" className="text-xs font-mono bg-yellow-600">
+                FEATURED
+              </Badge>
+            )}
+          </div>
+        )}
         
-        {/* Featured Star */}
-        {isFeatured && (
+        {/* Public Featured Star (only show on non-admin pages for featured) */}
+        {!isAdmin && isFeatured && (
           <div className="absolute top-3 right-3">
             <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
           </div>
         )}
         
         {/* Play Button */}
-        {!showAdminActions && (
+        {!isAdmin && (
           <div className="absolute bottom-3 right-3">
             <Button 
               size="sm" 
@@ -127,7 +195,7 @@ export default function MixCard({
         )}
         
         {/* File attachment status (admin only) */}
-        {showAdminBadges && mix.fileName && (
+        {isAdmin && mix.fileName && (
           <p className="text-xs text-green-600 mb-2">
             📎 {mix.fileName}
           </p>
@@ -135,28 +203,29 @@ export default function MixCard({
         
         {/* Actions */}
         <div className="space-y-3">
-          {showAdminActions ? (
+          {isAdmin ? (
             <>
               {/* Toggle Buttons */}
               <div className="flex items-center gap-2 flex-wrap">
                 <Button
-                  onClick={() => onApprove?.(mix.id)}
+                  onClick={toggleApprove}
                   variant={isApproved ? "default" : "outline"}
                   size="sm"
                   className={isApproved ? "bg-green-600 hover:bg-green-700" : "text-green-600 border-green-600 hover:bg-green-50"}
                 >
                   <Check className="h-3 w-3 mr-1" />
-                  {isApproved ? 'Approved' : 'Approve'}
+                  {isApproved ? 'Approved ✓' : 'Approve'}
                 </Button>
                 
                 <Button
-                  onClick={() => onFeature?.(mix.id)}
+                  onClick={toggleFeature}
                   variant={isFeatured ? "default" : "outline"}
                   size="sm"
+                  disabled={!isApproved}
                   className={isFeatured ? "bg-yellow-600 hover:bg-yellow-700" : "text-yellow-600 border-yellow-600 hover:bg-yellow-50"}
                 >
                   <Star className="h-3 w-3 mr-1" />
-                  {isFeatured ? 'Featured' : 'Feature'}
+                  {isFeatured ? 'Featured ★' : 'Feature'}
                 </Button>
                 
                 <Button
