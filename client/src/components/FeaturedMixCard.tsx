@@ -11,6 +11,7 @@ interface FeaturedMixCardProps {
     genre: string;
     about: string;
     url: string;
+    artUrl?: string;
     metadata?: {
       imageUrl?: string;
       platform?: string;
@@ -36,6 +37,9 @@ export function FeaturedMixCard({ mix }: FeaturedMixCardProps) {
   };
 
   const getImageUrl = () => {
+    if (mix.artUrl) {
+      return mix.artUrl;
+    }
     if (mix.metadata?.imageUrl) {
       return mix.metadata.imageUrl;
     }

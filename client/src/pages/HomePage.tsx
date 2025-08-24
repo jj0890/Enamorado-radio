@@ -158,7 +158,7 @@ export default function HomePage() {
             <div className="mb-16">
               <FeaturedMixCard 
                 submission={featuredSubmission}
-                thumbnail={trackThumbnails[featuredSubmission.id]}
+                thumbnail={featuredSubmission.artUrl || featuredSubmission.metadata?.imageUrl || trackThumbnails[featuredSubmission.id]}
               />
             </div>
           )}

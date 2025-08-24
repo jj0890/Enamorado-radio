@@ -12,12 +12,17 @@ interface PublicMixCardProps {
     artUrl?: string;
     featureOnSite?: boolean;
     submittedAt: string;
+    metadata?: {
+      imageUrl?: string;
+      title?: string;
+      artist?: string;
+    };
   };
 }
 
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
-  // Use server-fetched artUrl, fallback to placeholder
-  const artwork = mix.artUrl || null;
+  // Use server-fetched artUrl first, then metadata imageUrl, then placeholder
+  const artwork = mix.artUrl || (mix.metadata?.imageUrl) || null;
   
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">

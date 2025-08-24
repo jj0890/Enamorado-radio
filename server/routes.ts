@@ -1379,8 +1379,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     about: mix.about,
     url: mix.url,
     coverUrl: mix.coverUrl,
-    artUrl: mix.artUrl, // Include server-fetched thumbnail for public pages
-    metadata: mix.metadata,
+    artUrl: mix.artUrl, // Server-fetched thumbnail
+    metadata: mix.metadata, // Legacy thumbnail in metadata.imageUrl
     submittedAt: mix.submittedAt,
     featureOnSite: mix.featureOnSite, // Include for ⭐ display on public pages
     // DO NOT include: pushToAzura, status, filePath, notes, etc.

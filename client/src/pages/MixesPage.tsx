@@ -54,13 +54,13 @@ function AllMixesSection() {
       {/* Filter Controls for All Mixes */}
       <div className="mb-6">
         <div className="flex gap-2 flex-wrap">
-          {['all', 'pending', 'approved', 'featured'].map((filterOption) => (
+          {['all', 'featured'].map((filterOption) => (
             <Button
               key={filterOption}
               size="sm"
-              variant={allMixesFilter === filterOption ? 'default' : 'outline'}
-              onClick={() => setAllMixesFilter(filterOption as typeof allMixesFilter)}
-              className={allMixesFilter === filterOption 
+              variant={publicFilter === filterOption ? 'default' : 'outline'}
+              onClick={() => setPublicFilter(filterOption as typeof publicFilter)}
+              className={publicFilter === filterOption 
                 ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
                 : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
               }
@@ -71,10 +71,10 @@ function AllMixesSection() {
         </div>
       </div>
 
-      {/* All Mixes Grid */}
-      {allMixes.length > 0 ? (
+      {/* Public Mixes Grid */}
+      {publicMixes.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {allMixes.map((mix: any) => {
+          {publicMixes.map((mix: any) => {
             const metadata = mix.metadata && typeof mix.metadata === 'object' ? mix.metadata : {};
             const title = metadata.title || mix.title;
             const artist = metadata.artist || mix.name;
@@ -145,7 +145,7 @@ function AllMixesSection() {
       ) : (
         <div className="text-center py-8">
           <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <div className="text-gray-600 font-mono">No mixes found for {allMixesFilter} status.</div>
+          <div className="text-gray-600 font-mono">No mixes found for {publicFilter} filter.</div>
         </div>
       )}
     </div>
