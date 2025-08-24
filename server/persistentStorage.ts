@@ -238,7 +238,7 @@ export class FileStorage implements IStorage {
   }
 
   // Mix Submissions - PERSISTENT STORAGE FOR YOUR MIX!
-  async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number }): Promise<MixSubmission[]> {
+  async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number; approved?: boolean; featured?: boolean }): Promise<MixSubmission[]> {
     let filtered = [...this.mixSubmissions];
     
     if (filters?.status) {
@@ -247,6 +247,14 @@ export class FileStorage implements IStorage {
     
     if (filters?.genre) {
       filtered = filtered.filter(m => m.genre.toLowerCase().includes(filters.genre!.toLowerCase()));
+    }
+    
+    if (filters?.approved !== undefined) {
+      filtered = filtered.filter(m => (m as any).approved === filters.approved);
+    }
+    
+    if (filters?.featured !== undefined) {
+      filtered = filtered.filter(m => (m as any).featured === filters.featured);
     }
     
     filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
@@ -281,6 +289,10 @@ export class FileStorage implements IStorage {
     return newSubmission;
   }
 
+  async getMixSubmission(id: number): Promise<MixSubmission | undefined> {
+    return this.mixSubmissions.find(m => m.id === id);
+  }
+
   async updateMixSubmissionStatus(id: number, status: string, notes?: string): Promise<MixSubmission> {
     const index = this.mixSubmissions.findIndex(m => m.id === id);
     if (index === -1) throw new Error('Mix submission not found');
@@ -296,6 +308,52 @@ export class FileStorage implements IStorage {
     await this.saveData('mixSubmissions', this.mixSubmissions);
     console.log(`FileStorage: Updated mix ${id} status to "${status}"`);
     return this.mixSubmissions[index];
+  }
+
+  async updateMixSubmission(id: number, updates: Partial<MixSubmission>): Promise<MixSubmission> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    this.mixSubmissions[index] = { ...this.mixSubmissions[index], ...updates };
+    await this.saveData('mixSubmissions', this.mixSubmissions);
+    console.log(`FileStorage: Updated mix ${id} with:`, updates);
+    return this.mixSubmissions[index];
+  }
+
+  async toggleMixFeature(id: number): Promise<MixSubmission> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    (this.mixSubmissions[index] as any).featured = !(this.mixSubmissions[index] as any).featured;
+    await this.saveData('mixSubmissions', this.mixSubmissions);
+    return this.mixSubmissions[index];
+  }
+
+  async toggleMixApproval(id: number): Promise<MixSubmission> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    const currentApproved = (this.mixSubmissions[index] as any).approved;
+    (this.mixSubmissions[index] as any).approved = !currentApproved;
+    
+    if ((this.mixSubmissions[index] as any).approved) {
+      (this.mixSubmissions[index] as any).approvedAt = new Date();
+      this.mixSubmissions[index].status = 'approved';
+    } else {
+      this.mixSubmissions[index].status = 'pending';
+    }
+    
+    await this.saveData('mixSubmissions', this.mixSubmissions);
+    return this.mixSubmissions[index];
+  }
+
+  async deleteMixSubmission(id: number): Promise<void> {
+    const index = this.mixSubmissions.findIndex(m => m.id === id);
+    if (index === -1) throw new Error('Mix submission not found');
+    
+    this.mixSubmissions.splice(index, 1);
+    await this.saveData('mixSubmissions', this.mixSubmissions);
+    console.log(`FileStorage: Deleted mix submission ${id}`);
   }
 
   // Schedule
