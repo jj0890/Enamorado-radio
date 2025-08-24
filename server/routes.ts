@@ -1082,6 +1082,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pushToAzura: newApprovalStatus
       };
       
+      // If approving for the first time, try to populate art_url via oEmbed
+      if (newApprovalStatus && !(mix as any).artUrl && mix.url) {
+        try {
+          const { getOEmbedThumbSafe } = await import('./lib/oembed');
+          const { artUrl } = await getOEmbedThumbSafe(mix.url);
+          if (artUrl) {
+            updates.artUrl = artUrl;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch thumbnail for mix', id, error);
+        }
+      }
+      
       // If unapproving, also remove from featured
       if (!newApprovalStatus) {
         updates.featureOnSite = false;
@@ -1118,15 +1131,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Optional: Auto-push to AzuraCast when featuring with MP3
       if (newFeaturedStatus && (mix as any).filePath) {
         try {
+          const { pushToAzuraCast } = await import('./lib/azuracast');
           const fileName = (mix as any).fileName || `mix-${id}.mp3`;
-          const result = await azuracastIntegration.pushFileToAzuraCast(
+          const result = await pushToAzuraCast(
             (mix as any).filePath, 
             fileName
           );
           
           if (result.success) {
             await storage.updateMixSubmission(id, {
-              azuraFilePath: result.remotePath,
+              azuraFilePath: fileName,
               uploadedAt: new Date().toISOString()
             });
           }
@@ -1138,6 +1152,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ ok: true, featured: newFeaturedStatus });
     } catch (error) {
       res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Manual AzuraCast push endpoint
+  app.post('/api/admin/mixes/:id/push-azuracast', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const mix = await storage.getMixSubmission(id);
+      
+      if (!mix || !(mix as any).filePath) {
+        return res.status(400).json({ error: 'No MP3 file attached to this mix' });
+      }
+      
+      const { pushToAzuraCast } = await import('./lib/azuracast');
+      const fileName = (mix as any).fileName || `mix-${id}.mp3`;
+      const result = await pushToAzuraCast((mix as any).filePath, fileName);
+      
+      if (result.success) {
+        await storage.updateMixSubmission(id, {
+          azuraFilePath: fileName,
+          uploadedAt: new Date().toISOString()
+        });
+        res.json({ success: true, message: 'Successfully pushed to AzuraCast' });
+      } else {
+        res.status(500).json({ success: false, error: result.error });
+      }
+    } catch (error) {
+      console.error('AzuraCast push error:', error);
+      res.status(500).json({ success: false, error: String(error) });
     }
   });
 
@@ -1336,9 +1379,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     about: mix.about,
     url: mix.url,
     coverUrl: mix.coverUrl,
+    artUrl: mix.artUrl, // Include server-fetched thumbnail for public pages
     metadata: mix.metadata,
     submittedAt: mix.submittedAt,
-    // DO NOT include: approved, featured, status, filePath, notes, etc.
+    featureOnSite: mix.featureOnSite, // Include for ⭐ display on public pages
+    // DO NOT include: pushToAzura, status, filePath, notes, etc.
   });
 
   // Public mixes (approved only)

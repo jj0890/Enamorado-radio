@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Settings, Star, Users, Music, Heart } from "lucide-react";
 import FeaturedMixCard from "../components/FeaturedMixCard";
+import PublicMixCard from "../components/PublicMixCard";
 import RadioStreamPlayer from "../components/RadioStreamPlayer";
 import ProgramIndicator from "../components/ProgramIndicator";
 import SimpleSongForm from "../components/SimpleSongForm";

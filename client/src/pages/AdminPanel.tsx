@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Settings, Music, Calendar, Users, Star, Check, X } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import MixCard from "@/components/MixCard";
+import AdminMixCard from "@/components/AdminMixCard";
 
 interface MixSubmission {
   id: number;
@@ -301,11 +301,9 @@ export default function AdminPanel() {
             {!mixesLoading && !mixesError && pendingMixes.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pendingMixes.map((mix) => (
-                  <MixCard 
+                  <AdminMixCard 
                     key={mix.id}
                     mix={mix}
-                    showAdminBadges={true}
-                    showAdminActions={true}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}
@@ -335,11 +333,9 @@ export default function AdminPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {approvedMixes.map((mix) => (
-                  <MixCard 
+                  <AdminMixCard 
                     key={mix.id}
                     mix={mix}
-                    showAdminBadges={true}
-                    showAdminActions={true}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}
@@ -369,11 +365,9 @@ export default function AdminPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {featuredMixes.map((mix) => (
-                  <MixCard 
+                  <AdminMixCard 
                     key={mix.id}
                     mix={mix}
-                    showAdminBadges={true}
-                    showAdminActions={true}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}

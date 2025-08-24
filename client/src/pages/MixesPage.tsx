@@ -4,13 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Music, Upload, Clock, User, Star } from "lucide-react";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
+import PublicMixCard from "@/components/PublicMixCard";
 
-// All Mixes Component
+// Public Mixes Component - Only shows approved mixes
 function AllMixesSection() {
-  const [allMixesFilter, setAllMixesFilter] = useState<'all' | 'pending' | 'approved' | 'featured'>('all');
+  const [publicFilter, setPublicFilter] = useState<'all' | 'featured'>('all');
   
-  const { data: allMixes = [], isLoading } = useQuery({
-    queryKey: ["/api/mixes", { status: allMixesFilter === 'all' ? undefined : allMixesFilter, limit: 50 }],
+  const { data: publicMixes = [], isLoading } = useQuery({
+    queryKey: ["/api/public/mixes", { featured: publicFilter === 'featured' ? 'true' : undefined, limit: 12 }],
     refetchInterval: 30000,
   });
 

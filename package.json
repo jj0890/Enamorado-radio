@@ -46,6 +46,7 @@
     "@types/memoizee": "^0.4.12",
     "@types/mime-types": "^3.0.1",
     "@types/multer": "^2.0.0",
+    "@types/ssh2-sftp-client": "^9.0.5",
     "@typescript-eslint/eslint-plugin": "^8.39.0",
     "@typescript-eslint/parser": "^8.39.0",
     "@uppy/aws-s3": "^4.3.2",
