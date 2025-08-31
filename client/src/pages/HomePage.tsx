@@ -37,9 +37,9 @@ export default function HomePage() {
 
   // Fetch fresh community mixes (replaces featured logic)
   const { data: featuredMixes = [] } = useQuery({
-    queryKey: ['/api/home/fresh'],
+    queryKey: ['/api/public/mixes'],
     queryFn: async () => {
-      const response = await fetch('/api/home/fresh?limit=6');
+      const response = await fetch('/api/public/mixes?limit=6');
       if (!response.ok) throw new Error('Failed to fetch fresh mixes');
       return response.json();
     },
