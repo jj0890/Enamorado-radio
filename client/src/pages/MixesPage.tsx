@@ -11,7 +11,7 @@ function AllMixesSection() {
   const [publicFilter, setPublicFilter] = useState<'all' | 'featured'>('all');
   
   const { data: publicMixes = [], isLoading } = useQuery({
-    queryKey: ["/api/public/mixes", { featured: publicFilter === 'featured' ? 'true' : undefined, limit: 12 }],
+    queryKey: publicFilter === 'featured' ? ["/api/mixes/featured", { limit: 12 }] : ["/api/mixes", { status: 'approved', limit: 12 }],
     refetchInterval: 30000,
   });
 
@@ -67,7 +67,7 @@ export default function MixesPage() {
 
   // Fetch mixes with different status filters
   const { data: mixes = [], isLoading } = useQuery({
-    queryKey: ["/api/mixes", { status: filter, limit: 20 }],
+    queryKey: filter === 'featured' ? ["/api/mixes/featured", { limit: 20 }] : ["/api/mixes", { status: filter, limit: 20 }],
     refetchInterval: 30000,
   });
 

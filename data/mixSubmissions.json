@@ -6,14 +6,12 @@
     "genre": "Electronic",
     "about": "A wild exploration through electronic soundscapes and experimental beats from Stream 454.",
     "id": 1,
-    "submittedAt": "2025-08-07T04:55:31.111Z",
-    "reviewedAt": "2025-08-24T10:46:18.443Z",
+    "status": "featured",
+    "submittedAt": "2025-08-31T20:54:02.942Z",
+    "reviewedAt": "2025-08-31T20:54:03.001Z",
     "reviewedBy": "Admin",
-    "notes": "Approved by admin. AzuraCast path: null",
-    "metadata": null,
-    "featureOnSite": true,
-    "pushToAzura": true,
-    "status": "approved"
+    "notes": "Initial featured mix",
+    "metadata": null
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -22,13 +20,12 @@
     "genre": "Ambient",
     "about": "Atmospheric ambient music perfect for contemplative listening sessions.",
     "id": 2,
-    "submittedAt": "2025-08-07T04:55:31.168Z",
-    "reviewedAt": "2025-08-07T04:55:31.171Z",
+    "status": "featured",
+    "submittedAt": "2025-08-31T20:54:03.054Z",
+    "reviewedAt": "2025-08-31T20:54:03.061Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
-    "metadata": null,
-    "featureOnSite": true,
-    "pushToAzura": true
+    "metadata": null
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -37,92 +34,11 @@
     "genre": "Electronic",
     "about": "High-energy footwork and juke tracks curated for the dancefloor.",
     "id": 3,
-    "submittedAt": "2025-08-07T04:55:31.182Z",
-    "reviewedAt": "2025-08-07T04:55:31.431Z",
+    "status": "featured",
+    "submittedAt": "2025-08-31T20:54:03.086Z",
+    "reviewedAt": "2025-08-31T20:54:03.478Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
-    "metadata": null,
-    "featureOnSite": true,
-    "pushToAzura": true
-  },
-  {
-    "name": "jarrad",
-    "title": "maybe man idk",
-    "genre": "techno",
-    "about": "i tried my best fr man no cap i hope its not bad i really hope i did good man no cap.",
-    "url": "https://audio.com/jarrad-jones/audio/maybe-man-idk",
-    "id": 5,
-    "submittedAt": "2025-08-07T05:38:26.828Z",
-    "reviewedAt": "2025-08-07T07:01:27.260Z",
-    "reviewedBy": "Admin",
-    "notes": "Approved for community showcase",
-    "metadata": null,
-    "featureOnSite": false,
-    "pushToAzura": false
-  },
-  {
-    "name": "jarrxd",
-    "title": "New Mix",
-    "genre": "house",
-    "about": "new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix new mix ",
-    "url": "https://www.mixcloud.com/jarradjones7/new-mixmp3/",
-    "id": 6,
-    "submittedAt": "2025-08-07T06:12:31.610Z",
-    "reviewedAt": "2025-08-24T07:34:13.768Z",
-    "reviewedBy": "Admin",
-    "notes": "Removed by admin",
-    "metadata": null,
-    "featureOnSite": false,
-    "pushToAzura": false
-  },
-  {
-    "name": "Tee Vera",
-    "title": "Tee Vera for \"THe Zoo\"",
-    "genre": "house",
-    "about": "Tee Vera Tee VeraTee Tee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee VeraTee Vera",
-    "url": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24?si=85a17e6fc99e4805bc8e3617c1cd4b34&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
-    "metadata": {
-      "platform": "soundcloud",
-      "trackId": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24?si=85a17e6fc99e4805bc8e3617c1cd4b34&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
-      "title": "Tee Vera for \"The Zoo\" @ Empire Control Room in ATX (6-21-24)",
-      "artist": "Teala Vera",
-      "imageUrl": "https://i1.sndcdn.com/artworks-W0AsF9z5Brpt2N9e-5mzyzw-t500x500.jpg",
-      "externalUrls": {
-        "soundcloud": "https://soundcloud.com/tealavera/tee-vera-for-the-zoo-empire-control-room-in-atx-6-21-24?si=85a17e6fc99e4805bc8e3617c1cd4b34&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
-      }
-    },
-    "id": 7,
-    "submittedAt": "2025-08-22T08:57:53.356Z",
-    "reviewedAt": "2025-08-24T07:36:00.352Z",
-    "reviewedBy": "Admin",
-    "notes": "Approved by admin. AzuraCast path: null Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false Featured: false",
-    "featureOnSite": true,
-    "pushToAzura": true
-  },
-  {
-    "name": "Juuud0",
-    "title": "KNGDM SERIES 005",
-    "genre": "techno",
-    "about": "juuud0 juuud0 juuud0juuud0 juuud0juuud0juuud0juuud0",
-    "url": "https://soundcloud.com/kingdom-nightclub/juuud0-kingdom-mix-july-2025?si=23f16a9208744a9c8496f8c7b4eb8d64&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
-    "metadata": {
-      "platform": "soundcloud",
-      "trackId": "https://soundcloud.com/kingdom-nightclub/juuud0-kingdom-mix-july-2025?si=23f16a9208744a9c8496f8c7b4eb8d64&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
-      "title": "KNGDM Mix Series 005 - Juuud0",
-      "artist": "Kingdom Nightclub",
-      "imageUrl": "https://i1.sndcdn.com/artworks-9oX5lNrXENPSJClC-3kO6SQ-t500x500.jpg",
-      "externalUrls": {
-        "soundcloud": "https://soundcloud.com/kingdom-nightclub/juuud0-kingdom-mix-july-2025?si=23f16a9208744a9c8496f8c7b4eb8d64&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
-      }
-    },
-    "id": 8,
-    "submittedAt": "2025-08-24T08:28:23.830Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null,
-    "approved": true,
-    "featured": true,
-    "featureOnSite": true,
-    "pushToAzura": true
+    "metadata": null
   }
 ]

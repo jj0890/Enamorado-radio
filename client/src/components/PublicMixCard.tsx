@@ -22,7 +22,7 @@ interface PublicMixCardProps {
 
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
   // Use server-fetched artUrl first, then metadata imageUrl, then placeholder
-  const artwork = mix.artUrl || mix.metadata?.imageUrl || null;
+  const artwork = mix.artUrl || (mix as any).artwork_url || mix.metadata?.imageUrl || null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
@@ -53,13 +53,10 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
           </div>
         </div>
 
-        {/* Title with Featured Star */}
+        {/* Title (no admin badges on public pages) */}
         <div className="mb-2">
-          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-red-500 transition-colors flex items-center gap-2">
+          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-red-500 transition-colors">
             {mix.title}
-            {mix.featureOnSite && (
-              <Star className="w-4 h-4 text-yellow-500 fill-current" title="Featured" />
-            )}
           </h4>
           <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
             <User className="w-3 h-3 mr-1" />

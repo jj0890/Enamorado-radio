@@ -46,21 +46,28 @@ export const guides = pgTable("guides", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
-// Mix Submissions - Community submissions with routing control
+// Mix Submissions - Community submissions with timestamp-based approval system
 export const mixSubmissions = pgTable("mix_submissions", {
   id: serial("id").primaryKey(),
-  name: text("name").notNull(), // Submitter name
+  name: text("name").notNull(), // Submitter name (artist)
   title: text("title").notNull(), // Mix title  
   genre: text("genre").notNull(),
   about: text("about").notNull(), // Description
-  url: text("url").notNull(), // SoundCloud, Mixcloud, Audio.com URL
+  url: text("url").notNull(), // SoundCloud, Mixcloud, Audio.com URL (source_url)
   metadata: jsonb("metadata"), // Enhanced metadata from APIs
   status: text("status").notNull().default("pending"), // pending, approved, featured, rejected
   
-  // ADMIN WORKFLOW FIELDS
+  // TIMESTAMP-BASED APPROVAL SYSTEM (source of truth)
+  approved_at: timestamp("approved_at"), // null = not approved, timestamp = approved
+  featured_at: timestamp("featured_at"), // null = not featured, timestamp = featured
+  artwork_url: text("artwork_url"), // Final, absolute URL for card display
+  platform: text("platform"), // "soundcloud" | "mixcloud" | "audiocom" | "file"
+  
+  // LEGACY BOOLEAN FLAGS (kept for backward compatibility during migration)
   featured: boolean("featured").default(false), // Featured status for homepage
   approved: boolean("approved").default(false), // Approval status
   coverUrl: text("cover_url"), // SoundCloud/oEmbed artwork URL
+  artUrl: text("art_url"), // Alternative artwork URL field
   source: text("source").default("url"), // "upload"|"soundcloud"|"mixcloud"|"url"
   sourceUrl: text("source_url"), // Original source URL
   filePath: text("file_path"), // Local file path for uploads
@@ -81,7 +88,7 @@ export const mixSubmissions = pgTable("mix_submissions", {
   reviewedAt: timestamp("reviewed_at"),
   reviewedBy: text("reviewed_by"),
   notes: text("notes"),
-  approvedAt: timestamp("approved_at"), // When routing started
+  approvedAt: timestamp("approved_at_legacy"), // Legacy field (use approved_at instead)
   uploadedAt: timestamp("uploaded_at"), // SFTP completion
   rescannedAt: timestamp("rescanned_at"), // AzuraCast library rescan
   playlistLinkedAt: timestamp("playlist_linked_at"), // Added to playlist

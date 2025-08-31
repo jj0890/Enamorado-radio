@@ -35,12 +35,12 @@ export default function HomePage() {
     queryKey: ['/api/dj-submissions/featured'],
   });
 
-  // Fetch featured community mixes
+  // Fetch fresh community mixes (replaces featured logic)
   const { data: featuredMixes = [] } = useQuery({
-    queryKey: ['/api/public/mixes/featured'],
+    queryKey: ['/api/home/fresh'],
     queryFn: async () => {
-      const response = await fetch('/api/public/mixes/featured?limit=6');
-      if (!response.ok) throw new Error('Failed to fetch featured mixes');
+      const response = await fetch('/api/home/fresh?limit=6');
+      if (!response.ok) throw new Error('Failed to fetch fresh mixes');
       return response.json();
     },
   });
