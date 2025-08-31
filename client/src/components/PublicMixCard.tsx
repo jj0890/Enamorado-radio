@@ -4,14 +4,16 @@ import { Button } from "@/components/ui/button";
 interface PublicMixCardProps {
   mix: {
     id: number;
-    name: string;
     title: string;
+    artist?: string;    // API now returns artist instead of name
+    name?: string;      // Fallback for old format
     genre: string;
-    about: string;
+    about?: string;
     url: string;
-    artUrl?: string;
-    featureOnSite?: boolean;
-    submittedAt: string;
+    artwork?: string;   // New standardized field
+    artUrl?: string;    // Legacy field
+    date?: string;      // API returns date
+    submittedAt?: string;
     metadata?: {
       imageUrl?: string;
       title?: string;
@@ -21,8 +23,8 @@ interface PublicMixCardProps {
 }
 
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
-  // Use server-fetched artUrl first, then metadata imageUrl, then placeholder
-  const artwork = mix.artUrl || (mix as any).artwork_url || mix.metadata?.imageUrl || null;
+  // Use the new standardized artwork field from the API
+  const artwork = (mix as any).artwork || mix.artUrl || (mix as any).artwork_url || mix.metadata?.imageUrl || null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
@@ -49,7 +51,7 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
           </span>
           <div className="text-xs font-mono text-gray-500 flex items-center">
             <Clock className="w-3 h-3 mr-1" />
-            {new Date(mix.submittedAt).toLocaleDateString()}
+            {new Date(mix.date || mix.submittedAt || '').toLocaleDateString()}
           </div>
         </div>
 
@@ -60,7 +62,7 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
           </h4>
           <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
             <User className="w-3 h-3 mr-1" />
-            {mix.name}
+            {mix.artist || mix.name}
           </div>
         </div>
 

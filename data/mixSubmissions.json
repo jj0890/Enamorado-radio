@@ -11,7 +11,10 @@
     "reviewedAt": "2025-08-31T20:54:03.001Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
-    "metadata": null
+    "metadata": null,
+    "pushToAzura": true,
+    "artUrl": "https://i1.sndcdn.com/artworks-riNIMC8W2Ihtk6au-2MODSA-t500x500.jpg",
+    "featureOnSite": true
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -25,7 +28,9 @@
     "reviewedAt": "2025-08-31T20:54:03.061Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
-    "metadata": null
+    "metadata": null,
+    "pushToAzura": true,
+    "artUrl": "https://i1.sndcdn.com/artworks-UhYTvzkYyxOEGeRd-JDLhFg-t500x500.jpg"
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -39,6 +44,9 @@
     "reviewedAt": "2025-08-31T20:54:03.478Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
-    "metadata": null
+    "metadata": null,
+    "pushToAzura": true,
+    "artUrl": "https://i1.sndcdn.com/artworks-Oji9jCNjlwIbx0Az-ryyHCg-t500x500.jpg",
+    "featureOnSite": true
   }
 ]

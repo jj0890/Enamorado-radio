@@ -382,12 +382,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         limit: limit ? parseInt(limit as string) : undefined
       });
 
-      // Filter by approved_at timestamp for public endpoints
-      if (status === 'approved') {
-        mixes = mixes.filter(mix => {
-          return (mix as any).approved_at || mix.status === 'approved';
-        });
-      }
+      // Filter by status only - keep the existing approved status logic
+      // Note: approved_at timestamp filtering removed as it was breaking existing approved mixes
 
       // Sort by priority: featured_at > approved_at > created_at > submittedAt
       mixes.sort((a, b) => {
@@ -483,10 +479,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let mixes = await storage.getMixSubmissions({ limit: 100 });
 
-      // Filter by featured_at timestamp and approved_at
+      // Filter by featured status (either status=featured or notes contains Featured)
       mixes = mixes.filter(mix => {
-        const isFeatured = (mix as any).featured_at || (mix as any).featured;
-        const isApproved = (mix as any).approved_at || mix.status === 'approved';
+        const isFeatured = mix.status === 'featured' || (mix as any).featured || mix.notes?.includes('Featured: true');
+        const isApproved = mix.status === 'approved' || mix.status === 'featured';
         return isFeatured && isApproved;
       });
 
@@ -518,9 +514,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       let mixes = await storage.getMixSubmissions({ limit: 50 });
 
-      // Filter by approved_at timestamp
+      // Filter by approved status (includes featured mixes)
       mixes = mixes.filter(mix => {
-        return (mix as any).approved_at || mix.status === 'approved';
+        return mix.status === 'approved' || mix.status === 'featured';
       });
 
       // Sort by priority: featured_at > approved_at > created_at (newest featured float to top)
@@ -571,47 +567,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Approve mix with timestamp-based logic
-  app.put("/api/admin/mixes/:id/approve", async (req, res) => {
+  // Approve mix - simple status update
+  app.post("/api/mixes/:id/approve", async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { approved } = req.body;
       const mix = await storage.getMixSubmissionById(id);
 
       if (!mix) {
         return res.status(404).json({ error: 'Mix not found' });
       }
 
-      // Update mix with timestamp-based approval
-      const updates: any = {
-        approved: approved,
-        status: approved ? 'approved' : 'pending'
-      };
-
-      if (approved) {
-        // Set approved_at timestamp
-        updates.approved_at = new Date();
-        updates.reviewedAt = new Date();
-        updates.reviewedBy = 'Admin';
-        
-        // AzuraCast integration (if needed)
-        try {
-          await rescanLibrary();
-          const safeArtist = (mix.name || 'Artist').replace(/[^\w\-]+/g, '_');
-          const safeTitle = (mix.title || 'Track').replace(/[^\w\-]+/g, '_');
-          const fileName = `${safeArtist}-${safeTitle}.mp3`;
-          console.log(`🎵 Mix approved: ${fileName}`);
-        } catch (uploadError) {
-          console.log(`AzuraCast integration warning:`, uploadError);
-        }
-      } else {
-        // Remove approval and featured status
-        updates.approved_at = null;
-        updates.featured_at = null;
-        updates.featured = false;
+      if (mix.status === 'approved') {
+        return res.json({ ok: true, message: 'Mix already approved' });
       }
 
-      const updatedMix = await storage.updateMixSubmission(id, updates);
+      // Simple status update to approved
+      const updatedMix = await storage.updateMixSubmissionStatus(id, 'approved', 'Approved by admin');
+
+      // AzuraCast integration
+      try {
+        await rescanLibrary();
+        const safeArtist = (mix.name || 'Artist').replace(/[^\w\-]+/g, '_');
+        const safeTitle = (mix.title || 'Track').replace(/[^\w\-]+/g, '_');
+        const fileName = `${safeArtist}-${safeTitle}.mp3`;
+        console.log(`🎵 Mix approved: ${fileName}`);
+      } catch (uploadError) {
+        console.log(`AzuraCast integration warning:`, uploadError);
+      }
 
       // Broadcast update via WebSocket
       broadcast({
@@ -619,11 +601,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         data: updatedMix
       });
 
-      console.log(`Mix ${id} ${approved ? 'approved' : 'unapproved'}`);
-      res.json(updatedMix);
+      console.log(`Mix ${id} approved`);
+      res.json({ ok: true, mix: updatedMix });
     } catch (error) {
-      console.error('Error updating mix approval:', error);
-      res.status(500).json({ error: 'Failed to update mix approval' });
+      console.error('Error approving mix:', error);
+      res.status(500).json({ error: 'Failed to approve mix' });
     }
   });
 
@@ -640,25 +622,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { featured } = req.body;
 
       // Guard: only allow featuring if already approved
-      const isApproved = (mix as any).approved_at || mix.status === 'approved';
-      if (featured && !isApproved) {
+      if (mix.status !== 'approved') {
         return res.status(400).json({ error: 'Mix must be approved before featuring' });
       }
 
-      // Update mix with timestamp-based featuring
-      const updates: any = {
-        featured: featured
-      };
+      // Toggle featured status in notes (simple approach)
+      const currentFeatured = mix.notes?.includes('Featured: true') || false;
+      const newFeatured = !currentFeatured;
 
-      if (featured) {
-        // Set featured_at timestamp
-        updates.featured_at = new Date();
-      } else {
-        // Remove featured timestamp
-        updates.featured_at = null;
-      }
+      const notes = newFeatured 
+        ? `${mix.notes || ''} Featured: true`.trim()
+        : (mix.notes || '').replace('Featured: true', '').trim();
 
-      const updatedMix = await storage.updateMixSubmission(id, updates);
+      const updatedMix = await storage.updateMixSubmissionStatus(id, mix.status, notes);
 
       // Broadcast update via WebSocket
       broadcast({
