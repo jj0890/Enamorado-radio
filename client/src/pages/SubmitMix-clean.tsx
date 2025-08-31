@@ -20,7 +20,8 @@ export default function SubmitMix() {
     title: "",
     genre: "",
     about: "",
-    url: ""
+    url: "",
+    artUrl: ""
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -249,13 +250,31 @@ export default function SubmitMix() {
                   type="url"
                   value={formData.url}
                   onChange={(e) => handleInputChange('url', e.target.value)}
-                  placeholder="https://soundcloud.com/your-mix"
+                  placeholder="https://soundcloud.com/your-mix or https://example.com/mix.mp3"
                   className="font-mono border-gray-300 focus:border-red-500"
                   required
                 />
                 <div className="mt-2 text-xs font-mono text-gray-500">
-                  Supported: SoundCloud, Mixcloud, Audio.com, or direct file links
+                  Supported: SoundCloud, Mixcloud, Audio.com, or direct .mp3 file links
                 </div>
+              </div>
+            </div>
+
+            {/* Artwork URL (Optional) */}
+            <div className="mt-6">
+              <Label htmlFor="artUrl" className="text-sm font-mono text-gray-700 mb-2 block">
+                Artwork URL (Optional)
+              </Label>
+              <Input
+                id="artUrl"
+                type="url"
+                value={formData.artUrl}
+                onChange={(e) => handleInputChange('artUrl', e.target.value)}
+                placeholder="https://example.com/cover.jpg"
+                className="font-mono border-gray-300 focus:border-red-500"
+              />
+              <div className="mt-2 text-xs font-mono text-gray-500">
+                For direct .mp3 links without embedded artwork. SoundCloud/Mixcloud artwork is auto-fetched.
               </div>
             </div>
 

@@ -413,8 +413,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertMixSubmissionSchema.parse(req.body);
 
-      // Fetch oEmbed thumbnail data if URL provided
-      if (validatedData.url) {
+      // Handle direct MP3 URLs specially
+      if (validatedData.url?.match(/\.mp3(\?|$)/i)) {
+        // Direct file link
+        (validatedData as any).platform = 'file';
+        (validatedData as any).source = 'link'; // will become 'upload' after we fetch
+        
+        // Allow artwork passed from form
+        if ((req.body as any)?.artUrl) {
+          (validatedData as any).artUrl = (req.body as any).artUrl;
+          (validatedData as any).artwork_url = (req.body as any).artUrl;
+        }
+        
+        console.log(`🎵 Direct MP3 submission: ${validatedData.title} - ${validatedData.url}`);
+      }
+      // Fetch oEmbed thumbnail data for supported platforms
+      else if (validatedData.url) {
         try {
           const oembedData = await getOEmbedThumbSafe(validatedData.url);
           if (oembedData && oembedData.thumbnail_url) {
@@ -1209,8 +1223,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pushToAzura: newApprovalStatus
       };
 
-      // If approving for the first time, try to populate art_url via oEmbed
-      if (newApprovalStatus && !(mix as any).artUrl && mix.url) {
+      // If approving and it's a direct MP3 URL and we don't yet have a local file, ingest it now
+      const isMp3Url = !!(mix.url && /\.mp3(\?|$)/i.test(mix.url));
+      if (newApprovalStatus && isMp3Url && !(mix as any).filePath) {
+        try {
+          // Import fs and path dynamically
+          const fs = await import('fs');
+          const path = await import('path');
+          
+          // Ensure uploads directory exists
+          const uploadsDir = path.resolve('./uploads');
+          if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+          }
+
+          const fileName = `${Date.now()}_${path.basename(mix.url.split('?')[0])}`;
+          const filePath = path.join(uploadsDir, fileName);
+
+          console.log(`🎵 Auto-downloading MP3 for approved mix: ${mix.url}`);
+          
+          // Download with timeout and safety checks
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+          
+          const response = await fetch(mix.url, { 
+            signal: controller.signal,
+            headers: { 'User-Agent': 'EnamoradoRadio/1.0' }
+          });
+          clearTimeout(timeoutId);
+          
+          if (!response.ok) {
+            throw new Error(`Download failed: ${response.status} ${response.statusText}`);
+          }
+
+          // Check content type
+          const contentType = response.headers.get('content-type') || '';
+          if (!/audio\/(mpeg|mp3)/i.test(contentType) && !contentType.includes('application/octet-stream')) {
+            console.warn(`Unexpected content-type: ${contentType}, continuing anyway...`);
+          }
+
+          // Check content length (200MB limit)
+          const contentLength = response.headers.get('content-length');
+          if (contentLength && parseInt(contentLength) > 200 * 1024 * 1024) {
+            throw new Error(`File too large: ${Math.round(parseInt(contentLength) / 1024 / 1024)}MB (max 200MB)`);
+          }
+
+          // Stream download with size limit enforcement
+          const fileStream = fs.createWriteStream(filePath);
+          let downloadedBytes = 0;
+          const maxBytes = 200 * 1024 * 1024; // 200MB
+
+          await new Promise((resolve, reject) => {
+            response.body?.on('data', (chunk) => {
+              downloadedBytes += chunk.length;
+              if (downloadedBytes > maxBytes) {
+                fileStream.destroy();
+                fs.unlinkSync(filePath).catch(() => {}); // Clean up
+                reject(new Error(`Download size exceeded 200MB limit`));
+                return;
+              }
+            });
+
+            response.body?.pipe(fileStream);
+            response.body?.on('error', reject);
+            fileStream.on('finish', resolve);
+            fileStream.on('error', reject);
+          });
+
+          updates.filePath = filePath;
+          updates.fileName = fileName;
+          updates.source = 'upload'; // now it's local
+          
+          console.log(`✅ Successfully downloaded MP3: ${fileName} (${Math.round(downloadedBytes / 1024 / 1024)}MB)`);
+          
+        } catch (downloadError: any) {
+          console.error(`❌ Failed to download MP3 for mix ${id}:`, downloadError.message);
+          // Continue with approval even if download fails
+        }
+      }
+
+      // If approving for the first time, try to populate art_url via oEmbed (for non-MP3 URLs)
+      if (newApprovalStatus && !(mix as any).artUrl && mix.url && !isMp3Url) {
         try {
           const { getOEmbedThumbSafe } = await import('./lib/oembed');
           const { artUrl } = await getOEmbedThumbSafe(mix.url);
