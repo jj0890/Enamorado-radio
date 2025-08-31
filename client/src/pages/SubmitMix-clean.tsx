@@ -77,8 +77,8 @@ export default function SubmitMix() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
-    if (!formData.name || !formData.title || !formData.genre || !formData.about || !formData.url) {
+    // Validate form (about is now optional)
+    if (!formData.name || !formData.title || !formData.genre || !formData.url) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -262,7 +262,7 @@ export default function SubmitMix() {
             {/* About */}
             <div className="mt-6">
               <Label htmlFor="about" className="text-sm font-mono text-gray-700 mb-2 block">
-                About This Mix *
+                About This Mix
               </Label>
               <Textarea
                 id="about"
@@ -271,10 +271,9 @@ export default function SubmitMix() {
                 placeholder="Tell us about your mix - what inspired it, the mood, key tracks, or anything you'd like listeners to know..."
                 rows={4}
                 className="font-mono border-gray-300 focus:border-red-500 resize-none"
-                required
               />
               <div className="mt-2 text-xs font-mono text-gray-500">
-                Minimum 50 characters. Be descriptive to help listeners discover your work.
+                Optional — share anything you want listeners to know.
               </div>
             </div>
           </div>

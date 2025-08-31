@@ -52,7 +52,7 @@ export const mixSubmissions = pgTable("mix_submissions", {
   name: text("name").notNull(), // Submitter name (artist)
   title: text("title").notNull(), // Mix title  
   genre: text("genre").notNull(),
-  about: text("about").notNull(), // Description
+  about: text("about"), // Description - now optional
   url: text("url").notNull(), // SoundCloud, Mixcloud, Audio.com URL (source_url)
   metadata: jsonb("metadata"), // Enhanced metadata from APIs
   status: text("status").notNull().default("pending"), // pending, approved, featured, rejected

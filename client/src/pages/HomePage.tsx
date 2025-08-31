@@ -258,7 +258,7 @@ export default function HomePage() {
             <div className="text-center mb-12">
               <h2 className="text-3xl font-bold mb-4 font-mono text-gray-900">FRESH FROM THE COMMUNITY</h2>
               <p className="text-gray-600 font-mono">
-                Featured mixes from community submissions
+                Latest approved mixes from community submissions
               </p>
             </div>
             
@@ -266,6 +266,12 @@ export default function HomePage() {
               {featuredMixes.map((mix: any) => (
                 <PublicMixCard key={mix.id} mix={mix} />
               ))}
+            </div>
+            
+            <div className="text-center mt-8">
+              <Link href="/mixes" className="inline-flex items-center text-red-500 hover:text-red-600 transition-colors font-mono font-medium">
+                View All Community Mixes →
+              </Link>
             </div>
           </section>
         )}

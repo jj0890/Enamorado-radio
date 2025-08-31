@@ -7,13 +7,14 @@
     "about": "A wild exploration through electronic soundscapes and experimental beats from Stream 454.",
     "id": 1,
     "submittedAt": "2025-08-31T20:54:02.942Z",
-    "reviewedAt": "2025-08-31T20:54:03.001Z",
+    "reviewedAt": "2025-08-31T22:18:42.317Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null,
     "pushToAzura": true,
     "artUrl": "https://i1.sndcdn.com/artworks-riNIMC8W2Ihtk6au-2MODSA-t500x500.jpg",
-    "featureOnSite": true
+    "featureOnSite": true,
+    "status": "featured"
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -23,13 +24,14 @@
     "about": "Atmospheric ambient music perfect for contemplative listening sessions.",
     "id": 2,
     "submittedAt": "2025-08-31T20:54:03.054Z",
-    "reviewedAt": "2025-08-31T20:54:03.061Z",
+    "reviewedAt": "2025-08-31T22:18:42.365Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null,
     "pushToAzura": true,
     "artUrl": "https://i1.sndcdn.com/artworks-UhYTvzkYyxOEGeRd-JDLhFg-t500x500.jpg",
-    "featureOnSite": true
+    "featureOnSite": false,
+    "status": "featured"
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -39,12 +41,41 @@
     "about": "High-energy footwork and juke tracks curated for the dancefloor.",
     "id": 3,
     "submittedAt": "2025-08-31T20:54:03.086Z",
-    "reviewedAt": "2025-08-31T20:54:03.478Z",
+    "reviewedAt": "2025-08-31T22:18:42.737Z",
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null,
     "pushToAzura": true,
     "artUrl": "https://i1.sndcdn.com/artworks-Oji9jCNjlwIbx0Az-ryyHCg-t500x500.jpg",
-    "featureOnSite": false
+    "featureOnSite": false,
+    "status": "featured"
+  },
+  {
+    "title": "gum.mp3 Elevator Music",
+    "name": "Elevator Music Live",
+    "url": "https://soundcloud.com/elevatormusiclive/gummp3-elevator-music",
+    "genre": "Ambient",
+    "about": "Atmospheric ambient music perfect for contemplative listening sessions.",
+    "id": 2,
+    "status": "pending",
+    "submittedAt": "2025-08-31T22:18:42.360Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null,
+    "metadata": null
+  },
+  {
+    "title": "New Mix (Mostly Footwork/Juke)",
+    "name": "scumbagjones1",
+    "url": "https://soundcloud.com/scumbagjones1/new-mix-mostly-footwork-juke",
+    "genre": "Electronic",
+    "about": "High-energy footwork and juke tracks curated for the dancefloor.",
+    "id": 3,
+    "status": "pending",
+    "submittedAt": "2025-08-31T22:18:42.380Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null,
+    "metadata": null
   }
 ]
