@@ -413,9 +413,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = insertMixSubmissionSchema.parse(req.body);
 
+      // Check all possible URL fields for direct MP3 links
+      const allUrls = [
+        validatedData.url,
+        validatedData.soundcloudUrl,
+        validatedData.mixcloudUrl,
+        validatedData.audiocomUrl,
+        validatedData.otherUrl
+      ].filter(Boolean);
+
+      const directMp3Url = allUrls.find(url => url?.match(/\.mp3(\?|$)/i));
+
       // Handle direct MP3 URLs specially
-      if (validatedData.url?.match(/\.mp3(\?|$)/i)) {
-        // Direct file link
+      if (directMp3Url) {
+        // Set the direct MP3 URL as the primary URL
+        validatedData.url = directMp3Url;
         (validatedData as any).platform = 'file';
         (validatedData as any).source = 'link'; // will become 'upload' after we fetch
 
@@ -425,7 +437,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           (validatedData as any).artUrl = (req.body as any).artUrl; // Legacy field
         }
 
-        console.log(`🎵 Direct MP3 submission: ${validatedData.title} - ${validatedData.url}`);
+        console.log(`🎵 Direct MP3 submission: ${validatedData.title} - ${directMp3Url}`);
       }
       // Fetch oEmbed thumbnail data for supported platforms
       else if (validatedData.url) {

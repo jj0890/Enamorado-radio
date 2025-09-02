@@ -151,20 +151,50 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
     const hasFileUpload = fileUrl && fileUrl.trim() !== '';
     const hasPlatformUrl = data.soundcloudUrl || data.mixcloudUrl || data.audiocomUrl || data.otherUrl;
     
-    if (!hasFileUpload && !hasPlatformUrl) {
+    // Check for direct MP3 links in any of the URL fields
+    const directMp3Urls = [
+      data.soundcloudUrl,
+      data.mixcloudUrl, 
+      data.audiocomUrl,
+      data.otherUrl
+    ].filter(url => url && url.match(/\.mp3(\?|$)/i));
+    
+    const hasDirectMp3Link = directMp3Urls.length > 0;
+    
+    if (!hasFileUpload && !hasPlatformUrl && !hasDirectMp3Link) {
       toast({
         title: "Missing Mix Source",
-        description: "Please either upload a file or provide at least one platform URL.",
+        description: "Please either upload a file, provide a platform URL, or paste a direct MP3 link.",
         variant: "destructive"
       });
       return;
     }
 
+    // If we have a direct MP3 link, use it as the primary URL
+    let submissionData = { ...data };
+    if (hasDirectMp3Link) {
+      // Use the first direct MP3 link found as the main URL
+      submissionData.url = directMp3Urls[0];
+      
+      // Clear the platform-specific field to avoid confusion
+      if (data.soundcloudUrl?.match(/\.mp3(\?|$)/i)) {
+        submissionData.soundcloudUrl = '';
+      }
+      if (data.mixcloudUrl?.match(/\.mp3(\?|$)/i)) {
+        submissionData.mixcloudUrl = '';
+      }
+      if (data.audiocomUrl?.match(/\.mp3(\?|$)/i)) {
+        submissionData.audiocomUrl = '';
+      }
+      if (data.otherUrl?.match(/\.mp3(\?|$)/i)) {
+        submissionData.otherUrl = '';
+      }
+    }
+    
     // Include file URL in submission if available
-    const submissionData = {
-      ...data,
-      fileUrl: hasFileUpload ? fileUrl : undefined
-    };
+    if (hasFileUpload) {
+      submissionData.fileUrl = fileUrl;
+    }
     
     mutation.mutate(submissionData);
   };
@@ -374,12 +404,12 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                 <div>
                   <Label htmlFor="soundcloudUrl" className="font-mono flex items-center gap-2">
                     <LinkIcon className="w-4 h-4" />
-                    SoundCloud URL
+                    SoundCloud URL or Direct MP3 Link
                   </Label>
                   <Input 
                     id="soundcloudUrl" 
                     {...register('soundcloudUrl')}
-                    placeholder="https://soundcloud.com/artist/track"
+                    placeholder="https://soundcloud.com/artist/track or https://example.com/mix.mp3"
                     className="font-mono"
                   />
                   {errors.soundcloudUrl && (
@@ -419,12 +449,12 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                 <div>
                   <Label htmlFor="otherUrl" className="font-mono flex items-center gap-2">
                     <LinkIcon className="w-4 h-4" />
-                    Other Platform URL
+                    Other Platform URL or Direct MP3 Link
                   </Label>
                   <Input 
                     id="otherUrl" 
                     {...register('otherUrl')}
-                    placeholder="https://other-platform.com/your-mix"
+                    placeholder="https://other-platform.com/your-mix or https://example.com/mix.mp3"
                     className="font-mono"
                   />
                 </div>
