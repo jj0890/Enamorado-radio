@@ -71,7 +71,7 @@ interface MixSubmission {
 }
 
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'resident-applications' | 'mix-submissions' | 'analytics'>('mix-submissions');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'resident-applications' | 'mix-submissions' | 'song-submissions' | 'analytics'>('mix-submissions');
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState({
     title: '',
@@ -249,6 +249,17 @@ export default function ScheduleAdmin() {
           >
             <Music className="w-4 h-4 inline mr-2" />
             Mix Submissions
+          </button>
+          <button
+            onClick={() => setActiveSection('song-submissions')}
+            className={`px-6 py-3 font-mono font-medium transition-all ${
+              activeSection === 'song-submissions'
+                ? 'bg-red-500 text-white'
+                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+            }`}
+          >
+            <Music className="w-4 h-4 inline mr-2" />
+            Song Submissions
           </button>
           <button
             onClick={() => setActiveSection('analytics')}
@@ -775,6 +786,23 @@ export default function ScheduleAdmin() {
                   <div className="text-gray-400 text-sm">Total Submissions</div>
                 </div>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Song Submissions Section */}
+        {activeSection === 'song-submissions' && (
+          <div className="space-y-6">
+            <div className="bg-purple-50 border-2 border-purple-500 rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-6 font-mono text-purple-500">Song Submissions</h2>
+              <p className="text-gray-600 mb-4 font-mono">
+                These are song suggestions from users. You can convert them to mix submissions for the full upload workflow.
+              </p>
+              <Link href="/admin/song-submissions">
+                <button className="bg-purple-500 hover:bg-purple-600 text-white px-6 py-3 rounded-lg font-mono transition-colors">
+                  View All Song Submissions →
+                </button>
+              </Link>
             </div>
           </div>
         )}
