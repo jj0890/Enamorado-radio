@@ -363,6 +363,10 @@ class MemStorage implements IStorage {
     return filtered;
   }
 
+  async getSongSubmissionById(id: number): Promise<SongSubmission | undefined> {
+    return this.songSubmissions.find(s => s.id === id);
+  }
+
   async createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission> {
     const newSubmission: SongSubmission = {
       ...submission,

@@ -918,12 +918,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/song-submissions", async (req, res) => {
     try {
+      console.log('Song submission received:', req.body);
       const validatedData = insertSongSubmissionSchema.parse(req.body);
+      
+      // Normalize platform + artwork
+      const href = validatedData.platformUrl || validatedData.url || '';
+      let platform = 'link';
+      if (href.includes('open.spotify.com')) platform = 'spotify';
+      else if (href.includes('soundcloud.com')) platform = 'soundcloud';
+      else if (href.includes('mixcloud.com')) platform = 'mixcloud';
+      (validatedData as any).platform = platform;
+
+      // Try oEmbed for art/title/artist
+      try {
+        const oe = await fetch(
+          `${req.protocol}://${req.get('host')}/api/oembed?url=${encodeURIComponent(href)}`
+        );
+        if (oe.ok) {
+          const j = await oe.json();
+          if (j?.thumbnail_url) {
+            (validatedData as any).artwork = j.thumbnail_url;
+            (validatedData as any).artUrl = j.thumbnail_url;
+          }
+          if (!validatedData.songTitle && j?.title) validatedData.songTitle = j.title;
+          if (!validatedData.artistName && j?.artist) validatedData.artistName = j.artist;
+        }
+      } catch (e) {
+        console.log('oEmbed (song) failed:', e);
+      }
+
       const submission = await storage.createSongSubmission(validatedData);
+      console.log('Song submission created:', submission.id);
       res.status(201).json(submission);
     } catch (error) {
-      console.error('Error creating song submission:', error);
-      res.status(400).json({ error: 'Invalid song submission data' });
+      console.error('Song submission failed:', error, req.body);
+      res.status(400).json({ error: 'Invalid song submission data', details: error.message });
     }
   });
 
@@ -960,6 +989,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating song submission status:', error);
       res.status(500).json({ error: 'Failed to update song submission status' });
+    }
+  });
+
+  // Convert song submission to mix submission
+  app.post('/api/admin/song-submissions/:id/convert-to-mix', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const song = await storage.getSongSubmissionById(id);
+      if (!song) return res.status(404).json({ error: 'Song not found' });
+
+      const mix = await storage.createMixSubmission({
+        name: song.artistName || song.submitterName || 'Unknown',
+        title: song.songTitle || 'Untitled',
+        genre: (song as any).genre || 'Electronic',
+        about: song.notes || null,
+        url: song.spotifyUrl || song.youtubeUrl || (song as any).platformUrl || '',
+        artUrl: (song as any).artUrl || (song as any).artwork || null,
+        platform: (song as any).platform || 'spotify',
+        status: 'pending',
+        featureOnSite: false,
+        pushToAzura: false
+      });
+
+      // Mark song as converted/approved to remove from pending
+      await storage.updateSongSubmissionStatus(id, 'approved');
+
+      res.json({ ok: true, mix });
+    } catch (e) {
+      console.error('Convert to mix failed:', e);
+      res.status(500).json({ error: 'convert-failed' });
     }
   });
 
@@ -1630,18 +1689,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Fetching oEmbed for URL:', url);
 
-      const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url as string)}`, {
-        headers: {
-          'User-Agent': 'EnamoradoRadio/1.0'
+      const href = String(url);
+      let data: any = null;
+
+      if (href.includes('soundcloud.com')) {
+        // SoundCloud oEmbed
+        const response = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(href)}`, {
+          headers: {
+            'User-Agent': 'EnamoradoRadio/1.0'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('SoundCloud oEmbed fetch failed:', response.status, response.statusText);
+          return res.status(502).json({ error: 'oembed-failed', status: response.status });
         }
-      });
 
-      if (!response.ok) {
-        console.error('oEmbed fetch failed:', response.status, response.statusText);
-        return res.status(502).json({ error: 'oembed-failed', status: response.status });
+        data = await response.json();
+      } else if (href.includes('open.spotify.com')) {
+        // Spotify oEmbed
+        const response = await fetch(`https://open.spotify.com/oembed?url=${encodeURIComponent(href)}`);
+        if (!response.ok) {
+          console.error('Spotify oEmbed fetch failed:', response.status, response.statusText);
+          return res.status(502).json({ error: 'oembed-failed', status: response.status });
+        }
+        const j = await response.json();
+        data = {
+          thumbnail_url: j.thumbnail_url || null,
+          artUrl: j.thumbnail_url || null,
+          title: j.title || null,
+          artist: j.author_name || null,
+          html: j.html || null,
+          width: j.width || null,
+          height: j.height || null
+        };
+      } else {
+        // Fallback: just return minimal
+        data = { thumbnail_url: null, artUrl: null, title: null, artist: null };
       }
-
-      const data = await response.json();
       console.log('Raw oEmbed response:', data);
 
       // Upgrade thumbnail to higher quality if available

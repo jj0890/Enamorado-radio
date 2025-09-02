@@ -71,6 +71,27 @@ export default function AdminSongSubmissions() {
     },
   });
 
+  const convertToMixMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest(`/api/admin/song-submissions/${id}/convert-to-mix`, 'POST');
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Converted to Mix",
+        description: `Song has been converted to mix submission #${data.mix.id}. You can now attach audio and push to AzuraCast.`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/song-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/submissions'] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to convert song to mix submission.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleStatusUpdate = (id: number, status: string) => {
     updateStatusMutation.mutate({ id, status, notes: reviewNotes });
   };
@@ -285,47 +306,40 @@ export default function AdminSongSubmissions() {
                     {/* Admin Review Section */}
                     <div className="border-t pt-4">
                       {submission.approvalStatus === 'pending' ? (
-                        !isReviewing ? (
-                          <Button
-                            onClick={() => setReviewingId(submission.id)}
-                            className="bg-red-600 hover:bg-red-700 text-white font-mono"
-                          >
-                            Feature This Mix
-                          </Button>
-                        ) : (
-                          <div className="space-y-3">
+                        <div className="space-y-3">
+                          <div className="flex gap-2">
+                            <Button
+                              onClick={() => convertToMixMutation.mutate(submission.id)}
+                              className="bg-blue-600 hover:bg-blue-700 text-white font-mono"
+                              disabled={convertToMixMutation.isPending}
+                            >
+                              {convertToMixMutation.isPending ? 'Converting...' : 'Convert to Mix'}
+                            </Button>
+                            <Button
+                              onClick={() => handleStatusUpdate(submission.id, 'approved')}
+                              className="bg-green-600 hover:bg-green-700 text-white font-mono"
+                              disabled={updateStatusMutation.isPending}
+                            >
+                              Approve Only
+                            </Button>
+                            <Button
+                              onClick={() => handleStatusUpdate(submission.id, 'rejected')}
+                              variant="outline"
+                              className="font-mono border-red-200 text-red-600 hover:bg-red-50"
+                              disabled={updateStatusMutation.isPending}
+                            >
+                              Reject
+                            </Button>
+                          </div>
+                          {(reviewingId === submission.id) && (
                             <Textarea
                               placeholder="Add review notes (optional)..."
                               value={reviewNotes}
                               onChange={(e) => setReviewNotes(e.target.value)}
                               className="font-mono"
                             />
-                            <div className="flex gap-2">
-                              <Button
-                                onClick={() => handleStatusUpdate(submission.id, 'approved')}
-                                className="bg-green-600 hover:bg-green-700 text-white font-mono"
-                                disabled={updateStatusMutation.isPending}
-                              >
-                                Feature This Mix
-                              </Button>
-                              <Button
-                                onClick={() => setReviewingId(null)}
-                                variant="outline"
-                                className="font-mono"
-                                disabled={updateStatusMutation.isPending}
-                              >
-                                Skip for Now
-                              </Button>
-                              <Button
-                                onClick={() => setReviewingId(null)}
-                                variant="outline"
-                                className="font-mono"
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        )
+                          )}
+                        </div>
                       ) : (
                         /* Quick Actions for Approved */
                         <div className="flex gap-2">
