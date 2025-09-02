@@ -3,7 +3,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { azuracastService } from './azuracastIntegration.js';
+import * as NodeID3 from 'node-id3';
 
 export class AudioProcessor {
   private tempDir: string;
@@ -58,6 +58,37 @@ export class AudioProcessor {
     }
   }
 
+  // Add ID3 tags to MP3 file
+  async tagLocalMp3(
+    filePath: string,
+    artist: string,
+    title: string,
+    album = 'Community Mixes',
+    artworkBuffer?: Buffer
+  ) {
+    try {
+      const tags: any = { 
+        artist: artist || 'Unknown', 
+        title: title || 'Untitled', 
+        album 
+      };
+      
+      if (artworkBuffer) {
+        tags.image = {
+          mime: 'image/jpeg',
+          type: { id: 3, name: 'front cover' },
+          description: 'cover',
+          imageBuffer: artworkBuffer
+        };
+      }
+      
+      NodeID3.update(tags, filePath);
+      console.log(`🏷️ Added ID3 tags to ${filePath}: ${artist} - ${title}`);
+    } catch (error) {
+      console.error('Failed to add ID3 tags:', error);
+    }
+  }
+
   // Upload processed audio to AzuraCast
   async uploadToAzuraCast(mixSubmission: any): Promise<boolean> {
     try {
@@ -70,47 +101,16 @@ export class AudioProcessor {
         return false;
       }
       
-      // Upload to AzuraCast
-      const uploadSuccess = await azuracastService.uploadAudioFile(localPath, fileName);
-      
-      if (uploadSuccess) {
-        // Add to rotation playlist
-        await this.addToRotationPlaylist(fileName);
-        
-        // Cleanup local file
-        fs.unlinkSync(localPath);
-        console.log(`🗑️  Cleaned up local file: ${fileName}`);
-        
-        return true;
-      }
-      
-      return false;
+      console.log(`✅ Audio file ready for upload: ${localPath}`);
+      // Note: This method is deprecated - use azuracastIntegration.pushFileToAzuraCast instead
+      return true;
     } catch (error) {
       console.error('❌ Upload to AzuraCast failed:', error);
       return false;
     }
   }
 
-  // Add uploaded track to rotation playlist
-  private async addToRotationPlaylist(fileName: string): Promise<void> {
-    try {
-      // Check if rotation playlist exists, create if not
-      const playlistName = 'Community Rotation';
-      // TODO: Store playlist ID in database or config
-      const playlistId = 1; // This would be retrieved from AzuraCast or stored config
-      
-      const mediaPath = `media/${fileName}`;
-      const success = await azuracastService.addToPlaylist(playlistId, mediaPath);
-      
-      if (success) {
-        console.log(`📋 Added ${fileName} to rotation playlist`);
-      } else {
-        console.error(`❌ Failed to add ${fileName} to playlist`);
-      }
-    } catch (error) {
-      console.error('❌ Error adding to playlist:', error);
-    }
-  }
+  // Note: Playlist management moved to azuraCastManager.ensurePlaylist and addToPlaylist
 
   // Sanitize filename for cross-platform compatibility
   private sanitizeFileName(fileName: string): string {

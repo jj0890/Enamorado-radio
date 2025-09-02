@@ -9,6 +9,7 @@ import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
 import { requireAdmin } from "./adminAuth";
 import { azuracastIntegration } from "./azuracastIntegration";
+import { audioProcessor } from "./audioProcessor";
 import { z } from "zod";
 import http from "http";
 import multer from "multer";
@@ -933,6 +934,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         parseInt(req.params.id), 
         status
       );
+
+      // If approved, automatically create a mix submission for the workflow
+      if (status === 'approved') {
+        try {
+          const mixData = {
+            name: submission.submitterName,
+            title: `${submission.artistName} - ${submission.songTitle}`,
+            genre: 'Electronic',
+            url: submission.spotifyUrl || submission.youtubeUrl || '',
+            submittedAt: submission.submittedAt.toISOString(),
+            status: 'pending' as const,
+            featureOnSite: false,
+            pushToAzura: false // Requires manual admin approval for AzuraCast
+          };
+
+          const mixSubmission = await storage.createMixSubmission(mixData);
+          console.log(`✅ Created mix submission for approved song: ${mixSubmission.id}`);
+        } catch (error) {
+          console.warn('Failed to create mix submission from approved song:', error);
+        }
+      }
+
       res.json(submission);
     } catch (error) {
       console.error('Error updating song submission status:', error);
@@ -1546,22 +1569,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const fileName = (mix as any).fileName || `mix-${id}.mp3`;
+      // Add ID3 tags before uploading
+      try {
+        await audioProcessor.tagLocalMp3((mix as any).filePath, mix.name, mix.title);
+      } catch (error) {
+        console.warn('Failed to add ID3 tags:', error);
+      }
+
       const result = await azuracastIntegration.pushFileToAzuraCast(
         (mix as any).filePath, 
-        fileName
+        mix.name, 
+        mix.title
       );
 
       if (result.success) {
+        // Add to Community Mixes playlist
+        try {
+          const { playlistId } = await azuraCastManager.ensurePlaylist('community_mixes', 'Community Mixes');
+          if (playlistId && result.remotePath) {
+            await azuraCastManager.addToPlaylist(playlistId, result.remotePath);
+          }
+        } catch (error) {
+          console.warn('Failed to add to playlist:', error);
+        }
+
         // Update mix with AzuraCast info
         await storage.updateMixSubmission(id, {
           azuraFilePath: result.remotePath,
-          uploadedAt: new Date().toISOString()
+          uploadedAt: new Date().toISOString(),
+          azuraPlaylistId: 'community_mixes'
         });
 
         res.json({ 
           success: true, 
           uploaded: result.remotePath,
+          fileName: result.fileName,
+          azuraLink: `${process.env.AZURACAST_BASE_URL || 'http://azuracast-url'}/station/${process.env.AZURACAST_STATION || 'station'}/files`,
+          playlistLink: `${process.env.AZURACAST_BASE_URL || 'http://azuracast-url'}/station/${process.env.AZURACAST_STATION || 'station'}/playlists`,
           message: 'Uploaded and library rescanned successfully!' 
         });
       } else {

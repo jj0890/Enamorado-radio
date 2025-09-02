@@ -13,8 +13,7 @@
     "metadata": null,
     "pushToAzura": true,
     "artUrl": "https://i1.sndcdn.com/artworks-riNIMC8W2Ihtk6au-2MODSA-t500x500.jpg",
-    "featureOnSite": true,
-    "status": "featured"
+    "featureOnSite": true
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -30,8 +29,7 @@
     "metadata": null,
     "pushToAzura": true,
     "artUrl": "https://i1.sndcdn.com/artworks-UhYTvzkYyxOEGeRd-JDLhFg-t500x500.jpg",
-    "featureOnSite": false,
-    "status": "featured"
+    "featureOnSite": true
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -47,8 +45,7 @@
     "metadata": null,
     "pushToAzura": true,
     "artUrl": "https://i1.sndcdn.com/artworks-Oji9jCNjlwIbx0Az-ryyHCg-t500x500.jpg",
-    "featureOnSite": false,
-    "status": "featured"
+    "featureOnSite": true
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -57,12 +54,13 @@
     "genre": "Ambient",
     "about": "Atmospheric ambient music perfect for contemplative listening sessions.",
     "id": 2,
-    "status": "pending",
     "submittedAt": "2025-08-31T22:18:42.360Z",
     "reviewedAt": null,
     "reviewedBy": null,
     "notes": null,
-    "metadata": null
+    "metadata": null,
+    "featureOnSite": false,
+    "pushToAzura": false
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -71,11 +69,32 @@
     "genre": "Electronic",
     "about": "High-energy footwork and juke tracks curated for the dancefloor.",
     "id": 3,
-    "status": "pending",
     "submittedAt": "2025-08-31T22:18:42.380Z",
     "reviewedAt": null,
     "reviewedBy": null,
     "notes": null,
-    "metadata": null
+    "metadata": null,
+    "featureOnSite": false,
+    "pushToAzura": false
+  },
+  {
+    "name": "jarrad",
+    "title": "wthelly",
+    "genre": "other",
+    "about": null,
+    "url": null,
+    "artUrl": "https://i.pinimg.com/736x/9f/28/55/9f2855e01d8ad1492b2bb6bb792eb353.jpg",
+    "source": "upload",
+    "status": "pending",
+    "id": 4,
+    "submittedAt": "2025-09-02T05:31:56.660Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null,
+    "metadata": null,
+    "filePath": "uploads/ae07744d796d7a277897fdde9d482084",
+    "fileName": "wthelly(1).mp3",
+    "azuraFilePath": "/var/azuracast/stations/enamorado_radio/media/wthelly(1).mp3",
+    "uploadedAt": "2025-09-02T05:32:42.451Z"
   }
 ]

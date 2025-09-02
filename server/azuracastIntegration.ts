@@ -2,6 +2,17 @@ import SftpClient from 'ssh2-sftp-client';
 import path from 'path';
 import fs from 'fs';
 
+// Clean community mixes folder structure
+const COMMUNITY_DIR = '/var/azuracast/stations/enamorado_radio/media/Community Mixes';
+
+function buildAzuraFilename(artist: string, title: string, d = new Date()) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const safe = (s: string) => s.replace(/[\/\\:*?"<>|]/g, '').trim();
+  return `${safe(artist || 'Unknown')} — ${safe(title || 'Untitled')} (${y}-${m}-${day}).mp3`;
+}
+
 export class AzuraCastIntegration {
   private readonly baseUrl: string;
   private readonly station: string;
@@ -21,13 +32,13 @@ export class AzuraCastIntegration {
     this.sftpPass = process.env.AZ_SFTP_PASS || '';
   }
 
-  // Upload file to AzuraCast via SFTP
+  // Upload file to AzuraCast via SFTP to Community Mixes folder
   async uploadFile(localPath: string, fileName: string): Promise<string> {
     if (!fs.existsSync(localPath)) {
       throw new Error(`Local file not found: ${localPath}`);
     }
 
-    const targetDir = `/var/azuracast/stations/${this.station}/media`;
+    const targetDir = COMMUNITY_DIR;
     const remotePath = `${targetDir}/${fileName}`;
 
     const sftp = new SftpClient();
@@ -84,7 +95,38 @@ export class AzuraCastIntegration {
   }
 
   // Full workflow: upload file and rescan
-  async pushFileToAzuraCast(localPath: string, fileName: string): Promise<{ 
+  // New method with clean filename generation
+  async pushFileToAzuraCast(localPath: string, artist: string, title: string): Promise<{ 
+    success: boolean; 
+    remotePath?: string; 
+    fileName?: string;
+    error?: string 
+  }> {
+    try {
+      const fileName = buildAzuraFilename(artist, title);
+      const remotePath = await this.uploadFile(localPath, fileName);
+      const rescanSuccess = await this.rescanLibrary();
+      
+      if (!rescanSuccess) {
+        console.warn('⚠️ File uploaded but rescan failed - file may not appear in AzuraCast immediately');
+      }
+
+      return {
+        success: true,
+        remotePath,
+        fileName,
+      };
+    } catch (error) {
+      console.error('❌ AzuraCast push failed:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      };
+    }
+  }
+
+  // Legacy method for backwards compatibility
+  async pushFileToAzuraCastLegacy(localPath: string, fileName: string): Promise<{ 
     success: boolean; 
     remotePath?: string; 
     error?: string 
