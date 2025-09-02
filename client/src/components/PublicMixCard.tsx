@@ -23,8 +23,8 @@ interface PublicMixCardProps {
 }
 
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
-  // Use the new standardized artwork field from the API
-  const artwork = (mix as any).artwork || mix.artUrl || (mix as any).artwork_url || mix.metadata?.imageUrl || null;
+  // Robust artwork fallback chain
+  const artwork = mix.artUrl || (mix as any).coverUrl || mix.metadata?.imageUrl || null;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">

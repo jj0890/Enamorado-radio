@@ -1705,5 +1705,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Configure multer for public uploads
+  const publicUploads = multer({
+    dest: './uploads/',
+    limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
+    fileFilter: (req, file, cb) => {
+      const ok = /^audio\//.test(file.mimetype) || /\.mp3$/i.test(file.originalname);
+      cb(ok ? null : new Error('Only audio files'), ok);
+    }
+  });
+
+  // PUBLIC: create a submission with a direct file upload
+  app.post('/api/public/mixes/upload', publicUploads.single('file'), async (req, res) => {
+    try {
+      if (!req.file) return res.status(400).json({ error: 'file required' });
+
+      const { name, title, genre, about, artworkUrl } = req.body;
+
+      // Create mix with source=upload; pending by default
+      const submission = await storage.createMixSubmission({
+        name,
+        title,
+        genre,
+        about: about || null,
+        url: null,                   // no platform URL; it's a file
+        artUrl: artworkUrl || null,  // optional manual art
+        source: 'upload',
+        status: 'pending'
+      });
+
+      // Save file path to allow admin push later
+      await storage.updateMixSubmission(submission.id, {
+        filePath: req.file.path,
+        fileName: req.file.originalname || `mix-${submission.id}.mp3`
+      });
+
+      res.status(201).json({ success: true, id: submission.id });
+    } catch (e: any) {
+      res.status(500).json({ error: e.message || 'upload failed' });
+    }
+  });
+
   return httpServer;
 }

@@ -24,25 +24,51 @@ export default function SubmitMix() {
     artUrl: ""
   });
 
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      const response = await fetch('/api/mixes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Submission failed');
+      if (uploadMode === 'file' && selectedFile) {
+        // File upload submission
+        const formDataBody = new FormData();
+        formDataBody.append('file', selectedFile);
+        formDataBody.append('name', data.name);
+        formDataBody.append('title', data.title);
+        formDataBody.append('genre', data.genre);
+        formDataBody.append('about', data.about || '');
+        if (data.artUrl) formDataBody.append('artworkUrl', data.artUrl);
+
+        const response = await fetch('/api/public/mixes/upload', {
+          method: 'POST',
+          body: formDataBody,
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Upload failed');
+        }
+        
+        return response.json();
+      } else {
+        // URL submission
+        const response = await fetch('/api/mixes', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(data),
+        });
+        
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Submission failed');
+        }
+        
+        return response.json();
       }
-      
-      return response.json();
     },
     onSuccess: () => {
       setShowSuccess(true);
@@ -75,11 +101,18 @@ export default function SubmitMix() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setSelectedFile(file);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validate form (about is now optional)
-    if (!formData.name || !formData.title || !formData.genre || !formData.url) {
+    if (!formData.name || !formData.title || !formData.genre) {
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -88,15 +121,36 @@ export default function SubmitMix() {
       return;
     }
 
-    // Validate URL
-    const urlPattern = /^https?:\/\/.+/;
-    if (!urlPattern.test(formData.url)) {
-      toast({
-        title: "Invalid URL",
-        description: "Please enter a valid URL (starting with http:// or https://)",
-        variant: "destructive",
-      });
-      return;
+    if (uploadMode === 'url') {
+      // Validate URL
+      if (!formData.url) {
+        toast({
+          title: "Missing URL",
+          description: "Please enter a valid URL for your mix.",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      const urlPattern = /^https?:\/\/.+/;
+      if (!urlPattern.test(formData.url)) {
+        toast({
+          title: "Invalid URL",
+          description: "Please enter a valid URL (starting with http:// or https://)",
+          variant: "destructive",
+        });
+        return;
+      }
+    } else {
+      // Validate file
+      if (!selectedFile) {
+        toast({
+          title: "Missing File",
+          description: "Please select an audio file to upload.",
+          variant: "destructive",
+        });
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -180,6 +234,41 @@ export default function SubmitMix() {
               Mix Information
             </h2>
 
+            {/* Upload Mode Selector */}
+            <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg">
+              <Label className="text-sm font-mono text-gray-700 mb-3 block">
+                How would you like to submit your mix? *
+              </Label>
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('url')}
+                  className={`flex-1 p-3 border-2 rounded-lg font-mono text-sm transition-colors ${
+                    uploadMode === 'url' 
+                      ? 'border-red-500 bg-red-50 text-red-600' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <ExternalLink className="w-4 h-4 mx-auto mb-1" />
+                  Platform URL
+                  <div className="text-xs text-gray-500 mt-1">SoundCloud, Mixcloud, direct .mp3 link</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUploadMode('file')}
+                  className={`flex-1 p-3 border-2 rounded-lg font-mono text-sm transition-colors ${
+                    uploadMode === 'file' 
+                      ? 'border-red-500 bg-red-50 text-red-600' 
+                      : 'border-gray-300 hover:border-gray-400'
+                  }`}
+                >
+                  <Upload className="w-4 h-4 mx-auto mb-1" />
+                  Upload File
+                  <div className="text-xs text-gray-500 mt-1">Direct MP3 file upload</div>
+                </button>
+              </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Your Name */}
               <div>
@@ -240,23 +329,56 @@ export default function SubmitMix() {
                 </Select>
               </div>
 
-              {/* Mix URL */}
+              {/* Mix URL or File Upload */}
               <div>
-                <Label htmlFor="url" className="text-sm font-mono text-gray-700 mb-2 block">
-                  Mix URL *
-                </Label>
-                <Input
-                  id="url"
-                  type="url"
-                  value={formData.url}
-                  onChange={(e) => handleInputChange('url', e.target.value)}
-                  placeholder="https://soundcloud.com/your-mix or https://example.com/mix.mp3"
-                  className="font-mono border-gray-300 focus:border-red-500"
-                  required
-                />
-                <div className="mt-2 text-xs font-mono text-gray-500">
-                  Supported: SoundCloud, Mixcloud, Audio.com, or direct .mp3 file links
-                </div>
+                {uploadMode === 'url' ? (
+                  <>
+                    <Label htmlFor="url" className="text-sm font-mono text-gray-700 mb-2 block">
+                      Mix URL *
+                    </Label>
+                    <Input
+                      id="url"
+                      type="url"
+                      value={formData.url}
+                      onChange={(e) => handleInputChange('url', e.target.value)}
+                      placeholder="https://soundcloud.com/your-mix or https://example.com/mix.mp3"
+                      className="font-mono border-gray-300 focus:border-red-500"
+                      required
+                    />
+                    <div className="mt-2 text-xs font-mono text-gray-500">
+                      Supported: SoundCloud, Mixcloud, Audio.com, or direct .mp3 file links
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Label htmlFor="file" className="text-sm font-mono text-gray-700 mb-2 block">
+                      Upload Audio File *
+                    </Label>
+                    <div className="relative">
+                      <input
+                        id="file"
+                        type="file"
+                        accept="audio/*,.mp3,.wav,.flac,.aiff,.alac"
+                        onChange={handleFileChange}
+                        className="block w-full text-sm text-gray-500 font-mono
+                          file:mr-4 file:py-2 file:px-4
+                          file:rounded-full file:border-0
+                          file:text-sm file:font-mono
+                          file:bg-red-50 file:text-red-700
+                          hover:file:bg-red-100"
+                        required
+                      />
+                      {selectedFile && (
+                        <div className="mt-2 text-xs font-mono text-green-600">
+                          Selected: {selectedFile.name} ({(selectedFile.size / 1024 / 1024).toFixed(1)} MB)
+                        </div>
+                      )}
+                    </div>
+                    <div className="mt-2 text-xs font-mono text-gray-500">
+                      Max file size: 200MB. Supported formats: MP3, WAV, FLAC, AIFF, ALAC
+                    </div>
+                  </>
+                )}
               </div>
             </div>
 
