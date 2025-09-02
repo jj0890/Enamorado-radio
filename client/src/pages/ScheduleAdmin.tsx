@@ -843,21 +843,61 @@ function InlineSongSubmissions() {
   const [subs, setSubs] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+
+  const fetchSubs = React.useCallback(async () => {
+    try {
+      const res = await fetch("/api/song-submissions", { 
+        cache: "no-store",
+        headers: { 'Cache-Control': 'no-cache' }
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data = await res.json();
+      setSubs(data);
+      setErr(null);
+    } catch (e: any) {
+      setErr(e?.message || "Failed to load");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/song-submissions", { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setSubs(data);
-      } catch (e: any) {
-        setErr(e?.message || "Failed to load");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
+    fetchSubs();
+    // Poll for updates every 3 seconds
+    const interval = setInterval(fetchSubs, 3000);
+    return () => clearInterval(interval);
+  }, [fetchSubs]);
+
+  const updateStatus = async (id: number, status: string) => {
+    try {
+      const res = await fetch(`/api/song-submissions/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status, approvedBy: 'Admin' })
+      });
+      if (!res.ok) throw new Error('Failed to update status');
+      fetchSubs(); // Refresh the list
+    } catch (error) {
+      console.error('Error updating status:', error);
+    }
+  };
+
+  const convertToMix = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/song-submissions/${id}/convert-to-mix`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      if (!res.ok) throw new Error('Failed to convert to mix');
+      const result = await res.json();
+      console.log('Converted to mix:', result);
+      fetchSubs(); // Refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/submissions'] }); // Refresh mix submissions
+    } catch (error) {
+      console.error('Error converting to mix:', error);
+    }
+  };
 
   return (
     <section className="mt-12 bg-purple-50 border-2 border-purple-500 rounded-lg p-6">
@@ -866,17 +906,37 @@ function InlineSongSubmissions() {
       {err && <div className="text-red-600 font-mono">Error: {err}</div>}
       {!loading && subs.length === 0 && <div className="text-gray-600 font-mono">No submissions yet.</div>}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {subs.map((s) => (
-          <div key={s.id} className="p-4 bg-white border border-purple-200 rounded-xl">
-            <div className="text-sm text-purple-600 mb-2 font-mono">
-              #{s.id} • {new Date(s.submittedAt).toLocaleDateString()}
-            </div>
-            <div className="text-lg font-bold text-gray-900 mb-1">{s.songTitle}</div>
-            <div className="text-gray-700 mb-1">by {s.artistName}</div>
-            <div className="text-sm text-gray-600 mb-3">submitted by {s.submitterName}</div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs uppercase tracking-wide font-mono">
-                <span className={`px-2 py-1 rounded ${
+        {subs.map((s) => {
+          const metadata = s.metadata ? JSON.parse(s.metadata) : null;
+          return (
+            <div key={s.id} className="p-4 bg-white border border-purple-200 rounded-xl">
+              {/* Artwork if available */}
+              {metadata?.imageUrl && (
+                <img 
+                  src={metadata.imageUrl} 
+                  alt="Track artwork"
+                  className="w-full h-32 object-cover rounded-lg mb-3"
+                />
+              )}
+              
+              <div className="text-sm text-purple-600 mb-2 font-mono">
+                #{s.id} • {new Date(s.submittedAt).toLocaleDateString()}
+              </div>
+              <div className="text-lg font-bold text-gray-900 mb-1">{s.songTitle}</div>
+              <div className="text-gray-700 mb-1">by {s.artistName}</div>
+              <div className="text-sm text-gray-600 mb-3">submitted by {s.submitterName}</div>
+              
+              {/* Platform badge */}
+              {s.platform && (
+                <div className="mb-3">
+                  <span className="px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded font-mono">
+                    {s.platform}
+                  </span>
+                </div>
+              )}
+              
+              <div className="flex items-center justify-between mb-3">
+                <span className={`px-2 py-1 rounded text-xs font-mono ${
                   s.approvalStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
                   s.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' :
                   'bg-red-100 text-red-800'
@@ -884,14 +944,33 @@ function InlineSongSubmissions() {
                   {s.approvalStatus}
                 </span>
               </div>
+              
+              {/* Action buttons */}
               {s.approvalStatus === 'pending' && (
-                <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm font-mono transition-colors">
-                  Convert to Mix
-                </button>
+                <div className="flex gap-2 flex-wrap">
+                  <button 
+                    onClick={() => updateStatus(s.id, 'approved')}
+                    className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-mono transition-colors"
+                  >
+                    Approve
+                  </button>
+                  <button 
+                    onClick={() => updateStatus(s.id, 'rejected')}
+                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-mono transition-colors"
+                  >
+                    Reject
+                  </button>
+                  <button 
+                    onClick={() => convertToMix(s.id)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm font-mono transition-colors"
+                  >
+                    Send to Rotation Pool
+                  </button>
+                </div>
               )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </section>
   );

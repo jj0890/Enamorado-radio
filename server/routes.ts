@@ -992,6 +992,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update song submission status (approve/reject)
+  app.patch('/api/song-submissions/:id/status', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, approvedBy, notes } = req.body;
+      
+      if (!['pending', 'approved', 'rejected'].includes(status)) {
+        return res.status(400).json({ error: 'Invalid status' });
+      }
+      
+      const updated = await storage.updateSongSubmissionStatus(id, {
+        approvalStatus: status,
+        reviewedBy: approvedBy || 'Admin',
+        reviewedAt: new Date().toISOString(),
+        adminNotes: notes || null
+      });
+      
+      if (!updated) {
+        return res.status(404).json({ error: 'Song submission not found' });
+      }
+      
+      res.json({ success: true, submission: updated });
+    } catch (error) {
+      console.error('Error updating song submission status:', error);
+      res.status(500).json({ error: 'Failed to update submission status' });
+    }
+  });
+
   // Convert song submission to mix submission
   app.post('/api/admin/song-submissions/:id/convert-to-mix', requireAdmin, async (req, res) => {
     try {
