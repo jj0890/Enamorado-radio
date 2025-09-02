@@ -2,9 +2,13 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Settings, Music, Calendar, Users, Star, Check, X } from "lucide-react";
+import { ArrowLeft, Settings, Music, Calendar, Users, Star, Check, X, ListMusic } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import AdminMixCard from "@/components/AdminMixCard";
+
+// ⬇️ import your existing AdminSongSubmissions page
+// If your path differs, change "./AdminSongSubmissions" accordingly.
+import AdminSongSubmissions from "./AdminSongSubmissions";
 
 interface MixSubmission {
   id: number;
@@ -22,7 +26,8 @@ interface MixSubmission {
 }
 
 export default function AdminPanel() {
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'featured' | 'schedule'>('pending');
+  // ⬇️ add 'songs' to the union
+  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'featured' | 'schedule' | 'songs'>('pending');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -138,14 +143,14 @@ export default function AdminPanel() {
       }
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/submissions"] });
       toast({
         title: "Successfully uploaded to AzuraCast!",
         description: `File uploaded and library rescanned.`,
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "AzuraCast upload failed",
         description: error.message,
@@ -154,24 +159,12 @@ export default function AdminPanel() {
     },
   });
 
-  const handleApprove = (id: number) => {
-    approveMutation.mutate(id);
-  };
-
-  const handleFeature = (id: number) => {
-    featureMutation.mutate(id);
-  };
-
+  const handleApprove = (id: number) => approveMutation.mutate(id);
+  const handleFeature = (id: number) => featureMutation.mutate(id);
   const handleDelete = (id: number) => {
-    if (confirm('Are you sure you want to delete this mix?')) {
-      deleteMutation.mutate(id);
-    }
+    if (confirm('Are you sure you want to delete this mix?')) deleteMutation.mutate(id);
   };
-
-  const handleAttachFile = (id: number, file: File) => {
-    attachFileMutation.mutate({ id, file });
-  };
-
+  const handleAttachFile = (id: number, file: File) => attachFileMutation.mutate({ id, file });
   const handlePushToAzura = (id: number) => {
     if (confirm('Push this mix to AzuraCast? This will upload the file and add it to the radio rotation.')) {
       pushToAzuraMutation.mutate(id);
@@ -264,32 +257,43 @@ export default function AdminPanel() {
               <Calendar className="w-4 h-4 mr-2 inline" />
               Schedule
             </button>
+
+            {/* ⬇️ NEW: Song Submissions tab */}
+            <button
+              onClick={() => setActiveTab('songs')}
+              className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
+                activeTab === 'songs'
+                  ? 'bg-red-500 text-white'
+                  : 'text-gray-600 hover:text-red-500'
+              }`}
+            >
+              <ListMusic className="w-4 h-4 mr-2 inline" />
+              Song Submissions
+            </button>
           </div>
         </div>
 
         {/* Content Sections */}
-        
-        {/* Pending Mixes */}
         {activeTab === 'pending' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-8">
             <h2 className="text-2xl font-bold mb-6 text-red-500 font-mono flex items-center">
               <Music className="w-6 h-6 mr-3" />
               PENDING REVIEW ({pendingMixes.length})
             </h2>
-            
+
             {mixesLoading && (
               <div className="text-center py-8">
                 <div className="animate-spin w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-gray-600 font-mono">Loading submissions...</p>
               </div>
             )}
-            
+
             {mixesError && (
               <div className="text-center py-8 text-red-600 font-mono">
                 <p>Error loading submissions. Please refresh the page.</p>
               </div>
             )}
-            
+
             {!mixesLoading && !mixesError && pendingMixes.length === 0 && (
               <div className="text-center py-16">
                 <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -297,11 +301,11 @@ export default function AdminPanel() {
                 <p className="text-gray-500 font-mono">All caught up! Check back later for new submissions.</p>
               </div>
             )}
-            
+
             {!mixesLoading && !mixesError && pendingMixes.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {pendingMixes.map((mix) => (
-                  <AdminMixCard 
+                  <AdminMixCard
                     key={mix.id}
                     mix={mix}
                     onApprove={handleApprove}
@@ -315,15 +319,14 @@ export default function AdminPanel() {
             )}
           </div>
         )}
-        
-        {/* Approved Mixes */}
+
         {activeTab === 'approved' && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-8">
             <h2 className="text-2xl font-bold mb-6 text-green-600 font-mono flex items-center">
               <Check className="w-6 h-6 mr-3" />
               APPROVED MIXES ({approvedMixes.length})
             </h2>
-            
+
             {approvedMixes.length === 0 ? (
               <div className="text-center py-16">
                 <Check className="w-16 h-16 text-gray-400 mx-auto mb-4" />
@@ -333,39 +336,7 @@ export default function AdminPanel() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {approvedMixes.map((mix) => (
-                  <AdminMixCard 
-                    key={mix.id}
-                    mix={mix}
-                    onApprove={handleApprove}
-                    onFeature={handleFeature}
-                    onDelete={handleDelete}
-                    onAttachFile={handleAttachFile}
-                    onPushToAzura={handlePushToAzura}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        
-        {/* Featured Mixes */}
-        {activeTab === 'featured' && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6 text-yellow-600 font-mono flex items-center">
-              <Star className="w-6 h-6 mr-3" />
-              FEATURED MIXES ({featuredMixes.length})
-            </h2>
-            
-            {featuredMixes.length === 0 ? (
-              <div className="text-center py-16">
-                <Star className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <p className="text-xl text-gray-600 font-mono mb-2">No featured mixes yet</p>
-                <p className="text-gray-500 font-mono">Featured mixes will appear here.</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredMixes.map((mix) => (
-                  <AdminMixCard 
+                  <AdminMixCard
                     key={mix.id}
                     mix={mix}
                     onApprove={handleApprove}
@@ -380,13 +351,51 @@ export default function AdminPanel() {
           </div>
         )}
 
+        {activeTab === 'featured' && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 text-yellow-600 font-mono flex items-center">
+              <Star className="w-6 h-6 mr-3" />
+              FEATURED MIXES ({featuredMixes.length})
+            </h2>
+
+            {featuredMixes.length === 0 ? (
+              <div className="text-center py-16">
+                <Star className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <p className="text-xl text-gray-600 font-mono mb-2">No featured mixes yet</p>
+                <p className="text-gray-500 font-mono">Featured mixes will appear here.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {featuredMixes.map((mix) => (
+                  <AdminMixCard
+                    key={mix.id}
+                    mix={mix}
+                    onApprove={handleApprove}
+                    onFeature={handleFeature}
+                    onDelete={handleDelete}
+                    onAttachFile={handleAttachFile}
+                    onPushToAzura={handlePushToAzura}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'songs' && (
+          <div className="bg-gray-50 border border-gray-200 rounded-lg">
+            {/* Render your existing Song Submissions admin page here */}
+            <AdminSongSubmissions />
+          </div>
+        )}
+
         {activeTab === 'schedule' && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-8">
             <h2 className="text-2xl font-bold mb-6 text-blue-500 font-mono flex items-center">
               <Calendar className="w-6 h-6 mr-3" />
               SCHEDULE MANAGEMENT
             </h2>
-            
+
             {scheduleItems.length === 0 ? (
               <div className="text-center py-16">
                 <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
