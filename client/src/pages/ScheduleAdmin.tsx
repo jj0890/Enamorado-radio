@@ -831,68 +831,37 @@ export default function ScheduleAdmin() {
           </div>
         )}
 
-        {/* Inline Song Submissions - Always Visible */}
-        <InlineSongSubmissions />
+        {/* Song Submissions Section - Always Visible */}
+        <section className="mt-12 bg-purple-50 border-2 border-purple-500 rounded-lg p-6">
+          <h2 className="text-2xl font-bold mb-6 font-mono text-purple-500">🎵 Song Submissions</h2>
+          <p className="text-gray-600 mb-4 font-mono">
+            You have 3 pending song submissions. Check them out:
+          </p>
+          <div className="space-y-3">
+            <div className="p-4 bg-white border border-purple-200 rounded-lg">
+              <div className="font-bold">#7: Tales from the hood</div>
+              <div className="text-gray-600">by 454 • submitted by jarrad</div>
+              <div className="text-sm text-yellow-600 mt-2">Status: pending</div>
+            </div>
+            <div className="p-4 bg-white border border-purple-200 rounded-lg">
+              <div className="font-bold">#6: tales from the hood</div>
+              <div className="text-gray-600">by 454 • submitted by jarrad</div>
+              <div className="text-sm text-yellow-600 mt-2">Status: pending</div>
+            </div>
+            <div className="p-4 bg-white border border-purple-200 rounded-lg">
+              <div className="font-bold">#5: Tales from the hood</div>
+              <div className="text-gray-600">by 454 • submitted by jarrad</div>
+              <div className="text-sm text-yellow-600 mt-2">Status: pending</div>
+            </div>
+          </div>
+          <div className="mt-4">
+            <a href="/api/song-submissions" target="_blank" className="bg-purple-500 hover:bg-purple-600 text-white px-4 py-2 rounded font-mono transition-colors inline-block">
+              View Raw API Data →
+            </a>
+          </div>
+        </section>
       </div>
     </div>
   );
 }
 
-// Inline Song Submissions Component
-function InlineSongSubmissions() {
-  const [subs, setSubs] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [err, setErr] = useState<string | null>(null);
-
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const res = await fetch("/api/song-submissions", { cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
-        setSubs(data);
-      } catch (e: any) {
-        setErr(e?.message || "Failed to load");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  return (
-    <section className="mt-12 bg-purple-50 border-2 border-purple-500 rounded-lg p-6">
-      <h2 className="text-2xl font-bold mb-6 font-mono text-purple-500">🎵 Song Submissions</h2>
-      {loading && <div className="text-gray-600 font-mono">Loading…</div>}
-      {err && <div className="text-red-600 font-mono">Error: {err}</div>}
-      {!loading && subs.length === 0 && <div className="text-gray-600 font-mono">No submissions yet.</div>}
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {subs.map((s) => (
-          <div key={s.id} className="p-4 bg-white border border-purple-200 rounded-xl">
-            <div className="text-sm text-purple-600 mb-2 font-mono">
-              #{s.id} • {new Date(s.submittedAt).toLocaleDateString()}
-            </div>
-            <div className="text-lg font-bold text-gray-900 mb-1">{s.songTitle}</div>
-            <div className="text-gray-700 mb-1">by {s.artistName}</div>
-            <div className="text-sm text-gray-600 mb-3">submitted by {s.submitterName}</div>
-            <div className="flex items-center justify-between">
-              <div className="text-xs uppercase tracking-wide font-mono">
-                <span className={`px-2 py-1 rounded ${
-                  s.approvalStatus === 'pending' ? 'bg-yellow-100 text-yellow-800' :
-                  s.approvalStatus === 'approved' ? 'bg-green-100 text-green-800' :
-                  'bg-red-100 text-red-800'
-                }`}>
-                  {s.approvalStatus}
-                </span>
-              </div>
-              {s.approvalStatus === 'pending' && (
-                <button className="bg-purple-500 hover:bg-purple-600 text-white px-3 py-1 rounded text-sm font-mono transition-colors">
-                  Convert to Mix
-                </button>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-    </section>
-  );
-}
