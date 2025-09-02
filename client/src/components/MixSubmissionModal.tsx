@@ -12,6 +12,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { X, Upload, Link as LinkIcon, Music } from 'lucide-react';
+import { ObjectUploader } from '@/components/ObjectUploader';
+import type { UploadResult } from '@uppy/core';
 
 const mixSubmissionSchema = z.object({
   djName: z.string().min(1, 'DJ name is required'),
@@ -34,13 +36,7 @@ const mixSubmissionSchema = z.object({
   djExperience: z.string().optional(),
   musicDiscovery: z.string().optional(),
   socialMedia: z.string().optional()
-}).refine(
-  (data) => data.soundcloudUrl || data.mixcloudUrl || data.audiocomUrl || data.otherUrl,
-  {
-    message: "At least one platform URL is required",
-    path: ["soundcloudUrl"]
-  }
-);
+});
 
 type MixSubmissionForm = z.infer<typeof mixSubmissionSchema>;
 
@@ -51,6 +47,7 @@ interface MixSubmissionModalProps {
 
 export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionModalProps) {
   const [currentStep, setCurrentStep] = useState(1);
+  const [fileUrl, setFileUrl] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -67,6 +64,31 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
       showLength: 60
     }
   });
+
+  // Helper functions for upload process
+  const handleGetUploadParameters = async () => {
+    const response = await fetch('/api/objects/upload', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    return {
+      method: 'PUT' as const,
+      url: data.uploadURL,
+    };
+  };
+
+  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const uploadedFile = result.successful[0];
+      setFileUrl(uploadedFile.uploadURL || '');
+      console.log('File uploaded successfully:', uploadedFile.uploadURL);
+      toast({
+        title: "File Uploaded",
+        description: "Your mix file has been uploaded successfully.",
+      });
+    }
+  };
 
   const mutation = useMutation({
     mutationFn: async (data: MixSubmissionForm) => {
@@ -97,6 +119,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
       
       reset();
       setCurrentStep(1);
+      setFileUrl('');
       onClose();
     },
     onError: (error) => {
@@ -124,7 +147,26 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
   };
 
   const onSubmit = (data: MixSubmissionForm) => {
-    mutation.mutate(data);
+    // Validate that we have either a file upload OR a platform URL
+    const hasFileUpload = fileUrl && fileUrl.trim() !== '';
+    const hasPlatformUrl = data.soundcloudUrl || data.mixcloudUrl || data.audiocomUrl || data.otherUrl;
+    
+    if (!hasFileUpload && !hasPlatformUrl) {
+      toast({
+        title: "Missing Mix Source",
+        description: "Please either upload a file or provide at least one platform URL.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Include file URL in submission if available
+    const submissionData = {
+      ...data,
+      fileUrl: hasFileUpload ? fileUrl : undefined
+    };
+    
+    mutation.mutate(submissionData);
   };
 
   const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 3));
@@ -295,11 +337,38 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
             </div>
           )}
 
-          {/* Step 3: Mix Links */}
+          {/* Step 3: Mix Upload & Links */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-mono font-bold text-red-500">Step 3: Mix Links</h3>
-              <p className="text-sm text-gray-600 font-mono">Provide at least one link to your mix</p>
+              <h3 className="text-lg font-mono font-bold text-red-500">Step 3: Upload Mix or Provide Links</h3>
+              <p className="text-sm text-gray-600 font-mono">Upload your mix file directly or provide streaming platform links</p>
+              
+              {/* File Upload Section */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 mb-6">
+                <h4 className="font-mono font-bold text-gray-700 mb-2">Option 1: Upload MP3 File</h4>
+                <ObjectUploader
+                  maxNumberOfFiles={1}
+                  maxFileSize={50 * 1024 * 1024} // 50MB
+                  allowedFileTypes={['.mp3', '.wav', '.m4a']}
+                  onGetUploadParameters={handleGetUploadParameters}
+                  onComplete={handleUploadComplete}
+                  buttonClassName="w-full bg-red-500 hover:bg-red-600 text-white font-mono py-3 px-4 rounded-lg"
+                >
+                  {fileUrl ? '✓ File Uploaded - Upload Another' : '📁 Upload Mix File (MP3, WAV, M4A)'}
+                </ObjectUploader>
+                {fileUrl && (
+                  <p className="text-green-600 font-mono text-sm mt-2">
+                    ✓ File uploaded successfully
+                  </p>
+                )}
+              </div>
+
+              <div className="text-center font-mono text-gray-500 text-sm">
+                --- OR ---
+              </div>
+
+              <div className="mt-4">
+                <h4 className="font-mono font-bold text-gray-700 mb-4">Option 2: Streaming Platform Links</h4></div>
               
               <div className="grid gap-4">
                 <div>

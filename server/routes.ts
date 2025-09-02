@@ -374,7 +374,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mixes", async (req, res) => {
     try {
       const { status = 'approved', genre, limit, offset } = req.query;
-      
+
       // Fetch mixes with timestamp-based filtering
       let mixes = await storage.getMixSubmissions({
         status: status as string,
@@ -418,13 +418,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Direct file link
         (validatedData as any).platform = 'file';
         (validatedData as any).source = 'link'; // will become 'upload' after we fetch
-        
+
         // Allow artwork passed from form
         if ((req.body as any)?.artUrl) {
-          (validatedData as any).artUrl = (req.body as any).artUrl;
           (validatedData as any).artwork_url = (req.body as any).artUrl;
+          (validatedData as any).artUrl = (req.body as any).artUrl; // Legacy field
         }
-        
+
         console.log(`🎵 Direct MP3 submission: ${validatedData.title} - ${validatedData.url}`);
       }
       // Fetch oEmbed thumbnail data for supported platforms
@@ -435,14 +435,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Store artwork_url from oEmbed for immediate display
             (validatedData as any).artwork_url = oembedData.thumbnail_url;
             (validatedData as any).artUrl = oembedData.thumbnail_url; // Legacy field
-            
+
             // Determine platform from URL
             let platform = 'file';
             if (validatedData.url.includes('soundcloud.com')) platform = 'soundcloud';
             else if (validatedData.url.includes('mixcloud.com')) platform = 'mixcloud';  
             else if (validatedData.url.includes('audio.com')) platform = 'audiocom';
             (validatedData as any).platform = platform;
-            
+
             console.log(`🎨 Fetched thumbnail for ${validatedData.title}: ${oembedData.thumbnail_url}`);
           }
         } catch (oembedError) {
@@ -490,7 +490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/mixes/featured", async (req, res) => {
     try {
       const { limit } = req.query;
-      
+
       let mixes = await storage.getMixSubmissions({ limit: 100 });
 
       // Filter by featured status (either status=featured or notes contains Featured)
@@ -525,7 +525,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/home/fresh", async (req, res) => {
     try {
       const { limit = 6 } = req.query;
-      
+
       let mixes = await storage.getMixSubmissions({ limit: 50 });
 
       // Filter by approved status (includes featured mixes)
@@ -1230,7 +1230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Import fs and path dynamically
           const fs = await import('fs');
           const path = await import('path');
-          
+
           // Ensure uploads directory exists
           const uploadsDir = path.resolve('./uploads');
           if (!fs.existsSync(uploadsDir)) {
@@ -1241,17 +1241,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const filePath = path.join(uploadsDir, fileName);
 
           console.log(`🎵 Auto-downloading MP3 for approved mix: ${mix.url}`);
-          
+
           // Download with timeout and safety checks
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-          
+
           const response = await fetch(mix.url, { 
             signal: controller.signal,
             headers: { 'User-Agent': 'EnamoradoRadio/1.0' }
           });
           clearTimeout(timeoutId);
-          
+
           if (!response.ok) {
             throw new Error(`Download failed: ${response.status} ${response.statusText}`);
           }
@@ -1293,9 +1293,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updates.filePath = filePath;
           updates.fileName = fileName;
           updates.source = 'upload'; // now it's local
-          
+
           console.log(`✅ Successfully downloaded MP3: ${fileName} (${Math.round(downloadedBytes / 1024 / 1024)}MB)`);
-          
+
         } catch (downloadError: any) {
           console.error(`❌ Failed to download MP3 for mix ${id}:`, downloadError.message);
           // Continue with approval even if download fails
@@ -1390,8 +1390,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await pushToAzuraCast((mix as any).filePath, fileName);
 
       if (result.success) {
+        // Update mix with AzuraCast info
         await storage.updateMixSubmission(id, {
-          azuraFilePath: fileName,
+          azuraFilePath: result.remotePath,
           uploadedAt: new Date().toISOString()
         });
         res.json({ success: true, message: 'Successfully pushed to AzuraCast' });
@@ -1586,7 +1587,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = await response.json();
       console.log('Raw oEmbed response:', data);
-      
+
       // Upgrade thumbnail to higher quality if available
       let thumbnail = data.thumbnail_url;
       if (thumbnail) {
