@@ -166,9 +166,6 @@ export default function Discover() {
                 <Link href="/radio" className="text-white/80 hover:text-white transition-colors">
                   RADIO
                 </Link>
-                <Link href="/zine" className="text-white/80 hover:text-white transition-colors">
-                  ZINE
-                </Link>
               </nav>
             </div>
             <div className="flex items-center space-x-4">

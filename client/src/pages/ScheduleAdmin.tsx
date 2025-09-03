@@ -40,20 +40,6 @@ interface DJSubmission {
   notes?: string;
 }
 
-interface ZineSubmission {
-  id: number;
-  authorName: string;
-  authorEmail: string;
-  title: string;
-  subtitle?: string;
-  contentType: string;
-  category: string;
-  content: string;
-  status: 'pending' | 'approved' | 'rejected';
-  submittedAt: string;
-  reviewedBy?: string;
-  notes?: string;
-}
 
 interface MixSubmission {
   id: number;

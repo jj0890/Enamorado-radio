@@ -3,7 +3,7 @@ import { Search, X, Music, Radio, Calendar, User, Tag } from "lucide-react";
 
 interface SearchResult {
   id: string;
-  type: 'show' | 'artist' | 'tag' | 'zine';
+  type: 'show' | 'artist' | 'tag';
   title: string;
   description: string;
   category?: string;
@@ -48,15 +48,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
       description: 'Host of Deep Routes - Deep house specialist',
       tags: ['house', 'deep', 'detroit'],
       url: '/radio'
-    },
-    {
-      id: '4',
-      type: 'zine',
-      title: 'The Underground Renaissance',
-      description: 'Exploring the resurgence of underground music scenes',
-      category: 'Culture',
-      tags: ['underground', 'music', 'culture'],
-      url: '/zine'
     },
     {
       id: '5',
@@ -128,7 +119,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     switch (type) {
       case 'show': return <Radio className="w-4 h-4" />;
       case 'artist': return <User className="w-4 h-4" />;
-      case 'zine': return <Calendar className="w-4 h-4" />;
       case 'tag': return <Tag className="w-4 h-4" />;
       default: return <Music className="w-4 h-4" />;
     }
@@ -138,7 +128,6 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
     switch (type) {
       case 'show': return 'text-blue-400';
       case 'artist': return 'text-green-400';
-      case 'zine': return 'text-purple-400';
       case 'tag': return 'text-orange-400';
       default: return 'text-gray-400';
     }
@@ -154,7 +143,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
           <Search className="w-5 h-5 text-gray-400 mr-3" />
           <input
             type="text"
-            placeholder="Search shows, artists, tags, or zine content..."
+            placeholder="Search shows, artists, and tags..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -225,7 +214,7 @@ export function SearchModal({ isOpen, onClose }: SearchModalProps) {
             <div className="p-8 text-center text-gray-400">
               <Search className="w-12 h-12 mx-auto mb-4 text-gray-600" />
               <p className="text-lg mb-2">Search Enamorado Radio</p>
-              <p className="text-sm">Find shows, artists, zine content, and more</p>
+              <p className="text-sm">Find shows, artists, tags, and more</p>
             </div>
           )}
         </div>
