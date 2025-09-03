@@ -192,28 +192,15 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Player */}
-        <section className="mb-12">
-          <RadioStreamPlayer />
-        </section>
 
-        {/* Centered featured submission (if present) */}
-        {featuredSubmission && (
-          <section className="mb-16">
-            <FeaturedMixCard
-              mix={{
-                id: featuredSubmission.id,
-                title: featuredSubmission.demoMixTitle,
-                name: featuredSubmission.djName,
-                genre: featuredSubmission.primaryGenre,
-                about: featuredSubmission.demoMixDescription,
-                url: featuredSubmission.soundcloudUrl || featuredSubmission.mixcloudUrl || featuredSubmission.audiocomUrl || featuredSubmission.otherUrl || "",
-                artUrl: featuredSubmission.artUrl || trackThumbnails[featuredSubmission.id],
-                metadata: featuredSubmission.metadata
-              }}
-            />
-          </section>
-        )}
+        {/* About Blurb – centered, compact */}
+        <section className="max-w-3xl mx-auto mt-6 mb-12 text-center">
+          <h3 className="font-mono text-2xl text-red-500 mb-2">About Enamorado Radio</h3>
+          <p className="text-gray-700 font-mono">
+            Listener-driven internet radio from San Antonio. Dedicated to the music we are enamored with, we feature community mixes,
+            resident shows, and themed programming. Submit a mix, suggest a track, or just tune in.
+          </p>
+        </section>
 
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
@@ -243,9 +230,11 @@ export default function Home() {
               </div>
             </Link>
 
-            <Link
-              href="/resident-application"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            <a
+              href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block"
             >
               <div className="text-center">
                 <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
@@ -259,7 +248,7 @@ export default function Home() {
                   APPLY FOR SEASON 1 →
                 </div>
               </div>
-            </Link>
+            </a>
 
             <Link
               href="/submit-mix"

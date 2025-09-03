@@ -23,6 +23,24 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
 
   const mutation = useMutation({
     mutationFn: async () => {
+      const urlOk = /^https?:\/\/[^\s]+$/i.test(url || '');
+      if (url && !urlOk) {
+        throw new Error('Please paste a valid link (Spotify, Apple Music, Bandcamp, SoundCloud, YouTube, etc.)');
+      }
+
+      // derive platform
+      const host = (() => {
+        try { return new URL(url || '').hostname.replace('www.', ''); }
+        catch { return ''; }
+      })();
+      const platform =
+        host.includes('spotify') ? 'spotify' :
+        host.includes('music.apple') || host.includes('itunes') ? 'apple_music' :
+        host.includes('soundcloud') ? 'soundcloud' :
+        host.includes('bandcamp') ? 'bandcamp' :
+        host.includes('youtube') || host.includes('youtu.be') ? 'youtube' :
+        'link';
+
       const data = {
         submitterName: name || 'Anonymous',
         submitterEmail: email || 'anonymous@example.com',
@@ -31,7 +49,7 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
         albumName: '',
         genre: 'Other',
         submissionType: 'discovery',
-        platform: 'spotify',
+        platform,
         platformUrl: url || 'https://example.com',
         description: '',
         requestedDate: 'none',
@@ -129,13 +147,13 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
           </div>
 
           <div>
-            <label className="block text-sm font-mono mb-1">Spotify/Music URL (optional)</label>
+            <label className="block text-sm font-mono mb-1">Music URL (optional)</label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
               className="w-full p-2 border rounded font-mono"
-              placeholder="https://open.spotify.com/..."
+              placeholder="Spotify, Apple Music, Bandcamp, SoundCloud, YouTube, etc."
             />
           </div>
 

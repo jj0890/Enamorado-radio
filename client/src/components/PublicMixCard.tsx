@@ -1,5 +1,7 @@
 import { Play, Music, Clock, User, Star } from 'lucide-react';
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
+import { slugify } from "@/lib/strings";
 
 interface PublicMixCardProps {
   mix: {
@@ -25,6 +27,21 @@ interface PublicMixCardProps {
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
   // Robust artwork fallback chain
   const artwork = mix.artUrl || (mix as any).coverUrl || mix.metadata?.imageUrl || null;
+
+  const handlePlay = () => {
+    const url = (mix as any).fileUrl || (mix as any).streamUrl || mix.url;
+    if (!url) return;
+
+    // If MP3 on our server -> play in our player
+    if (/\.(mp3|m4a|aac|ogg|wav)($|\?)/i.test(url)) {
+      // fallback
+      const audioEl = new Audio(url);
+      audioEl.play().catch(() => window.open(url, "_blank"));
+    } else {
+      // external platforms -> open their page
+      window.open(url, "_blank");
+    }
+  };
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
@@ -68,19 +85,21 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
 
         {/* Genre Tag */}
         <div className="mb-3">
-          <span className="text-xs font-mono text-gray-500 uppercase bg-gray-100 px-2 py-1 rounded">
-            {mix.genre}
-          </span>
+          {mix.genre && (
+            <Link href={`/genre/${slugify(mix.genre)}`} className="text-xs font-mono text-gray-600 underline">
+              {mix.genre}
+            </Link>
+          )}
         </div>
 
         {/* Listen Button */}
         <Button 
           size="sm" 
           className="bg-red-500 hover:bg-red-600 text-white font-mono w-full text-sm"
-          onClick={() => window.open(mix.url, '_blank')}
+          onClick={handlePlay}
         >
           <Play className="w-4 h-4 mr-2" />
-          Listen on Platform
+          Listen
         </Button>
       </div>
     </div>
