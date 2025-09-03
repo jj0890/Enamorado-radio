@@ -6,7 +6,7 @@ import { Settings, Star, Users, Music, Heart, Play, Calendar, Compass } from "lu
 // Components (use your alias/paths; adjust if different)
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import RadioStreamPlayer from "@/components/RadioStreamPlayer";
-import FeaturedMixCard from "@/components/FeaturedMixCard";
+import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
 import SimpleSongForm from "@/components/SimpleSongForm";
 import LastFmDebugPanel from "@/components/LastFmDebugPanel";
@@ -201,12 +201,16 @@ export default function Home() {
         {featuredSubmission && (
           <section className="mb-16">
             <FeaturedMixCard
-              submission={featuredSubmission}
-              thumbnail={
-                featuredSubmission.artUrl ||
-                featuredSubmission.metadata?.imageUrl ||
-                trackThumbnails[featuredSubmission.id]
-              }
+              mix={{
+                id: featuredSubmission.id,
+                title: featuredSubmission.demoMixTitle,
+                name: featuredSubmission.djName,
+                genre: featuredSubmission.primaryGenre,
+                about: featuredSubmission.demoMixDescription,
+                url: featuredSubmission.soundcloudUrl || featuredSubmission.mixcloudUrl || featuredSubmission.audiocomUrl || featuredSubmission.otherUrl || "",
+                artUrl: featuredSubmission.artUrl || trackThumbnails[featuredSubmission.id],
+                metadata: featuredSubmission.metadata
+              }}
             />
           </section>
         )}

@@ -3,13 +3,13 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 
 // Clean page components
-import HomePage from "./pages/HomePage-clean";
+import HomePage from "./pages/HomePage";
 import LatestPage from "./pages/LatestPage";
 import ExplorePage from "./pages/ExplorePage";  
 import SchedulePage from "./pages/SchedulePage";
 import EpisodesPage from "./pages/EpisodesPage";
-import EpisodeView from "./pages/EpisodeView-clean";
-import GuideDetail from "./pages/GuideDetail-clean";
+import EpisodeView from "./pages/EpisodeView";
+import GuideDetail from "./pages/GuideDetail";
 import MixesPage from "./pages/MixesPage";
 import SubmitMix from "./pages/SubmitMix-clean";
 import AdminPanel from "./pages/AdminPanel";
