@@ -1,15 +1,18 @@
 import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Settings, Star, Users, Music, Heart } from "lucide-react";
-import FeaturedMixCard from "../components/FeaturedMixCard";
-import PublicMixCard from "../components/PublicMixCard";
-import RadioStreamPlayer from "../components/RadioStreamPlayer";
-import ProgramIndicator from "../components/ProgramIndicator";
-import SimpleSongForm from "../components/SimpleSongForm";
-import LastFmDebugPanel from "../components/LastFmDebugPanel";
-import { getTrackThumbnail } from "../utils/soundcloud";
-import { AzuraCastPlayer } from "../components/AzuraCastPlayer";
+import { Settings, Star, Users, Music, Heart, Play, Calendar, Compass } from "lucide-react";
+
+// Components (use your alias/paths; adjust if different)
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
+import RadioStreamPlayer from "@/components/RadioStreamPlayer";
+import FeaturedMixCard from "@/components/FeaturedMixCard";
+import PublicMixCard from "@/components/PublicMixCard";
+import SimpleSongForm from "@/components/SimpleSongForm";
+import LastFmDebugPanel from "@/components/LastFmDebugPanel";
+
+// Optional util (only needed if your FeaturedMixCard wants it)
+import { getTrackThumbnail } from "@/utils/soundcloud";
 
 interface FeaturedSubmission {
   id: number;
@@ -22,77 +25,69 @@ interface FeaturedSubmission {
   mixcloudUrl?: string;
   audiocomUrl?: string;
   otherUrl?: string;
+  // commonly present in your data model:
+  artUrl?: string;
+  metadata?: { imageUrl?: string };
 }
 
-export default function HomePage() {
-
+export default function Home() {
   const [showSongSubmission, setShowSongSubmission] = useState(false);
   const [showDebugPanel, setShowDebugPanel] = useState(false);
-  const [trackThumbnails, setTrackThumbnails] = useState<{[key: number]: string}>({});
+  const [trackThumbnails, setTrackThumbnails] = useState<Record<number, string>>({});
 
-  // Fetch featured DJ submissions
-  const { data: featuredSubmissions = [], isLoading, error } = useQuery<FeaturedSubmission[]>({
-    queryKey: ['/api/dj-submissions/featured'],
+  // --- DATA: Featured DJ submissions (for big centered feature) ---
+  const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
+    queryKey: ["/api/dj-submissions/featured"],
   });
 
-  // Fetch fresh community mixes (replaces featured logic)
-  const { data: featuredMixes = [] } = useQuery({
-    queryKey: ['/api/public/mixes'],
+  // --- DATA: Fresh mixes (same cards as /mixes) ---
+  const { data: freshMixes = [] } = useQuery({
+    queryKey: ["/api/public/mixes", { limit: 6 }],
     queryFn: async () => {
-      const response = await fetch('/api/public/mixes?limit=6');
-      if (!response.ok) throw new Error('Failed to fetch fresh mixes');
-      return response.json();
+      const r = await fetch("/api/public/mixes?limit=6", { cache: "no-store" });
+      if (!r.ok) throw new Error("Failed to fetch mixes");
+      return r.json();
     },
+    refetchOnWindowFocus: false,
   });
 
-  // Fetch thumbnails for featured submissions
+  // If your FeaturedMixCard wants thumbnails (SoundCloud/Mixcloud helpers)
   useEffect(() => {
-    const fetchThumbnails = async () => {
-      const thumbnails: {[key: number]: string} = {};
-      
-      for (const submission of featuredSubmissions) {
+    if (!featuredSubmissions.length) return;
+    (async () => {
+      const thumbs: Record<number, string> = {};
+      for (const sub of featuredSubmissions) {
         try {
-          const thumbnail = await getTrackThumbnail(submission);
-          if (thumbnail) {
-            thumbnails[submission.id] = thumbnail;
-          }
-        } catch (error) {
-          console.error('Error fetching thumbnail for submission', submission.id, error);
+          const t = await getTrackThumbnail(sub);
+          if (t) thumbs[sub.id] = t;
+        } catch (err) {
+          console.warn("thumbnail error", sub.id, err);
         }
       }
-      
-      setTrackThumbnails(thumbnails);
-    };
-
-    if (featuredSubmissions.length > 0) {
-      fetchThumbnails().catch(error => {
-        console.error('Error in fetchThumbnails:', error);
-      });
-    }
+      setTrackThumbnails(thumbs);
+    })();
   }, [featuredSubmissions]);
 
-  // Get the first featured submission for display
   const featuredSubmission = featuredSubmissions[0];
 
   return (
     <div className="min-h-screen bg-white text-black">
+      {/* Bottom sticky player (keep if you’ve been using it) */}
+      <StickyRadioPlayer />
 
-
-      {/* Live Player Bar */}
+      {/* Top utility/info bar (optional, small) */}
       <div className="fixed top-0 left-0 right-0 z-40 bg-white border-b border-gray-200">
         <div className="flex items-center justify-between px-4 py-2 text-sm font-mono">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <span className="text-gray-600">ENAMORADO RADIO</span>
-            </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-gray-600">ENAMORADO RADIO</span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center">
             <span className="text-gray-600">SAN ANTONIO</span>
           </div>
         </div>
       </div>
 
-      {/* Main Header */}
+      {/* Main header / nav */}
       <header className="fixed top-10 left-0 right-0 z-30 bg-white/95 backdrop-blur-xl border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
@@ -101,70 +96,122 @@ export default function HomePage() {
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/latest" className="text-gray-600 hover:text-red-500 transition-colors">
                   LATEST
                 </Link>
-                <Link href="/guides" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/submit-mix" className="text-gray-600 hover:text-red-500 transition-colors">
-                  SUBMIT
+                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                  EPISODES
                 </Link>
-                <Link href="/albums" className="text-gray-600 hover:text-red-500 transition-colors">
-                  ALBUMS
+                <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
+                  SCHEDULE
                 </Link>
                 <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
                   MIXES
                 </Link>
-                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
-                  RADIO
-                </Link>
-                <Link href="/schedule" className="text-red-500 hover:text-red-600 transition-colors font-medium">
-                  SCHEDULE
+                <Link href="/submit-mix" className="text-gray-600 hover:text-red-500 transition-colors">
+                  SUBMIT
                 </Link>
               </nav>
             </div>
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={() => setShowDebugPanel(true)}
-                className="p-2 hover:bg-gray-100 rounded transition-colors"
-                title="Debug Panel"
-              >
-                <Settings className="w-5 h-5 text-gray-600" />
-              </button>
-            </div>
+            <button
+              onClick={() => setShowDebugPanel(true)}
+              className="p-2 hover:bg-gray-100 rounded transition-colors"
+              title="Debug Panel"
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+            </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="pt-32 pb-32 px-4 max-w-7xl mx-auto">
-        {/* Hero Section */}
-        <section className="mb-16">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">ENAMORADO RADIO</h1>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 font-mono">
-              Digital space dedicated to the things we are enamored with
-            </p>
-          </div>
+      {/* MAIN */}
+      <main className="pt-32 pb-28 px-4 max-w-7xl mx-auto">
+        {/* HERO */}
+        <section className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 font-mono text-red-500">ENAMORADO RADIO</h1>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 font-mono">
+            A space dedicated to the things we are enamored with.
+          </p>
 
-          {/* Radio Stream Player */}
-          <div className="mb-12">
-            <RadioStreamPlayer />
-          </div>
+          {/* Quick Actions (kept from your first homepage) */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-4xl mx-auto">
+            <Link
+              href="/latest"
+              className="bg-white border-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-red-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Play className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 font-mono text-gray-900">LATEST</h3>
+                <p className="text-gray-600 font-mono text-sm">Recent episodes and mixes</p>
+              </div>
+            </Link>
 
-          {/* Featured Mix Section - Centered like Image 3 */}
-          {featuredSubmission && (
-            <div className="mb-16">
-              <FeaturedMixCard 
-                submission={featuredSubmission}
-                thumbnail={featuredSubmission.artUrl || featuredSubmission.metadata?.imageUrl || trackThumbnails[featuredSubmission.id]}
-              />
-            </div>
-          )}
+            <Link
+              href="/explore"
+              className="bg-white border-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-red-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Compass className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 font-mono text-gray-900">EXPLORE</h3>
+                <p className="text-gray-600 font-mono text-sm">Curated guides and themes</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/schedule"
+              className="bg-white border-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-red-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 font-mono text-gray-900">SCHEDULE</h3>
+                <p className="text-gray-600 font-mono text-sm">Upcoming shows and events</p>
+              </div>
+            </Link>
+
+            <Link
+              href="/submit-mix"
+              className="bg-white border-2 border-black p-6 hover:bg-gray-50 transition-colors group cursor-pointer block"
+            >
+              <div className="text-center">
+                <div className="w-12 h-12 bg-red-500 rounded-full mx-auto mb-3 flex items-center justify-center">
+                  <Music className="w-6 h-6 text-white" />
+                </div>
+                <h3 className="text-lg font-bold mb-2 font-mono text-gray-900">SUBMIT</h3>
+                <p className="text-gray-600 font-mono text-sm">Share your mix</p>
+              </div>
+            </Link>
+          </div>
         </section>
 
-        {/* Explore Content Grid */}
+        {/* Player */}
+        <section className="mb-12">
+          <RadioStreamPlayer />
+        </section>
+
+        {/* Centered featured submission (if present) */}
+        {featuredSubmission && (
+          <section className="mb-16">
+            <FeaturedMixCard
+              submission={featuredSubmission}
+              thumbnail={
+                featuredSubmission.artUrl ||
+                featuredSubmission.metadata?.imageUrl ||
+                trackThumbnails[featuredSubmission.id]
+              }
+            />
+          </section>
+        )}
+
+        {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">EXPLORE</h2>
@@ -174,7 +221,6 @@ export default function HomePage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Editorial/Staff Picks */}
             <Link
               href="/albums"
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
@@ -185,7 +231,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">EDITORIAL/STAFF PICKS</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
-                  Hand-selected favorites from our editorial team. The music, mixes, and episodes we can't stop playing.
+                  Hand-selected favorites from our editorial team.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
                   EXPLORE PICKS →
@@ -193,7 +239,6 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* Resident Applications */}
             <Link
               href="/resident-application"
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
@@ -204,7 +249,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">RESIDENT APPLICATIONS</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
-                  Join Season 1 as a resident DJ. Apply for a regular slot and become part of our programming lineup.
+                  Apply for a regular slot and become part of our programming lineup.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
                   APPLY FOR SEASON 1 →
@@ -212,7 +257,6 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* Submit a Mix */}
             <Link
               href="/submit-mix"
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
@@ -223,7 +267,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SUBMIT A MIX</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
-                  Share your DJ mixes with our community. We feature original work and support emerging artists.
+                  Share your DJ mixes with our community.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
                   SUBMIT MIX →
@@ -231,7 +275,6 @@ export default function HomePage() {
               </div>
             </Link>
 
-            {/* Song Suggestions */}
             <button
               onClick={() => setShowSongSubmission(true)}
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer text-left w-full"
@@ -242,7 +285,7 @@ export default function HomePage() {
                 </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SONG SUGGESTIONS</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
-                  Suggest tracks for our rotation. Even if not directly chosen, submissions may be featured in compilation episodes dedicated to community picks.
+                  Suggest tracks for rotation. Community picks may be featured.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
                   SUGGEST SONGS →
@@ -252,38 +295,31 @@ export default function HomePage() {
           </div>
         </section>
 
-        {/* Fresh from the Community */}
-        {featuredMixes.length > 0 && (
-          <section className="py-16 px-4 max-w-6xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4 font-mono text-gray-900">FRESH FROM THE COMMUNITY</h2>
-              <p className="text-gray-600 font-mono">
-                Latest approved mixes from community submissions
-              </p>
+        {/* Fresh From the Community — uses the SAME card as /mixes */}
+        {freshMixes.length > 0 && (
+          <section className="py-12">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold font-mono text-red-500">
+                FRESH FROM THE COMMUNITY
+              </h2>
+              <Link href="/mixes" className="text-red-500 hover:text-red-600 font-mono">
+                View All →
+              </Link>
             </div>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredMixes.map((mix: any) => (
+              {freshMixes.map((mix: any) => (
                 <PublicMixCard key={mix.id} mix={mix} />
               ))}
             </div>
-            
-            <div className="text-center mt-8">
-              <Link href="/mixes" className="inline-flex items-center text-red-500 hover:text-red-600 transition-colors font-mono font-medium">
-                View All Community Mixes →
-              </Link>
-            </div>
           </section>
         )}
-        </section>
       </main>
 
       {/* Modals */}
-
       {showSongSubmission && (
         <SimpleSongForm isOpen={showSongSubmission} onClose={() => setShowSongSubmission(false)} />
       )}
-
       {showDebugPanel && (
         <LastFmDebugPanel isOpen={showDebugPanel} onClose={() => setShowDebugPanel(false)} />
       )}
