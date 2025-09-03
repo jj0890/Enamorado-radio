@@ -38,16 +38,16 @@ export default function AdminPanel() {
     refetchOnWindowFocus: true,
     refetchOnMount: true,
     staleTime: 0,
-    cacheTime: 0,
+    gcTime: 0,
   });
 
   // Filter mixes by new boolean structure for better performance
-  const pendingMixes = allMixes.filter(mix => !(mix as any).pushToAzura && !(mix as any).featureOnSite);
-  const approvedMixes = allMixes.filter(mix => (mix as any).pushToAzura && !(mix as any).featureOnSite);
-  const featuredMixes = allMixes.filter(mix => (mix as any).featureOnSite);
+  const pendingMixes = (allMixes as MixSubmission[]).filter((mix: MixSubmission) => !(mix as any).pushToAzura && !(mix as any).featureOnSite);
+  const approvedMixes = (allMixes as MixSubmission[]).filter((mix: MixSubmission) => (mix as any).pushToAzura && !(mix as any).featureOnSite);
+  const featuredMixes = (allMixes as MixSubmission[]).filter((mix: MixSubmission) => (mix as any).featureOnSite);
 
   // Fetch schedule items
-  const { data: scheduleItems = [] } = useQuery({
+  const { data: scheduleItems = [] } = useQuery<any[]>({
     queryKey: ["/api/schedule"],
   });
 
@@ -304,9 +304,9 @@ export default function AdminPanel() {
 
             {!mixesLoading && !mixesError && pendingMixes.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {pendingMixes.map((mix) => (
+                {pendingMixes.map((mix, index) => (
                   <AdminMixCard
-                    key={mix.id}
+                    key={`pending-${mix.id}-${mix.submittedAt}-${index}`}
                     mix={mix}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
@@ -335,9 +335,9 @@ export default function AdminPanel() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {approvedMixes.map((mix) => (
+                {approvedMixes.map((mix, index) => (
                   <AdminMixCard
-                    key={mix.id}
+                    key={`approved-${mix.id}-${mix.submittedAt}-${index}`}
                     mix={mix}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
@@ -366,9 +366,9 @@ export default function AdminPanel() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {featuredMixes.map((mix) => (
+                {featuredMixes.map((mix, index) => (
                   <AdminMixCard
-                    key={mix.id}
+                    key={`featured-${mix.id}-${mix.submittedAt}-${index}`}
                     mix={mix}
                     onApprove={handleApprove}
                     onFeature={handleFeature}
