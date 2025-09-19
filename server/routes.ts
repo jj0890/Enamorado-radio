@@ -8,6 +8,7 @@ import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
 import { requireAdmin, loginAdmin, logoutAdmin, checkAuth } from "./adminAuth";
+import { backupManager } from "./backupManager";
 import { azuracastIntegration } from "./azuracastIntegration";
 import { audioProcessor } from "./audioProcessor";
 import { z } from "zod";
@@ -87,6 +88,104 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching admin stats:', error);
       res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  });
+
+  // =================
+  // ADMIN BACKUP SYSTEM - Data Protection
+  // =================
+
+  // Get list of available backups
+  app.get('/api/admin/backups', requireAdmin, async (req, res) => {
+    try {
+      const backups = await backupManager.getBackups();
+      res.json(backups);
+    } catch (error) {
+      console.error('Error fetching backups:', error);
+      res.status(500).json({ error: 'Failed to fetch backup list' });
+    }
+  });
+
+  // Create a new backup
+  app.post('/api/admin/backups', requireAdmin, async (req, res) => {
+    try {
+      const { reason = 'Manual backup requested by admin' } = req.body;
+      const backup = await backupManager.createBackup(reason);
+      res.status(201).json({
+        success: true,
+        backup,
+        message: `Backup created successfully: ${backup.id}`
+      });
+    } catch (error) {
+      console.error('Error creating backup:', error);
+      res.status(500).json({ error: 'Failed to create backup' });
+    }
+  });
+
+  // Restore from a specific backup
+  app.post('/api/admin/backups/:backupId/restore', requireAdmin, async (req, res) => {
+    try {
+      const { backupId } = req.params;
+      await backupManager.restoreBackup(backupId);
+      
+      // Critical: reload storage to reflect restored data immediately
+      await storage.reloadData();
+      
+      // Broadcast the restoration for real-time updates
+      broadcast({
+        type: 'systemRestore',
+        backupId,
+        timestamp: new Date()
+      });
+      
+      res.json({
+        success: true,
+        message: `System restored from backup: ${backupId}`
+      });
+    } catch (error) {
+      console.error('Error restoring backup:', error);
+      res.status(500).json({ error: 'Failed to restore backup' });
+    }
+  });
+
+  // Get details of a specific backup
+  app.get('/api/admin/backups/:backupId', requireAdmin, async (req, res) => {
+    try {
+      const { backupId } = req.params;
+      
+      // Security: validate backup ID format
+      const backupPattern = /^backup-\d{4}-\d{2}-\d{2}T[\d-]+Z$/;
+      if (!backupPattern.test(backupId)) {
+        return res.status(400).json({ error: 'Invalid backup ID format' });
+      }
+      
+      const backups = await backupManager.getBackups();
+      const backup = backups.find(b => b.id === backupId);
+      
+      if (!backup) {
+        return res.status(404).json({ error: 'Backup not found' });
+      }
+      
+      res.json(backup);
+    } catch (error) {
+      console.error('Error fetching backup details:', error);
+      res.status(500).json({ error: 'Failed to fetch backup details' });
+    }
+  });
+
+  // Delete a specific backup
+  app.delete('/api/admin/backups/:backupId', requireAdmin, async (req, res) => {
+    try {
+      const { backupId } = req.params;
+      await backupManager.deleteBackup(backupId);
+      
+      res.json({
+        success: true,
+        message: `Backup deleted: ${backupId}`
+      });
+    } catch (error) {
+      console.error('Error deleting backup:', error);
+      res.status(500).json({ error: 'Failed to delete backup' });
     }
   });
   

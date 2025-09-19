@@ -17,6 +17,7 @@ import {
   InsertCurrentPlayback
 } from "@shared/schema";
 import { IStorage } from "./storage";
+import { backupManager } from "./backupManager";
 
 // File-based persistent storage to solve the memory reset issue
 export class FileStorage implements IStorage {
@@ -64,6 +65,11 @@ export class FileStorage implements IStorage {
     } catch (error) {
       // Directory already exists or other error
     }
+  }
+
+  public async reloadData() {
+    await this.loadData();
+    console.log(`🔄 Storage data reloaded: ${this.mixSubmissions.length} mix submissions found`);
   }
 
   private async loadData() {
@@ -195,6 +201,9 @@ export class FileStorage implements IStorage {
   async deleteEpisode(id: number): Promise<void> {
     const index = this.episodes.findIndex(e => e.id === id);
     if (index !== -1) {
+      // Create backup before destructive operation
+      await backupManager.createBackup(`Before deleting episode ${id}`);
+      
       this.episodes.splice(index, 1);
       await this.saveData('episodes', this.episodes);
     }
@@ -254,6 +263,9 @@ export class FileStorage implements IStorage {
   async deleteGuide(id: number): Promise<void> {
     const index = this.guides.findIndex(g => g.id === id);
     if (index !== -1) {
+      // Create backup before destructive operation
+      await backupManager.createBackup(`Before deleting guide ${id}`);
+      
       this.guides.splice(index, 1);
       await this.saveData('guides', this.guides);
     }
@@ -396,6 +408,9 @@ export class FileStorage implements IStorage {
     const index = this.mixSubmissions.findIndex(m => m.id === id);
     if (index === -1) throw new Error('Mix submission not found');
     
+    // Create backup before destructive operation
+    await backupManager.createBackup(`Before deleting mix submission ${id}`);
+    
     this.mixSubmissions.splice(index, 1);
     await this.saveData('mixSubmissions', this.mixSubmissions);
     console.log(`FileStorage: Deleted mix submission ${id}`);
@@ -455,6 +470,9 @@ export class FileStorage implements IStorage {
   async deleteScheduleItem(id: number): Promise<void> {
     const index = this.scheduleItems.findIndex(s => s.id === id);
     if (index !== -1) {
+      // Create backup before destructive operation
+      await backupManager.createBackup(`Before deleting schedule item ${id}`);
+      
       this.scheduleItems.splice(index, 1);
       await this.saveData('scheduleItems', this.scheduleItems);
     }

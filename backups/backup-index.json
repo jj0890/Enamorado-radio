@@ -1,0 +1,9 @@
+[
+  {
+    "id": "backup-2025-09-19T05-09-44-814Z",
+    "timestamp": "2025-09-19T05:09:44.814Z",
+    "size": 4766,
+    "reason": "e2e backup test",
+    "fileCount": 3
+  }
+]
