@@ -40,7 +40,7 @@ export default function AdminBackups() {
 
   const createBackupMutation = useMutation({
     mutationFn: async (reason: string) => {
-      return apiRequest('/api/admin/backups', 'POST', { reason });
+      return apiRequest('POST', '/api/admin/backups', { reason });
     },
     onSuccess: () => {
       toast({
@@ -61,7 +61,7 @@ export default function AdminBackups() {
 
   const restoreBackupMutation = useMutation({
     mutationFn: async (backupId: string) => {
-      return apiRequest(`/api/admin/backups/${backupId}/restore`, 'POST', {});
+      return apiRequest('POST', `/api/admin/backups/${backupId}/restore`, {});
     },
     onSuccess: () => {
       toast({

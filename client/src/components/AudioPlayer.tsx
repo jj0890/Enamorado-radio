@@ -31,7 +31,7 @@ export function AudioPlayer({ className = '' }: AudioPlayerProps) {
   });
 
   const updatePlaybackMutation = useMutation({
-    mutationFn: (data: any) => apiRequest('/api/current-playback', 'POST', data),
+    mutationFn: (data: any) => apiRequest('POST', '/api/current-playback', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/current-playback'] });
     },

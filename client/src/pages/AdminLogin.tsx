@@ -19,7 +19,8 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
 
   const loginMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/login', 'POST', { username, password });
+      console.log('🔄 Mutation starting - calling apiRequest...');
+      return apiRequest('POST', '/api/admin/login', { username, password });
     },
     onSuccess: () => {
       toast({
@@ -39,7 +40,10 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🚀 Form submitted!', { username, password: password ? '***' : 'empty' });
+    
     if (!username || !password) {
+      console.log('❌ Validation failed - missing credentials');
       toast({
         title: "Missing Information",
         description: "Please enter both username and password.",
@@ -47,6 +51,8 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
       });
       return;
     }
+    
+    console.log('✅ Validation passed, calling mutation...');
     loginMutation.mutate();
   };
 

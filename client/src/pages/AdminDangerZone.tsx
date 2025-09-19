@@ -30,7 +30,7 @@ export default function AdminDangerZone() {
   // Clear all pending mix submissions
   const clearPendingMixesMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/danger/clear-pending-mixes', 'POST', {});
+      return apiRequest('POST', '/api/admin/danger/clear-pending-mixes', {});
     },
     onSuccess: (data) => {
       toast({
@@ -52,7 +52,7 @@ export default function AdminDangerZone() {
   // Clear all user sessions
   const clearSessionsMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/danger/clear-sessions', 'POST', {});
+      return apiRequest('POST', '/api/admin/danger/clear-sessions', {});
     },
     onSuccess: () => {
       toast({

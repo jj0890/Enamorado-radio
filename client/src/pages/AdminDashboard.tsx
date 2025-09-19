@@ -76,7 +76,7 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
 
   const logoutMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/logout', 'POST', {});
+      return apiRequest('POST', '/api/admin/logout', {});
     },
     onSuccess: () => {
       // Invalidate auth queries

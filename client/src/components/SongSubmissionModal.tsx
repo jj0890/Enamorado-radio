@@ -100,7 +100,7 @@ export default function SongSubmissionModal({ isOpen, onClose }: SongSubmissionM
 
   const mutation = useMutation({
     mutationFn: async (data: typeof formData) => {
-      return apiRequest('/api/song-submissions', 'POST', data);
+      return apiRequest('POST', '/api/song-submissions', data);
     },
     onSuccess: () => {
       toast({
