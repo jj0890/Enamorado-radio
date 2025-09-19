@@ -12,7 +12,7 @@ import EpisodeView from "./pages/EpisodeView";
 import GuideDetail from "./pages/GuideDetail";
 import MixesPage from "./pages/MixesPage";
 import SubmitMix from "./pages/SubmitMix-clean";
-import AdminPanel from "./pages/AdminPanel";
+import AdminAuthWrapper from "./components/AdminAuthWrapper";
 
 // Legacy compatibility - keep radio functionality
 import MobileRadio from "./pages/MobileRadio";
@@ -32,7 +32,7 @@ function Router() {
       <Route path="/submit-mix" component={SubmitMix} />
       
       {/* Admin */}
-      <Route path="/admin" component={AdminPanel} />
+      <Route path="/admin/*" component={AdminAuthWrapper} />
       
       {/* Legacy/Compatibility */}
       <Route path="/mobile" component={MobileRadio} />
