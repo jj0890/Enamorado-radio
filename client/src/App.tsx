@@ -43,18 +43,7 @@ function Router() {
       <Route path="/discover" component={Discover} />
 
       {/* /resident-application handled by Express redirect to Google Form */}
-      <Route path="/admin" component={AdminAuthWrapper} />
-      <Route path="/admin/mix-submissions" component={AdminAuthWrapper} />
-      <Route path="/admin/backups" component={AdminAuthWrapper} />
-      <Route path="/admin/dj-applications" component={AdminAuthWrapper} />
-      <Route path="/admin/song-submissions" component={AdminAuthWrapper} />
-      <Route path="/admin/queue" component={AdminAuthWrapper} />
-      <Route path="/admin/azuracast" component={AdminAuthWrapper} />
-      <Route path="/admin/routing" component={AdminAuthWrapper} />
-      <Route path="/admin/upload" component={AdminAuthWrapper} />
-      <Route path="/admin/azuracast-upload" component={AdminAuthWrapper} />
-      <Route path="/admin/mix-manager" component={AdminAuthWrapper} />
-      <Route path="/admin/editorial-workflow" component={AdminAuthWrapper} />
+      <Route path="/admin/*" component={AdminAuthWrapper} />
       <Route path="/schedule" component={Schedule} />
 
       <Route path="/mix-upload" component={MixUpload} />

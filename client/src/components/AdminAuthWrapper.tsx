@@ -3,6 +3,8 @@ import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
 import AdminBackups from "@/pages/AdminBackups";
 import AdminMixSubmissions from "@/pages/AdminMixSubmissions";
+import AdminStats from "@/pages/AdminStats";
+import AdminDangerZone from "@/pages/AdminDangerZone";
 import ScheduleAdmin from "@/pages/ScheduleAdmin";
 import AdminSongSubmissions from "@/pages/AdminSongSubmissions";
 import AdminQueue from "@/pages/AdminQueue";
@@ -109,6 +111,10 @@ export default function AdminAuthWrapper() {
         );
       case '/admin/backups':
         return <AdminBackups />;
+      case '/admin/stats':
+        return <AdminStats />;
+      case '/admin/danger-zone':
+        return <AdminDangerZone />;
       case '/admin/editorial-workflow':
         return <EditorialWorkflow />;
       default:

@@ -53,7 +53,9 @@ const navItems = [
   { href: "/admin/mix-manager", label: "Mix Manager", icon: Radio, category: "integration" },
   
   // System Management
+  { href: "/admin/stats", label: "Stats Dashboard", icon: BarChart3, category: "system" },
   { href: "/admin/backups", label: "Backup System", icon: RefreshCw, category: "system" },
+  { href: "/admin/danger-zone", label: "Danger Zone", icon: AlertTriangle, category: "system" },
   { href: "/admin/editorial-workflow", label: "Editorial", icon: AlertTriangle, category: "system" },
 ];
 
