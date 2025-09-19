@@ -10,6 +10,7 @@ export interface UIMix {
   platform: string | null;
   approved: boolean;
   featured: boolean;
+  status: 'pending' | 'approved' | 'featured';
   date: Date;
   about?: string;
 }
@@ -26,9 +27,9 @@ export function serializeMix(row: MixSubmission): UIMix {
   else if (row.url?.includes('audio.com')) platform = 'audiocom';
   else if (row.url) platform = 'file';
 
-  // Use approved_at and featured_at timestamps as source of truth
-  const approved = !!(row as any).approved_at || row.status === 'approved';
-  const featured = !!(row as any).featured_at || (row as any).featured;
+  // Use approved_at and featured_at timestamps as source of truth, including status field
+  const featured = !!(row as any).featured_at || (row as any).featured || row.status === 'featured';
+  const approved = featured || !!(row as any).approved_at || row.status === 'approved';
 
   // Priority order for date: featured_at > approved_at > created_at > submittedAt
   const date = (row as any).featured_at || 
@@ -36,6 +37,9 @@ export function serializeMix(row: MixSubmission): UIMix {
                row.createdAt || 
                row.submittedAt || 
                new Date();
+
+  // Determine status string based on approval hierarchy
+  const status = featured ? 'featured' : (approved ? 'approved' : 'pending');
 
   return {
     id: row.id,
@@ -47,6 +51,7 @@ export function serializeMix(row: MixSubmission): UIMix {
     platform,
     approved,
     featured,
+    status,  // Add the status field that frontend expects
     date: new Date(date),
     about: row.about
   };

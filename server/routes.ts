@@ -161,6 +161,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Clear ALL mix submissions (for testing/reset purposes)
+  app.post('/api/admin/danger/clear-all-mixes', requireAdmin, async (req, res) => {
+    try {
+      const allMixes = await storage.getMixSubmissions({});
+      const deletedCount = allMixes.length;
+      
+      // Create backup before destructive operation
+      await backupManager.createBackup(`Before clearing ALL ${deletedCount} mix submissions`);
+      
+      // Delete all mixes one by one
+      for (const mix of allMixes) {
+        await storage.deleteMixSubmission(mix.id);
+      }
+      
+      res.json({
+        success: true,
+        deletedCount,
+        message: `All ${deletedCount} mix submissions have been permanently deleted.`
+      });
+    } catch (error) {
+      console.error('Error clearing all mixes:', error);
+      res.status(500).json({ error: 'Failed to clear all mixes' });
+    }
+  });
+
   // Clear all user sessions
   app.post('/api/admin/danger/clear-sessions', requireAdmin, async (req, res) => {
     try {

@@ -46,7 +46,7 @@ export default function AdminMixSubmissions() {
 
   // Get mix submissions
   const { data: allSubmissions = [], isLoading } = useQuery<MixSubmission[]>({
-    queryKey: ['/api/admin/mix-submissions'],
+    queryKey: ['/api/mixes'],
   });
 
   // Filter submissions by status
@@ -57,7 +57,7 @@ export default function AdminMixSubmissions() {
   // Approve mix mutation
   const approveMutation = useMutation({
     mutationFn: async (mixId: number) => {
-      return apiRequest(`/api/admin/mixes/${mixId}/approve`, 'POST', {});
+      return apiRequest('POST', `/api/mixes/${mixId}/approve`, {});
     },
     onSuccess: () => {
       toast({
@@ -65,7 +65,7 @@ export default function AdminMixSubmissions() {
         description: "Mix has been approved successfully.",
       });
       // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
@@ -81,7 +81,7 @@ export default function AdminMixSubmissions() {
   // Feature mix mutation  
   const featureMutation = useMutation({
     mutationFn: async (mixId: number) => {
-      return apiRequest(`/api/admin/mixes/${mixId}/feature`, 'POST', {});
+      return apiRequest('POST', `/api/mixes/${mixId}/feature`, {});
     },
     onSuccess: () => {
       toast({
@@ -89,7 +89,7 @@ export default function AdminMixSubmissions() {
         description: "Mix has been featured successfully.",
       });
       // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
@@ -105,7 +105,7 @@ export default function AdminMixSubmissions() {
   // Delete mix mutation
   const deleteMutation = useMutation({
     mutationFn: async (mixId: number) => {
-      return apiRequest(`/api/admin/mixes/${mixId}`, 'DELETE', {});
+      return apiRequest('DELETE', `/api/mixes/${mixId}`, {});
     },
     onSuccess: () => {
       toast({
@@ -113,7 +113,7 @@ export default function AdminMixSubmissions() {
         description: "Mix has been deleted successfully.",
       });
       // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
@@ -121,6 +121,30 @@ export default function AdminMixSubmissions() {
       toast({
         title: "Delete Failed",
         description: error.message || "Failed to delete mix.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Bulk clear all mixes mutation
+  const clearAllMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest('POST', '/api/admin/danger/clear-all-mixes', {});
+    },
+    onSuccess: (data: any) => {
+      toast({
+        title: "All Mixes Cleared",
+        description: data.message || "All mix submissions have been permanently deleted.",
+      });
+      // Invalidate all caches for immediate display update
+      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Clear All Failed",
+        description: error.message || "Failed to clear all mixes.",
         variant: "destructive",
       });
     },
@@ -140,21 +164,44 @@ export default function AdminMixSubmissions() {
     }
   };
 
+  const handleClearAll = () => {
+    const confirmMessage = `⚠️ DANGER: This will PERMANENTLY DELETE ALL ${allSubmissions.length} mix submissions!\n\nThis includes:\n• ${pendingSubmissions.length} pending submissions\n• ${approvedSubmissions.length} approved submissions\n• ${featuredSubmissions.length} featured submissions\n\nA backup will be created before deletion.\n\nAre you absolutely sure you want to continue?`;
+    
+    if (confirm(confirmMessage)) {
+      clearAllMutation.mutate();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#FEFCF9]">
       {/* Header */}
       <div className="bg-white border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center space-x-4">
-            <Link href="/admin">
-              <Button variant="outline" size="sm">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Dashboard
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link href="/admin">
+                <Button variant="outline" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Dashboard
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold font-mono text-red-500">MIX SUBMISSIONS</h1>
+                <p className="text-gray-600 font-mono">Review and manage community mix submissions</p>
+              </div>
+            </div>
+            
+            {/* Bulk Actions */}
+            <div className="flex items-center space-x-2">
+              <Button 
+                variant="destructive" 
+                size="sm"
+                onClick={handleClearAll}
+                disabled={clearAllMutation.isPending || allSubmissions.length === 0}
+                data-testid="button-clear-all-mixes"
+              >
+                {clearAllMutation.isPending ? "Clearing..." : `Clear All (${allSubmissions.length})`}
               </Button>
-            </Link>
-            <div>
-              <h1 className="text-2xl font-bold font-mono text-red-500">MIX SUBMISSIONS</h1>
-              <p className="text-gray-600 font-mono">Review and manage community mix submissions</p>
             </div>
           </div>
         </div>
