@@ -18,6 +18,7 @@ import AdminAuthWrapper from "./components/AdminAuthWrapper";
 import MobileRadio from "./pages/MobileRadio";
 
 function Router() {
+  console.log('🌐 App-clean Router rendering...');
   return (
     <Switch>
       {/* Core Navigation */}
@@ -31,8 +32,9 @@ function Router() {
       <Route path="/mixes" component={MixesPage} />
       <Route path="/submit-mix" component={SubmitMix} />
       
-      {/* Admin */}
-      <Route path="/admin/*" component={AdminAuthWrapper} />
+      {/* Admin - explicit routes */}
+      <Route path="/admin" component={AdminAuthWrapper} />
+      <Route path="/admin/:rest*" component={AdminAuthWrapper} />
       
       {/* Legacy/Compatibility */}
       <Route path="/mobile" component={MobileRadio} />
