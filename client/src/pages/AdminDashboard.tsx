@@ -16,7 +16,8 @@ import {
   LogOut,
   AlertTriangle,
   Trash2,
-  RefreshCw
+  RefreshCw,
+  Upload
 } from "lucide-react";
 
 interface AdminStats {
@@ -31,12 +32,29 @@ interface AdminStats {
   recentSubmissions: number;
 }
 
+// Comprehensive admin navigation organized by category
 const navItems = [
-  { href: "/admin", label: "Dashboard", icon: BarChart3 },
-  { href: "/admin/mix-submissions", label: "Mix Submissions", icon: Music },
-  { href: "/admin/dj-applications", label: "DJ Applications", icon: Users },
-  { href: "/admin/queue", label: "Queue", icon: PlayCircle },
-  { href: "/admin/azuracast", label: "AzuraCast", icon: Radio },
+  // Core Admin
+  { href: "/admin", label: "Dashboard", icon: BarChart3, category: "core" },
+  
+  // Content Management  
+  { href: "/admin/mix-submissions", label: "Mix Review", icon: Music, category: "content" },
+  { href: "/admin/song-submissions", label: "Song Review", icon: Music, category: "content" },
+  { href: "/admin/routing", label: "Mix Routing", icon: PlayCircle, category: "content" },
+  { href: "/admin/upload", label: "Episode Upload", icon: Upload, category: "content" },
+  
+  // Community
+  { href: "/admin/dj-applications", label: "DJ Applications", icon: Users, category: "community" },
+  { href: "/admin/queue", label: "Queue", icon: PlayCircle, category: "community" },
+  
+  // AzuraCast Integration
+  { href: "/admin/azuracast", label: "AzuraCast", icon: Radio, category: "integration" },
+  { href: "/admin/azuracast-upload", label: "AzuraCast Upload", icon: Upload, category: "integration" },
+  { href: "/admin/mix-manager", label: "Mix Manager", icon: Radio, category: "integration" },
+  
+  // System Management
+  { href: "/admin/backups", label: "Backup System", icon: RefreshCw, category: "system" },
+  { href: "/admin/editorial-workflow", label: "Editorial", icon: AlertTriangle, category: "system" },
 ];
 
 interface AdminDashboardProps {
@@ -82,20 +100,20 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
             <div className="flex items-center space-x-8">
               <h1 className="text-xl font-bold font-mono text-red-500">ADMIN PANEL</h1>
               
-              <div className="hidden md:flex space-x-4">
-                {navItems.map((item) => {
+              <div className="hidden lg:flex space-x-1">
+                {navItems.filter(item => item.category === 'core' || item.category === 'content').map((item) => {
                   const Icon = item.icon;
                   const isActive = location === item.href;
                   
                   return (
                     <Link key={item.href} href={item.href}>
-                      <div className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-mono transition-colors ${
+                      <div className={`flex items-center space-x-2 px-2 py-2 rounded-md text-xs font-mono transition-colors ${
                         isActive 
                           ? 'bg-red-100 text-red-600' 
                           : 'text-gray-600 hover:text-red-600 hover:bg-gray-100'
-                      }`}>
+                      }`} data-testid={`nav-${item.href.replace('/admin/', '').replace('/', 'dashboard')}`}>
                         <Icon className="w-4 h-4" />
-                        <span>{item.label}</span>
+                        <span className="hidden xl:inline">{item.label}</span>
                       </div>
                     </Link>
                   );
@@ -250,62 +268,113 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
           </div>
         ) : null}
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* Admin Navigation Grid - Organized by Category */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {/* Content Management */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-mono">Quick Actions</CardTitle>
-              <CardDescription>Common administrative tasks</CardDescription>
+              <CardTitle className="font-mono text-lg">Content Management</CardTitle>
+              <CardDescription>Review and manage submissions</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <Link href="/admin/mix-submissions" className="block">
-                <Button variant="outline" className="w-full justify-start font-mono" data-testid="link-mix-submissions">
-                  <Music className="w-4 h-4 mr-2" />
-                  Review Mix Submissions
-                </Button>
-              </Link>
-              
-              <Link href="/admin/queue" className="block">
-                <Button variant="outline" className="w-full justify-start font-mono" data-testid="link-queue">
-                  <PlayCircle className="w-4 h-4 mr-2" />
-                  Manage Queue
-                </Button>
-              </Link>
-              
-              <Link href="/admin/azuracast" className="block">
-                <Button variant="outline" className="w-full justify-start font-mono" data-testid="link-azuracast">
-                  <Radio className="w-4 h-4 mr-2" />
-                  AzuraCast Integration
-                </Button>
-              </Link>
+              {navItems.filter(item => item.category === 'content').map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href} className="block">
+                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
             </CardContent>
           </Card>
 
+          {/* Community */}
           <Card>
             <CardHeader>
-              <CardTitle className="font-mono">System Status</CardTitle>
-              <CardDescription>Current operational status</CardDescription>
+              <CardTitle className="font-mono text-lg">Community</CardTitle>
+              <CardDescription>DJ applications and queue</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-mono">Admin Session</span>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  Active
-                </Badge>
-              </div>
+              {navItems.filter(item => item.category === 'community').map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href} className="block">
+                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          {/* AzuraCast Integration */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-mono text-lg">AzuraCast</CardTitle>
+              <CardDescription>Radio streaming integration</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {navItems.filter(item => item.category === 'integration').map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href} className="block">
+                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
+            </CardContent>
+          </Card>
+
+          {/* System Management */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="font-mono text-lg">System</CardTitle>
+              <CardDescription>Administration and maintenance</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {navItems.filter(item => item.category === 'system').map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href} className="block">
+                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
+                      <Icon className="w-4 h-4 mr-2" />
+                      {item.label}
+                    </Button>
+                  </Link>
+                );
+              })}
               
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-mono">Database</span>
-                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                  Connected
-                </Badge>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-mono">Stream</span>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                  Live
-                </Badge>
+              {/* System Status */}
+              <div className="border-t pt-3 mt-3">
+                <div className="text-xs font-mono text-gray-600 mb-2">System Status</div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono">Session</span>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                      Active
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono">Database</span>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
+                      Connected
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-mono">Stream</span>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                      Live
+                    </Badge>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

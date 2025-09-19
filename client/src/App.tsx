@@ -28,11 +28,13 @@ import AdminQueue from "./pages/AdminQueue";
 import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";
 import AdminEpisodeUpload from "./pages/AdminEpisodeUpload";
+import AdminBackups from "./pages/AdminBackups";
 import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
 
 function Router() {
+  console.log('🌐 App Router rendering...');
   return (
     <Switch>
       <Route path="/" component={HomePage} />
@@ -43,6 +45,7 @@ function Router() {
       {/* /resident-application handled by Express redirect to Google Form */}
       <Route path="/admin" component={AdminAuthWrapper} />
       <Route path="/admin/mix-submissions" component={AdminAuthWrapper} />
+      <Route path="/admin/backups" component={AdminAuthWrapper} />
       <Route path="/admin/dj-applications" component={AdminAuthWrapper} />
       <Route path="/admin/song-submissions" component={AdminAuthWrapper} />
       <Route path="/admin/queue" component={AdminAuthWrapper} />

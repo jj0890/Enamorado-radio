@@ -1,6 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
+import AdminBackups from "@/pages/AdminBackups";
+import AdminMixSubmissions from "@/pages/AdminMixSubmissions";
 import ScheduleAdmin from "@/pages/ScheduleAdmin";
 import AdminSongSubmissions from "@/pages/AdminSongSubmissions";
 import AdminQueue from "@/pages/AdminQueue";
@@ -19,6 +21,7 @@ interface AdminAuthData {
 
 export default function AdminAuthWrapper() {
   const [location] = useLocation();
+  console.log('🔐 AdminAuthWrapper location:', location);
   const queryClient = useQueryClient();
 
   const { data: authData, isLoading, isFetching, isError, refetch } = useQuery<AdminAuthData>({
@@ -60,11 +63,16 @@ export default function AdminAuthWrapper() {
 
   // Authenticated - route to appropriate admin page
   const renderAdminPage = () => {
-    switch (location) {
+    console.log('🔀 AdminAuthWrapper routing to:', location);
+    
+    // Normalize path by removing trailing slash and query parameters
+    const normalizedPath = location.split('?')[0].replace(/\/+$/, '') || '/admin';
+    
+    switch (normalizedPath) {
       case '/admin':
         return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/mix-submissions':
-        return <ScheduleAdmin />;
+        return <AdminMixSubmissions />; // Use dedicated mix submissions component
       case '/admin/dj-applications':
         return <ScheduleAdmin />;
       case '/admin/song-submissions':
@@ -99,6 +107,8 @@ export default function AdminAuthWrapper() {
             </div>
           </div>
         );
+      case '/admin/backups':
+        return <AdminBackups />;
       case '/admin/editorial-workflow':
         return <EditorialWorkflow />;
       default:
