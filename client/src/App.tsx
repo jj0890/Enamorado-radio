@@ -10,6 +10,7 @@ import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
 
 import EditorialWorkflow from "./pages/EditorialWorkflow";
+import AdminAuthWrapper from "./components/AdminAuthWrapper";
 import Discover from "./pages/Discover";
 import MixUpload from "./pages/MixUpload";
 import LiveMixDemo from "./pages/LiveMixDemo";
@@ -40,33 +41,17 @@ function Router() {
       <Route path="/discover" component={Discover} />
 
       {/* /resident-application handled by Express redirect to Google Form */}
-      <Route path="/admin" component={ScheduleAdmin} />
-      <Route path="/admin/song-submissions" component={AdminSongSubmissions} />
-      <Route path="/admin/queue" component={AdminQueue} />
-      <Route path="/admin/azuracast" component={AzuraCastAdmin} />
-      <Route path="/admin/routing" component={AdminMixRouting} />
-      <Route path="/admin/upload" component={AdminEpisodeUpload} />
-      <Route path="/admin/azuracast-upload" component={() => (
-        <div className="min-h-screen bg-[#FEFCF9] p-6">
-          <div className="max-w-4xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
-              AZURACAST UPLOAD
-            </h1>
-            <MixUploadToAzuraCast />
-          </div>
-        </div>
-      )} />
-      <Route path="/admin/mix-manager" component={() => (
-        <div className="min-h-screen bg-[#FEFCF9] p-6">
-          <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
-              MIX MANAGER - Upload, Publish & Schedule
-            </h1>
-            <AzuraCastMixManager />
-          </div>
-        </div>
-      )} />
-      <Route path="/admin/editorial-workflow" component={EditorialWorkflow} />
+      <Route path="/admin" component={AdminAuthWrapper} />
+      <Route path="/admin/mix-submissions" component={AdminAuthWrapper} />
+      <Route path="/admin/dj-applications" component={AdminAuthWrapper} />
+      <Route path="/admin/song-submissions" component={AdminAuthWrapper} />
+      <Route path="/admin/queue" component={AdminAuthWrapper} />
+      <Route path="/admin/azuracast" component={AdminAuthWrapper} />
+      <Route path="/admin/routing" component={AdminAuthWrapper} />
+      <Route path="/admin/upload" component={AdminAuthWrapper} />
+      <Route path="/admin/azuracast-upload" component={AdminAuthWrapper} />
+      <Route path="/admin/mix-manager" component={AdminAuthWrapper} />
+      <Route path="/admin/editorial-workflow" component={AdminAuthWrapper} />
       <Route path="/schedule" component={Schedule} />
 
       <Route path="/mix-upload" component={MixUpload} />

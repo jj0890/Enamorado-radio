@@ -7,7 +7,7 @@ import { azuracastService } from "./azuracastService";
 import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
-import { requireAdmin } from "./adminAuth";
+import { requireAdmin, loginAdmin, logoutAdmin, checkAuth } from "./adminAuth";
 import { azuracastIntegration } from "./azuracastIntegration";
 import { audioProcessor } from "./audioProcessor";
 import { z } from "zod";
@@ -52,6 +52,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   }
 
+  // =================
+  // ADMIN AUTHENTICATION ROUTES
+  // =================
+  
+  app.post('/api/admin/login', loginAdmin);
+  app.post('/api/admin/logout', logoutAdmin);
+  app.get('/api/admin/auth', checkAuth);
+  
+  // Admin stats dashboard
+  app.get('/api/admin/stats', requireAdmin, async (req, res) => {
+    try {
+      const allMixes = await storage.getMixSubmissions({ limit: 1000 });
+      const allShows = await storage.getShows();
+      const allEpisodes = await storage.getEpisodes({ limit: 1000 });
+      
+      const stats = {
+        totalMixSubmissions: allMixes.length,
+        pendingMixReviews: allMixes.filter(m => m.status === 'pending').length,
+        approvedMixes: allMixes.filter(m => m.status === 'approved' || m.status === 'featured').length,
+        featuredMixes: allMixes.filter(m => m.status === 'featured').length,
+        totalShows: allShows.length,
+        liveShows: allShows.filter(s => s.isLive).length,
+        totalEpisodes: allEpisodes.length,
+        publishedEpisodes: allEpisodes.filter(e => e.status === 'published').length,
+        recentSubmissions: allMixes.filter(m => {
+          const submitted = new Date(m.submittedAt);
+          const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+          return submitted > weekAgo;
+        }).length,
+      };
+      
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching admin stats:', error);
+      res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  });
+  
   // =================
   // HTTPS PROXY for AzuraCast (fixes mixed-content blocking)
   // =================

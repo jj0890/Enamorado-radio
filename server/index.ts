@@ -8,11 +8,13 @@ import pino from 'pino';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
+import cookieParser from 'cookie-parser';
 import { uploadViaSftp, rescanLibrary, ensurePlaylist, addMediaToPlaylist, createSchedule, getNowPlaying } from './azuracastHelpers';
 // @ts-ignore - No type definitions available
 import fetch from 'node-fetch';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { validateAdminCredentials } from "./adminAuth";
 
 const logger = pino();
 
@@ -26,6 +28,7 @@ app.use(cors());
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 app.use((req, res, next) => {
   const start = Date.now();
@@ -287,6 +290,9 @@ app.get('/stream.mp3', async (_req, res) => {
     res.status(500).json({ error: 'Stream unavailable' });
   }
 });
+
+// Initialize admin authentication system
+validateAdminCredentials();
 
 (async () => {
   const server = await registerRoutes(app);

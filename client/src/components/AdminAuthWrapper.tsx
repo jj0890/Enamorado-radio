@@ -1,0 +1,110 @@
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import AdminLogin from "@/pages/AdminLogin";
+import AdminDashboard from "@/pages/AdminDashboard";
+import ScheduleAdmin from "@/pages/ScheduleAdmin";
+import AdminSongSubmissions from "@/pages/AdminSongSubmissions";
+import AdminQueue from "@/pages/AdminQueue";
+import AzuraCastAdmin from "@/pages/AzuraCastAdmin";
+import AdminMixRouting from "@/pages/AdminMixRouting";
+import AdminEpisodeUpload from "@/pages/AdminEpisodeUpload";
+import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
+import AzuraCastMixManager from "@/components/AzuraCastMixManager";
+import EditorialWorkflow from "@/pages/EditorialWorkflow";
+import { useLocation } from "wouter";
+
+interface AdminAuthData {
+  authenticated: boolean;
+  user?: string;
+}
+
+export default function AdminAuthWrapper() {
+  const [location] = useLocation();
+  const queryClient = useQueryClient();
+
+  const { data: authData, isLoading, isFetching, isError, refetch } = useQuery<AdminAuthData>({
+    queryKey: ['/api/admin/auth'],
+    retry: false,
+    refetchOnMount: 'always',
+    gcTime: 0,
+    networkMode: 'always',
+  });
+
+
+  const handleLogin = async () => {
+    await refetch();
+  };
+
+  const handleLogout = async () => {
+    // Set auth state to false and clear cache
+    queryClient.setQueryData(['/api/admin/auth'], { authenticated: false });
+    queryClient.invalidateQueries({ queryKey: ['/api/admin/auth'] });
+    await refetch();
+  };
+
+  // Loading state - show spinner while checking auth
+  if (isLoading || isFetching) {
+    return (
+      <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-mono">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Not authenticated - show login
+  if (authData?.authenticated !== true) {
+    return <AdminLogin onLogin={handleLogin} />;
+  }
+
+  // Authenticated - route to appropriate admin page
+  const renderAdminPage = () => {
+    switch (location) {
+      case '/admin':
+        return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
+      case '/admin/mix-submissions':
+        return <ScheduleAdmin />;
+      case '/admin/dj-applications':
+        return <ScheduleAdmin />;
+      case '/admin/song-submissions':
+        return <AdminSongSubmissions />;
+      case '/admin/queue':
+        return <AdminQueue />;
+      case '/admin/azuracast':
+        return <AzuraCastAdmin />;
+      case '/admin/routing':
+        return <AdminMixRouting />;
+      case '/admin/upload':
+        return <AdminEpisodeUpload />;
+      case '/admin/azuracast-upload':
+        return (
+          <div className="min-h-screen bg-[#FEFCF9] p-6">
+            <div className="max-w-4xl mx-auto">
+              <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+                AZURACAST UPLOAD
+              </h1>
+              <MixUploadToAzuraCast />
+            </div>
+          </div>
+        );
+      case '/admin/mix-manager':
+        return (
+          <div className="min-h-screen bg-[#FEFCF9] p-6">
+            <div className="max-w-6xl mx-auto">
+              <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+                MIX MANAGER - Upload, Publish & Schedule
+              </h1>
+              <AzuraCastMixManager />
+            </div>
+          </div>
+        );
+      case '/admin/editorial-workflow':
+        return <EditorialWorkflow />;
+      default:
+        return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
+    }
+  };
+
+  return <>{renderAdminPage()}</>;
+}

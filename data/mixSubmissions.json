@@ -47,27 +47,6 @@
     "pushToAzura": false
   },
   {
-    "name": "jarrad",
-    "title": "wthelly",
-    "genre": "other",
-    "about": null,
-    "url": null,
-    "artUrl": "https://i.pinimg.com/736x/9f/28/55/9f2855e01d8ad1492b2bb6bb792eb353.jpg",
-    "source": "upload",
-    "id": 4,
-    "submittedAt": "2025-09-02T05:31:56.660Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null,
-    "metadata": null,
-    "filePath": "uploads/ae07744d796d7a277897fdde9d482084",
-    "fileName": "wthelly(1).mp3",
-    "azuraFilePath": "/var/azuracast/stations/enamorado_radio/media/wthelly(1).mp3",
-    "uploadedAt": "2025-09-02T05:32:42.451Z",
-    "featureOnSite": false,
-    "pushToAzura": true
-  },
-  {
     "title": "gum.mp3 Elevator Music",
     "name": "Elevator Music Live",
     "url": "https://soundcloud.com/elevatormusiclive/gummp3-elevator-music",
@@ -96,5 +75,40 @@
     "metadata": null,
     "featureOnSite": false,
     "pushToAzura": false
+  },
+  {
+    "name": "def not jarrad",
+    "title": "ghettotech & jungle",
+    "genre": "house",
+    "about": "just testing it out man! ",
+    "url": "https://www.mixcloud.com/jarradjones7/ghettotech-and-jungle-mix/",
+    "artUrl": "https://thumbnailer.mixcloud.com/unsafe/600x600/profile/9/f/d/7/874c-7173-44e0-b188-754379a2ce15",
+    "id": 4,
+    "submittedAt": "2025-09-04T23:11:09.221Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null,
+    "metadata": null,
+    "pushToAzura": true,
+    "featureOnSite": false
+  },
+  {
+    "name": "sara g",
+    "title": "sara g presents",
+    "genre": "ambient",
+    "about": "testing",
+    "url": null,
+    "artUrl": null,
+    "source": "upload",
+    "id": 6,
+    "submittedAt": "2025-09-06T23:18:47.664Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "notes": null,
+    "metadata": null,
+    "filePath": "uploads/2774e303d8a61ed9a1b49cdbff62ac04",
+    "fileName": "wthelly(1).mp3",
+    "pushToAzura": true,
+    "featureOnSite": false
   }
 ]
