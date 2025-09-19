@@ -4,27 +4,18 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 
+// Updated to match actual server response from /api/public/mixes
 interface DjSubmission {
   id: number;
-  djName: string;
-  demoMixTitle: string;
-  demoMixDescription: string;
-  primaryGenre: string;
-  showLength: number;
-  soundcloudUrl?: string;
-  mixcloudUrl?: string;
-  audiocomUrl?: string;
-  otherUrl?: string;
-  status: string;
+  name: string;
+  title: string;
+  genre: string;
+  about: string;
+  url: string;
+  artUrl?: string;
+  metadata: any;
   submittedAt: string;
-  reviewedAt?: string;
-  thumbnail?: string;
-  dynamicTitle?: string;
-  dynamicArtist?: string;
-  name?: string; // Added for potential name mapping
-  genre?: string; // Added for potential genre mapping
-  title?: string; // Added for potential title mapping
-  about?: string; // Added for potential description mapping
+  featureOnSite?: boolean;
 }
 
 interface Mix {
@@ -40,57 +31,33 @@ interface Mix {
   featured?: boolean;
 }
 
-// Hardcoded featured mixes as requested
-const FEATURED_MIXES: Mix[] = [
-  {
-    id: 1,
-    title: "New Mix (Mostly Footwork/Juke)",
-    artist: "Scumbag Jones",
-    description: "A high-energy mix featuring the best of Chicago footwork and juke music",
-    thumbnailUrl: "",
-    platform: 'soundcloud',
-    url: "https://soundcloud.com/scumbagjones1/new-mix-mostly-footwork-juke",
-    genre: ["Juke", "Footwork"],
-    featured: true
-  },
-  {
-    id: 2,
-    title: "GUMMP3",
-    artist: "Elevator Music",
-    description: "Experimental club sounds and boundary-pushing electronic music",
-    thumbnailUrl: "",
-    platform: 'soundcloud',
-    url: "https://soundcloud.com/elevatormusiclive/gummp3-elevator-music",
-    genre: ["Experimental", "Club"],
-    featured: true
-  },
-  {
-    id: 3,
-    title: "Florida Man FM (7/25/23)",
-    artist: "454",
-    description: "Florida-core rap meets underground sounds from the sunshine state",
-    thumbnailUrl: "",
-    platform: 'soundcloud',
-    url: "https://soundcloud.com/user-626444105/454-presents-florida-man-fm-250723",
-    genre: ["Rap", "Florida-core"],
-    featured: true
-  }
-];
+// Featured mixes now come directly from admin-approved content
 
 export default function MixesLanding() {
   const [currentMixIndex, setCurrentMixIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
 
-  // Fetch community submissions (recent submissions regardless of approval)
-  const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/mixes', { community: 'true' }],
-    refetchInterval: 30000, // Refresh every 30 seconds for fresh content
+  // Fetch admin-approved featured mixes (professional content controlled by admin)
+  const { data: featuredMixes = [] } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/public/mixes/featured'],
+    refetchInterval: 30000, // Refresh every 30 seconds for admin changes
   });
 
-  // Fetch all approved submissions for the All Mixes section
-  const { data: allSubmissions = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/mixes'],
-    refetchInterval: 60000, // Refresh every minute
+  // Fetch recent community submissions (limited for "Fresh from Community" section)
+  const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/public/mixes', { limit: 4 }],
+    queryFn: async () => {
+      const response = await fetch('/api/public/mixes?limit=4');
+      if (!response.ok) throw new Error('Failed to fetch community submissions');
+      return response.json();
+    },
+    refetchInterval: 30000,
+  });
+
+  // Fetch all approved mixes for "All Mixes" section
+  const { data: allApprovedMixes = [] } = useQuery<DjSubmission[]>({
+    queryKey: ['/api/public/mixes'],
+    refetchInterval: 30000,
   });
 
   // Function to fetch SoundCloud thumbnails using our server proxy
@@ -121,82 +88,58 @@ export default function MixesLanding() {
   };
 
   // Convert DJ submissions to Mix format with proper SoundCloud URL handling
+  // Convert server response to display format
   const convertSubmissionToMix = (submission: DjSubmission): Mix => {
-    const getMainUrl = () => {
-      if (submission.soundcloudUrl) return submission.soundcloudUrl;
-      if (submission.audiocomUrl) return submission.audiocomUrl;
-      if (submission.otherUrl) return submission.otherUrl;
-      return submission.url || '';
-    };
-
     const getPlatform = (): 'soundcloud' | 'mixcloud' | 'audio' | 'mp3' | 'wav' => {
-      const url = getMainUrl();
+      const url = submission.url;
       if (url.includes('soundcloud.com')) return 'soundcloud';
       if (url.includes('mixcloud.com')) return 'mixcloud';
+      if (url.match(/\.(mp3|m4a|aac|ogg|wav)$/i)) return 'mp3';
       return 'audio';
     };
 
-    const getDuration = () => {
-      if (submission.showLength) {
-        const minutes = Math.floor(submission.showLength / 60);
-        const seconds = submission.showLength % 60;
-        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
-      }
-      return undefined;
-    };
-
-    // Get the best available thumbnail
-    const thumbnailUrl = submission.thumbnail || 
-                         (submission as any).artUrl || 
-                         submission.metadata?.imageUrl || 
-                         submission.metadata?.thumbnail_url || 
-                         '';
-
     return {
       id: submission.id,
-      title: submission.dynamicTitle || submission.title || submission.demoMixTitle,
-      artist: submission.name || submission.dynamicArtist || submission.djName,
-      description: submission.about || submission.demoMixDescription,
-      thumbnailUrl,
+      title: submission.title,
+      artist: submission.name,
+      description: submission.about,
+      thumbnailUrl: submission.artUrl || '',
       platform: getPlatform(),
-      url: getMainUrl(),
-      duration: getDuration(),
-      genre: submission.genre ? [submission.genre] : (submission.primaryGenre ? [submission.primaryGenre] : []),
-      featured: (submission as any).featureOnSite || false,
-      metadata: submission.metadata // Preserve metadata for fallback
-    } as Mix & { metadata?: any };
+      url: submission.url,
+      duration: undefined,
+      genre: submission.genre ? [submission.genre] : [],
+      featured: submission.featureOnSite || false
+    };
   };
 
-  // Use hardcoded featured mixes
-  const featuredMixes: Mix[] = FEATURED_MIXES;
-
-  // Convert all approved submissions to all mixes
-  const approvedSubmissions = allSubmissions.filter(s => s.status === 'approved');
-  const allMixes: Mix[] = approvedSubmissions.map(convertSubmissionToMix);
+  // Convert admin-approved content to display format (REAL content controlled by admin!)
+  const displayFeaturedMixes = featuredMixes.map(convertSubmissionToMix);
+  const displayCommunitySubmissions = communitySubmissions.map(convertSubmissionToMix);
+  const displayCommunityMixes = allApprovedMixes.map(convertSubmissionToMix);
 
   // State for storing fetched thumbnails (now primarily for featured mixes only)
   const [thumbnailCache, setThumbnailCache] = useState<Record<number, string>>({});
 
-  // Populate thumbnails for hardcoded featured mixes only - submissions now come with metadata from API
+  // Enhanced thumbnails for admin-approved featured content
   useEffect(() => {
     const populateThumbnails = async () => {
-      // Fetch thumbnails for hardcoded featured mixes only
-      for (const mix of featuredMixes) {
-        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id]) {
+      // Enhance thumbnails for admin-approved featured mixes
+      for (const mix of displayFeaturedMixes) {
+        if (mix.platform === 'soundcloud' && mix.url && !thumbnailCache[mix.id] && !mix.thumbnailUrl) {
           try {
             const thumbnail = await fetchSoundCloudThumbnail(mix.url);
             if (thumbnail) {
               setThumbnailCache(prev => ({ ...prev, [mix.id]: thumbnail }));
             }
           } catch (error) {
-            console.log(`Failed to fetch thumbnail for featured mix ${mix.id}`);
+            console.log(`Failed to fetch enhanced thumbnail for featured mix ${mix.id}`);
           }
         }
       }
     };
 
     populateThumbnails();
-  }, [featuredMixes.length]); // Depend on length to re-run if FEATURED_MIXES changes
+  }, [displayFeaturedMixes.length]); // Update when admin approves new featured content
 
   const scrollToMix = (index: number) => {
     setCurrentMixIndex(index);
@@ -210,36 +153,36 @@ export default function MixesLanding() {
   };
 
   const nextMix = () => {
-    const nextIndex = (currentMixIndex + 1) % featuredMixes.length;
+    const nextIndex = (currentMixIndex + 1) % displayFeaturedMixes.length;
     scrollToMix(nextIndex);
   };
 
   const prevMix = () => {
-    const prevIndex = currentMixIndex === 0 ? featuredMixes.length - 1 : currentMixIndex - 1;
+    const prevIndex = currentMixIndex === 0 ? displayFeaturedMixes.length - 1 : currentMixIndex - 1;
     scrollToMix(prevIndex);
   };
 
-  // Auto-advance carousel every 8 seconds
+  // Auto-advance carousel every 8 seconds (admin-controlled content)
   useEffect(() => {
-    if (featuredMixes.length === 0) return;
+    if (displayFeaturedMixes.length === 0) return;
 
     const interval = setInterval(() => {
-      setCurrentMixIndex((prevIndex) => (prevIndex + 1) % featuredMixes.length);
+      setCurrentMixIndex((prevIndex) => (prevIndex + 1) % displayFeaturedMixes.length);
     }, 8000);
 
     return () => clearInterval(interval);
-  }, [featuredMixes.length]);
+  }, [displayFeaturedMixes.length]);
 
   // Update carousel scroll position when currentMixIndex changes
   useEffect(() => {
-    if (carouselRef.current && featuredMixes.length > 0) {
+    if (carouselRef.current && displayFeaturedMixes.length > 0) {
       const mixWidth = carouselRef.current.offsetWidth;
       carouselRef.current.scrollTo({
         left: currentMixIndex * mixWidth,
         behavior: 'smooth'
       });
     }
-  }, [currentMixIndex, featuredMixes.length]);
+  }, [currentMixIndex, displayFeaturedMixes.length]);
 
   const extractSoundCloudId = (url: string): string | null => {
     // Simplified extraction, assuming the API or oEmbed handles the full resolution
@@ -326,14 +269,14 @@ export default function MixesLanding() {
             <button
               onClick={prevMix}
               className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={featuredMixes.length <= 1}
+              disabled={displayFeaturedMixes.length <= 1}
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={nextMix}
               className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={featuredMixes.length <= 1}
+              disabled={displayFeaturedMixes.length <= 1}
             >
               <ChevronRight className="w-6 h-6" />
             </button>
@@ -343,7 +286,7 @@ export default function MixesLanding() {
               ref={carouselRef}
               className="flex overflow-x-hidden scroll-smooth"
             >
-              {featuredMixes.map((mix, index) => (
+              {displayFeaturedMixes.map((mix, index) => (
                 <div
                   key={mix.id}
                   className="w-full flex-shrink-0 px-4"
@@ -415,7 +358,7 @@ export default function MixesLanding() {
 
             {/* Carousel Indicators */}
             <div className="flex justify-center mt-6 space-x-2">
-              {featuredMixes.map((_, index) => (
+              {displayFeaturedMixes.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => scrollToMix(index)}
@@ -452,17 +395,17 @@ export default function MixesLanding() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {communitySubmissions.slice(0, 4).map((submission) => (
+              {displayCommunitySubmissions.map((submission) => (
                 <div
                   key={submission.id}
                   className="bg-gray-50 border-2 border-black rounded-lg p-4 hover:border-red-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
                 >
                   {/* Community Submission Thumbnail */}
                   <div className="aspect-square bg-white rounded-lg mb-3 overflow-hidden relative border-2 border-black">
-                    {(submission.thumbnail || submission.metadata?.imageUrl || submission.metadata?.thumbnail_url || (submission as any).artUrl) ? (
+                    {(submission.artUrl || submission.metadata?.imageUrl) ? (
                       <img 
-                        src={submission.thumbnail || submission.metadata?.imageUrl || submission.metadata?.thumbnail_url || (submission as any).artUrl} 
-                        alt={`${submission.dynamicTitle || submission.title} by ${submission.name || submission.dynamicArtist}`}
+                        src={submission.artUrl || submission.metadata?.imageUrl || ''} 
+                        alt={`${submission.title} by ${submission.name}`}
                         className="w-full h-full object-cover"
                         onError={(e) => {
                           console.log('Thumbnail failed to load:', e.currentTarget.src);
@@ -476,7 +419,7 @@ export default function MixesLanding() {
                     ) : null}
                     <div 
                       className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
-                        (submission.thumbnail || submission.metadata?.imageUrl || submission.metadata?.thumbnail_url || (submission as any).artUrl) ? 'hidden' : 'flex'
+                        (submission.artUrl || submission.metadata?.imageUrl) ? 'hidden' : 'flex'
                       }`}
                     >
                       <div className="text-gray-400 text-center">
@@ -485,14 +428,10 @@ export default function MixesLanding() {
                       </div>
                     </div>
 
-                    {/* Status Badge */}
+                    {/* Community Badge - No confusing admin status chips */}
                     <div className="absolute top-2 right-2">
-                      <span className={`px-2 py-1 text-xs font-mono ${
-                        submission.status === 'approved' 
-                          ? 'bg-green-500 text-white' 
-                          : 'bg-blue-500 text-white'
-                      }`}>
-                        {submission.status === 'approved' ? 'FEATURED' : 'NEW'}
+                      <span className="px-2 py-1 text-xs font-mono bg-blue-500 text-white">
+                        COMMUNITY
                       </span>
                     </div>
 
@@ -503,8 +442,8 @@ export default function MixesLanding() {
                         className="bg-white text-black hover:bg-gray-200 text-xs px-2 py-1"
                         onClick={(e) => {
                           e.stopPropagation();
-                          if (submission.soundcloudUrl) {
-                            window.open(submission.soundcloudUrl, '_blank');
+                          if (submission.url) {
+                            window.open(submission.url, '_blank');
                           }
                         }}
                       >
@@ -517,32 +456,30 @@ export default function MixesLanding() {
                   {/* Community Submission Info */}
                   <div className="space-y-1">
                     <h3 className="font-bold text-sm leading-tight font-mono">
-                      {submission.dynamicTitle || submission.title || submission.demoMixTitle}
+                      {submission.title}
                     </h3>
                     <p className="text-gray-600 font-mono text-xs">
-                      {submission.name || submission.dynamicArtist || submission.djName}
+                      {submission.name}
                     </p>
 
                     {/* Genre & Duration */}
                     <div className="flex items-center justify-between text-xs">
                       <span className="bg-red-500 text-white px-2 py-1 font-mono">
-                        {submission.primaryGenre}
-                      </span>
-                      <span className="text-gray-500 font-mono">
-                        {submission.showLength}min
+                        {submission.genre}
                       </span>
                     </div>
 
                     {/* Platform Link */}
-                    {submission.soundcloudUrl && (
+                    {submission.url && (
                       <a 
-                        href={submission.soundcloudUrl} 
+                        href={submission.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
                         className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-red-500 gap-1 mt-1"
                       >
                         <ExternalLink className="h-3 w-3" />
-                        SOUNDCLOUD
+                        {submission.url.includes('soundcloud') ? 'SOUNDCLOUD' : 
+                         submission.url.includes('mixcloud') ? 'MIXCLOUD' : 'LISTEN'}
                       </a>
                     )}
                   </div>
@@ -557,7 +494,7 @@ export default function MixesLanding() {
           <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">ALL MIXES</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {allMixes.map((mix) => (
+            {displayCommunityMixes.map((mix) => (
               <div
                 key={mix.id}
                 className="bg-gray-50 border-2 border-black rounded-lg p-6 hover:border-red-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group"

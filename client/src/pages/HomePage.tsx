@@ -14,20 +14,18 @@ import LastFmDebugPanel from "@/components/LastFmDebugPanel";
 // Optional util (only needed if your FeaturedMixCard wants it)
 import { getTrackThumbnail } from "@/utils/soundcloud";
 
+// Updated to match server response format
 interface FeaturedSubmission {
   id: number;
-  djName: string;
-  demoMixTitle: string;
-  demoMixDescription: string;
-  primaryGenre: string;
-  showLength: number;
-  soundcloudUrl?: string;
-  mixcloudUrl?: string;
-  audiocomUrl?: string;
-  otherUrl?: string;
-  // commonly present in your data model:
+  name: string;
+  title: string;
+  genre: string;
+  about: string;
+  url: string;
   artUrl?: string;
-  metadata?: { imageUrl?: string };
+  metadata?: any;
+  submittedAt: string;
+  featureOnSite?: boolean;
 }
 
 export default function Home() {
@@ -37,7 +35,7 @@ export default function Home() {
 
   // --- DATA: Featured DJ submissions (for big centered feature) ---
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
-    queryKey: ["/api/dj-submissions/featured"],
+    queryKey: ["/api/public/mixes/featured"],
   });
 
   // --- DATA: Fresh mixes (same cards as /mixes) ---

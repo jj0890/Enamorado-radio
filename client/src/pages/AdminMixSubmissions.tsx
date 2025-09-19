@@ -64,7 +64,10 @@ export default function AdminMixSubmissions() {
         title: "Mix Approved",
         description: "Mix has been approved successfully.",
       });
+      // Invalidate admin cache AND public caches for immediate display update
       queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
     onError: (error: any) => {
       toast({
@@ -85,7 +88,10 @@ export default function AdminMixSubmissions() {
         title: "Mix Featured",
         description: "Mix has been featured successfully.",
       });
+      // Invalidate admin cache AND public caches for immediate display update
       queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
     onError: (error: any) => {
       toast({
@@ -106,7 +112,10 @@ export default function AdminMixSubmissions() {
         title: "Mix Deleted",
         description: "Mix has been deleted successfully.",
       });
+      // Invalidate admin cache AND public caches for immediate display update
       queryClient.invalidateQueries({ queryKey: ['/api/admin/mix-submissions'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
     onError: (error: any) => {
       toast({
