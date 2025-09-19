@@ -89,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingReviews: pendingCount,
         approvedMixes: approvedCount,
         featuredMixes: allMixes.filter(m => m.status === 'featured').length,
-        recentSubmissions: recentSubmissionsArray,
+        recentSubmissions: recentSubmissionsArray.length,
         // Legacy format for AdminDashboard compatibility
         totalMixSubmissions: allMixes.length,
         pendingMixReviews: pendingCount,
