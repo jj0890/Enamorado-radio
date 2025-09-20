@@ -136,18 +136,169 @@ export class MixRouter {
 
   /**
    * Ensure mix is available as local MP3 file
-   * In production: download from source URL and convert if needed
+   * Downloads from SoundCloud/Mixcloud/YouTube and converts to MP3
    */
   private async ensureLocalMp3(mix: MixSubmission): Promise<string> {
-    // For now, create a placeholder path
-    // In production: implement download + conversion logic
-    const safeName = `${mix.name.replace(/[^a-zA-Z0-9]/g, '_')}-${mix.title.replace(/[^a-zA-Z0-9]/g, '_')}.mp3`;
-    const tempPath = `/tmp/mixes/${safeName}`;
+    // Create safe filename - more aggressive sanitization
+    const safeName = `${mix.name.replace(/[^a-zA-Z0-9]/g, '_')}-${mix.title.replace(/[^a-zA-Z0-9]/g, '_')}`
+      .replace(/_+/g, '_')  // Replace multiple underscores with single
+      .replace(/^_|_$/g, '') // Remove leading/trailing underscores
+      .substring(0, 50);     // Limit length
+    const tempPath = `/tmp/mixes/${safeName}.mp3`;
     
-    console.log(`   📁 Local MP3 path: ${tempPath}`);
-    console.log(`   ⚠️  NOTE: In production, implement download from ${mix.url}`);
+    // Check if file already exists
+    const fs = await import('fs');
+    if (fs.existsSync(tempPath)) {
+      console.log(`   ✅ Audio file already exists: ${tempPath}`);
+      return tempPath;
+    }
     
-    return tempPath;
+    console.log(`   🎵 Downloading audio from: ${mix.url}`);
+    console.log(`   📁 Target path: ${tempPath}`);
+    
+    try {
+      // Use yt-dlp to download audio and convert to MP3
+      const { spawn } = await import('child_process');
+      const path = await import('path');
+      
+      // Create unique temp filename for yt-dlp output
+      const outputTemplate = path.join('/tmp/mixes', `${safeName}.%(ext)s`);
+      
+      // Use spawn instead of exec for better control and avoid shell escaping issues
+      const ytDlpArgs = [
+        '--extract-audio',
+        '--audio-format', 'mp3', 
+        '--audio-quality', '192',
+        '--output', outputTemplate,
+        '--no-playlist',
+        '--quiet',
+        mix.url  // No quotes needed with spawn
+      ];
+      
+      console.log(`   🔄 Running: yt-dlp ${ytDlpArgs.join(' ')}`);
+      
+      // Execute yt-dlp using spawn (safer than exec for command injection)
+      const ytDlpProcess = spawn('yt-dlp', ytDlpArgs, {
+        cwd: '/tmp/mixes',
+        stdio: ['ignore', 'pipe', 'pipe']
+      });
+      
+      let stdout = '';
+      let stderr = '';
+      
+      ytDlpProcess.stdout?.on('data', (data) => {
+        stdout += data.toString();
+      });
+      
+      ytDlpProcess.stderr?.on('data', (data) => {
+        stderr += data.toString();
+      });
+      
+      // Wait for process to complete with timeout
+      const processResult = await new Promise<{code: number | null, signal: string | null}>((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          ytDlpProcess.kill();
+          reject(new Error('yt-dlp process timed out after 5 minutes'));
+        }, 300000); // 5 minutes
+        
+        ytDlpProcess.on('close', (code, signal) => {
+          clearTimeout(timeout);
+          resolve({ code, signal });
+        });
+        
+        ytDlpProcess.on('error', (error) => {
+          clearTimeout(timeout);
+          reject(error);
+        });
+      });
+      
+      if (processResult.code !== 0) {
+        throw new Error(`yt-dlp failed with code ${processResult.code}: ${stderr || stdout}`);
+      }
+      
+      if (stderr && !stderr.includes('WARNING')) {
+        console.log(`   ⚠️  yt-dlp stderr: ${stderr}`);
+      }
+      
+      // Verify file was created
+      if (!fs.existsSync(tempPath)) {
+        throw new Error(`Downloaded file not found at ${tempPath}. yt-dlp output: ${stdout}`);
+      }
+      
+      // Check file size
+      const stats = fs.statSync(tempPath);
+      const fileSizeMB = stats.size / (1024 * 1024);
+      console.log(`   ✅ Downloaded ${fileSizeMB.toFixed(1)}MB audio file`);
+      
+      // Add ID3 tags
+      await this.addId3Tags(tempPath, mix);
+      
+      return tempPath;
+      
+    } catch (error) {
+      console.error(`   ❌ Audio download failed: ${error}`);
+      
+      // Create a placeholder file to prevent repeated download attempts
+      const fs = await import('fs');
+      fs.writeFileSync(tempPath + '.failed', `Download failed: ${error}\nURL: ${mix.url}\nTime: ${new Date().toISOString()}`);
+      
+      throw new Error(`Failed to download audio from ${mix.url}: ${error}`);
+    }
+  }
+  
+  /**
+   * Add ID3 tags to downloaded MP3
+   */
+  private async addId3Tags(filePath: string, mix: MixSubmission): Promise<void> {
+    try {
+      const NodeID3 = await import('node-id3');
+      
+      const tags: any = {
+        artist: mix.name || 'Unknown Artist',
+        title: mix.title || 'Untitled Mix',
+        album: 'Enamorado Radio - Community Mixes',
+        genre: mix.genre || 'Electronic',
+        comment: {
+          language: 'eng',
+          shortText: `Original URL: ${mix.url}`
+        },
+        userDefinedText: [
+          {
+            description: 'SOURCE_URL',
+            value: mix.url
+          },
+          {
+            description: 'SUBMITTED_BY',
+            value: mix.name
+          }
+        ]
+      };
+      
+      // Add artwork if available
+      if (mix.coverUrl) {
+        try {
+          const response = await fetch(mix.coverUrl);
+          if (response.ok) {
+            const imageBuffer = Buffer.from(await response.arrayBuffer());
+            tags.image = {
+              mime: 'image/jpeg',
+              type: { id: 3, name: 'front cover' },
+              description: 'Cover Art',
+              imageBuffer: imageBuffer
+            };
+          }
+        } catch (artworkError) {
+          console.log(`   ⚠️  Could not add artwork: ${artworkError}`);
+        }
+      }
+      
+      NodeID3.default.update(tags, filePath);
+      console.log(`   🏷️  Added ID3 tags: ${mix.name} - ${mix.title}`);
+      
+    } catch (error) {
+      console.log(`   ⚠️  Failed to add ID3 tags: ${error}`);
+      // Don't fail the whole process if ID3 tagging fails
+    }
   }
 
   /**

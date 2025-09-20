@@ -1762,7 +1762,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Manual AzuraCast push endpoint
+  // Manual AzuraCast push endpoint (for existing MP3 files)
   app.post('/api/admin/mixes/:id/push-azuracast', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -1789,6 +1789,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('AzuraCast push error:', error);
       res.status(500).json({ success: false, error: String(error) });
+    }
+  });
+
+  // Route mix with audio download and AzuraCast integration
+  app.post('/api/admin/route-mix/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { mixRouter } = await import('./mixRouter');
+      
+      console.log(`🎯 API: Routing mix ${id} with full download pipeline`);
+      const result = await mixRouter.routeMix(id);
+      
+      if (result.success) {
+        res.json(result);
+      } else {
+        res.status(400).json(result);
+      }
+    } catch (error) {
+      console.error('Mix routing API error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Mix routing failed',
+        error: error instanceof Error ? error.message : String(error)
+      });
     }
   });
 
