@@ -61,7 +61,15 @@ export const mixSubmissions = pgTable("mix_submissions", {
   approved_at: timestamp("approved_at"), // null = not approved, timestamp = approved
   featured_at: timestamp("featured_at"), // null = not featured, timestamp = featured
   artwork_url: text("artwork_url"), // Final, absolute URL for card display
-  platform: text("platform"), // "soundcloud" | "mixcloud" | "audiocom" | "file"
+  platform: text("platform"), // "soundcloud" | "mixcloud" | "audiocom" | "file" | "spotify" | "apple" | "youtube"
+  
+  // REFERENCE-ONLY PLATFORM SUPPORT (Spotify, Apple Music, YouTube)
+  playback_mode: text("playback_mode").default("stream"), // "embed" | "file" | "stream"
+  is_radio_ingestable: boolean("is_radio_ingestable").default(true), // false for Spotify/Apple/YouTube
+  requires_alternative: boolean("requires_alternative").default(false), // true for reference-only platforms
+  radio_alt_url: text("radio_alt_url"), // Admin-provided alternative source URL (e.g., SoundCloud)
+  radio_file_path: text("radio_file_path"), // Uploaded MP3/ZIP for radio
+  rights_status: text("rights_status").default("unverified"), // "unverified" | "ok_to_stream"
   
   // LEGACY BOOLEAN FLAGS (kept for backward compatibility during migration)
   featured: boolean("featured").default(false), // Featured status for homepage

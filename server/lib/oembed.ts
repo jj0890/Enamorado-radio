@@ -13,7 +13,6 @@ export async function getOEmbedThumbSafe(originalUrl: string): Promise<{ artUrl?
     }
 
     const res = await fetch(endpoint, { 
-      timeout: 8000,
       headers: {
         'User-Agent': 'EnamoradoRadio/1.0',
         'Accept': 'application/json'

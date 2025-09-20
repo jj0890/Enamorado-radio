@@ -684,6 +684,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/mixes", async (req, res) => {
     try {
       const validatedData = insertMixSubmissionSchema.parse(req.body);
+      
+      // Import platform detection service
+      const { enrichMixSubmissionWithPlatform, setPlatformRoutingDefaults, logPlatformDetection } = await import('./platformDetectionService');
 
       // Check all possible URL fields for direct MP3 links
       const allUrls = [
@@ -700,7 +703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (directMp3Url) {
         // Set the direct MP3 URL as the primary URL
         validatedData.url = directMp3Url;
-        (validatedData as any).platform = 'file';
+        (validatedData as any).platform = 'upload';
         (validatedData as any).source = 'link'; // will become 'upload' after we fetch
 
         // Allow artwork passed from form
@@ -711,27 +714,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         console.log(`🎵 Direct MP3 submission: ${validatedData.title} - ${directMp3Url}`);
       }
-      // Fetch oEmbed thumbnail data for supported platforms
-      else if (validatedData.url) {
-        try {
-          const oembedData = await getOEmbedThumbSafe(validatedData.url);
-          if (oembedData && oembedData.thumbnail_url) {
-            // Store artwork_url from oEmbed for immediate display
-            (validatedData as any).artwork_url = oembedData.thumbnail_url;
-            (validatedData as any).artUrl = oembedData.thumbnail_url; // Legacy field
 
-            // Determine platform from URL
-            let platform = 'file';
-            if (validatedData.url.includes('soundcloud.com')) platform = 'soundcloud';
-            else if (validatedData.url.includes('mixcloud.com')) platform = 'mixcloud';  
-            else if (validatedData.url.includes('audio.com')) platform = 'audiocom';
-            (validatedData as any).platform = platform;
+      // Apply platform detection for all submissions
+      if (validatedData.url) {
+        const platformData = enrichMixSubmissionWithPlatform(validatedData.url);
+        logPlatformDetection(validatedData.url, platformData);
+        
+        // Set platform detection fields
+        (validatedData as any).platform = platformData.platform;
+        (validatedData as any).playback_mode = platformData.playback_mode;
+        (validatedData as any).is_radio_ingestable = platformData.is_radio_ingestable;
+        (validatedData as any).requires_alternative = platformData.requires_alternative;
+        (validatedData as any).rights_status = platformData.rights_status;
+        
+        // Set default routing based on platform
+        const routingDefaults = setPlatformRoutingDefaults(platformData);
+        (validatedData as any).featureOnSite = routingDefaults.featureOnSite;
+        (validatedData as any).pushToAzura = routingDefaults.pushToAzura;
 
-            console.log(`🎨 Fetched thumbnail for ${validatedData.title}: ${oembedData.thumbnail_url}`);
+        // Fetch oEmbed thumbnail data for supported platforms (not reference-only)
+        if (platformData.platform === 'soundcloud' || platformData.platform === 'mixcloud') {
+          try {
+            const oembedData = await getOEmbedThumbSafe(validatedData.url);
+            if (oembedData && oembedData.artUrl) {
+              // Store artwork_url from oEmbed for immediate display
+              (validatedData as any).artwork_url = oembedData.artUrl;
+              (validatedData as any).artUrl = oembedData.artUrl; // Legacy field
+
+              console.log(`🎨 Fetched thumbnail for ${validatedData.title}: ${oembedData.artUrl}`);
+            }
+          } catch (oembedError) {
+            console.log(`⚠️ oEmbed fetch failed for ${validatedData.url}:`, oembedError);
+            // Continue with submission even if oEmbed fails
           }
-        } catch (oembedError) {
-          console.log(`⚠️ oEmbed fetch failed for ${validatedData.url}:`, oembedError);
-          // Continue with submission even if oEmbed fails
         }
       }
 

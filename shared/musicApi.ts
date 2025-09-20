@@ -9,7 +9,7 @@ export interface AlbumInfo {
   mbid?: string;
 }
 
-import { MusicBrainzSearchResponse } from './schemas';
+// import { MusicBrainzSearchResponse } from './schemas';
 
 // MusicBrainz API for album artwork with improved matching
 export async function getAlbumArtwork(artist: string, album: string, releaseYear?: number): Promise<string | null> {
