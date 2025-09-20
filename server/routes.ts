@@ -764,6 +764,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update mix routing settings (featureOnSite, pushToAzura)
+  app.patch('/api/mixes/:id/routing', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { featureOnSite, pushToAzura } = req.body;
+      
+      console.log(`🔄 Updating routing for mix ${id}: featureOnSite=${featureOnSite}, pushToAzura=${pushToAzura}`);
+      
+      const updated = await storage.updateMixSubmission(id, {
+        featureOnSite: featureOnSite,
+        pushToAzura: pushToAzura
+      });
+      
+      // If enabling features, trigger routing workflow
+      if (featureOnSite || pushToAzura) {
+        await mixRouter.routeMix(id);
+        console.log(`✅ Routing workflow completed for mix ${id}`);
+      }
+      
+      res.json({ 
+        success: true, 
+        mix: updated,
+        message: 'Routing settings updated successfully'
+      });
+    } catch (error) {
+      console.error('Error updating mix routing:', error);
+      res.status(500).json({ error: 'Failed to update routing settings' });
+    }
+  });
+
   // Public: Get featured mixes only
   app.get("/api/mixes/featured", async (req, res) => {
     try {

@@ -209,26 +209,48 @@ export default function AdminMixRouting() {
                   </CardContent>
                   
                   <CardFooter className="pt-2">
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => retryMutation.mutate(mix.id)}
-                        disabled={retryMutation.isPending}
-                      >
-                        <RefreshCw className="w-4 h-4 mr-1" />
-                        Retry
-                      </Button>
-                      
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => window.open(mix.url, '_blank')}
-                      >
-                        <Play className="w-4 h-4 mr-1" />
-                        Preview
-                      </Button>
-                    </div>
+                    {selectedMix?.id === mix.id ? (
+                      <UpdateRoutingControls 
+                        mix={mix} 
+                        onUpdate={(updatedMix) => {
+                          // Update the routing flags
+                          queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+                          setSelectedMix(null);
+                        }}
+                        onCancel={() => setSelectedMix(null)}
+                      />
+                    ) : (
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setSelectedMix(mix)}
+                          className="text-blue-600 border-blue-600 hover:bg-blue-50"
+                        >
+                          <Settings className="w-4 h-4 mr-1" />
+                          Edit Routing
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => retryMutation.mutate(mix.id)}
+                          disabled={retryMutation.isPending}
+                        >
+                          <RefreshCw className="w-4 h-4 mr-1" />
+                          Retry
+                        </Button>
+                        
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(mix.url, '_blank')}
+                        >
+                          <Play className="w-4 h-4 mr-1" />
+                          Preview
+                        </Button>
+                      </div>
+                    )}
                   </CardFooter>
                 </Card>
               ))}
@@ -241,6 +263,98 @@ export default function AdminMixRouting() {
         </div>
       </div>
     </div>
+  );
+}
+
+function UpdateRoutingControls({ 
+  mix, 
+  onUpdate, 
+  onCancel 
+}: { 
+  mix: any; 
+  onUpdate: (mix: any) => void; 
+  onCancel: () => void; 
+}) {
+  const [featureOnSite, setFeatureOnSite] = useState(mix.featureOnSite || false);
+  const [pushToAzura, setPushToAzura] = useState(mix.pushToAzura || false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`/api/mixes/${mix.id}/routing`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          featureOnSite,
+          pushToAzura
+        })
+      });
+      
+      if (response.ok) {
+        onUpdate({ ...mix, featureOnSite, pushToAzura });
+      } else {
+        alert('Failed to update routing');
+      }
+    } catch (error) {
+      alert('Error updating routing');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="mt-4 bg-blue-50">
+      <CardHeader>
+        <CardTitle className="text-lg">Update Routing Settings</CardTitle>
+      </CardHeader>
+      
+      <CardContent className="space-y-4">
+        {/* Website Feature Toggle */}
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="update-feature-site" 
+            checked={featureOnSite} 
+            onCheckedChange={setFeatureOnSite}
+          />
+          <Label htmlFor="update-feature-site" className="font-medium">
+            🌐 Feature on Website
+          </Label>
+        </div>
+        <p className="text-sm text-gray-600 ml-6">
+          Show in Latest, Mixes page, and featured collections
+        </p>
+
+        {/* AzuraCast Toggle */}
+        <div className="flex items-center space-x-2">
+          <Switch 
+            id="update-push-azura" 
+            checked={pushToAzura} 
+            onCheckedChange={setPushToAzura}
+          />
+          <Label htmlFor="update-push-azura" className="font-medium">
+            📻 Send to AzuraCast Radio
+          </Label>
+        </div>
+        <p className="text-sm text-gray-600 ml-6">
+          Upload to radio library and add to rotation
+        </p>
+      </CardContent>
+      
+      <CardFooter className="gap-2">
+        <Button 
+          onClick={handleSubmit}
+          disabled={isLoading}
+          className="bg-blue-600 hover:bg-blue-700"
+        >
+          {isLoading ? 'Updating...' : 'Update Routing'}
+        </Button>
+        
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+      </CardFooter>
+    </Card>
   );
 }
 
