@@ -12,8 +12,7 @@
     "notes": "Initial featured mix",
     "metadata": null,
     "featureOnSite": true,
-    "pushToAzura": true,
-    "status": "featured"
+    "pushToAzura": true
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -28,8 +27,7 @@
     "notes": "Initial featured mix",
     "metadata": null,
     "featureOnSite": true,
-    "pushToAzura": true,
-    "status": "featured"
+    "pushToAzura": false
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -43,36 +41,7 @@
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "metadata": null,
-    "featureOnSite": true,
-    "pushToAzura": true,
-    "status": "featured"
-  },
-  {
-    "title": "gum.mp3 Elevator Music",
-    "name": "Elevator Music Live",
-    "url": "https://soundcloud.com/elevatormusiclive/gummp3-elevator-music",
-    "genre": "Ambient",
-    "about": "Atmospheric ambient music perfect for contemplative listening sessions.",
-    "id": 2,
-    "status": "pending",
-    "submittedAt": "2025-09-20T09:41:17.323Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null,
-    "metadata": null
-  },
-  {
-    "title": "New Mix (Mostly Footwork/Juke)",
-    "name": "scumbagjones1",
-    "url": "https://soundcloud.com/scumbagjones1/new-mix-mostly-footwork-juke",
-    "genre": "Electronic",
-    "about": "High-energy footwork and juke tracks curated for the dancefloor.",
-    "id": 3,
-    "status": "pending",
-    "submittedAt": "2025-09-20T09:41:17.395Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "notes": null,
-    "metadata": null
+    "featureOnSite": false,
+    "pushToAzura": false
   }
 ]

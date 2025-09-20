@@ -213,7 +213,9 @@ export default function AdminMixRouting() {
                       <UpdateRoutingControls 
                         mix={mix} 
                         onUpdate={(updatedMix) => {
-                          // Update the routing flags
+                          // Force immediate refetch to bypass HTTP caching
+                          queryClient.refetchQueries({ queryKey: ['/api/mixes', 'approved'] });
+                          queryClient.refetchQueries({ queryKey: ['/api/mixes', 'pending'] });
                           queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
                           setSelectedMix(null);
                         }}

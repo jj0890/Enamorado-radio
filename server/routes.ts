@@ -639,6 +639,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public: Get approved mixes with consistent serialization
   app.get("/api/mixes", async (req, res) => {
     try {
+      // Prevent HTTP caching for admin endpoints to ensure fresh data
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
       const { status = 'approved', genre, limit, offset } = req.query;
 
       // Fetch mixes with timestamp-based filtering
