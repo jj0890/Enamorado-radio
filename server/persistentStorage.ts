@@ -522,6 +522,10 @@ export class FileStorage implements IStorage {
     return this.songSubmissions[index];
   }
 
+  async getSongSubmissionById(id: number): Promise<SongSubmission | undefined> {
+    return this.songSubmissions.find(s => s.id === id);
+  }
+
   // Admin & System
   async getAdminByUsername(username: string): Promise<Admin | undefined> {
     return this.admins.find(a => a.username === username);
@@ -551,5 +555,54 @@ export class FileStorage implements IStorage {
     this.currentPlayback = newPlayback;
     await this.saveData('currentPlayback', this.currentPlayback);
     return newPlayback;
+  }
+
+  // Emergency reset - clear all data
+  async emergencyReset(): Promise<void> {
+    await this.ensureDataDir();
+    
+    try {
+      // Create emergency backup before clearing
+      await backupManager.createBackup('EMERGENCY BACKUP - Before system reset');
+      
+      // Clear all in-memory data
+      this.episodes = [];
+      this.guides = [];
+      this.mixSubmissions = [];
+      this.scheduleItems = [];
+      this.songSubmissions = [];
+      this.admins = [];
+      this.currentPlayback = null;
+      this.nextId = 1;
+      
+      // Delete all data files
+      const files = [
+        'episodes.json',
+        'guides.json',
+        'mixSubmissions.json',
+        'scheduleItems.json',
+        'songSubmissions.json',
+        'admins.json',
+        'currentPlayback.json'
+      ];
+      
+      for (const file of files) {
+        try {
+          const filePath = path.join(this.dataDir, file);
+          await fs.unlink(filePath);
+          console.log(`Deleted ${file}`);
+        } catch (error) {
+          // File might not exist, continue
+        }
+      }
+      
+      // Reset next ID
+      await fs.writeFile(this.nextIdFile, JSON.stringify({ nextId: 1 }));
+      
+      console.log('Emergency reset completed - all data cleared');
+    } catch (error) {
+      console.error('Error during emergency reset:', error);
+      throw error;
+    }
   }
 }

@@ -418,8 +418,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (uploadResult.success) {
-        // Get or create playlist
-        const show = await storage.getShow(parseInt(showId));
+        // Get or create playlist - using episode title as fallback
+        const show = null; // TODO: implement show management later
         const playlistResult = await azuraCastManager.ensurePlaylist(showSlug, show?.title || showSlug);
 
         if (playlistResult.playlistId && uploadResult.azuraFilePath) {
@@ -469,7 +469,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const episodeId = parseInt(req.params.id);
       const { startTime, duration = 3600 } = req.body;
 
-      const episode = await storage.getEpisode(episodeId);
+      const episode = await storage.getEpisodeById(episodeId);
       if (!episode) {
         return res.status(404).json({ error: 'Episode not found' });
       }
@@ -1267,12 +1267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid status' });
       }
       
-      const updated = await storage.updateSongSubmissionStatus(id, {
-        approvalStatus: status,
-        reviewedBy: approvedBy || 'Admin',
-        reviewedAt: new Date().toISOString(),
-        adminNotes: notes || null
-      });
+      const updated = await storage.updateSongSubmissionStatus(id, status);
       
       if (!updated) {
         return res.status(404).json({ error: 'Song submission not found' });
