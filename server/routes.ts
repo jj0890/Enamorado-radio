@@ -276,6 +276,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Backfill thumbnails for existing mixes
+  app.post('/api/admin/backfill-thumbnails', requireAdmin, async (req, res) => {
+    try {
+      console.log('🎨 Starting thumbnail backfill...');
+      const allMixes = await storage.getMixSubmissions({});
+      
+      let updated = 0;
+      let skipped = 0;
+      
+      for (const mix of allMixes) {
+        // Skip if already has artwork
+        if ((mix as any).artUrl || (mix as any).artwork_url) {
+          skipped++;
+          continue;
+        }
+        
+        // Only process SoundCloud/Mixcloud URLs
+        if (!mix.url || (!mix.url.includes('soundcloud.com') && !mix.url.includes('mixcloud.com'))) {
+          skipped++;
+          continue;
+        }
+        
+        try {
+          console.log(`🎨 Fetching artwork for: ${mix.title}`);
+          const oembedData = await getOEmbedThumbSafe(mix.url);
+          
+          if (oembedData && oembedData.artUrl) {
+            // Update the mix with artwork
+            await storage.updateMixSubmission(mix.id, {
+              artUrl: oembedData.artUrl,
+              artwork_url: oembedData.artUrl
+            });
+            console.log(`✅ Updated artwork for: ${mix.title}`);
+            updated++;
+          } else {
+            skipped++;
+          }
+        } catch (error) {
+          console.log(`❌ Failed to fetch artwork for ${mix.title}:`, error);
+          skipped++;
+        }
+      }
+      
+      console.log(`🎨 Backfill complete: ${updated} updated, ${skipped} skipped`);
+      res.json({ success: true, updated, skipped });
+    } catch (error) {
+      console.error('Backfill error:', error);
+      res.status(500).json({ error: 'Backfill failed' });
+    }
+  });
+
   // Get details of a specific backup
   app.get('/api/admin/backups/:backupId', requireAdmin, async (req, res) => {
     try {
