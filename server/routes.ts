@@ -767,6 +767,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mixes = mixes.filter(mix => mix.status === status);
       }
 
+      // Filter by genre if provided (case-insensitive)
+      if (genre) {
+        mixes = mixes.filter(mix => 
+          mix.genre && mix.genre.toLowerCase().includes((genre as string).toLowerCase())
+        );
+      }
+
       // Filter by status only - keep the existing approved status logic
       // Note: approved_at timestamp filtering removed as it was breaking existing approved mixes
 

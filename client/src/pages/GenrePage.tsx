@@ -9,7 +9,7 @@ export default function GenrePage() {
   const { data: mixes = [], isLoading } = useQuery({
     queryKey: ["/api/public/mixes", { genreSlug: slug }],
     queryFn: async () => {
-      const r = await fetch(`/api/public/mixes?genre=${encodeURIComponent(slug)}`, { cache: "no-store" });
+      const r = await fetch(`/api/mixes?genre=${encodeURIComponent(slug)}`, { cache: "no-store" });
       if (!r.ok) throw new Error("Failed to load mixes");
       return r.json();
     },
