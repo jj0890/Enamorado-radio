@@ -33,6 +33,7 @@ import AdminResidentApplications from "./pages/AdminResidentApplications";
 import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
+import GenreDiscovery from "./pages/GenreDiscovery";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -55,6 +56,7 @@ function Router() {
       <Route path="/guides" component={Guides} />
       <Route path="/guide/:id" component={GuideDetail} />
       <Route path="/albums" component={AlbumsPage} />
+      <Route path="/genres" component={GenreDiscovery} />
       <Route path="/genre/:slug" component={GenrePage} />
       <Route path="/mixes" component={MixesLanding} />
       <Route path="/submit-mix" component={SubmitMix} />
