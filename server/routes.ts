@@ -2485,73 +2485,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sync resident applications from Google Sheets (admin only)
   app.post('/api/resident-applications/sync', requireAdmin, async (req, res) => {
     try {
-      const { googleSheetsService } = await import('./googleSheetsService');
+      const { residentApplicationsSync } = await import('./residentApplicationsSync');
       const { spreadsheetId, range = 'A:Z' } = req.body;
       
       if (!spreadsheetId) {
         return res.status(400).json({ error: 'Spreadsheet ID is required' });
       }
 
-      // Get form responses from Google Sheets
-      const formResponses = await googleSheetsService.getFormResponses(spreadsheetId, range);
+      // Configure sync and perform manual sync
+      await residentApplicationsSync.startAutoSync({ 
+        spreadsheetId, 
+        range, 
+        interval: 15 // 15 minutes default
+      });
       
-      let created = 0;
-      let skipped = 0;
-      const errors: string[] = [];
-
-      for (const response of formResponses) {
-        try {
-          // Skip if essential fields are missing
-          if (!response.name || !response.email) {
-            skipped++;
-            continue;
-          }
-
-          // Check if application already exists by email
-          const existingApplications = await storage.getResidentApplications({});
-          const exists = existingApplications.some(app => app.email === response.email);
-          
-          if (exists) {
-            skipped++;
-            continue;
-          }
-
-          // Create new application
-          const applicationData = {
-            name: response.name,
-            alias: response.alias || response.name,
-            email: response.email,
-            phone: response.phone,
-            location: response.location,
-            experience: response.experience,
-            genre: response.genre,
-            bio: response.bio,
-            mixUrl: response.mixUrl,
-            availability: response.availability,
-            showConcept: response.showConcept,
-            equipment: response.equipment,
-            additionalInfo: response.additionalInfo,
-            googleFormResponseId: response.timestamp, // Use timestamp as unique identifier
-          };
-
-          await storage.createResidentApplication(applicationData);
-          created++;
-        } catch (error) {
-          console.error('Error processing form response:', error);
-          errors.push(`Failed to process application for ${response.name || response.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
-        }
-      }
+      const result = await residentApplicationsSync.performSync();
 
       res.json({ 
         success: true, 
-        created, 
-        skipped, 
-        total: formResponses.length,
-        errors: errors.length > 0 ? errors : undefined
+        ...result
       });
     } catch (error) {
       console.error('Error syncing applications:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to sync applications' });
+    }
+  });
+
+  // Start automatic sync (admin only)
+  app.post('/api/resident-applications/sync/start', requireAdmin, async (req, res) => {
+    try {
+      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      const { spreadsheetId, range = 'A:Z', interval = 15 } = req.body;
+      
+      if (!spreadsheetId) {
+        return res.status(400).json({ error: 'Spreadsheet ID is required' });
+      }
+
+      await residentApplicationsSync.startAutoSync({ 
+        spreadsheetId, 
+        range, 
+        interval 
+      });
+
+      res.json({ 
+        success: true,
+        message: `Automatic sync started for spreadsheet ${spreadsheetId}`,
+        config: { spreadsheetId, range, interval }
+      });
+    } catch (error) {
+      console.error('Error starting automatic sync:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to start automatic sync' });
+    }
+  });
+
+  // Stop automatic sync (admin only)
+  app.post('/api/resident-applications/sync/stop', requireAdmin, async (req, res) => {
+    try {
+      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      
+      residentApplicationsSync.stopAutoSync();
+
+      res.json({ 
+        success: true,
+        message: 'Automatic sync stopped'
+      });
+    } catch (error) {
+      console.error('Error stopping automatic sync:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to stop automatic sync' });
+    }
+  });
+
+  // Get sync status (admin only)
+  app.get('/api/resident-applications/sync/status', requireAdmin, async (req, res) => {
+    try {
+      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      
+      const status = residentApplicationsSync.getSyncStatus();
+
+      res.json({ 
+        success: true,
+        ...status
+      });
+    } catch (error) {
+      console.error('Error getting sync status:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to get sync status' });
     }
   });
 
