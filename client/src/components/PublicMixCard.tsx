@@ -63,9 +63,20 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
       <div className="p-4">
         {/* Genre and Date */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
-            Community Mix
-          </span>
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
+              Community Mix
+            </span>
+            {mix.genre && (
+              <Link 
+                href={`/genre/${mix.genre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
+                onClick={(e) => e.stopPropagation()}
+                className="text-xs font-mono text-gray-700 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded uppercase transition-colors"
+              >
+                {mix.genre}
+              </Link>
+            )}
+          </div>
           <div className="text-xs font-mono text-gray-500 flex items-center">
             <Clock className="w-3 h-3 mr-1" />
             {new Date(mix.date || mix.submittedAt || '').toLocaleDateString()}
@@ -83,14 +94,6 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
           </div>
         </div>
 
-        {/* Genre Tag */}
-        <div className="mb-3">
-          {mix.genre && (
-            <Link href={`/genre/${slugify(mix.genre)}`} className="text-xs font-mono text-gray-600 underline">
-              {mix.genre}
-            </Link>
-          )}
-        </div>
 
         {/* Listen Button */}
         <Button 

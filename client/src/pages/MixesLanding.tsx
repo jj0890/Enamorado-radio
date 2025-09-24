@@ -1,8 +1,38 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users, Hash, Music } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+
+// Genre Quick Navigation Component
+function GenreQuickNav() {
+  const { data: genres = [] } = useQuery<Array<{name: string; slug: string; mixCount: number; total: number}>>({
+    queryKey: ["/api/genres"],
+    queryFn: async () => {
+      const r = await fetch("/api/genres", { cache: "no-store" });
+      if (!r.ok) return [];
+      return r.json();
+    },
+  });
+
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+      {genres.slice(0, 6).map((genre) => (
+        <Link key={genre.slug} href={`/genre/${genre.slug}`} className="block">
+          <div className="bg-gray-100 hover:bg-red-500 hover:text-white border-2 border-black p-3 transition-all duration-300 group text-center">
+            <Hash className="w-4 h-4 mx-auto mb-1" />
+            <div className="font-mono font-bold text-xs uppercase tracking-wide mb-1">
+              {genre.name}
+            </div>
+            <div className="font-mono text-xs text-gray-600 group-hover:text-white">
+              {genre.mixCount} mixes
+            </div>
+          </div>
+        </Link>
+      ))}
+    </div>
+  );
+}
 
 // Updated to match actual server response from /api/public/mixes
 interface DjSubmission {
@@ -369,6 +399,18 @@ export default function MixesLanding() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* Browse by Genre */}
+        <section className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold font-mono text-red-500">BROWSE BY GENRE</h2>
+            <Link href="/genres" className="text-red-500 hover:underline font-mono text-sm flex items-center">
+              View All →
+            </Link>
+          </div>
+          
+          <GenreQuickNav />
         </section>
 
         {/* Fresh Community Submissions */}
