@@ -2,8 +2,75 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Calendar, User, Music } from "lucide-react";
+import { ArrowLeft, Play, Calendar, User, Music, Clock } from "lucide-react";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
+import PublicMixCard from "@/components/PublicMixCard";
+
+// Episode Card Component for consistent styling with mixes
+function EpisodeCard({ episode }: { episode: any }) {
+  const handlePlay = () => {
+    window.open(`/episode/${episode.id}`, '_blank');
+  };
+
+  // Fallback artwork for episodes (using genre-based thumbnails)
+  const artwork = episode.artwork || episode.artUrl || `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop`;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+      {/* Artwork */}
+      <div className="aspect-square bg-gray-200 overflow-hidden relative">
+        <img 
+          src={artwork} 
+          alt={episode.title}
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+
+      <div className="p-4">
+        {/* Episode Badge and Date */}
+        <div className="flex items-center justify-between mb-3">
+          <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
+            Episode
+          </span>
+          <div className="text-xs font-mono text-gray-500 flex items-center">
+            <Clock className="w-3 h-3 mr-1" />
+            {new Date(episode.airDate || episode.date).toLocaleDateString()}
+          </div>
+        </div>
+
+        {/* Title */}
+        <div className="mb-2">
+          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-red-500 transition-colors">
+            {episode.title}
+          </h4>
+          <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
+            <User className="w-3 h-3 mr-1" />
+            {episode.hostName || episode.host}
+          </div>
+        </div>
+
+        {/* Genre */}
+        <div className="mb-3">
+          {episode.genre && (
+            <span className="text-xs font-mono text-gray-600">
+              {episode.genre}
+            </span>
+          )}
+        </div>
+
+        {/* Listen Button */}
+        <Button 
+          size="sm" 
+          className="bg-red-500 hover:bg-red-600 text-white font-mono w-full text-sm"
+          onClick={handlePlay}
+        >
+          <Play className="w-4 h-4 mr-2" />
+          Listen
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function LatestPage() {
   const [filter, setFilter] = useState<'all' | 'episodes' | 'mixes'>('all');
@@ -127,88 +194,13 @@ export default function LatestPage() {
 
         {/* Content Grid */}
         {filteredContent.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {filteredContent.map((item: any, index: number) => (
-              <div 
-                key={`${item.type}-${item.id}`} 
-                className="bg-gray-50 border-2 border-black rounded-lg p-6 hover:border-red-500 transition-all duration-300 group"
-              >
-                {/* Content Type Badge */}
-                <div className="flex items-center justify-between mb-4">
-                  <span className="text-xs font-mono text-red-500 uppercase bg-red-50 px-2 py-1 rounded">
-                    {item.type === 'episode' ? 'Episode' : 'Community Mix'}
-                  </span>
-                  <div className="text-xs font-mono text-gray-500 flex items-center">
-                    <Calendar className="w-3 h-3 mr-1" />
-                    {new Date(item.type === 'episode' ? item.airDate : item.submittedAt).toLocaleDateString()}
-                  </div>
-                </div>
-
-                {/* Title and Creator */}
-                <div className="mb-4">
-                  <h3 className="text-xl font-bold font-mono text-gray-900 mb-2 group-hover:text-red-500 transition-colors">
-                    {item.title}
-                  </h3>
-                  <div className="flex items-center text-gray-600 font-mono text-sm">
-                    <User className="w-3 h-3 mr-1" />
-                    {item.type === 'episode' ? item.hostName : item.name}
-                  </div>
-                </div>
-
-                {/* Description */}
-                {(item.description || item.about) && (
-                  <p className="text-gray-600 font-mono text-sm mb-4 line-clamp-3">
-                    {item.type === 'episode' ? item.description : item.about}
-                  </p>
-                )}
-
-                {/* Genre and Duration */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center text-xs font-mono text-gray-500">
-                    <Music className="w-3 h-3 mr-1" />
-                    {item.genre}
-                  </div>
-                  {item.duration && (
-                    <div className="text-xs font-mono text-gray-500">
-                      {Math.floor(item.duration / 60)}:{(item.duration % 60).toString().padStart(2, '0')}
-                    </div>
-                  )}
-                </div>
-
-                {/* Action Button */}
-                <div className="flex items-center justify-between">
-                  {item.type === 'episode' ? (
-                    <Link href={`/episode/${item.id}`} className="flex-1">
-                      <Button 
-                        size="sm" 
-                        className="bg-red-500 hover:bg-red-600 text-white font-mono w-full"
-                      >
-                        <Play className="w-4 h-4 mr-2" />
-                        Listen to Episode
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button 
-                      size="sm" 
-                      className="bg-red-500 hover:bg-red-600 text-white font-mono w-full"
-                      onClick={() => window.open(item.url, '_blank')}
-                    >
-                      <Play className="w-4 h-4 mr-2" />
-                      Listen on Platform
-                    </Button>
-                  )}
-                </div>
-
-                {/* Series Info for Episodes */}
-                {item.type === 'episode' && item.seriesTitle && (
-                  <div className="mt-3 pt-3 border-t border-gray-200">
-                    <div className="text-xs font-mono text-gray-500">
-                      Part of: {item.seriesTitle}
-                      {item.episodeNumber && ` #${item.episodeNumber}`}
-                    </div>
-                  </div>
-                )}
-              </div>
+              item.type === 'mix' ? (
+                <PublicMixCard key={`${item.type}-${item.id}`} mix={item} />
+              ) : (
+                <EpisodeCard key={`${item.type}-${item.id}`} episode={item} />
+              )
             ))}
           </div>
         ) : (

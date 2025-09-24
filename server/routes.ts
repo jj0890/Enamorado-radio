@@ -574,11 +574,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 12;
 
-      // Get recent episodes and approved mix submissions
-      const [episodes, mixes] = await Promise.all([
+      // Get recent episodes and approved/featured mix submissions
+      const [episodes, allMixes] = await Promise.all([
         storage.getEpisodes({ limit: Math.ceil(limit / 2) }),
-        storage.getMixSubmissions({ status: 'approved', limit: Math.ceil(limit / 2) })
+        storage.getMixSubmissions({ limit: 50 })
       ]);
+
+      // Filter mixes to include both approved and featured
+      const mixes = allMixes.filter(mix => 
+        mix.status === 'approved' || mix.status === 'featured'
+      ).slice(0, Math.ceil(limit / 2));
 
       // Combine and sort by date
       const latest = [
