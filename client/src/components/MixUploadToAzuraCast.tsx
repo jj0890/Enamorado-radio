@@ -16,7 +16,7 @@ export default function MixUploadToAzuraCast() {
     mutationFn: async (data: FormData) => {
       setUploadProgress('Uploading to AzuraCast...');
       
-      const response = await fetch('/api/mixes/upload', {
+      const response = await fetch('/api/azuracast/upload-direct', {
         method: 'POST',
         body: data
       });
