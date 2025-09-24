@@ -25,8 +25,8 @@ export class MixRouter {
         return { success: false, message: 'Mix not found' };
       }
 
-      if (mix.status !== 'approved') {
-        return { success: false, message: 'Mix must be approved before routing' };
+      if (mix.status !== 'approved' && mix.status !== 'featured') {
+        return { success: false, message: 'Mix must be approved or featured before routing' };
       }
 
       console.log(`🚀 Routing mix ${mix.id}: "${mix.title}" by ${mix.name}`);
