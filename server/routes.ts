@@ -1788,17 +1788,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Mix must be approved before processing' });
       }
 
-      // Process for AzuraCast
-      const processed = await audioProcessor.processSubmissionForAzuraCast(mix);
+      // Set up progress listener for this specific mix
+      const progressListener = (progressData: any) => {
+        if (progressData.mixId === mixId) {
+          broadcast({
+            type: 'audioProgress',
+            data: progressData
+          });
+        }
+      };
 
-      if (processed) {
-        res.json({ 
-          success: true, 
-          message: 'Mix processed for AzuraCast upload',
-          tempDir: audioProcessor.getTempDirectory()
-        });
-      } else {
-        res.status(500).json({ error: 'Failed to process mix' });
+      audioProcessor.on('progress', progressListener);
+
+      try {
+        // Process for AzuraCast
+        const processed = await audioProcessor.processSubmissionForAzuraCast(mix);
+
+        if (processed) {
+          res.json({ 
+            success: true, 
+            message: 'Mix processed for AzuraCast upload',
+            tempDir: audioProcessor.getTempDirectory()
+          });
+        } else {
+          res.status(500).json({ error: 'Failed to process mix' });
+        }
+      } finally {
+        // Clean up listener
+        audioProcessor.removeListener('progress', progressListener);
       }
     } catch (error) {
       res.status(500).json({ error: 'Processing failed', message: error.message });

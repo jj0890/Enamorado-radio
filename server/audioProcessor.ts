@@ -4,11 +4,13 @@
 import fs from 'fs';
 import path from 'path';
 import * as NodeID3 from 'node-id3';
+import { EventEmitter } from 'events';
 
-export class AudioProcessor {
+export class AudioProcessor extends EventEmitter {
   private tempDir: string;
 
   constructor() {
+    super();
     this.tempDir = path.join(process.cwd(), 'temp_audio');
     // Ensure temp directory exists
     if (!fs.existsSync(this.tempDir)) {
@@ -24,9 +26,23 @@ export class AudioProcessor {
       const fileName = this.sanitizeFileName(`${mixSubmission.name}-${mixSubmission.title}.mp3`);
       const localPath = path.join(this.tempDir, fileName);
       
+      // Emit initial progress
+      this.emit('progress', {
+        mixId: mixSubmission.id,
+        stage: 'initializing',
+        progress: 0,
+        message: 'Starting download...'
+      });
+      
       // Check if file already exists
       if (fs.existsSync(localPath)) {
         console.log(`✅ Audio file already exists: ${localPath}`);
+        this.emit('progress', {
+          mixId: mixSubmission.id,
+          stage: 'complete',
+          progress: 100,
+          message: 'File already exists'
+        });
         return true;
       }
       
@@ -44,13 +60,52 @@ export class AudioProcessor {
           '--no-playlist',
           '--embed-thumbnail',
           '--add-metadata',
+          '--progress',
+          '--newline',
           mixSubmission.url
         ]);
 
         let stderr = '';
+        let startTime = Date.now();
         
         ytdlp.stdout.on('data', (data) => {
-          console.log(`yt-dlp: ${data.toString().trim()}`);
+          const output = data.toString().trim();
+          console.log(`yt-dlp: ${output}`);
+          
+          // Parse progress from yt-dlp output
+          const progressMatch = output.match(/\[download\]\s+(\d+(?:\.\d+)?)%/);
+          const speedMatch = output.match(/(\d+(?:\.\d+)?(?:K|M|G)?iB\/s)/);
+          const etaMatch = output.match(/ETA\s+(\d+:\d+)/);
+          const sizeMatch = output.match(/of\s+([\d.]+(?:K|M|G)?iB)/);
+          
+          if (progressMatch) {
+            const progress = parseFloat(progressMatch[1]);
+            const speed = speedMatch ? speedMatch[1] : 'calculating...';
+            const eta = etaMatch ? etaMatch[1] : 'unknown';
+            const totalSize = sizeMatch ? sizeMatch[1] : 'unknown';
+            const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
+            
+            this.emit('progress', {
+              mixId: mixSubmission.id,
+              stage: 'downloading',
+              progress: Math.round(progress),
+              speed,
+              eta,
+              totalSize,
+              elapsed: `${elapsed}s`,
+              message: `Downloading at ${speed}`
+            });
+          }
+          
+          // Check for conversion/post-processing
+          if (output.includes('[ExtractAudio]') || output.includes('Converting')) {
+            this.emit('progress', {
+              mixId: mixSubmission.id,
+              stage: 'converting',
+              progress: 95,
+              message: 'Converting to MP3...'
+            });
+          }
         });
 
         ytdlp.stderr.on('data', (data) => {
@@ -62,6 +117,13 @@ export class AudioProcessor {
           if (code === 0) {
             console.log(`✅ Downloaded: ${fileName}`);
             
+            this.emit('progress', {
+              mixId: mixSubmission.id,
+              stage: 'tagging',
+              progress: 98,
+              message: 'Adding metadata tags...'
+            });
+            
             // Add ID3 tags
             try {
               await this.tagLocalMp3(localPath, mixSubmission.name, mixSubmission.title);
@@ -69,15 +131,34 @@ export class AudioProcessor {
               console.warn('⚠️ Failed to add ID3 tags, but download succeeded');
             }
             
+            this.emit('progress', {
+              mixId: mixSubmission.id,
+              stage: 'complete',
+              progress: 100,
+              message: 'Download completed successfully!'
+            });
+            
             resolve(true);
           } else {
             console.error(`❌ yt-dlp failed with code ${code}: ${stderr}`);
+            this.emit('progress', {
+              mixId: mixSubmission.id,
+              stage: 'error',
+              progress: 0,
+              message: `Download failed: ${stderr}`
+            });
             reject(new Error(`Audio download failed: ${stderr}`));
           }
         });
 
         ytdlp.on('error', (error) => {
           console.error(`❌ Failed to spawn yt-dlp:`, error);
+          this.emit('progress', {
+            mixId: mixSubmission.id,
+            stage: 'error',
+            progress: 0,
+            message: `Process failed: ${error.message}`
+          });
           reject(error);
         });
       });
