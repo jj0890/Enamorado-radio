@@ -2382,15 +2382,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { limit } = req.query;
       const allMixes = await storage.getMixSubmissions({});
 
-      // Filter for approved mixes only, featured first
+      // Filter for mixes that should appear on website (approved OR featured status)
       const approvedMixes = allMixes
-        .filter(mix => (mix as any).pushToAzura)
+        .filter(mix => mix.status === 'approved' || mix.status === 'featured')
         .sort((a, b) => {
-          // Featured mixes first
-          const aFeatured = (a as any).featureOnSite || false;
-          const bFeatured = (b as any).featureOnSite || false;
-          if (aFeatured && !bFeatured) return -1;
-          if (!aFeatured && bFeatured) return 1;
+          // Featured mixes first, then approved
+          if (a.status === 'featured' && b.status !== 'featured') return -1;
+          if (a.status !== 'featured' && b.status === 'featured') return 1;
           return 0;
         })
         .slice(0, limit ? parseInt(limit as string) : 12); // Limit to 12 to avoid endless scroll
@@ -2407,9 +2405,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { limit } = req.query;
       const allMixes = await storage.getMixSubmissions({});
 
-      // Filter for approved AND featured mixes only
+      // Filter for featured mixes only
       const featuredMixes = allMixes
-        .filter(mix => (mix as any).pushToAzura && (mix as any).featureOnSite)
+        .filter(mix => mix.status === 'featured')
         .slice(0, limit ? parseInt(limit as string) : 8);
 
       res.json(featuredMixes.map(sanitizeMix));
@@ -2424,7 +2422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(id);
 
-      if (!mix || !(mix as any).pushToAzura) {
+      if (!mix || (mix.status !== 'approved' && mix.status !== 'featured')) {
         return res.status(404).json({ error: 'Mix not found' });
       }
 
