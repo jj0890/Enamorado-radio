@@ -26,7 +26,7 @@ interface PublicMixCardProps {
 
 export default function PublicMixCard({ mix }: PublicMixCardProps) {
   // Robust artwork fallback chain
-  const artwork = mix.artUrl || (mix as any).coverUrl || mix.metadata?.imageUrl || null;
+  const artwork = mix.artwork || mix.artUrl || (mix as any).coverUrl || mix.metadata?.imageUrl || null;
 
   const handlePlay = () => {
     const url = (mix as any).fileUrl || (mix as any).streamUrl || mix.url;
