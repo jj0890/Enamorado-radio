@@ -21,37 +21,67 @@ export class AudioProcessor {
     try {
       console.log(`🎧 Processing ${mixSubmission.title} for AzuraCast upload...`);
       
-      // For now, we'll create a placeholder approach since actual audio extraction
-      // from SoundCloud/Mixcloud requires specialized libraries
-      
       const fileName = this.sanitizeFileName(`${mixSubmission.name}-${mixSubmission.title}.mp3`);
       const localPath = path.join(this.tempDir, fileName);
       
-      // TODO: Implement actual audio download/conversion
-      // For demonstration, we'll create a metadata file that AzuraCast can read
-      const metadataContent = JSON.stringify({
-        title: mixSubmission.title,
-        artist: mixSubmission.name,
-        genre: mixSubmission.genre,
-        originalUrl: mixSubmission.url,
-        submittedAt: new Date().toISOString()
-      }, null, 2);
+      // Check if file already exists
+      if (fs.existsSync(localPath)) {
+        console.log(`✅ Audio file already exists: ${localPath}`);
+        return true;
+      }
       
-      const metadataPath = path.join(this.tempDir, `${fileName}.json`);
-      fs.writeFileSync(metadataPath, metadataContent);
+      console.log(`📥 Downloading audio from: ${mixSubmission.url}`);
       
-      console.log(`📝 Created metadata file for ${fileName}`);
+      // Use yt-dlp to download audio from SoundCloud/Mixcloud
+      const { spawn } = await import('child_process');
       
-      // In a real implementation, you would:
-      // 1. Use youtube-dl or similar to extract audio
-      // 2. Convert to MP3 using ffmpeg
-      // 3. Add proper ID3 tags
-      // 4. Then upload to AzuraCast
+      return new Promise((resolve, reject) => {
+        const ytdlp = spawn('yt-dlp', [
+          '--extract-audio',
+          '--audio-format', 'mp3',
+          '--audio-quality', '0', // Best quality
+          '--output', localPath.replace('.mp3', '.%(ext)s'), // yt-dlp will add .mp3 extension
+          '--no-playlist',
+          '--embed-thumbnail',
+          '--add-metadata',
+          mixSubmission.url
+        ]);
+
+        let stderr = '';
+        
+        ytdlp.stdout.on('data', (data) => {
+          console.log(`yt-dlp: ${data.toString().trim()}`);
+        });
+
+        ytdlp.stderr.on('data', (data) => {
+          stderr += data.toString();
+          console.log(`yt-dlp: ${data.toString().trim()}`);
+        });
+
+        ytdlp.on('close', async (code) => {
+          if (code === 0) {
+            console.log(`✅ Downloaded: ${fileName}`);
+            
+            // Add ID3 tags
+            try {
+              await this.tagLocalMp3(localPath, mixSubmission.name, mixSubmission.title);
+            } catch (tagError) {
+              console.warn('⚠️ Failed to add ID3 tags, but download succeeded');
+            }
+            
+            resolve(true);
+          } else {
+            console.error(`❌ yt-dlp failed with code ${code}: ${stderr}`);
+            reject(new Error(`Audio download failed: ${stderr}`));
+          }
+        });
+
+        ytdlp.on('error', (error) => {
+          console.error(`❌ Failed to spawn yt-dlp:`, error);
+          reject(error);
+        });
+      });
       
-      console.log(`⚠️  Manual step required: Download ${mixSubmission.url} as MP3 and place at ${localPath}`);
-      console.log(`   Then the system will automatically upload to AzuraCast`);
-      
-      return true;
     } catch (error) {
       console.error('❌ Audio processing failed:', error);
       return false;

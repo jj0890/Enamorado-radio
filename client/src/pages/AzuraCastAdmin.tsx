@@ -188,6 +188,28 @@ export default function AzuraCastAdmin() {
             </div>
           </div>
 
+          {/* Downloaded Files Location */}
+          <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+            <h3 className="font-semibold text-yellow-900 mb-3">Downloaded Files Location</h3>
+            <div className="space-y-2">
+              <div className="text-sm text-yellow-800">
+                <p><strong>Download Directory:</strong> <code className="bg-yellow-100 px-2 py-1 rounded text-xs">/home/runner/workspace/temp_audio/</code></p>
+                <p><strong>File Format:</strong> <code className="bg-yellow-100 px-2 py-1 rounded text-xs">artist-title.mp3</code></p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText('/home/runner/workspace/temp_audio/');
+                  alert('Download path copied to clipboard!');
+                }}
+                className="bg-white hover:bg-yellow-50 border-yellow-300"
+              >
+                📋 Copy Download Path
+              </Button>
+            </div>
+          </div>
+
           {/* Direct AzuraCast Links */}
           <div className="p-4 bg-green-50 rounded-lg border border-green-200">
             <h3 className="font-semibold text-green-900 mb-3">View Uploaded Files</h3>
@@ -195,10 +217,10 @@ export default function AzuraCastAdmin() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open('http://24.199.109.18/station/enamorado_radio/files#/var/azuracast/stations/enamorado_radio/media', '_blank')}
+                onClick={() => window.open('http://24.199.109.18/station/1/files/Approved%20Mixes', '_blank')}
                 className="bg-white hover:bg-green-50 border-green-300"
               >
-                📁 View Media Files in AzuraCast
+                📁 View Approved Mixes in AzuraCast
               </Button>
               <Button
                 variant="outline"
@@ -211,7 +233,7 @@ export default function AzuraCastAdmin() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open('http://24.199.109.18/station/enamorado_radio', '_blank')}
+                onClick={() => window.open('http://24.199.109.18/station/1/', '_blank')}
                 className="bg-white hover:bg-green-50 border-green-300"
               >
                 ⚙️ Station Dashboard

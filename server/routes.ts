@@ -1287,25 +1287,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/azuracast/process-mix/:id", async (req, res) => {
-    try {
-      const mixId = parseInt(req.params.id);
-      const mix = await storage.getMixSubmission(mixId);
-      if (!mix) {
-        return res.status(404).json({ error: 'Mix not found' });
-      }
-
-      // Here you would download the audio and convert to MP3
-      // For now, just return success for the workflow
-      res.json({ 
-        success: true, 
-        message: 'Mix processed - ready for manual MP3 placement' 
-      });
-    } catch (error) {
-      console.error('Error processing mix:', error);
-      res.status(500).json({ error: 'Failed to process mix' });
-    }
-  });
 
   app.post("/api/azuracast/upload/:id", async (req, res) => {
     try {
