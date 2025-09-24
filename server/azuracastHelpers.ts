@@ -11,7 +11,14 @@ const headers = {
 };
 
 export async function rescanLibrary() {
-  await axios.post(`${base}/api/station/${station}/files/rescan`, {}, { headers });
+  try {
+    // Use admin endpoint (more reliable than station endpoint)
+    await axios.post(`${base}/api/admin/station/${station}/files/rescan`, {}, { headers });
+    console.log('✅ AzuraCast library rescan completed');
+  } catch (error: any) {
+    console.warn('⚠️ AzuraCast library rescan failed:', error.response?.status, error.response?.statusText);
+    // Don't throw - treat as non-critical for workflow
+  }
 }
 
 export async function ensurePlaylist(name: string) {

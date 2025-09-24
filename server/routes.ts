@@ -844,9 +844,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`🔄 Updating routing for mix ${id}: featureOnSite=${featureOnSite}, pushToAzura=${pushToAzura}`);
       
+      // Determine correct status based on boolean flags
+      let status = 'pending';
+      if (featureOnSite) {
+        status = 'featured';
+      } else if (pushToAzura) {
+        status = 'approved';
+      }
+      
       const updated = await storage.updateMixSubmission(id, {
         featureOnSite: featureOnSite,
-        pushToAzura: pushToAzura
+        pushToAzura: pushToAzura,
+        status: status // 🔥 SYNC STATUS FIELD!
       });
       
       // If enabling features, trigger routing workflow

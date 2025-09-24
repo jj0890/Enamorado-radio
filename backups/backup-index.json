@@ -1,5 +1,12 @@
 [
   {
+    "id": "backup-2025-09-24T02-04-40-220Z",
+    "timestamp": "2025-09-24T02:04:40.220Z",
+    "size": 5879,
+    "reason": "Before deleting mix submission 12",
+    "fileCount": 3
+  },
+  {
     "id": "backup-2025-09-23T08-07-37-961Z",
     "timestamp": "2025-09-23T08:07:37.961Z",
     "size": 2983,
