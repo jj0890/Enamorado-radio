@@ -14,6 +14,10 @@ import MixesPage from "./pages/MixesPage";
 import SubmitMix from "./pages/SubmitMix-clean";
 import AdminAuthWrapper from "./components/AdminAuthWrapper";
 
+// Genre pages
+import GenrePage from "./pages/GenrePage";
+import GenreDiscovery from "./pages/GenreDiscovery";
+
 // Legacy compatibility - keep radio functionality
 import MobileRadio from "./pages/MobileRadio";
 
@@ -31,6 +35,10 @@ function Router() {
       <Route path="/schedule" component={SchedulePage} />
       <Route path="/mixes" component={MixesPage} />
       <Route path="/submit-mix" component={SubmitMix} />
+      
+      {/* Genre routes */}
+      <Route path="/genres" component={GenreDiscovery} />
+      <Route path="/genre/:slug" component={GenrePage} />
       
       {/* Admin - explicit routes */}
       <Route path="/admin" component={AdminAuthWrapper} />
