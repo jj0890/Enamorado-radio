@@ -1,9 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, Play, CheckCircle, AlertCircle, RefreshCw, FolderOpen, Download } from 'lucide-react';
 
 export default function AzuraCastAdmin() {
   const queryClient = useQueryClient();
+  const [processingMixId, setProcessingMixId] = useState<number | null>(null);
+  const [uploadingMixId, setUploadingMixId] = useState<number | null>(null);
 
   // Get approved mixes ready for AzuraCast upload
   const { data: approvedMixes = [] } = useQuery({
@@ -34,28 +37,36 @@ export default function AzuraCastAdmin() {
 
   // Process mix for upload mutation
   const processMutation = useMutation({
-    mutationFn: (mixId: number) => 
-      fetch(`/api/azuracast/process-mix/${mixId}`, { method: 'POST' }).then(res => res.json()),
+    mutationFn: (mixId: number) => {
+      setProcessingMixId(mixId);
+      return fetch(`/api/azuracast/process-mix/${mixId}`, { method: 'POST' }).then(res => res.json());
+    },
     onSuccess: () => {
       alert("Mix processed successfully! Check Downloaded Files section below.");
       queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
       refetchFiles(); // Refresh the downloaded files list
+      setProcessingMixId(null);
     },
     onError: () => {
       alert("Failed to process mix for AzuraCast");
+      setProcessingMixId(null);
     }
   });
 
   // Upload to AzuraCast mutation
   const uploadMutation = useMutation({
-    mutationFn: (mixId: number) => 
-      fetch(`/api/azuracast/upload/${mixId}`, { method: 'POST' }).then(res => res.json()),
+    mutationFn: (mixId: number) => {
+      setUploadingMixId(mixId);
+      return fetch(`/api/azuracast/upload/${mixId}`, { method: 'POST' }).then(res => res.json());
+    },
     onSuccess: () => {
       alert("Mix uploaded to AzuraCast successfully!");
       queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      setUploadingMixId(null);
     },
     onError: () => {
       alert("Failed to upload mix to AzuraCast");
+      setUploadingMixId(null);
     }
   });
 
@@ -160,22 +171,22 @@ export default function AzuraCastAdmin() {
                     
                     <Button
                       onClick={() => processMutation.mutate(mix.id)}
-                      disabled={processMutation.isPending}
+                      disabled={processingMixId === mix.id}
                       size="sm"
                     >
                       <Upload className="w-4 h-4 mr-1" />
-                      {processMutation.isPending ? 'Processing...' : 'Process'}
+                      {processingMixId === mix.id ? 'Processing...' : 'Process'}
                     </Button>
                     
                     <Button
                       onClick={() => uploadMutation.mutate(mix.id)}
-                      disabled={uploadMutation.isPending}
+                      disabled={uploadingMixId === mix.id}
                       variant="default"
                       size="sm"
                       className="bg-red-600 hover:bg-red-700"
                     >
                       <Upload className="w-4 h-4 mr-1" />
-                      {uploadMutation.isPending ? 'Uploading...' : 'Upload to AzuraCast'}
+                      {uploadingMixId === mix.id ? 'Uploading...' : 'Upload to AzuraCast'}
                     </Button>
                   </div>
                 </div>
