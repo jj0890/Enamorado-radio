@@ -4,6 +4,7 @@ import {
   MixSubmission, 
   Schedule, 
   SongSubmission,
+  ResidentApplication,
   Admin,
   CurrentPlayback,
   InsertEpisode,
@@ -11,6 +12,7 @@ import {
   InsertMixSubmission,
   InsertSchedule,
   InsertSongSubmission,
+  InsertResidentApplication,
   InsertAdmin,
   InsertCurrentPlayback
 } from "@shared/schema";
@@ -55,6 +57,14 @@ export interface IStorage {
   createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission>;
   updateSongSubmissionStatus(id: number, status: string): Promise<SongSubmission>;
 
+  // Resident Applications - DJ/Host applications
+  getResidentApplications(filters?: { status?: string; priority?: string; limit?: number }): Promise<ResidentApplication[]>;
+  getResidentApplicationById(id: number): Promise<ResidentApplication | undefined>;
+  createResidentApplication(application: InsertResidentApplication): Promise<ResidentApplication>;
+  updateResidentApplication(id: number, updates: Partial<ResidentApplication>): Promise<ResidentApplication>;
+  updateResidentApplicationStatus(id: number, status: string, notes?: string): Promise<ResidentApplication>;
+  deleteResidentApplication(id: number): Promise<void>;
+
   // Admin & System
   getAdminByUsername(username: string): Promise<Admin | undefined>;
   createAdmin(admin: InsertAdmin): Promise<Admin>;
@@ -69,6 +79,7 @@ class MemStorage implements IStorage {
   private mixSubmissions: MixSubmission[] = [];
   private scheduleItems: Schedule[] = [];
   private songSubmissions: SongSubmission[] = [];
+  private residentApplications: ResidentApplication[] = [];
   private admins: Admin[] = [];
   private currentPlayback: CurrentPlayback | null = null;
   private nextId = 1;
@@ -389,6 +400,82 @@ class MemStorage implements IStorage {
       reviewedAt: new Date()
     };
     return this.songSubmissions[index];
+  }
+
+  // Resident Applications
+  async getResidentApplications(filters?: { status?: string; priority?: string; limit?: number }): Promise<ResidentApplication[]> {
+    let filtered = [...this.residentApplications];
+    
+    if (filters?.status) {
+      filtered = filtered.filter(a => a.status === filters.status);
+    }
+    
+    if (filters?.priority) {
+      filtered = filtered.filter(a => a.priority === filters.priority);
+    }
+    
+    // Sort by submitted date descending (most recent first)
+    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    return filtered;
+  }
+
+  async getResidentApplicationById(id: number): Promise<ResidentApplication | undefined> {
+    return this.residentApplications.find(a => a.id === id);
+  }
+
+  async createResidentApplication(application: InsertResidentApplication): Promise<ResidentApplication> {
+    const newApplication: ResidentApplication = {
+      ...application,
+      id: this.nextId++,
+      status: 'submitted',
+      reviewStage: 'initial',
+      priority: 'normal',
+      isActiveResident: false,
+      onboardingCompleted: false,
+      submittedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.residentApplications.push(newApplication);
+    return newApplication;
+  }
+
+  async updateResidentApplication(id: number, updates: Partial<ResidentApplication>): Promise<ResidentApplication> {
+    const index = this.residentApplications.findIndex(a => a.id === id);
+    if (index === -1) throw new Error('Resident application not found');
+    
+    this.residentApplications[index] = { 
+      ...this.residentApplications[index], 
+      ...updates, 
+      updatedAt: new Date() 
+    };
+    return this.residentApplications[index];
+  }
+
+  async updateResidentApplicationStatus(id: number, status: string, notes?: string): Promise<ResidentApplication> {
+    const index = this.residentApplications.findIndex(a => a.id === id);
+    if (index === -1) throw new Error('Resident application not found');
+    
+    this.residentApplications[index] = {
+      ...this.residentApplications[index],
+      status,
+      reviewNotes: notes || this.residentApplications[index].reviewNotes,
+      reviewedAt: new Date(),
+      updatedAt: new Date()
+    };
+    return this.residentApplications[index];
+  }
+
+  async deleteResidentApplication(id: number): Promise<void> {
+    const index = this.residentApplications.findIndex(a => a.id === id);
+    if (index !== -1) {
+      this.residentApplications.splice(index, 1);
+    }
   }
 
   // Admin & System
