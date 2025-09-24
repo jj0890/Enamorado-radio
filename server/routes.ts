@@ -687,6 +687,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // MIX SUBMISSIONS API
   // =================
 
+  // Admin: Get all mix submissions with status filtering
+  app.get("/api/admin/mixes", requireAdmin, async (req, res) => {
+    try {
+      console.log('🔍 ADMIN ENDPOINT CALLED: /api/admin/mixes');
+      console.log('🔍 Query params:', req.query);
+      
+      // Prevent HTTP caching for admin endpoints to ensure fresh data
+      res.set({
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      const { status, genre, limit, offset } = req.query;
+
+      // Fetch mixes with admin-level filtering (all statuses)
+      let mixes = await storage.getMixSubmissions({
+        status: status as string,
+        genre: genre as string,
+        limit: limit ? parseInt(limit as string) : undefined
+      });
+
+      console.log('🔍 Raw storage data:', mixes.map(m => ({ id: m.id, title: m.title, status: (m as any).status })));
+
+      // Apply offset if specified
+      if (offset) {
+        const offsetNum = parseInt(offset as string);
+        mixes = mixes.slice(offsetNum);
+      }
+
+      // Serialize with consistent format
+      const serializedMixes = mixes.map(serializeMix);
+
+      console.log('🔍 Serialized data:', serializedMixes.map(m => ({ id: m.id, title: m.title, status: m.status })));
+      console.log(`GET /api/admin/mixes - Found ${serializedMixes.length} mixes with status: ${status || 'all'}, genre: ${genre || 'undefined'}`);
+      res.json(serializedMixes);
+    } catch (error) {
+      console.error('Error fetching admin mixes:', error);
+      res.status(500).json({ error: 'Failed to fetch mixes' });
+    }
+  });
+
   // Public: Get approved mixes with consistent serialization
   app.get("/api/mixes", async (req, res) => {
     try {
@@ -1583,7 +1624,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   };
 
   // Initialize featured mixes on server start
-  initFeaturedMixes().catch(console.error);
+  // initFeaturedMixes().catch(console.error); // Disabled to prevent data corruption
 
   // =================
   // AZURACAST INTEGRATION ROUTES

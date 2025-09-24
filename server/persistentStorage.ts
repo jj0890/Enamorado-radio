@@ -37,23 +37,32 @@ export class FileStorage implements IStorage {
     this.loadData();
   }
 
-  // Migrate old status-based data to new boolean flag structure
+  // Migrate data to ensure both status field and boolean flags are properly set
   private migrateMixData(mix: any): MixSubmission {
-    // Handle old string-based status format
+    // Preserve status field as primary source of truth, set boolean flags based on status
     if (mix.status && typeof mix.status === 'string') {
       const newMix = {
         ...mix,
-        featureOnSite: mix.status === 'featured' || mix.status === 'approved',
-        pushToAzura: mix.status === 'featured' || mix.status === 'approved'
+        // Keep the status field as canonical source of truth
+        status: mix.status,
+        // Set boolean flags based on status for backward compatibility
+        featureOnSite: mix.status === 'featured',
+        pushToAzura: mix.status === 'approved' || mix.status === 'featured'
       };
-      // Remove old status field
-      delete newMix.status;
       return newMix;
     }
     
-    // Ensure boolean fields exist with defaults
+    // If no status field, infer it from boolean flags (legacy data)
+    let status = 'pending';
+    if (mix.featureOnSite) {
+      status = 'featured';
+    } else if (mix.pushToAzura) {
+      status = 'approved';
+    }
+    
     return {
       ...mix,
+      status,
       featureOnSite: mix.featureOnSite ?? false,
       pushToAzura: mix.pushToAzura ?? false
     };
@@ -275,15 +284,15 @@ export class FileStorage implements IStorage {
   async getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number; approved?: boolean; featured?: boolean }): Promise<MixSubmission[]> {
     let filtered = [...this.mixSubmissions];
     
-    // Handle legacy status filtering by mapping to new boolean structure
+    // Use status field as primary filter, fall back to boolean flags for legacy data
     if (filters?.status) {
       console.log(`FileStorage: Filtering by status: ${filters.status}`);
       if (filters.status === 'approved') {
-        filtered = filtered.filter(m => (m as any).featureOnSite === true || (m as any).pushToAzura === true);
+        filtered = filtered.filter(m => (m as any).status === 'approved');
       } else if (filters.status === 'featured') {
-        filtered = filtered.filter(m => (m as any).featureOnSite === true);
+        filtered = filtered.filter(m => (m as any).status === 'featured');
       } else if (filters.status === 'pending') {
-        filtered = filtered.filter(m => !(m as any).featureOnSite && !(m as any).pushToAzura);
+        filtered = filtered.filter(m => (m as any).status === 'pending');
       } else if (filters.status === 'all') {
         // Return all mixes
       }

@@ -27,9 +27,27 @@ export function serializeMix(row: MixSubmission): UIMix {
   else if (row.url?.includes('audio.com')) platform = 'audiocom';
   else if (row.url) platform = 'file';
 
-  // Use approved_at and featured_at timestamps as source of truth, including status field
-  const featured = !!(row as any).featured_at || (row as any).featured || (row as any).featureOnSite || row.status === 'featured';
-  const approved = featured || !!(row as any).approved_at || (row as any).pushToAzura || row.status === 'approved';
+  // Use status field as primary source of truth, fall back to boolean flags
+  let status: 'pending' | 'approved' | 'featured' = 'pending';
+  
+  if (row.status) {
+    // Use the canonical status field if it exists
+    status = row.status as 'pending' | 'approved' | 'featured';
+  } else {
+    // Fall back to boolean flags for legacy data
+    const featureOnSite = (row as any).featureOnSite || !!(row as any).featured_at || (row as any).featured;
+    const pushToAzura = (row as any).pushToAzura || !!(row as any).approved_at;
+    
+    if (featureOnSite) {
+      status = 'featured';
+    } else if (pushToAzura) {
+      status = 'approved';
+    }
+  }
+
+  // Set boolean flags based on status for backward compatibility
+  const featured = status === 'featured';
+  const approved = status === 'approved' || status === 'featured';
 
   // Priority order for date: featured_at > approved_at > created_at > submittedAt
   const date = (row as any).featured_at || 
@@ -37,9 +55,6 @@ export function serializeMix(row: MixSubmission): UIMix {
                row.createdAt || 
                row.submittedAt || 
                new Date();
-
-  // Determine status string based on approval hierarchy
-  const status = featured ? 'featured' : (approved ? 'approved' : 'pending');
 
   return {
     id: row.id,

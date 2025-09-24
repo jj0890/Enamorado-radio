@@ -46,7 +46,7 @@ export default function AdminMixSubmissions() {
 
   // Get mix submissions
   const { data: allSubmissions = [], isLoading } = useQuery<MixSubmission[]>({
-    queryKey: ['/api/mixes'],
+    queryKey: ['/api/admin/mixes'],
   });
 
   // Filter submissions by status
@@ -65,7 +65,7 @@ export default function AdminMixSubmissions() {
         description: "Mix has been approved successfully.",
       });
       // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
@@ -89,7 +89,7 @@ export default function AdminMixSubmissions() {
         description: "Mix has been featured successfully.",
       });
       // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
@@ -113,7 +113,7 @@ export default function AdminMixSubmissions() {
         description: "Mix has been deleted successfully.",
       });
       // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
@@ -137,7 +137,7 @@ export default function AdminMixSubmissions() {
         description: data.message || "All mix submissions have been permanently deleted.",
       });
       // Invalidate all caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
       queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
