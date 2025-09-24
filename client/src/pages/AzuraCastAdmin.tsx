@@ -176,14 +176,50 @@ export default function AzuraCastAdmin() {
           )}
         </div>
 
-        {/* Instructions */}
-        <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-          <h3 className="font-semibold text-blue-900 mb-2">Upload Instructions</h3>
-          <div className="text-sm text-blue-800 space-y-1">
-            <p>1. <strong>Process:</strong> Creates metadata and prepares the mix for upload</p>
-            <p>2. <strong>Manual Step:</strong> Download the audio as MP3 and place in the temp directory</p>
-            <p>3. <strong>Upload:</strong> Automatically uploads MP3 to AzuraCast via SFTP and adds to rotation</p>
-            <p>4. <strong>Result:</strong> Mix becomes available in your AzuraCast station's auto-playlist</p>
+        {/* Instructions and AzuraCast Links */}
+        <div className="space-y-4">
+          <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+            <h3 className="font-semibold text-blue-900 mb-2">Upload Instructions</h3>
+            <div className="text-sm text-blue-800 space-y-1">
+              <p>1. <strong>Process:</strong> Creates metadata and prepares the mix for upload</p>
+              <p>2. <strong>Manual Step:</strong> Download the audio as MP3 and place in the temp directory</p>
+              <p>3. <strong>Upload:</strong> Automatically uploads MP3 to AzuraCast via SFTP and adds to rotation</p>
+              <p>4. <strong>Result:</strong> Mix becomes available in your AzuraCast station's auto-playlist</p>
+            </div>
+          </div>
+
+          {/* Direct AzuraCast Links */}
+          <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+            <h3 className="font-semibold text-green-900 mb-3">View Uploaded Files</h3>
+            <div className="flex flex-wrap gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('http://24.199.109.18/station/enamorado_radio/files#/var/azuracast/stations/enamorado_radio/media', '_blank')}
+                className="bg-white hover:bg-green-50 border-green-300"
+              >
+                📁 View Media Files in AzuraCast
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('http://24.199.109.18/public/enamorado_radio', '_blank')}
+                className="bg-white hover:bg-green-50 border-green-300"
+              >
+                📻 Public Player
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('http://24.199.109.18/station/enamorado_radio', '_blank')}
+                className="bg-white hover:bg-green-50 border-green-300"
+              >
+                ⚙️ Station Dashboard
+              </Button>
+            </div>
+            <p className="text-sm text-green-700 mt-2">
+              After processing, your files will appear in the Media Files section under "Community Mixes" folder.
+            </p>
           </div>
         </div>
       </div>

@@ -10,7 +10,11 @@ function buildAzuraFilename(artist: string, title: string, d = new Date()) {
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   const safe = (s: string) => s.replace(/[\/\\:*?"<>|]/g, '').trim();
-  return `${safe(artist || 'Unknown')} — ${safe(title || 'Untitled')} (${y}-${m}-${day}).mp3`;
+  
+  // Remove existing .mp3 extension from title to prevent double extensions
+  const cleanTitle = (title || 'Untitled').replace(/\.mp3$/i, '');
+  
+  return `${safe(artist || 'Unknown')} — ${safe(cleanTitle)} (${y}-${m}-${day}).mp3`;
 }
 
 export class AzuraCastIntegration {
