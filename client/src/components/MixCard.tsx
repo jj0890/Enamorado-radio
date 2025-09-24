@@ -62,8 +62,9 @@ export default function MixCard({
   useEffect(() => {
     let ignore = false;
     async function fetchSoundCloudArtwork() {
-      // Only fetch if we don't already have artwork and it's a SoundCloud URL
-      if (artwork || !mix.url?.includes('soundcloud.com')) return;
+      // Fetch if we don't have real artwork (detect placeholder URLs) and it's a SoundCloud URL
+      const hasPlaceholderArt = !artwork || artwork.includes('example.com');
+      if (!hasPlaceholderArt || !mix.url?.includes('soundcloud.com')) return;
       
       try {
         console.log('Fetching artwork for mix:', mix.id, mix.url);
