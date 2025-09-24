@@ -2,11 +2,13 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Upload, Play, CheckCircle, AlertCircle, RefreshCw, FolderOpen, Download } from 'lucide-react';
+import ProgressTracker from '@/components/ProgressTracker';
 
 export default function AzuraCastAdmin() {
   const queryClient = useQueryClient();
   const [processingMixId, setProcessingMixId] = useState<number | null>(null);
   const [uploadingMixId, setUploadingMixId] = useState<number | null>(null);
+  const [processingMixTitle, setProcessingMixTitle] = useState<string>('');
 
   // Get approved mixes ready for AzuraCast upload
   const { data: approvedMixes = [] } = useQuery({
@@ -37,19 +39,20 @@ export default function AzuraCastAdmin() {
 
   // Process mix for upload mutation
   const processMutation = useMutation({
-    mutationFn: (mixId: number) => {
+    mutationFn: ({ mixId, mixTitle }: { mixId: number; mixTitle: string }) => {
       setProcessingMixId(mixId);
+      setProcessingMixTitle(mixTitle);
       return fetch(`/api/azuracast/process-mix/${mixId}`, { method: 'POST' }).then(res => res.json());
     },
     onSuccess: () => {
-      alert("Mix processed successfully! Check Downloaded Files section below.");
+      // Don't show alert immediately - let progress tracker handle completion
       queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
       refetchFiles(); // Refresh the downloaded files list
-      setProcessingMixId(null);
     },
     onError: () => {
       alert("Failed to process mix for AzuraCast");
       setProcessingMixId(null);
+      setProcessingMixTitle('');
     }
   });
 
@@ -170,7 +173,7 @@ export default function AzuraCastAdmin() {
                     </Button>
                     
                     <Button
-                      onClick={() => processMutation.mutate(mix.id)}
+                      onClick={() => processMutation.mutate({ mixId: mix.id, mixTitle: mix.title })}
                       disabled={processingMixId === mix.id}
                       size="sm"
                     >
@@ -194,6 +197,29 @@ export default function AzuraCastAdmin() {
             </div>
           )}
         </div>
+
+        {/* Progress Tracker */}
+        {processingMixId && (
+          <div className="mb-8 flex justify-center">
+            <ProgressTracker 
+              mixId={processingMixId}
+              mixTitle={processingMixTitle}
+              onComplete={() => {
+                setProcessingMixId(null);
+                setProcessingMixTitle('');
+                // Show success message after progress completes
+                setTimeout(() => {
+                  alert("Mix processed successfully! Check Downloaded Files section below.");
+                }, 500);
+              }}
+              onError={(error) => {
+                setProcessingMixId(null);
+                setProcessingMixTitle('');
+                alert(`Processing failed: ${error}`);
+              }}
+            />
+          </div>
+        )}
 
         {/* Instructions and AzuraCast Links */}
         <div className="space-y-4">
