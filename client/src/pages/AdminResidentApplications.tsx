@@ -154,12 +154,27 @@ export default function AdminResidentApplications() {
 
   // Sync from Google Sheets mutation
   const syncMutation = useMutation({
-    mutationFn: (spreadsheetId: string) =>
-      fetch('/api/resident-applications/sync', {
+    mutationFn: async (spreadsheetId: string) => {
+      const response = await fetch('/api/resident-applications/sync', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ spreadsheetId })
-      }).then(res => res.json()),
+      });
+      
+      if (!response.ok) {
+        let errorMessage = 'Failed to sync applications';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          // If response isn't JSON, use status text
+          errorMessage = response.statusText || errorMessage;
+        }
+        throw new Error(errorMessage);
+      }
+      
+      return response.json();
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['/api/resident-applications'] });
       toast({ 
@@ -171,7 +186,7 @@ export default function AdminResidentApplications() {
     onError: (error: any) => {
       toast({ 
         title: 'Sync failed', 
-        description: error.message, 
+        description: error.message || 'Failed to connect to Google Sheets. Check your credentials and spreadsheet ID.',
         variant: 'destructive' 
       });
     }

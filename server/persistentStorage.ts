@@ -6,6 +6,7 @@ import {
   MixSubmission, 
   Schedule, 
   SongSubmission,
+  ResidentApplication,
   Admin,
   CurrentPlayback,
   InsertEpisode,
@@ -13,6 +14,7 @@ import {
   InsertMixSubmission,
   InsertSchedule,
   InsertSongSubmission,
+  InsertResidentApplication,
   InsertAdmin,
   InsertCurrentPlayback
 } from "@shared/schema";
@@ -29,6 +31,7 @@ export class FileStorage implements IStorage {
   private mixSubmissions: MixSubmission[] = [];
   private scheduleItems: Schedule[] = [];
   private songSubmissions: SongSubmission[] = [];
+  private residentApplications: ResidentApplication[] = [];
   private admins: Admin[] = [];
   private currentPlayback: CurrentPlayback | null = null;
   private nextId = 1;
@@ -92,6 +95,7 @@ export class FileStorage implements IStorage {
         'mixSubmissions.json',
         'scheduleItems.json',
         'songSubmissions.json',
+        'residentApplications.json',
         'admins.json',
         'currentPlayback.json'
       ];
@@ -117,6 +121,9 @@ export class FileStorage implements IStorage {
               break;
             case 'songSubmissions.json':
               this.songSubmissions = parsed || [];
+              break;
+            case 'residentApplications.json':
+              this.residentApplications = parsed || [];
               break;
             case 'admins.json':
               this.admins = parsed || [];
@@ -536,6 +543,89 @@ export class FileStorage implements IStorage {
     return this.songSubmissions.find(s => s.id === id);
   }
 
+  // Resident Applications
+  async getResidentApplications(filters?: { status?: string; priority?: string; limit?: number }): Promise<ResidentApplication[]> {
+    let filtered = [...this.residentApplications];
+    
+    if (filters?.status) {
+      filtered = filtered.filter(a => a.status === filters.status);
+    }
+    
+    if (filters?.priority) {
+      filtered = filtered.filter(a => a.priority === filters.priority);
+    }
+    
+    // Sort by submitted date descending (most recent first)
+    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    return filtered;
+  }
+
+  async getResidentApplicationById(id: number): Promise<ResidentApplication | undefined> {
+    return this.residentApplications.find(a => a.id === id);
+  }
+
+  async createResidentApplication(application: InsertResidentApplication): Promise<ResidentApplication> {
+    const newApplication: ResidentApplication = {
+      ...application,
+      id: this.nextId++,
+      status: 'submitted',
+      reviewStage: 'initial',
+      priority: 'normal',
+      isActiveResident: false,
+      onboardingCompleted: false,
+      submittedAt: new Date(),
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.residentApplications.push(newApplication);
+    await this.saveData('residentApplications', this.residentApplications);
+    return newApplication;
+  }
+
+  async updateResidentApplication(id: number, updates: Partial<ResidentApplication>): Promise<ResidentApplication> {
+    const index = this.residentApplications.findIndex(a => a.id === id);
+    if (index === -1) throw new Error('Resident application not found');
+    
+    this.residentApplications[index] = { 
+      ...this.residentApplications[index], 
+      ...updates, 
+      updatedAt: new Date() 
+    };
+    await this.saveData('residentApplications', this.residentApplications);
+    return this.residentApplications[index];
+  }
+
+  async updateResidentApplicationStatus(id: number, status: string, notes?: string): Promise<ResidentApplication> {
+    const index = this.residentApplications.findIndex(a => a.id === id);
+    if (index === -1) throw new Error('Resident application not found');
+    
+    this.residentApplications[index] = {
+      ...this.residentApplications[index],
+      status,
+      reviewNotes: notes || this.residentApplications[index].reviewNotes,
+      reviewedAt: new Date(),
+      updatedAt: new Date()
+    };
+    await this.saveData('residentApplications', this.residentApplications);
+    return this.residentApplications[index];
+  }
+
+  async deleteResidentApplication(id: number): Promise<void> {
+    const index = this.residentApplications.findIndex(a => a.id === id);
+    if (index !== -1) {
+      // Create backup before destructive operation
+      await backupManager.createBackup(`Before deleting resident application ${id}`);
+      
+      this.residentApplications.splice(index, 1);
+      await this.saveData('residentApplications', this.residentApplications);
+    }
+  }
+
   // Admin & System
   async getAdminByUsername(username: string): Promise<Admin | undefined> {
     return this.admins.find(a => a.username === username);
@@ -581,6 +671,7 @@ export class FileStorage implements IStorage {
       this.mixSubmissions = [];
       this.scheduleItems = [];
       this.songSubmissions = [];
+      this.residentApplications = [];
       this.admins = [];
       this.currentPlayback = null;
       this.nextId = 1;
@@ -592,6 +683,7 @@ export class FileStorage implements IStorage {
         'mixSubmissions.json',
         'scheduleItems.json',
         'songSubmissions.json',
+        'residentApplications.json',
         'admins.json',
         'currentPlayback.json'
       ];

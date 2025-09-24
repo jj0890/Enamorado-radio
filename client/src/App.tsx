@@ -33,6 +33,7 @@ import AdminResidentApplications from "./pages/AdminResidentApplications";
 import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
+import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
   console.log('🌐 App Router rendering...');
@@ -87,6 +88,7 @@ function App() {
       <div className="min-h-screen bg-[#FEFCF9]">
         <Router />
         <StickyRadioPlayer />
+        <Toaster />
       </div>
     </QueryClientProvider>
   );
