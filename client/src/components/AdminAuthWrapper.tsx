@@ -11,6 +11,7 @@ import AdminQueue from "@/pages/AdminQueue";
 import AzuraCastAdmin from "@/pages/AzuraCastAdmin";
 import AdminMixRouting from "@/pages/AdminMixRouting";
 import AdminEpisodeUpload from "@/pages/AdminEpisodeUpload";
+import AdminResidentApplications from "@/pages/AdminResidentApplications";
 import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
@@ -117,6 +118,8 @@ export default function AdminAuthWrapper() {
         return <AdminDangerZone />;
       case '/admin/editorial-workflow':
         return <EditorialWorkflow />;
+      case '/admin/resident-applications':
+        return <AdminResidentApplications />;
       default:
         return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
     }

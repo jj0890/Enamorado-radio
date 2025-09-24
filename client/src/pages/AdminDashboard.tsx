@@ -25,6 +25,10 @@ interface AdminStats {
   pendingMixReviews: number;
   approvedMixes: number;
   featuredMixes: number;
+  totalApplications: number;
+  pendingApplications: number;
+  approvedApplications: number;
+  activeResidents: number;
   totalShows: number;
   liveShows: number;
   totalEpisodes: number;
@@ -45,6 +49,7 @@ const navItems = [
   
   // Community
   { href: "/admin/dj-applications", label: "DJ Applications", icon: Users, category: "community" },
+  { href: "/admin/resident-applications", label: "Resident Applications", icon: Users, category: "community" },
   { href: "/admin/queue", label: "Queue", icon: PlayCircle, category: "community" },
   
   // AzuraCast Integration
@@ -252,6 +257,42 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
                     <p className="text-3xl font-bold font-mono">{stats.totalEpisodes}</p>
                   </div>
                   <BarChart3 className="w-8 h-8 text-gray-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-mono text-gray-600">Total Applications</p>
+                    <p className="text-3xl font-bold font-mono text-blue-600">{stats.totalApplications || 0}</p>
+                  </div>
+                  <Users className="w-8 h-8 text-blue-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-mono text-gray-600">Pending Applications</p>
+                    <p className="text-3xl font-bold font-mono text-orange-600">{stats.pendingApplications || 0}</p>
+                  </div>
+                  <AlertTriangle className="w-8 h-8 text-orange-500" />
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-mono text-gray-600">Active Residents</p>
+                    <p className="text-3xl font-bold font-mono text-green-600">{stats.activeResidents || 0}</p>
+                  </div>
+                  <Badge className="bg-green-100 text-green-800">★</Badge>
                 </div>
               </CardContent>
             </Card>

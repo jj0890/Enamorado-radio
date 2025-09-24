@@ -23,6 +23,7 @@ import {
   insertMixSubmissionSchema,
   insertScheduleSchema,
   insertSongSubmissionSchema,
+  insertResidentApplicationSchema,
   insertCurrentPlaybackSchema
 } from "@shared/schema";
 import { getOEmbedThumbSafe } from './lib/oembed';
@@ -66,6 +67,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const allMixes = await storage.getMixSubmissions({ limit: 1000 });
       const allEpisodes = await storage.getEpisodes({ limit: 1000 });
+      const allApplications = await storage.getResidentApplications({ limit: 1000 });
       
       // Get recent submissions from mix data (sorted by date)
       const recentSubmissionsArray = allMixes
@@ -90,6 +92,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         approvedMixes: approvedCount,
         featuredMixes: allMixes.filter(m => m.status === 'featured').length,
         recentSubmissions: recentSubmissionsArray.length,
+        // Resident application stats
+        totalApplications: allApplications.length,
+        pendingApplications: allApplications.filter(a => a.status === 'submitted').length,
+        approvedApplications: allApplications.filter(a => a.status === 'approved').length,
+        activeResidents: allApplications.filter(a => a.isActiveResident).length,
         // Legacy format for AdminDashboard compatibility
         totalMixSubmissions: allMixes.length,
         pendingMixReviews: pendingCount,
@@ -2371,6 +2378,180 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('oEmbed proxy error:', error);
       res.status(500).json({ error: 'proxy-failed', detail: String(error) });
+    }
+  });
+
+  // =================
+  // RESIDENT APPLICATIONS API
+  // =================
+
+  // Get all resident applications (admin only)
+  app.get('/api/resident-applications', requireAdmin, async (req, res) => {
+    try {
+      const { status, priority, limit } = req.query;
+      const applications = await storage.getResidentApplications({
+        status: status as string,
+        priority: priority as string,
+        limit: limit ? parseInt(limit as string) : undefined
+      });
+      
+      res.json(applications);
+    } catch (error) {
+      console.error('Error fetching resident applications:', error);
+      res.status(500).json({ error: 'Failed to fetch applications' });
+    }
+  });
+
+  // Get single resident application (admin only)
+  app.get('/api/resident-applications/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const application = await storage.getResidentApplicationById(id);
+      
+      if (!application) {
+        return res.status(404).json({ error: 'Application not found' });
+      }
+      
+      res.json(application);
+    } catch (error) {
+      console.error('Error fetching resident application:', error);
+      res.status(500).json({ error: 'Failed to fetch application' });
+    }
+  });
+
+  // Create resident application (admin only - for syncing from Google Sheets)
+  app.post('/api/resident-applications', requireAdmin, async (req, res) => {
+    try {
+      const validation = insertResidentApplicationSchema.safeParse(req.body);
+      if (!validation.success) {
+        return res.status(400).json({ 
+          error: 'Invalid application data', 
+          details: validation.error.issues 
+        });
+      }
+
+      const application = await storage.createResidentApplication(validation.data);
+      res.status(201).json(application);
+    } catch (error) {
+      console.error('Error creating resident application:', error);
+      res.status(500).json({ error: 'Failed to create application' });
+    }
+  });
+
+  // Update resident application status (admin only)
+  app.patch('/api/resident-applications/:id/status', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, notes } = req.body;
+      
+      if (!status) {
+        return res.status(400).json({ error: 'Status is required' });
+      }
+
+      const application = await storage.updateResidentApplicationStatus(id, status, notes);
+      res.json(application);
+    } catch (error) {
+      console.error('Error updating application status:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to update application' });
+    }
+  });
+
+  // Update resident application (admin only)
+  app.patch('/api/resident-applications/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const application = await storage.updateResidentApplication(id, updates);
+      res.json(application);
+    } catch (error) {
+      console.error('Error updating resident application:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to update application' });
+    }
+  });
+
+  // Delete resident application (admin only)
+  app.delete('/api/resident-applications/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteResidentApplication(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting resident application:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to delete application' });
+    }
+  });
+
+  // Sync resident applications from Google Sheets (admin only)
+  app.post('/api/resident-applications/sync', requireAdmin, async (req, res) => {
+    try {
+      const { googleSheetsService } = await import('./googleSheetsService');
+      const { spreadsheetId, range = 'A:Z' } = req.body;
+      
+      if (!spreadsheetId) {
+        return res.status(400).json({ error: 'Spreadsheet ID is required' });
+      }
+
+      // Get form responses from Google Sheets
+      const formResponses = await googleSheetsService.getFormResponses(spreadsheetId, range);
+      
+      let created = 0;
+      let skipped = 0;
+      const errors: string[] = [];
+
+      for (const response of formResponses) {
+        try {
+          // Skip if essential fields are missing
+          if (!response.name || !response.email) {
+            skipped++;
+            continue;
+          }
+
+          // Check if application already exists by email
+          const existingApplications = await storage.getResidentApplications({});
+          const exists = existingApplications.some(app => app.email === response.email);
+          
+          if (exists) {
+            skipped++;
+            continue;
+          }
+
+          // Create new application
+          const applicationData = {
+            name: response.name,
+            alias: response.alias || response.name,
+            email: response.email,
+            phone: response.phone,
+            location: response.location,
+            experience: response.experience,
+            genre: response.genre,
+            bio: response.bio,
+            mixUrl: response.mixUrl,
+            availability: response.availability,
+            showConcept: response.showConcept,
+            equipment: response.equipment,
+            additionalInfo: response.additionalInfo,
+            googleFormResponseId: response.timestamp, // Use timestamp as unique identifier
+          };
+
+          await storage.createResidentApplication(applicationData);
+          created++;
+        } catch (error) {
+          console.error('Error processing form response:', error);
+          errors.push(`Failed to process application for ${response.name || response.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+
+      res.json({ 
+        success: true, 
+        created, 
+        skipped, 
+        total: formResponses.length,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    } catch (error) {
+      console.error('Error syncing applications:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to sync applications' });
     }
   });
 

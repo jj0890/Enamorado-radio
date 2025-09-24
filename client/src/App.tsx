@@ -29,6 +29,7 @@ import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";
 import AdminEpisodeUpload from "./pages/AdminEpisodeUpload";
 import AdminBackups from "./pages/AdminBackups";
+import AdminResidentApplications from "./pages/AdminResidentApplications";
 import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
