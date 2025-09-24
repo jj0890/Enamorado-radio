@@ -48,8 +48,8 @@ const navItems = [
   { href: "/admin/upload", label: "Episode Upload", icon: Upload, category: "content" },
   
   // Community
-  { href: "/admin/dj-applications", label: "DJ Applications", icon: Users, category: "community" },
-  { href: "/admin/resident-applications", label: "Resident Applications", icon: Users, category: "community" },
+  { href: "/admin/submissions", label: "Community Submissions", icon: Music, category: "community" },
+  { href: "/admin/resident-applications", label: "DJ Applications", icon: Users, category: "community" },
   { href: "/admin/queue", label: "Queue", icon: PlayCircle, category: "community" },
   
   // AzuraCast Integration

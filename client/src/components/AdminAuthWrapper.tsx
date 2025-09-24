@@ -76,7 +76,7 @@ export default function AdminAuthWrapper() {
         return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/mix-submissions':
         return <AdminMixSubmissions />; // Use dedicated mix submissions component
-      case '/admin/dj-applications':
+      case '/admin/submissions':
         return <ScheduleAdmin />;
       case '/admin/song-submissions':
         return <AdminSongSubmissions />;
