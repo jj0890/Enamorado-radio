@@ -81,7 +81,7 @@ export default function AdminMixSubmissions() {
   // Feature mix mutation  
   const featureMutation = useMutation({
     mutationFn: async (mixId: number) => {
-      return apiRequest('POST', `/api/mixes/${mixId}/feature`, {});
+      return apiRequest('POST', `/api/admin/mixes/${mixId}/feature`, {});
     },
     onSuccess: () => {
       toast({

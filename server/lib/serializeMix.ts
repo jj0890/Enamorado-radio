@@ -28,8 +28,8 @@ export function serializeMix(row: MixSubmission): UIMix {
   else if (row.url) platform = 'file';
 
   // Use approved_at and featured_at timestamps as source of truth, including status field
-  const featured = !!(row as any).featured_at || (row as any).featured || row.status === 'featured';
-  const approved = featured || !!(row as any).approved_at || row.status === 'approved';
+  const featured = !!(row as any).featured_at || (row as any).featured || (row as any).featureOnSite || row.status === 'featured';
+  const approved = featured || !!(row as any).approved_at || (row as any).pushToAzura || row.status === 'approved';
 
   // Priority order for date: featured_at > approved_at > created_at > submittedAt
   const date = (row as any).featured_at || 

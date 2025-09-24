@@ -1,5 +1,75 @@
 [
   {
+    "id": "backup-2025-09-23T08-07-37-961Z",
+    "timestamp": "2025-09-23T08:07:37.961Z",
+    "size": 2983,
+    "reason": "Before deleting mix submission 3",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-958Z",
+    "timestamp": "2025-09-23T08:07:37.958Z",
+    "size": 3458,
+    "reason": "Before deleting mix submission 3",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-954Z",
+    "timestamp": "2025-09-23T08:07:37.954Z",
+    "size": 3832,
+    "reason": "Before deleting mix submission 4",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-950Z",
+    "timestamp": "2025-09-23T08:07:37.950Z",
+    "size": 4206,
+    "reason": "Before deleting mix submission 5",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-947Z",
+    "timestamp": "2025-09-23T08:07:37.947Z",
+    "size": 4580,
+    "reason": "Before deleting mix submission 6",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-944Z",
+    "timestamp": "2025-09-23T08:07:37.944Z",
+    "size": 4954,
+    "reason": "Before deleting mix submission 7",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-940Z",
+    "timestamp": "2025-09-23T08:07:37.940Z",
+    "size": 5328,
+    "reason": "Before deleting mix submission 8",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-934Z",
+    "timestamp": "2025-09-23T08:07:37.934Z",
+    "size": 5702,
+    "reason": "Before deleting mix submission 9",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-927Z",
+    "timestamp": "2025-09-23T08:07:37.927Z",
+    "size": 6129,
+    "reason": "Before deleting mix submission 10",
+    "fileCount": 3
+  },
+  {
+    "id": "backup-2025-09-23T08-07-37-923Z",
+    "timestamp": "2025-09-23T08:07:37.923Z",
+    "size": 6129,
+    "reason": "Before clearing 9 pending mixes",
+    "fileCount": 3
+  },
+  {
     "id": "backup-2025-09-19T07-42-02-713Z",
     "timestamp": "2025-09-19T07:42:02.713Z",
     "size": 1656,

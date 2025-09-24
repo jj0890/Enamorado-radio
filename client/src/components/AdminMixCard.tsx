@@ -17,6 +17,7 @@ interface AdminMixCardProps {
     filePath?: string;
     fileName?: string;
     submittedAt: string;
+    status: 'pending' | 'approved' | 'featured';
   };
   onApprove?: (id: number) => void;
   onFeature?: (id: number) => void;
@@ -34,8 +35,8 @@ export default function AdminMixCard({
   onPushToAzura 
 }: AdminMixCardProps) {
   
-  const isApproved = mix.pushToAzura || false;
-  const isFeatured = mix.featureOnSite || false;
+  const isApproved = mix.status === 'approved' || mix.status === 'featured';
+  const isFeatured = mix.status === 'featured';
   const artwork = mix.artUrl || null;
   
   // Admin toggle functions

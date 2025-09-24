@@ -1829,7 +1829,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const newFeaturedStatus = !currentlyFeatured;
 
       const updatedMix = await storage.updateMixSubmission(id, {
-        featureOnSite: newFeaturedStatus
+        featureOnSite: newFeaturedStatus,
+        status: newFeaturedStatus ? 'featured' : 'approved'
       });
 
       // Optional: Auto-push to AzuraCast when featuring with MP3

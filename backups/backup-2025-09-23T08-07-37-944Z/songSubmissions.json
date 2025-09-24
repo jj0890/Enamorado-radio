@@ -1,0 +1,45 @@
+[
+  {
+    "submitterName": "jarrad",
+    "songTitle": "Tales from the hood",
+    "artistName": "454",
+    "id": 5,
+    "approvalStatus": "approved",
+    "submittedAt": "2025-09-02T16:41:32.412Z",
+    "reviewedAt": "2025-09-20T10:16:39.051Z"
+  },
+  {
+    "submitterName": "jarrad",
+    "songTitle": "tales from the hood",
+    "artistName": "454",
+    "id": 6,
+    "submittedAt": "2025-09-02T18:39:12.198Z",
+    "reviewedAt": "2025-09-20T10:16:24.291Z"
+  },
+  {
+    "submitterName": "jarrad",
+    "songTitle": "Tales from the hood",
+    "artistName": "454",
+    "id": 7,
+    "submittedAt": "2025-09-02T18:44:48.884Z",
+    "reviewedAt": "2025-09-20T10:16:44.109Z"
+  },
+  {
+    "submitterName": "metroooo",
+    "songTitle": "The Blanguage",
+    "artistName": "Young Thug",
+    "id": 5,
+    "approvalStatus": "pending",
+    "submittedAt": "2025-09-04T23:15:14.005Z",
+    "reviewedAt": null
+  },
+  {
+    "submitterName": "jarrad",
+    "songTitle": "Vogue",
+    "artistName": "1oneam",
+    "id": 7,
+    "approvalStatus": "pending",
+    "submittedAt": "2025-09-06T23:20:15.031Z",
+    "reviewedAt": null
+  }
+]
