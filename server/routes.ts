@@ -1964,6 +1964,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update mix artwork (for persisting oEmbed-fetched thumbnails)
+  app.patch("/api/mixes/:id/artwork", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { artUrl } = req.body;
+
+      if (!artUrl || typeof artUrl !== 'string') {
+        return res.status(400).json({ error: 'Valid artUrl is required' });
+      }
+
+      console.log(`Updating artwork for mix ${id}: ${artUrl}`);
+      const updatedMix = await storage.updateMixSubmission(id, { artUrl });
+      
+      res.json({ 
+        success: true, 
+        artUrl: updatedMix.artUrl,
+        mix: serializeMix(updatedMix)
+      });
+    } catch (error) {
+      console.error('Error updating mix artwork:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   // Delete mix submission
   app.delete('/api/mixes/:id', requireAdmin, async (req, res) => {
     try {

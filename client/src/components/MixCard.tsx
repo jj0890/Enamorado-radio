@@ -75,7 +75,27 @@ export default function MixCard({
         const data = await response.json();
         console.log('Received artwork data for mix:', mix.id, data);
         if (!ignore && (data?.thumbnail_url || data?.artUrl)) {
-          setArtwork(data.thumbnail_url || data.artUrl);
+          const artworkUrl = data.thumbnail_url || data.artUrl;
+          setArtwork(artworkUrl);
+          
+          // Persist the fetched artwork back to the server
+          try {
+            const updateResponse = await fetch(`/api/mixes/${mix.id}/artwork`, {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ artUrl: artworkUrl })
+            });
+            
+            if (updateResponse.ok) {
+              console.log('Successfully saved artwork for mix:', mix.id);
+              // Update the local mix object to avoid refetching
+              (mix as any).artUrl = artworkUrl;
+            } else {
+              console.warn('Failed to save artwork for mix:', mix.id, updateResponse.status);
+            }
+          } catch (error) {
+            console.error('Error saving artwork for mix:', mix.id, error);
+          }
         }
       } catch (error) {
         console.error('Failed to fetch SoundCloud artwork for mix:', mix.id, error);
