@@ -288,7 +288,8 @@ export class FileStorage implements IStorage {
     if (filters?.status) {
       console.log(`FileStorage: Filtering by status: ${filters.status}`);
       if (filters.status === 'approved') {
-        filtered = filtered.filter(m => (m as any).status === 'approved');
+        // Include both approved and featured mixes when requesting approved 
+        filtered = filtered.filter(m => (m as any).status === 'approved' || (m as any).status === 'featured');
       } else if (filters.status === 'featured') {
         filtered = filtered.filter(m => (m as any).status === 'featured');
       } else if (filters.status === 'pending') {

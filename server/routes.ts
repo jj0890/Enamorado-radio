@@ -746,10 +746,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Fetch mixes with timestamp-based filtering
       let mixes = await storage.getMixSubmissions({
-        status: status as string,
+        status: status === 'approved' ? undefined : status as string, // Get all mixes if requesting approved (we'll filter below)
         genre: genre as string,
         limit: limit ? parseInt(limit as string) : undefined
       });
+
+      // Filter by status - include featured mixes when requesting approved
+      if (status === 'approved') {
+        mixes = mixes.filter(mix => 
+          mix.status === 'approved' || mix.status === 'featured'
+        );
+      } else if (status !== 'all') {
+        mixes = mixes.filter(mix => mix.status === status);
+      }
 
       // Filter by status only - keep the existing approved status logic
       // Note: approved_at timestamp filtering removed as it was breaking existing approved mixes

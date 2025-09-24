@@ -189,7 +189,8 @@ export default function AdminMixRouting() {
                     <div className="grid grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="font-medium">Website:</span>{' '}
-                        {mix.featureOnSite ? '✅ Featured' : '❌ Hidden'}
+                        {mix.status === 'featured' ? '✅ Featured' : 
+                         mix.status === 'approved' ? '✅ Visible' : '❌ Hidden'}
                       </div>
                       <div>
                         <span className="font-medium">AzuraCast:</span>{' '}
