@@ -134,6 +134,51 @@ export const songSubmissions = pgTable("song_submissions", {
   reviewedAt: timestamp("reviewed_at"),
 });
 
+// Resident Applications - DJ/Host applications from Google Forms
+export const residentApplications = pgTable("resident_applications", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  alias: text("alias").notNull(), // DJ/Artist alias
+  email: text("email").notNull(),
+  phone: text("phone"),
+  location: text("location"),
+  experience: text("experience"), // Years or description
+  genre: text("genre"), // Primary genre/style
+  bio: text("bio"), // Tell us about yourself
+  mixUrl: text("mix_url"), // Portfolio/mix submission URL
+  socialLinks: jsonb("social_links"), // Instagram, SoundCloud, etc.
+  availability: text("availability"), // When can you host shows
+  showConcept: text("show_concept"), // What kind of show would you want to do
+  equipment: text("equipment"), // What equipment do you have
+  additionalInfo: text("additional_info"), // Anything else to share
+  
+  // Google Forms integration
+  googleFormResponseId: text("google_form_response_id"), // Original form submission ID
+  googleSheetRowNumber: integer("google_sheet_row_number"), // Row in the sheet
+  
+  // Application status management
+  status: text("status").notNull().default("submitted"), // submitted, under_review, approved, rejected, on_hold
+  reviewStage: text("review_stage").default("initial"), // initial, interview, trial, final
+  priority: text("priority").default("normal"), // low, normal, high, urgent
+  
+  // Review process
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by"),
+  reviewNotes: text("review_notes"), // Internal admin notes
+  interviewScheduled: timestamp("interview_scheduled"),
+  trialShowDate: timestamp("trial_show_date"),
+  approvalDate: timestamp("approval_date"),
+  
+  // Resident status (once approved)
+  isActiveResident: boolean("is_active_resident").default(false),
+  showSlot: text("show_slot"), // "Thursdays 8-10pm" etc.
+  onboardingCompleted: boolean("onboarding_completed").default(false),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Admin & System Tables
 // ====================
 
@@ -202,6 +247,16 @@ export const insertSongSubmissionSchema = createInsertSchema(songSubmissions).om
   approvalStatus: true,
 });
 
+export const insertResidentApplicationSchema = createInsertSchema(residentApplications).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertCurrentPlaybackSchema = createInsertSchema(currentPlayback).omit({
   id: true,
   startTime: true,
@@ -218,6 +273,7 @@ export type Guide = typeof guides.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
 export type Schedule = typeof schedule.$inferSelect;
 export type SongSubmission = typeof songSubmissions.$inferSelect;
+export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
 export type CurrentPlayback = typeof currentPlayback.$inferSelect;
 export type StreamStatus = typeof streamStatus.$inferSelect;
@@ -227,6 +283,7 @@ export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
+export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
 
