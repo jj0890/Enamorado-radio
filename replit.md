@@ -4,6 +4,15 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**Critical Data Corruption Fixes (September 2025)**
+- ✅ Fixed persistent data corruption bug where approved mixes incorrectly appeared in featured tab
+- ✅ Resolved root cause: migrateMixData function was deleting canonical status field on every server restart
+- ✅ Implemented comprehensive multi-layer fix: serialization logic, storage filtering, admin endpoint authentication
+- ✅ Created dedicated admin-authenticated endpoint (/api/admin/mixes) with proper status filtering
+- ✅ Restored data integrity by preserving status field as primary source of truth with backward compatibility
+- ✅ Updated real SoundCloud thumbnails for community mixes replacing placeholder artwork
+- ✅ End-to-end testing confirms correct data distribution: Pending(1), Approved(1), Featured(3)
+
 **Working Sticky Radio Player Implementation (January 2025)**
 - ✅ HTTPS proxy endpoints (/stream.mp3 and /nowplaying) fix mixed-content blocking
 - ✅ Top banner player matching sharedfrequenciesradio.com design exactly
