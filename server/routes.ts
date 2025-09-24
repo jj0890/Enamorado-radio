@@ -1374,11 +1374,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Mix not found' });
       }
 
-      // Simulate upload process (in real implementation, would use temp MP3 file)
+      // Find actual downloaded file in temp directory
+      const tempDir = '/home/runner/workspace/temp_audio';
+      
+      // Look for files that match this mix (since yt-dlp may create variations)
+      let actualFilePath = null;
+      try {
+        const files = fs.readdirSync(tempDir);
+        
+        // Try exact match first
+        const expectedFileName = audioProcessor.sanitizeFileName(`${mix.name}-${mix.title}.mp3`);
+        if (files.includes(expectedFileName)) {
+          actualFilePath = path.join(tempDir, expectedFileName);
+        } else {
+          // Look for files containing parts of the mix info
+          const mixNamePart = audioProcessor.sanitizeFileName(mix.name);
+          const matchingFiles = files.filter(file => 
+            file.endsWith('.mp3') && 
+            file.includes(mixNamePart)
+          );
+          
+          if (matchingFiles.length > 0) {
+            actualFilePath = path.join(tempDir, matchingFiles[0]);
+            console.log(`📁 Found matching file: ${matchingFiles[0]} for mix ${mix.name}`);
+          }
+        }
+      } catch (error) {
+        console.error('Error reading temp directory:', error);
+      }
+      
+      if (!actualFilePath || !fs.existsSync(actualFilePath)) {
+        return res.status(400).json({ 
+          error: 'Mix must be processed first. Click "Process" button before uploading.',
+          tempDir: tempDir,
+          mixName: mix.name,
+          mixTitle: mix.title
+        });
+      }
+
+      console.log(`📤 Uploading processed file: ${actualFilePath}`);
       const result = await azuracastService.uploadMixToAzuraCast(
         mix.title, 
         mix.name, 
-        `/tmp/${mix.title}.mp3` // This would be the actual MP3 file path
+        actualFilePath // Use the actual processed MP3 file path
       );
 
       res.json({ success: true, result });

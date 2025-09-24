@@ -143,7 +143,7 @@ export class AudioProcessor {
   // Note: Playlist management moved to azuraCastManager.ensurePlaylist and addToPlaylist
 
   // Sanitize filename for cross-platform compatibility
-  private sanitizeFileName(fileName: string): string {
+  sanitizeFileName(fileName: string): string {
     return fileName
       .replace(/[^a-zA-Z0-9\-_\.]/g, '_')
       .replace(/_{2,}/g, '_')
