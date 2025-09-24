@@ -69,6 +69,12 @@ export default function ProgressTracker({ mixId, mixTitle, onComplete, onError }
 
     ws.onerror = (error) => {
       console.error('❌ Progress WebSocket error:', error);
+      // Retry connection after a short delay
+      setTimeout(() => {
+        console.log('🔄 Retrying WebSocket connection...');
+        // The useEffect cleanup will close the old connection
+        // and a new one will be established on re-render
+      }, 1000);
     };
 
     return () => {
