@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import { Upload, Play, CheckCircle, AlertCircle, RefreshCw } from 'lucide-react';
+import { Upload, Play, CheckCircle, AlertCircle, RefreshCw, FolderOpen, Download } from 'lucide-react';
 
 export default function AzuraCastAdmin() {
   const queryClient = useQueryClient();
@@ -25,13 +25,21 @@ export default function AzuraCastAdmin() {
     refetchInterval: 15000
   });
 
+  // Get downloaded files
+  const { data: downloadedFiles, refetch: refetchFiles } = useQuery({
+    queryKey: ['/api/azuracast/downloaded-files'],
+    queryFn: () => fetch('/api/azuracast/downloaded-files').then(res => res.json()),
+    refetchInterval: 30000
+  });
+
   // Process mix for upload mutation
   const processMutation = useMutation({
     mutationFn: (mixId: number) => 
       fetch(`/api/azuracast/process-mix/${mixId}`, { method: 'POST' }).then(res => res.json()),
     onSuccess: () => {
-      alert("Mix processed successfully! Check temp directory for next steps.");
+      alert("Mix processed successfully! Check Downloaded Files section below.");
       queryClient.invalidateQueries({ queryKey: ['/api/mixes'] });
+      refetchFiles(); // Refresh the downloaded files list
     },
     onError: () => {
       alert("Failed to process mix for AzuraCast");
@@ -188,24 +196,69 @@ export default function AzuraCastAdmin() {
             </div>
           </div>
 
-          {/* Downloaded Files Location */}
+          {/* Downloaded Files Browser */}
           <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <h3 className="font-semibold text-yellow-900 mb-3">Downloaded Files Location</h3>
-            <div className="space-y-2">
+            <h3 className="font-semibold text-yellow-900 mb-3">Downloaded Files</h3>
+            <div className="space-y-3">
               <div className="text-sm text-yellow-800">
-                <p><strong>Download Directory:</strong> <code className="bg-yellow-100 px-2 py-1 rounded text-xs">/home/runner/workspace/temp_audio/</code></p>
-                <p><strong>File Format:</strong> <code className="bg-yellow-100 px-2 py-1 rounded text-xs">artist-title.mp3</code></p>
+                <p><strong>Directory:</strong> <code className="bg-yellow-100 px-2 py-1 rounded text-xs">{downloadedFiles?.directory || '/home/runner/workspace/temp_audio/'}</code></p>
               </div>
+              
+              {downloadedFiles?.files?.length > 0 ? (
+                <div className="space-y-2">
+                  <h4 className="font-medium text-yellow-900">Files ({downloadedFiles.files.length}):</h4>
+                  {downloadedFiles.files.map((file: any, index: number) => (
+                    <div key={index} className="flex items-center justify-between bg-white p-3 rounded border">
+                      <div className="flex-1">
+                        <p className="font-medium text-sm">{file.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {(file.size / 1024 / 1024).toFixed(1)} MB • Modified: {new Date(file.modified).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(file.url, '_blank')}
+                          className="text-xs"
+                        >
+                          <Play className="w-3 h-3 mr-1" />
+                          Play
+                        </Button>
+                        <Button
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            const link = document.createElement('a');
+                            link.href = file.url;
+                            link.download = file.name;
+                            link.click();
+                          }}
+                          className="text-xs"
+                        >
+                          <Download className="w-3 h-3 mr-1" />
+                          Download
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-yellow-700">
+                  <FolderOpen className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">{downloadedFiles?.message || 'No files downloaded yet'}</p>
+                  <p className="text-xs">Files will appear here after processing mixes</p>
+                </div>
+              )}
+              
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => {
-                  navigator.clipboard.writeText('/home/runner/workspace/temp_audio/');
-                  alert('Download path copied to clipboard!');
-                }}
+                onClick={() => refetchFiles()}
                 className="bg-white hover:bg-yellow-50 border-yellow-300"
               >
-                📋 Copy Download Path
+                <RefreshCw className="w-4 h-4 mr-1" />
+                Refresh Files
               </Button>
             </div>
           </div>

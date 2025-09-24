@@ -1288,6 +1288,84 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
 
+  // Serve downloaded audio files from temp directory
+  app.get("/api/azuracast/downloaded-files", async (req, res) => {
+    try {
+      const fs = await import('fs/promises');
+      const path = await import('path');
+      
+      const tempDir = '/home/runner/workspace/temp_audio';
+      
+      try {
+        const files = await fs.readdir(tempDir);
+        const audioFiles = files.filter(file => file.endsWith('.mp3') || file.endsWith('.aac'));
+        
+        const fileDetails = await Promise.all(
+          audioFiles.map(async (file) => {
+            const filePath = path.join(tempDir, file);
+            const stats = await fs.stat(filePath);
+            return {
+              name: file,
+              size: stats.size,
+              modified: stats.mtime,
+              url: `/api/azuracast/download-file/${encodeURIComponent(file)}`
+            };
+          })
+        );
+        
+        res.json({ 
+          directory: tempDir,
+          files: fileDetails 
+        });
+      } catch (dirError) {
+        res.json({ 
+          directory: tempDir,
+          files: [],
+          message: 'No files found or directory does not exist yet'
+        });
+      }
+    } catch (error) {
+      console.error('Error listing downloaded files:', error);
+      res.status(500).json({ error: 'Failed to list downloaded files' });
+    }
+  });
+
+  // Serve individual downloaded audio files
+  app.get("/api/azuracast/download-file/:filename", async (req, res) => {
+    try {
+      const path = await import('path');
+      const fs = await import('fs');
+      
+      const filename = decodeURIComponent(req.params.filename);
+      const filePath = path.join('/home/runner/workspace/temp_audio', filename);
+      
+      // Security check - ensure file is within temp directory
+      if (!filePath.startsWith('/home/runner/workspace/temp_audio/')) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+      
+      // Set appropriate headers for audio files
+      const ext = path.extname(filename).toLowerCase();
+      let contentType = 'application/octet-stream';
+      if (ext === '.mp3') contentType = 'audio/mpeg';
+      if (ext === '.aac') contentType = 'audio/aac';
+      
+      res.setHeader('Content-Type', contentType);
+      res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
+      
+      // Stream the file
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Error serving file:', error);
+      res.status(500).json({ error: 'Failed to serve file' });
+    }
+  });
+
   app.post("/api/azuracast/upload/:id", async (req, res) => {
     try {
       const mixId = parseInt(req.params.id);
