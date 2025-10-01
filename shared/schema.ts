@@ -186,7 +186,72 @@ export const admins = pgTable("admins", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
-  role: text("role").notNull().default("admin"),
+  role: text("role").notNull().default("admin"), // viewer, contributor, editor, admin
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Albums of the Month Feature
+// ============================
+
+// Community album suggestions
+export const albumSuggestions = pgTable("album_suggestions", {
+  id: serial("id").primaryKey(),
+  submittedBy: text("submitted_by").notNull(), // Username (before user system)
+  musicbrainzId: text("musicbrainz_id"), // Cached MusicBrainz release ID
+  releaseGroupId: text("release_group_id"), // MusicBrainz release-group ID
+  artist: text("artist").notNull(),
+  title: text("title").notNull(),
+  coverArtUrl: text("cover_art_url"), // Cached from MusicBrainz (highest-rated)
+  note: text("note"), // Why this album?
+  status: text("status").notNull().default("pending"), // pending, accepted, rejected
+  createdAt: timestamp("created_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by"),
+});
+
+// Editor votes on suggestions (consensus system)
+export const albumVotes = pgTable("album_votes", {
+  id: serial("id").primaryKey(),
+  suggestionId: integer("suggestion_id").references(() => albumSuggestions.id).notNull(),
+  voterUsername: text("voter_username").notNull(),
+  value: integer("value").notNull(), // +1 or -1
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Published monthly album picks
+export const albumPicks = pgTable("album_picks", {
+  id: serial("id").primaryKey(),
+  month: text("month").notNull().unique(), // "2025-10"
+  title: text("title").notNull(), // "October 2025 Albums"
+  description: text("description"),
+  createdBy: text("created_by").notNull(),
+  publishedAt: timestamp("published_at"),
+  isPublished: boolean("is_published").default(false),
+  slug: text("slug").notNull().unique(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Individual albums in a published pick
+export const albumPickItems = pgTable("album_pick_items", {
+  id: serial("id").primaryKey(),
+  pickId: integer("pick_id").references(() => albumPicks.id).notNull(),
+  suggestionId: integer("suggestion_id").references(() => albumSuggestions.id).notNull(),
+  rank: integer("rank").notNull(), // 1-10 for ordering
+  blurb: text("blurb"), // Editor's note about this pick
+  tags: text("tags").array(), // ["experimental", "shoegaze"]
+  spotifyUrl: text("spotify_url"),
+  appleMusicUrl: text("apple_music_url"),
+  bandcampUrl: text("bandcamp_url"),
+  addedBy: text("added_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Discussion notes on suggestions
+export const albumSuggestionNotes = pgTable("album_suggestion_notes", {
+  id: serial("id").primaryKey(),
+  suggestionId: integer("suggestion_id").references(() => albumSuggestions.id).notNull(),
+  authorUsername: text("author_username").notNull(),
+  content: text("content").notNull(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -267,6 +332,39 @@ export const insertAdminSchema = createInsertSchema(admins).omit({
   createdAt: true,
 });
 
+export const insertAlbumSuggestionSchema = createInsertSchema(albumSuggestions).omit({
+  id: true,
+  createdAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+  musicbrainzId: true,
+  releaseGroupId: true,
+  coverArtUrl: true,
+});
+
+export const insertAlbumVoteSchema = createInsertSchema(albumVotes).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAlbumPickSchema = createInsertSchema(albumPicks).omit({
+  id: true,
+  createdAt: true,
+  publishedAt: true,
+  isPublished: true,
+});
+
+export const insertAlbumPickItemSchema = createInsertSchema(albumPickItems).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertAlbumSuggestionNoteSchema = createInsertSchema(albumSuggestionNotes).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type exports  
 export type Episode = typeof episodes.$inferSelect;
 export type Guide = typeof guides.$inferSelect;
@@ -277,6 +375,11 @@ export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
 export type CurrentPlayback = typeof currentPlayback.$inferSelect;
 export type StreamStatus = typeof streamStatus.$inferSelect;
+export type AlbumSuggestion = typeof albumSuggestions.$inferSelect;
+export type AlbumVote = typeof albumVotes.$inferSelect;
+export type AlbumPick = typeof albumPicks.$inferSelect;
+export type AlbumPickItem = typeof albumPickItems.$inferSelect;
+export type AlbumSuggestionNote = typeof albumSuggestionNotes.$inferSelect;
 
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
@@ -286,4 +389,9 @@ export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
+export type InsertAlbumSuggestion = z.infer<typeof insertAlbumSuggestionSchema>;
+export type InsertAlbumVote = z.infer<typeof insertAlbumVoteSchema>;
+export type InsertAlbumPick = z.infer<typeof insertAlbumPickSchema>;
+export type InsertAlbumPickItem = z.infer<typeof insertAlbumPickItemSchema>;
+export type InsertAlbumSuggestionNote = z.infer<typeof insertAlbumSuggestionNoteSchema>;
 
