@@ -49,6 +49,28 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
+  // --- DATA: Current month's album pick for featured section ---
+  const getCurrentMonth = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    return `${year}-${month}`;
+  };
+
+  const { data: currentMonthPick } = useQuery({
+    queryKey: ["/api/albums/published", getCurrentMonth()],
+    queryFn: async () => {
+      const currentMonth = getCurrentMonth();
+      const r = await fetch(`/api/albums/published/${currentMonth}`);
+      if (!r.ok) {
+        if (r.status === 404) return null; // No pick for current month
+        throw new Error("Failed to fetch current month pick");
+      }
+      return r.json();
+    },
+    refetchOnWindowFocus: false,
+  });
+
   // If your FeaturedMixCard wants thumbnails (SoundCloud/Mixcloud helpers)
   useEffect(() => {
     if (!featuredSubmissions.length) return;
@@ -67,6 +89,18 @@ export default function Home() {
   }, [featuredSubmissions]);
 
   const featuredSubmission = featuredSubmissions[0];
+
+  // Rotate featured album based on day of month
+  const getFeaturedAlbum = () => {
+    if (!currentMonthPick || !currentMonthPick.items || currentMonthPick.items.length === 0) {
+      return null;
+    }
+    const dayOfMonth = new Date().getDate();
+    const index = (dayOfMonth - 1) % currentMonthPick.items.length;
+    return currentMonthPick.items[index];
+  };
+
+  const featuredAlbum = getFeaturedAlbum();
 
   return (
     <div className="min-h-screen bg-white text-black">
@@ -285,6 +319,64 @@ export default function Home() {
             </button>
           </div>
         </section>
+
+        {/* Featured Album from Albums of the Month */}
+        {featuredAlbum && currentMonthPick && (
+          <section className="mb-16">
+            <Link 
+              href="/albums" 
+              className="block group"
+              data-testid="link-featured-album"
+            >
+              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-black p-8 md:p-12 hover:border-red-500 transition-all duration-300">
+                <div className="flex flex-col md:flex-row gap-8 items-center">
+                  {/* Album Artwork */}
+                  <div className="w-full md:w-64 h-64 flex-shrink-0">
+                    {featuredAlbum.album.coverArtUrl ? (
+                      <img
+                        src={featuredAlbum.album.coverArtUrl}
+                        alt={`${featuredAlbum.album.title} by ${featuredAlbum.album.artist}`}
+                        className="w-full h-full object-cover border-2 border-black shadow-lg"
+                        data-testid={`img-featured-album-${featuredAlbum.album.id}`}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-gray-200 border-2 border-black flex items-center justify-center">
+                        <Music className="w-16 h-16 text-gray-400" />
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Album Info */}
+                  <div className="flex-1 text-center md:text-left">
+                    <div className="inline-block bg-red-500 text-white px-3 py-1 text-xs font-mono mb-4">
+                      FROM ALBUMS OF THE MONTH
+                    </div>
+                    <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-red-500 transition-colors" data-testid="text-featured-album-title">
+                      {featuredAlbum.album.title}
+                    </h3>
+                    <p className="text-xl text-gray-600 mb-4 font-mono" data-testid="text-featured-album-artist">
+                      {featuredAlbum.album.artist}
+                      {featuredAlbum.album.releaseYear && ` (${featuredAlbum.album.releaseYear})`}
+                    </p>
+                    {featuredAlbum.album.reason && (
+                      <p className="text-gray-700 mb-4 font-mono italic max-w-2xl" data-testid="text-featured-album-reason">
+                        "{featuredAlbum.album.reason}"
+                      </p>
+                    )}
+                    <div className="flex items-center justify-center md:justify-start gap-4">
+                      <span className="inline-block bg-black text-white px-4 py-2 text-sm font-mono">
+                        #{featuredAlbum.rank} in {currentMonthPick.title}
+                      </span>
+                      <span className="text-red-500 font-mono text-sm group-hover:underline">
+                        View All Picks →
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          </section>
+        )}
 
         {/* Fresh From the Community — uses the SAME card as /mixes */}
         {freshMixes.length > 0 && (

@@ -70,8 +70,8 @@ export default function AlbumsPage() {
       <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center">
         <div className="text-center">
           <p className="font-mono text-red-600">Failed to load album picks</p>
-          <Link href="/">
-            <a className="text-red-500 hover:underline font-mono mt-4 inline-block">← Back home</a>
+          <Link href="/" className="text-red-500 hover:underline font-mono mt-4 inline-block">
+            ← Back home
           </Link>
         </div>
       </div>
@@ -88,8 +88,8 @@ export default function AlbumsPage() {
             <p className="font-mono text-gray-600 mb-8">
               Our curated monthly album picks are coming soon. Check back later!
             </p>
-            <Link href="/">
-              <a className="text-red-500 hover:underline font-mono">← Back home</a>
+            <Link href="/" className="text-red-500 hover:underline font-mono">
+              ← Back home
             </Link>
           </div>
         </div>
@@ -211,17 +211,18 @@ export default function AlbumsPage() {
           <p className="font-mono text-gray-600 mb-4">
             Submit your album suggestions and help shape our monthly picks
           </p>
-          <Link href="/submit-album">
-            <a className="inline-block bg-red-500 text-white px-6 py-3 rounded font-mono hover:bg-red-600 transition-colors">
-              Submit Album Suggestion
-            </a>
+          <Link 
+            href="/submit-album" 
+            className="inline-block bg-red-500 text-white px-6 py-3 rounded font-mono hover:bg-red-600 transition-colors"
+          >
+            Submit Album Suggestion
           </Link>
         </div>
 
         {/* Back Link */}
         <div className="mt-8 text-center">
-          <Link href="/">
-            <a className="text-red-500 hover:underline font-mono">← Back home</a>
+          <Link href="/" className="text-red-500 hover:underline font-mono">
+            ← Back home
           </Link>
         </div>
       </div>
