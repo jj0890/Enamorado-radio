@@ -4,6 +4,20 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**✅ COMPLETE: Albums of the Month Feature (October 2025)**
+- ✅ Full role-based authentication system (viewer/contributor/editor/admin) with requireRole middleware
+- ✅ MusicBrainz API integration for album metadata and Cover Art Archive with highest-rated fallback
+- ✅ Complete album suggestion workflow: submission → voting → acceptance → draft → publishing
+- ✅ AlbumSuggestion, AlbumVote, AlbumPick, and AlbumPickItem schema with persistent FileStorage
+- ✅ Public submission page (/submit-album) for community album recommendations
+- ✅ Admin interface (/admin/albums) with tabbed views: Suggestions, Draft, Published
+- ✅ Editor voting system requiring consensus (2+ votes) for acceptance
+- ✅ Monthly album picks with ranked items and publication workflow
+- ✅ Public Albums of the Month page (/albums) displaying published monthly selections
+- ✅ Protected admin API endpoints with proper authentication and authorization
+- ✅ End-to-end testing confirms complete workflow functionality
+- ✅ Production-ready implementation with proper error handling and data persistence
+
 **✅ COMPLETE: Resident Applications Management System (September 2025)**
 - ✅ Full-stack resident DJ application system with Google Sheets integration
 - ✅ ResidentApplication schema with comprehensive fields (status, review stages, priority)
@@ -92,6 +106,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Editorial Workflow System**: Supports newsroom-style stages (Submitted → Copy Ready → Web Ready → Published) for zine content (though currently de-emphasized).
 - **Physical Media Generation**: Functionality for creating NFC tags, QR stickers, and mini CDs linked to digital publications (Issuu.com integration).
 - **Content Discovery**: NTS-inspired episode system, Spotify integration for music discovery, curated guides, and monthly album picks.
+- **Albums of the Month**: Community-driven monthly album curation with submission workflow, editor voting (consensus-based), MusicBrainz integration for artwork, and ranked publication system. Public users submit suggestions via /submit-album, editors vote and curate monthly picks, and published selections appear on /albums with full metadata and artwork.
 - **Mix Upload & Playback**: Community mix submission system with manual playback - AzuraCast handles scheduling and rotation.
 - **AzuraCast Integration**: Backend handles live programming, auto-rotation, scheduling - frontend focuses on community content and manual selection.
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
@@ -109,4 +124,4 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Development**: Vite, TypeScript, ESLint
 - **Audio**: Web Audio API, WebSocket for live updates
 - **Streaming**: Icecast streaming server, HTML5 audio
-- **Metadata/APIs**: SoundCloud oEmbed API, Last.fm, Spotify API, Issuu.com (mock API)
+- **Metadata/APIs**: SoundCloud oEmbed API, Last.fm, Spotify API, MusicBrainz API (album metadata and Cover Art Archive), Issuu.com (mock API)
