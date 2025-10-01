@@ -1,5 +1,6 @@
 // Role-based access control system
 import { Request, Response, NextFunction } from 'express';
+import { requireAdmin } from './adminAuth';
 
 // Role hierarchy definition
 export const roleHierarchy = {
@@ -20,31 +21,49 @@ export interface AuthenticatedUser {
 /**
  * Middleware to require minimum role level
  * Usage: app.get('/admin/albums', requireRole('editor'), handler)
+ * 
+ * Note: Since we don't have a user roles table yet, all authenticated admins
+ * are treated as having 'admin' role (highest level). This satisfies all role requirements.
  */
 export function requireRole(minRole: UserRole) {
   return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user as AuthenticatedUser | undefined;
-    
-    if (!user) {
-      return res.status(401).json({ 
-        error: 'Authentication required',
-        message: 'You must be logged in to access this resource'
-      });
-    }
-    
-    const userRoleLevel = roleHierarchy[user.role] ?? -1;
-    const requiredRoleLevel = roleHierarchy[minRole];
-    
-    if (userRoleLevel < requiredRoleLevel) {
-      return res.status(403).json({ 
-        error: 'Insufficient permissions',
-        required: minRole,
-        current: user.role,
-        message: `This action requires ${minRole} role or higher`
-      });
-    }
-    
-    next();
+    // First, check admin authentication using the same system as requireAdmin
+    requireAdmin(req, res, () => {
+      // If we reach here, admin is authenticated
+      // For now, all authenticated admins have 'admin' role (level 3)
+      // which satisfies all role requirements including 'editor' (level 2)
+      const admin = (req as any).admin;
+      
+      if (!admin) {
+        return res.status(401).json({ 
+          error: 'Authentication required',
+          message: 'You must be logged in to access this resource'
+        });
+      }
+      
+      // For now, all authenticated admins have 'admin' role
+      // In the future, this would check against a users table
+      const userRole: UserRole = 'admin';
+      const userRoleLevel = roleHierarchy[userRole];
+      const requiredRoleLevel = roleHierarchy[minRole];
+      
+      if (userRoleLevel < requiredRoleLevel) {
+        return res.status(403).json({ 
+          error: 'Insufficient permissions',
+          required: minRole,
+          current: userRole,
+          message: `This action requires ${minRole} role or higher`
+        });
+      }
+      
+      // Store user info for later use in handlers
+      (req as any).user = {
+        username: admin.user,
+        role: userRole
+      };
+      
+      next();
+    });
   };
 }
 

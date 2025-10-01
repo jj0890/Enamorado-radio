@@ -1,0 +1,30 @@
+[
+  {
+    "submittedBy": "Test User ox4wU8",
+    "artist": "The Beatles",
+    "title": "Abbey Road",
+    "id": 10,
+    "musicbrainzId": "ecd965f4-f75f-4360-9dde-26f31dc44f46",
+    "releaseGroupId": "9162580e-5df4-32de-80cc-f45a8d8a9b1d",
+    "coverArtUrl": "https://coverartarchive.org/release/ecd965f4-f75f-4360-9dde-26f31dc44f46/40587644386-500.jpg",
+    "status": "pending",
+    "createdAt": "2025-10-01T17:22:22.692Z",
+    "reviewedAt": null,
+    "reviewedBy": null
+  },
+  {
+    "suggestedBy": "Test User",
+    "artist": "The Beatles",
+    "title": "Abbey Road",
+    "releaseYear": 1969,
+    "reason": "Timeless classic",
+    "id": 11,
+    "musicbrainzId": "d6010be3-98f8-422c-a6c9-787e2e491e58",
+    "releaseGroupId": "9162580e-5df4-32de-80cc-f45a8d8a9b1d",
+    "coverArtUrl": "http://coverartarchive.org/release/d6010be3-98f8-422c-a6c9-787e2e491e58/1229601191-500.jpg",
+    "status": "accepted",
+    "createdAt": "2025-10-01T17:32:48.090Z",
+    "reviewedAt": "2025-10-01T17:34:41.671Z",
+    "reviewedBy": "jarrad"
+  }
+]

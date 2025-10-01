@@ -196,13 +196,14 @@ export const admins = pgTable("admins", {
 // Community album suggestions
 export const albumSuggestions = pgTable("album_suggestions", {
   id: serial("id").primaryKey(),
-  submittedBy: text("submitted_by").notNull(), // Username (before user system)
+  suggestedBy: text("suggested_by").notNull(), // Username (before user system)
   musicbrainzId: text("musicbrainz_id"), // Cached MusicBrainz release ID
   releaseGroupId: text("release_group_id"), // MusicBrainz release-group ID
   artist: text("artist").notNull(),
   title: text("title").notNull(),
+  releaseYear: integer("release_year"), // Optional release year
+  reason: text("reason"), // Why this album should be featured
   coverArtUrl: text("cover_art_url"), // Cached from MusicBrainz (highest-rated)
-  note: text("note"), // Why this album?
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   createdAt: timestamp("created_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),

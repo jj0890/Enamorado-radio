@@ -12,6 +12,8 @@ import EpisodeView from "./pages/EpisodeView";
 import GuideDetail from "./pages/GuideDetail";
 import MixesPage from "./pages/MixesPage";
 import SubmitMix from "./pages/SubmitMix-clean";
+import AlbumsPage from "./pages/AlbumsPage";
+import SubmitAlbum from "./pages/SubmitAlbum";
 import AdminAuthWrapper from "./components/AdminAuthWrapper";
 
 // Genre pages
@@ -35,6 +37,8 @@ function Router() {
       <Route path="/schedule" component={SchedulePage} />
       <Route path="/mixes" component={MixesPage} />
       <Route path="/submit-mix" component={SubmitMix} />
+      <Route path="/albums" component={AlbumsPage} />
+      <Route path="/submit-album" component={SubmitAlbum} />
       
       {/* Genre routes */}
       <Route path="/genres" component={GenreDiscovery} />
