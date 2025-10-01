@@ -204,6 +204,7 @@ export const albumSuggestions = pgTable("album_suggestions", {
   releaseYear: integer("release_year"), // Optional release year
   reason: text("reason"), // Why this album should be featured
   coverArtUrl: text("cover_art_url"), // Cached from MusicBrainz (highest-rated)
+  spotifyUrl: text("spotify_url"), // Spotify album URL for listening
   status: text("status").notNull().default("pending"), // pending, accepted, rejected
   createdAt: timestamp("created_at").defaultNow(),
   reviewedAt: timestamp("reviewed_at"),

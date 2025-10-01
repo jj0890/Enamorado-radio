@@ -117,6 +117,49 @@ class MetadataService {
     }
   }
 
+  // Search Spotify for an album and return the first match URL
+  async searchSpotifyAlbum(artist: string, title: string): Promise<string | null> {
+    try {
+      const token = await this.getSpotifyToken();
+      if (!token) {
+        console.log('[spotify] No token available for album search');
+        return null;
+      }
+
+      // Build search query
+      const query = `artist:${artist} album:${title}`;
+      const encodedQuery = encodeURIComponent(query);
+
+      const response = await fetch(
+        `https://api.spotify.com/v1/search?q=${encodedQuery}&type=album&limit=1`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        console.error('[spotify] Album search failed:', response.status);
+        return null;
+      }
+
+      const data = await response.json();
+      
+      if (data.albums?.items && data.albums.items.length > 0) {
+        const album = data.albums.items[0];
+        console.log(`[spotify] Found album: ${album.name} by ${album.artists[0]?.name}`);
+        return album.external_urls?.spotify || null;
+      }
+
+      console.log('[spotify] No album found for:', artist, title);
+      return null;
+    } catch (error) {
+      console.error('[spotify] Error searching album:', error);
+      return null;
+    }
+  }
+
   // Fetch Spotify track metadata
   async fetchSpotifyMetadata(trackId: string): Promise<TrackMetadata | null> {
     try {
