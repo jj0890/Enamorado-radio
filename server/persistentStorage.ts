@@ -9,6 +9,11 @@ import {
   ResidentApplication,
   Admin,
   CurrentPlayback,
+  AlbumSuggestion,
+  AlbumVote,
+  AlbumPick,
+  AlbumPickItem,
+  AlbumSuggestionNote,
   InsertEpisode,
   InsertGuide, 
   InsertMixSubmission,
@@ -16,7 +21,12 @@ import {
   InsertSongSubmission,
   InsertResidentApplication,
   InsertAdmin,
-  InsertCurrentPlayback
+  InsertCurrentPlayback,
+  InsertAlbumSuggestion,
+  InsertAlbumVote,
+  InsertAlbumPick,
+  InsertAlbumPickItem,
+  InsertAlbumSuggestionNote
 } from "@shared/schema";
 import { IStorage } from "./storage";
 import { backupManager } from "./backupManager";
@@ -34,6 +44,11 @@ export class FileStorage implements IStorage {
   private residentApplications: ResidentApplication[] = [];
   private admins: Admin[] = [];
   private currentPlayback: CurrentPlayback | null = null;
+  private albumSuggestions: AlbumSuggestion[] = [];
+  private albumVotes: AlbumVote[] = [];
+  private albumPicks: AlbumPick[] = [];
+  private albumPickItems: AlbumPickItem[] = [];
+  private albumSuggestionNotes: AlbumSuggestionNote[] = [];
   private nextId = 1;
 
   constructor() {
@@ -97,7 +112,12 @@ export class FileStorage implements IStorage {
         'songSubmissions.json',
         'residentApplications.json',
         'admins.json',
-        'currentPlayback.json'
+        'currentPlayback.json',
+        'albumSuggestions.json',
+        'albumVotes.json',
+        'albumPicks.json',
+        'albumPickItems.json',
+        'albumSuggestionNotes.json'
       ];
 
       for (const file of files) {
@@ -130,6 +150,21 @@ export class FileStorage implements IStorage {
               break;
             case 'currentPlayback.json':
               this.currentPlayback = parsed || null;
+              break;
+            case 'albumSuggestions.json':
+              this.albumSuggestions = parsed || [];
+              break;
+            case 'albumVotes.json':
+              this.albumVotes = parsed || [];
+              break;
+            case 'albumPicks.json':
+              this.albumPicks = parsed || [];
+              break;
+            case 'albumPickItems.json':
+              this.albumPickItems = parsed || [];
+              break;
+            case 'albumSuggestionNotes.json':
+              this.albumSuggestionNotes = parsed || [];
               break;
           }
         } catch (error) {
@@ -657,6 +692,217 @@ export class FileStorage implements IStorage {
     return newPlayback;
   }
 
+  // Albums of the Month
+  // ===================
+  
+  async getAlbumSuggestions(filters?: { status?: string; limit?: number }): Promise<AlbumSuggestion[]> {
+    let filtered = [...this.albumSuggestions];
+    
+    if (filters?.status) {
+      filtered = filtered.filter(s => s.status === filters.status);
+    }
+    
+    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    return filtered;
+  }
+
+  async getAlbumSuggestionById(id: number): Promise<AlbumSuggestion | undefined> {
+    return this.albumSuggestions.find(s => s.id === id);
+  }
+
+  async createAlbumSuggestion(data: InsertAlbumSuggestion, mbData?: { musicbrainzId: string; releaseGroupId: string; coverArtUrl: string | null; artist: string; title: string }): Promise<AlbumSuggestion> {
+    const suggestion: AlbumSuggestion = {
+      ...data,
+      id: this.nextId++,
+      musicbrainzId: mbData?.musicbrainzId || null,
+      releaseGroupId: mbData?.releaseGroupId || null,
+      artist: mbData?.artist || data.artist,
+      title: mbData?.title || data.title,
+      coverArtUrl: mbData?.coverArtUrl || null,
+      status: 'pending',
+      createdAt: new Date(),
+      reviewedAt: null,
+      reviewedBy: null,
+    };
+    
+    this.albumSuggestions.push(suggestion);
+    await this.saveData('albumSuggestions', this.albumSuggestions);
+    return suggestion;
+  }
+
+  async updateAlbumSuggestion(id: number, updates: Partial<AlbumSuggestion>): Promise<AlbumSuggestion> {
+    const index = this.albumSuggestions.findIndex(s => s.id === id);
+    if (index === -1) throw new Error('Album suggestion not found');
+    
+    this.albumSuggestions[index] = { ...this.albumSuggestions[index], ...updates };
+    await this.saveData('albumSuggestions', this.albumSuggestions);
+    return this.albumSuggestions[index];
+  }
+
+  async acceptAlbumSuggestion(id: number, reviewedBy: string): Promise<AlbumSuggestion> {
+    return this.updateAlbumSuggestion(id, {
+      status: 'accepted',
+      reviewedAt: new Date(),
+      reviewedBy
+    });
+  }
+
+  async rejectAlbumSuggestion(id: number, reviewedBy: string): Promise<AlbumSuggestion> {
+    return this.updateAlbumSuggestion(id, {
+      status: 'rejected',
+      reviewedAt: new Date(),
+      reviewedBy
+    });
+  }
+
+  async voteOnAlbumSuggestion(suggestionId: number, voterUsername: string, value: 1 | -1): Promise<AlbumVote> {
+    // Remove existing vote by this user for this suggestion
+    this.albumVotes = this.albumVotes.filter(v => 
+      !(v.suggestionId === suggestionId && v.voterUsername === voterUsername)
+    );
+    
+    const vote: AlbumVote = {
+      id: this.nextId++,
+      suggestionId,
+      voterUsername,
+      value,
+      createdAt: new Date(),
+    };
+    
+    this.albumVotes.push(vote);
+    await this.saveData('albumVotes', this.albumVotes);
+    return vote;
+  }
+
+  async getAlbumVotesForSuggestion(suggestionId: number): Promise<AlbumVote[]> {
+    return this.albumVotes.filter(v => v.suggestionId === suggestionId);
+  }
+
+  async getAlbumSuggestionsWithVotes(): Promise<Array<AlbumSuggestion & { voteCount: number; approvalCount: number; votes: AlbumVote[] }>> {
+    return this.albumSuggestions.map(suggestion => {
+      const votes = this.albumVotes.filter(v => v.suggestionId === suggestion.id);
+      const voteCount = votes.reduce((sum, v) => sum + v.value, 0);
+      const approvalCount = votes.filter(v => v.value > 0).length;
+      
+      return { ...suggestion, voteCount, approvalCount, votes };
+    });
+  }
+
+  async createAlbumPick(data: InsertAlbumPick): Promise<AlbumPick> {
+    const pick: AlbumPick = {
+      ...data,
+      id: this.nextId++,
+      isPublished: false,
+      publishedAt: null,
+      createdAt: new Date(),
+    };
+    
+    this.albumPicks.push(pick);
+    await this.saveData('albumPicks', this.albumPicks);
+    return pick;
+  }
+
+  async getAlbumPickByMonth(month: string): Promise<AlbumPick | undefined> {
+    return this.albumPicks.find(p => p.month === month);
+  }
+
+  async getAlbumPickById(id: number): Promise<AlbumPick | undefined> {
+    return this.albumPicks.find(p => p.id === id);
+  }
+
+  async getPublishedAlbumPicks(): Promise<AlbumPick[]> {
+    return this.albumPicks.filter(p => p.isPublished).sort((a, b) => 
+      new Date(b.publishedAt!).getTime() - new Date(a.publishedAt!).getTime()
+    );
+  }
+
+  async addAlbumToPickDraft(data: InsertAlbumPickItem): Promise<AlbumPickItem> {
+    const item: AlbumPickItem = {
+      ...data,
+      id: this.nextId++,
+      createdAt: new Date(),
+    };
+    
+    this.albumPickItems.push(item);
+    await this.saveData('albumPickItems', this.albumPickItems);
+    return item;
+  }
+
+  async getAlbumPickItems(pickId: number): Promise<AlbumPickItem[]> {
+    return this.albumPickItems
+      .filter(item => item.pickId === pickId)
+      .sort((a, b) => a.rank - b.rank);
+  }
+
+  async updateAlbumPickItem(id: number, updates: Partial<AlbumPickItem>): Promise<AlbumPickItem> {
+    const index = this.albumPickItems.findIndex(i => i.id === id);
+    if (index === -1) throw new Error('Album pick item not found');
+    
+    this.albumPickItems[index] = { ...this.albumPickItems[index], ...updates };
+    await this.saveData('albumPickItems', this.albumPickItems);
+    return this.albumPickItems[index];
+  }
+
+  async deleteAlbumPickItem(id: number): Promise<void> {
+    const index = this.albumPickItems.findIndex(i => i.id === id);
+    if (index !== -1) {
+      this.albumPickItems.splice(index, 1);
+      await this.saveData('albumPickItems', this.albumPickItems);
+    }
+  }
+
+  async publishAlbumPick(pickId: number): Promise<AlbumPick> {
+    const index = this.albumPicks.findIndex(p => p.id === pickId);
+    if (index === -1) throw new Error('Album pick not found');
+    
+    this.albumPicks[index] = {
+      ...this.albumPicks[index],
+      isPublished: true,
+      publishedAt: new Date(),
+    };
+    
+    await this.saveData('albumPicks', this.albumPicks);
+    return this.albumPicks[index];
+  }
+
+  async getPublishedAlbumPickWithItems(month: string): Promise<(AlbumPick & { items: Array<AlbumPickItem & { album: AlbumSuggestion }> }) | null> {
+    const pick = this.albumPicks.find(p => p.month === month && p.isPublished);
+    if (!pick) return null;
+    
+    const items = this.albumPickItems
+      .filter(item => item.pickId === pick.id)
+      .sort((a, b) => a.rank - b.rank)
+      .map(item => {
+        const album = this.albumSuggestions.find(s => s.id === item.suggestionId)!;
+        return { ...item, album };
+      });
+    
+    return { ...pick, items };
+  }
+
+  async addAlbumSuggestionNote(data: InsertAlbumSuggestionNote): Promise<AlbumSuggestionNote> {
+    const note: AlbumSuggestionNote = {
+      ...data,
+      id: this.nextId++,
+      createdAt: new Date(),
+    };
+    
+    this.albumSuggestionNotes.push(note);
+    await this.saveData('albumSuggestionNotes', this.albumSuggestionNotes);
+    return note;
+  }
+
+  async getAlbumSuggestionNotes(suggestionId: number): Promise<AlbumSuggestionNote[]> {
+    return this.albumSuggestionNotes
+      .filter(n => n.suggestionId === suggestionId)
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+  }
+
   // Emergency reset - clear all data
   async emergencyReset(): Promise<void> {
     await this.ensureDataDir();
@@ -674,6 +920,11 @@ export class FileStorage implements IStorage {
       this.residentApplications = [];
       this.admins = [];
       this.currentPlayback = null;
+      this.albumSuggestions = [];
+      this.albumVotes = [];
+      this.albumPicks = [];
+      this.albumPickItems = [];
+      this.albumSuggestionNotes = [];
       this.nextId = 1;
       
       // Delete all data files
@@ -685,7 +936,12 @@ export class FileStorage implements IStorage {
         'songSubmissions.json',
         'residentApplications.json',
         'admins.json',
-        'currentPlayback.json'
+        'currentPlayback.json',
+        'albumSuggestions.json',
+        'albumVotes.json',
+        'albumPicks.json',
+        'albumPickItems.json',
+        'albumSuggestionNotes.json'
       ];
       
       for (const file of files) {
