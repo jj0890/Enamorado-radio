@@ -8,6 +8,8 @@ import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
 import { requireAdmin, loginAdmin, logoutAdmin, checkAuth } from "./adminAuth";
+import { requireRole } from "./roleAuth";
+import { musicbrainzService } from "./musicbrainzService";
 import { backupManager } from "./backupManager";
 import { azuracastIntegration } from "./azuracastIntegration";
 import { audioProcessor } from "./audioProcessor";
@@ -24,7 +26,12 @@ import {
   insertScheduleSchema,
   insertSongSubmissionSchema,
   insertResidentApplicationSchema,
-  insertCurrentPlaybackSchema
+  insertCurrentPlaybackSchema,
+  insertAlbumSuggestionSchema,
+  insertAlbumVoteSchema,
+  insertAlbumPickSchema,
+  insertAlbumPickItemSchema,
+  insertAlbumSuggestionNoteSchema
 } from "@shared/schema";
 import { getOEmbedThumbSafe } from './lib/oembed';
 import { rescanLibrary } from './azuracastHelpers';
@@ -2738,6 +2745,283 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({ success: true, id: submission.id });
     } catch (e: any) {
       res.status(500).json({ error: e.message || 'upload failed' });
+    }
+  });
+
+  // =================
+  // ALBUMS OF THE MONTH API
+  // =================
+
+  // PUBLIC: Submit album suggestion
+  app.post('/api/albums/suggest', async (req, res) => {
+    try {
+      const validated = insertAlbumSuggestionSchema.parse(req.body);
+      
+      // Fetch MusicBrainz data for highest-rated cover art
+      const mbData = await musicbrainzService.getAlbumDetails(validated.artist, validated.title);
+      
+      const suggestion = await storage.createAlbumSuggestion(validated, mbData || undefined);
+      
+      broadcast({ type: 'album_suggestion', data: suggestion });
+      res.status(201).json(suggestion);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+      }
+      console.error('Error creating album suggestion:', error);
+      res.status(500).json({ error: 'Failed to create album suggestion' });
+    }
+  });
+
+  // PUBLIC: Get published album picks
+  app.get('/api/albums/published', async (req, res) => {
+    try {
+      const picks = await storage.getPublishedAlbumPicks();
+      res.json(picks);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch published picks' });
+    }
+  });
+
+  // PUBLIC: Get published album pick by month
+  app.get('/api/albums/published/:month', async (req, res) => {
+    try {
+      const { month } = req.params;
+      const pick = await storage.getPublishedAlbumPickWithItems(month);
+      
+      if (!pick) {
+        return res.status(404).json({ error: 'Album pick not found' });
+      }
+      
+      res.json(pick);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch album pick' });
+    }
+  });
+
+  // ADMIN: Get all album suggestions with votes (editor role required)
+  app.get('/api/admin/albums/suggestions', requireRole('editor'), async (req, res) => {
+    try {
+      const { status } = req.query;
+      const suggestions = await storage.getAlbumSuggestionsWithVotes();
+      
+      let filtered = suggestions;
+      if (status && status !== 'all') {
+        filtered = suggestions.filter(s => s.status === status);
+      }
+      
+      res.json(filtered);
+    } catch (error) {
+      console.error('Error fetching album suggestions:', error);
+      res.status(500).json({ error: 'Failed to fetch album suggestions' });
+    }
+  });
+
+  // ADMIN: Vote on album suggestion (editor role required)
+  app.post('/api/admin/albums/suggestions/:id/vote', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { value } = req.body;
+      const username = (req as any).user?.username || 'admin';
+      
+      if (value !== 1 && value !== -1) {
+        return res.status(400).json({ error: 'Vote value must be 1 or -1' });
+      }
+      
+      const vote = await storage.voteOnAlbumSuggestion(id, username, value);
+      broadcast({ type: 'album_vote', data: { suggestionId: id, vote } });
+      
+      res.json(vote);
+    } catch (error) {
+      console.error('Error voting on album:', error);
+      res.status(500).json({ error: 'Failed to vote on album' });
+    }
+  });
+
+  // ADMIN: Accept album suggestion (editor role required)
+  app.post('/api/admin/albums/suggestions/:id/accept', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const username = (req as any).user?.username || 'admin';
+      
+      const suggestion = await storage.acceptAlbumSuggestion(id, username);
+      broadcast({ type: 'album_accepted', data: suggestion });
+      
+      res.json(suggestion);
+    } catch (error) {
+      console.error('Error accepting album:', error);
+      res.status(500).json({ error: 'Failed to accept album' });
+    }
+  });
+
+  // ADMIN: Reject album suggestion (editor role required)
+  app.post('/api/admin/albums/suggestions/:id/reject', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const username = (req as any).user?.username || 'admin';
+      
+      const suggestion = await storage.rejectAlbumSuggestion(id, username);
+      broadcast({ type: 'album_rejected', data: suggestion });
+      
+      res.json(suggestion);
+    } catch (error) {
+      console.error('Error rejecting album:', error);
+      res.status(500).json({ error: 'Failed to reject album' });
+    }
+  });
+
+  // ADMIN: Create or get album pick for month (editor role required)
+  app.post('/api/admin/albums/picks', requireRole('editor'), async (req, res) => {
+    try {
+      const validated = insertAlbumPickSchema.parse(req.body);
+      const username = (req as any).user?.username || 'admin';
+      
+      // Check if pick already exists for this month
+      const existing = await storage.getAlbumPickByMonth(validated.month);
+      if (existing) {
+        return res.json(existing);
+      }
+      
+      const pick = await storage.createAlbumPick({
+        ...validated,
+        createdBy: username,
+      });
+      
+      res.status(201).json(pick);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+      }
+      console.error('Error creating album pick:', error);
+      res.status(500).json({ error: 'Failed to create album pick' });
+    }
+  });
+
+  // ADMIN: Get album pick draft by month (editor role required)
+  app.get('/api/admin/albums/picks/:month', requireRole('editor'), async (req, res) => {
+    try {
+      const { month } = req.params;
+      const pick = await storage.getAlbumPickByMonth(month);
+      
+      if (!pick) {
+        return res.status(404).json({ error: 'Album pick not found' });
+      }
+      
+      const items = await storage.getAlbumPickItems(pick.id);
+      const itemsWithAlbums = await Promise.all(
+        items.map(async (item) => {
+          const album = await storage.getAlbumSuggestionById(item.suggestionId);
+          return { ...item, album };
+        })
+      );
+      
+      res.json({ ...pick, items: itemsWithAlbums });
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch album pick' });
+    }
+  });
+
+  // ADMIN: Add album to draft pick (editor role required)
+  app.post('/api/admin/albums/picks/:month/items', requireRole('editor'), async (req, res) => {
+    try {
+      const { month } = req.params;
+      const pick = await storage.getAlbumPickByMonth(month);
+      
+      if (!pick) {
+        return res.status(404).json({ error: 'Album pick not found' });
+      }
+      
+      const validated = insertAlbumPickItemSchema.parse({
+        ...req.body,
+        pickId: pick.id,
+        addedBy: (req as any).user?.username || 'admin',
+      });
+      
+      const item = await storage.addAlbumToPickDraft(validated);
+      res.status(201).json(item);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+      }
+      console.error('Error adding album to pick:', error);
+      res.status(500).json({ error: 'Failed to add album to pick' });
+    }
+  });
+
+  // ADMIN: Update album pick item (editor role required)
+  app.patch('/api/admin/albums/pick-items/:id', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const item = await storage.updateAlbumPickItem(id, updates);
+      res.json(item);
+    } catch (error) {
+      console.error('Error updating album pick item:', error);
+      res.status(500).json({ error: 'Failed to update album pick item' });
+    }
+  });
+
+  // ADMIN: Delete album pick item (editor role required)
+  app.delete('/api/admin/albums/pick-items/:id', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAlbumPickItem(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting album pick item:', error);
+      res.status(500).json({ error: 'Failed to delete album pick item' });
+    }
+  });
+
+  // ADMIN: Publish album pick (editor role required)
+  app.post('/api/admin/albums/picks/:month/publish', requireRole('editor'), async (req, res) => {
+    try {
+      const { month } = req.params;
+      const pick = await storage.getAlbumPickByMonth(month);
+      
+      if (!pick) {
+        return res.status(404).json({ error: 'Album pick not found' });
+      }
+      
+      const published = await storage.publishAlbumPick(pick.id);
+      broadcast({ type: 'album_pick_published', data: published });
+      
+      res.json(published);
+    } catch (error) {
+      console.error('Error publishing album pick:', error);
+      res.status(500).json({ error: 'Failed to publish album pick' });
+    }
+  });
+
+  // ADMIN: Add note to album suggestion (editor role required)
+  app.post('/api/admin/albums/suggestions/:id/notes', requireRole('editor'), async (req, res) => {
+    try {
+      const suggestionId = parseInt(req.params.id);
+      const { content } = req.body;
+      const username = (req as any).user?.username || 'admin';
+      
+      const note = await storage.addAlbumSuggestionNote({
+        suggestionId,
+        authorUsername: username,
+        content,
+      });
+      
+      res.status(201).json(note);
+    } catch (error) {
+      console.error('Error adding note:', error);
+      res.status(500).json({ error: 'Failed to add note' });
+    }
+  });
+
+  // ADMIN: Get notes for album suggestion (editor role required)
+  app.get('/api/admin/albums/suggestions/:id/notes', requireRole('editor'), async (req, res) => {
+    try {
+      const suggestionId = parseInt(req.params.id);
+      const notes = await storage.getAlbumSuggestionNotes(suggestionId);
+      res.json(notes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch notes' });
     }
   });
 
