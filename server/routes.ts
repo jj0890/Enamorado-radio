@@ -2873,6 +2873,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN: Delete album suggestion (admin role required)
+  app.delete('/api/admin/albums/suggestions/:id', requireRole('admin'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteAlbumSuggestion(id);
+      broadcast({ type: 'album_deleted', data: { id } });
+      
+      res.json({ success: true, message: 'Album suggestion deleted' });
+    } catch (error) {
+      console.error('Error deleting album:', error);
+      res.status(500).json({ error: 'Failed to delete album suggestion' });
+    }
+  });
+
+  // ADMIN: Backfill Spotify URL for album suggestion (editor role required)
+  app.post('/api/admin/albums/suggestions/:id/backfill-spotify', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const suggestion = await storage.getAlbumSuggestionById(id);
+      
+      if (!suggestion) {
+        return res.status(404).json({ error: 'Album suggestion not found' });
+      }
+      
+      if (suggestion.spotifyUrl) {
+        return res.json({ message: 'Spotify URL already exists', suggestion });
+      }
+      
+      // Fetch Spotify URL
+      const spotifyUrl = await metadataService.searchSpotifyAlbum(suggestion.artist, suggestion.title);
+      
+      if (!spotifyUrl) {
+        return res.status(404).json({ error: 'No Spotify album found' });
+      }
+      
+      const updated = await storage.updateAlbumSuggestion(id, { spotifyUrl });
+      broadcast({ type: 'album_updated', data: updated });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('Error backfilling Spotify URL:', error);
+      res.status(500).json({ error: 'Failed to backfill Spotify URL' });
+    }
+  });
+
   // ADMIN: Create or get album pick for month (editor role required)
   app.post('/api/admin/albums/picks', requireRole('editor'), async (req, res) => {
     try {

@@ -761,6 +761,21 @@ export class FileStorage implements IStorage {
     });
   }
 
+  async deleteAlbumSuggestion(id: number): Promise<void> {
+    const index = this.albumSuggestions.findIndex(s => s.id === id);
+    if (index === -1) throw new Error('Album suggestion not found');
+    
+    this.albumSuggestions.splice(index, 1);
+    
+    // Also delete associated votes and notes
+    this.albumVotes = this.albumVotes.filter(v => v.suggestionId !== id);
+    this.albumSuggestionNotes = this.albumSuggestionNotes.filter(n => n.suggestionId !== id);
+    
+    await this.saveData('albumSuggestions', this.albumSuggestions);
+    await this.saveData('albumVotes', this.albumVotes);
+    await this.saveData('albumSuggestionNotes', this.albumSuggestionNotes);
+  }
+
   async voteOnAlbumSuggestion(suggestionId: number, voterUsername: string, value: 1 | -1): Promise<AlbumVote> {
     // Remove existing vote by this user for this suggestion
     this.albumVotes = this.albumVotes.filter(v => 

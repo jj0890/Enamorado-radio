@@ -35,6 +35,7 @@ interface AlbumSuggestion {
   musicbrainzId?: string;
   releaseGroupId?: string;
   coverArtUrl?: string;
+  spotifyUrl?: string;
   status: 'pending' | 'accepted' | 'rejected';
   createdAt: string;
   reviewedAt?: string;
@@ -263,6 +264,46 @@ export default function AdminAlbums() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/suggestions', selectedSuggestion?.id, 'notes'] });
       setNoteContent('');
       toast({ title: 'Note added', description: 'Your note has been saved.' });
+    },
+  });
+
+  // Delete suggestion mutation
+  const deleteSuggestionMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('DELETE', `/api/admin/albums/suggestions/${id}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/suggestions'] });
+      setIsDetailsOpen(false);
+      setSelectedSuggestion(null);
+      toast({ title: 'Deleted', description: 'Album suggestion has been permanently deleted.' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to delete', 
+        description: error.message || 'Could not delete the album suggestion.',
+        variant: 'destructive'
+      });
+    },
+  });
+
+  // Backfill Spotify URL mutation
+  const backfillSpotifyMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('POST', `/api/admin/albums/suggestions/${id}/backfill-spotify`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/suggestions'] });
+      toast({ title: 'Spotify URL added', description: 'Spotify link has been added to this album.' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to add Spotify URL', 
+        description: error.message || 'No Spotify album found for this artist and title.',
+        variant: 'destructive'
+      });
     },
   });
 
@@ -665,6 +706,34 @@ export default function AdminAlbums() {
                     Add Note
                   </Button>
                 </div>
+              </div>
+
+              <div className="border-t pt-4 flex gap-2">
+                {!selectedSuggestion.spotifyUrl && (
+                  <Button
+                    onClick={() => backfillSpotifyMutation.mutate(selectedSuggestion.id)}
+                    disabled={backfillSpotifyMutation.isPending}
+                    variant="outline"
+                    className="flex-1"
+                    data-testid="button-backfill-spotify"
+                  >
+                    🎵 Add Spotify Link
+                  </Button>
+                )}
+                <Button
+                  onClick={() => {
+                    if (confirm('Are you sure you want to permanently delete this suggestion?')) {
+                      deleteSuggestionMutation.mutate(selectedSuggestion.id);
+                    }
+                  }}
+                  disabled={deleteSuggestionMutation.isPending}
+                  variant="destructive"
+                  className="flex-1"
+                  data-testid="button-delete-suggestion"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Suggestion
+                </Button>
               </div>
             </div>
           )}
