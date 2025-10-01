@@ -2760,7 +2760,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Fetch MusicBrainz data for highest-rated cover art
       const mbData = await musicbrainzService.getAlbumDetails(validated.artist, validated.title);
       
-      const suggestion = await storage.createAlbumSuggestion(validated, mbData || undefined);
+      // Fetch Spotify URL for listening
+      const spotifyUrl = await metadataService.searchSpotifyAlbum(validated.artist, validated.title);
+      
+      const suggestion = await storage.createAlbumSuggestion(validated, mbData || undefined, spotifyUrl || undefined);
       
       broadcast({ type: 'album_suggestion', data: suggestion });
       res.status(201).json(suggestion);

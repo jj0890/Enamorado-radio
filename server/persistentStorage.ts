@@ -715,7 +715,7 @@ export class FileStorage implements IStorage {
     return this.albumSuggestions.find(s => s.id === id);
   }
 
-  async createAlbumSuggestion(data: InsertAlbumSuggestion, mbData?: { musicbrainzId: string; releaseGroupId: string; coverArtUrl: string | null; artist: string; title: string }): Promise<AlbumSuggestion> {
+  async createAlbumSuggestion(data: InsertAlbumSuggestion, mbData?: { musicbrainzId: string; releaseGroupId: string; coverArtUrl: string | null; artist: string; title: string }, spotifyUrl?: string): Promise<AlbumSuggestion> {
     const suggestion: AlbumSuggestion = {
       ...data,
       id: this.nextId++,
@@ -724,6 +724,7 @@ export class FileStorage implements IStorage {
       artist: mbData?.artist || data.artist,
       title: mbData?.title || data.title,
       coverArtUrl: mbData?.coverArtUrl || null,
+      spotifyUrl: spotifyUrl || null,
       status: 'pending',
       createdAt: new Date(),
       reviewedAt: null,
