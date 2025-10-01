@@ -10,6 +10,7 @@ interface AlbumSuggestion {
   title: string;
   releaseYear?: number;
   coverArtUrl?: string;
+  spotifyUrl?: string;
 }
 
 interface AlbumPickItem {
@@ -135,37 +136,80 @@ export default function AlbumsPage() {
                     <div className="absolute -top-2 -left-2 z-10 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-mono">
                       {item.rank}
                     </div>
-                    <div className="border rounded-lg overflow-hidden bg-white transition-shadow hover:shadow-lg">
-                      {item.album.coverArtUrl ? (
-                        <img
-                          src={item.album.coverArtUrl}
-                          alt={`${item.album.title} cover`}
-                          className="w-full aspect-square object-cover"
-                        />
-                      ) : (
-                        <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
-                          <Disc className="w-12 h-12 text-gray-400" />
-                        </div>
-                      )}
-                      <div className="p-3">
-                        <div className="font-mono font-semibold text-sm truncate">
-                          {item.album.title}
-                        </div>
-                        <div className="text-sm text-gray-600 font-mono truncate">
-                          {item.album.artist}
-                        </div>
-                        {item.album.releaseYear && (
-                          <div className="text-xs text-gray-500 font-mono">
-                            {item.album.releaseYear}
+                    {item.album.spotifyUrl ? (
+                      <a
+                        href={item.album.spotifyUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="block border rounded-lg overflow-hidden bg-white transition-shadow hover:shadow-lg"
+                        data-testid={`link-spotify-album-${item.album.id}`}
+                      >
+                        {item.album.coverArtUrl ? (
+                          <img
+                            src={item.album.coverArtUrl}
+                            alt={`${item.album.title} cover`}
+                            className="w-full aspect-square object-cover"
+                          />
+                        ) : (
+                          <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+                            <Disc className="w-12 h-12 text-gray-400" />
                           </div>
                         )}
-                        {item.note && (
-                          <p className="text-xs text-gray-500 italic mt-2 line-clamp-2">
-                            {item.note}
-                          </p>
+                        <div className="p-3">
+                          <div className="font-mono font-semibold text-sm truncate">
+                            {item.album.title}
+                          </div>
+                          <div className="text-sm text-gray-600 font-mono truncate">
+                            {item.album.artist}
+                          </div>
+                          {item.album.releaseYear && (
+                            <div className="text-xs text-gray-500 font-mono">
+                              {item.album.releaseYear}
+                            </div>
+                          )}
+                          {item.note && (
+                            <p className="text-xs text-gray-500 italic mt-2 line-clamp-2">
+                              {item.note}
+                            </p>
+                          )}
+                          <div className="text-xs text-red-500 font-mono mt-2 flex items-center gap-1">
+                            🎵 Listen on Spotify
+                          </div>
+                        </div>
+                      </a>
+                    ) : (
+                      <div className="border rounded-lg overflow-hidden bg-white transition-shadow hover:shadow-lg">
+                        {item.album.coverArtUrl ? (
+                          <img
+                            src={item.album.coverArtUrl}
+                            alt={`${item.album.title} cover`}
+                            className="w-full aspect-square object-cover"
+                          />
+                        ) : (
+                          <div className="w-full aspect-square bg-gray-100 flex items-center justify-center">
+                            <Disc className="w-12 h-12 text-gray-400" />
+                          </div>
                         )}
+                        <div className="p-3">
+                          <div className="font-mono font-semibold text-sm truncate">
+                            {item.album.title}
+                          </div>
+                          <div className="text-sm text-gray-600 font-mono truncate">
+                            {item.album.artist}
+                          </div>
+                          {item.album.releaseYear && (
+                            <div className="text-xs text-gray-500 font-mono">
+                              {item.album.releaseYear}
+                            </div>
+                          )}
+                          {item.note && (
+                            <p className="text-xs text-gray-500 italic mt-2 line-clamp-2">
+                              {item.note}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 ))}
               </div>

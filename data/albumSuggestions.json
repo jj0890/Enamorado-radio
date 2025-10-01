@@ -26,5 +26,37 @@
     "createdAt": "2025-10-01T17:32:48.090Z",
     "reviewedAt": "2025-10-01T17:34:41.671Z",
     "reviewedBy": "jarrad"
+  },
+  {
+    "suggestedBy": "test-user",
+    "artist": "Radiohead",
+    "title": "TestAlbum5J10rC",
+    "releaseYear": 1997,
+    "reason": "Testing Spotify integration for album linking",
+    "id": 15,
+    "musicbrainzId": null,
+    "releaseGroupId": null,
+    "coverArtUrl": null,
+    "spotifyUrl": null,
+    "status": "pending",
+    "createdAt": "2025-10-01T18:46:57.770Z",
+    "reviewedAt": null,
+    "reviewedBy": null
+  },
+  {
+    "suggestedBy": "Integration Test",
+    "artist": "Daft Punk",
+    "title": "Random Access Memories",
+    "releaseYear": 2013,
+    "reason": "Testing Spotify integration",
+    "id": 16,
+    "musicbrainzId": "ecf72e5a-e378-485e-bb87-7ebbd0430a79",
+    "releaseGroupId": "aa997ea0-2936-40bd-884d-3af8a0e064dc",
+    "coverArtUrl": "http://coverartarchive.org/release/4867ceba-ffe7-40c0-a093-45be6c03c655/6729981357-500.jpg",
+    "spotifyUrl": "https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa",
+    "status": "pending",
+    "createdAt": "2025-10-01T18:48:03.957Z",
+    "reviewedAt": null,
+    "reviewedBy": null
   }
 ]

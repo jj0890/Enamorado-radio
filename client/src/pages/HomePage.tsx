@@ -363,10 +363,22 @@ export default function Home() {
                         "{featuredAlbum.album.reason}"
                       </p>
                     )}
-                    <div className="flex items-center justify-center md:justify-start gap-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
                       <span className="inline-block bg-black text-white px-4 py-2 text-sm font-mono">
                         #{featuredAlbum.rank} in {currentMonthPick.title}
                       </span>
+                      {featuredAlbum.album.spotifyUrl && (
+                        <a
+                          href={featuredAlbum.album.spotifyUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block bg-green-500 text-white px-4 py-2 text-sm font-mono hover:bg-green-600 transition-colors"
+                          onClick={(e) => e.stopPropagation()}
+                          data-testid="button-spotify-featured"
+                        >
+                          🎵 Listen on Spotify
+                        </a>
+                      )}
                       <span className="text-red-500 font-mono text-sm group-hover:underline">
                         View All Picks →
                       </span>
