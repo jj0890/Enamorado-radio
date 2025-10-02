@@ -85,11 +85,11 @@ export default function MixesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
       <StickyRadioPlayer />
 
       {/* Header */}
-      <header className="border-b border-black bg-white">
+      <header className="border-b border-black dark:border-gray-800 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -97,16 +97,16 @@ export default function MixesPage() {
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/latest" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   LATEST
                 </Link>
-                <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/explore" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/episodes" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   EPISODES
                 </Link>
-                <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/schedule" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   SCHEDULE
                 </Link>
                 <Link href="/mixes" className="text-red-500 font-medium">
