@@ -4,6 +4,16 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**✅ COMPLETE: Dark Mode & Mobile Card Optimizations (October 2025)**
+- ✅ Full dark mode implementation with theme toggle in header
+- ✅ Persistent theme preference saved to localStorage
+- ✅ Complete dark mode styling for all pages, cards, and UI components
+- ✅ Mobile-optimized card design: reduced padding (p-3), smaller text, tighter spacing
+- ✅ Refined card aesthetics: hairline borders, rounded-xl corners, filled badge backgrounds
+- ✅ Smooth theme transitions with proper dark/light color variants
+- ✅ Accessibility-focused with keyboard navigation and focus rings
+- ✅ End-to-end testing confirms mobile responsiveness and theme persistence
+
 **✅ COMPLETE: Albums of the Month Feature (October 2025)**
 - ✅ Full role-based authentication system (viewer/contributor/editor/admin) with requireRole middleware
 - ✅ MusicBrainz API integration for album metadata and Cover Art Archive with highest-rated fallback

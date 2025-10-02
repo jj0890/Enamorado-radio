@@ -44,12 +44,12 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
   };
 
   return (
-    <div className="relative bg-white rounded-xl overflow-hidden transition-all duration-300 group focus-within:outline-none focus-within:ring-2 focus-within:ring-red-500/50">
+    <div className="relative bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 group focus-within:outline-none focus-within:ring-2 focus-within:ring-red-500/50">
       {/* Hairline border */}
-      <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] transition-shadow"></div>
+      <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_0_0_1px_rgba(239,68,68,0.5),0_6px_14px_rgba(0,0,0,0.5)] transition-shadow"></div>
       
       {/* Artwork */}
-      <div className="aspect-square bg-gray-200 relative">
+      <div className="aspect-square sm:aspect-square md:aspect-square bg-gray-200 dark:bg-gray-800 relative">
         {artwork ? (
           <img 
             src={artwork} 
@@ -63,24 +63,24 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
         )}
       </div>
 
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {/* Genre and Date */}
-        <div className="flex items-center justify-between mb-3 gap-2">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded-full uppercase">
+        <div className="flex items-center justify-between mb-2 gap-2">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-xs font-mono text-white bg-red-500 px-2 py-0.5 rounded-full uppercase">
               Community Mix
             </span>
             {mix.genre && (
               <Link 
                 href={`/genre/${mix.genre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
                 onClick={(e) => e.stopPropagation()}
-                className="text-xs font-mono bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full uppercase transition-colors"
+                className="text-xs font-mono bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 px-2 py-0.5 rounded-full uppercase transition-colors dark:text-gray-300"
               >
                 {mix.genre}
               </Link>
             )}
           </div>
-          <div className="text-xs font-mono text-gray-500 flex items-center shrink-0">
+          <div className="text-xs font-mono text-gray-500 dark:text-gray-400 flex items-center shrink-0">
             <Clock className="w-3 h-3 mr-1" />
             {new Date(mix.date || mix.submittedAt || '').toLocaleDateString()}
           </div>
@@ -88,10 +88,10 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
 
         {/* Title (no admin badges on public pages) */}
         <div className="mb-2">
-          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-red-500 transition-colors">
+          <h4 className="text-base sm:text-lg font-bold font-mono text-gray-900 dark:text-white group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors line-clamp-2">
             {mix.title}
           </h4>
-          <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
+          <div className="flex items-center text-gray-600 dark:text-gray-400 font-mono text-sm mt-1">
             <User className="w-3 h-3 mr-1" />
             {mix.artist || mix.name}
           </div>
@@ -101,7 +101,7 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
         {/* Listen Button */}
         <Button 
           size="sm" 
-          className="bg-red-500 hover:bg-red-600 text-white font-mono w-full text-sm"
+          className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white font-mono w-full text-xs sm:text-sm"
           onClick={handlePlay}
         >
           <Play className="w-4 h-4 mr-2" />

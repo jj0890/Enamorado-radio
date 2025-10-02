@@ -78,12 +78,12 @@ export default function AdminMixCard({
   }
 
   return (
-    <div className="relative bg-white rounded-xl overflow-hidden transition-all duration-300 group focus-within:outline-none focus-within:ring-2 focus-within:ring-red-500/50">
+    <div className="relative bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 group focus-within:outline-none focus-within:ring-2 focus-within:ring-red-500/50">
       {/* Hairline border */}
-      <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] transition-shadow"></div>
+      <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_0_0_1px_rgba(239,68,68,0.5),0_6px_14px_rgba(0,0,0,0.5)] transition-shadow"></div>
       
       {/* Artwork */}
-      <div className="aspect-square bg-gray-200 relative">
+      <div className="aspect-square bg-gray-200 dark:bg-gray-800 relative">
         {artwork ? (
           <img 
             src={artwork} 
@@ -116,13 +116,13 @@ export default function AdminMixCard({
         </div>
       </div>
       
-      <div className="p-4">
+      <div className="p-3 sm:p-4">
         {/* Genre and Date */}
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono bg-red-100 text-red-600 px-2 py-1 rounded-full uppercase">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-mono bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-0.5 rounded-full uppercase">
             {mix.genre}
           </span>
-          <div className="text-xs font-mono text-gray-500 flex items-center">
+          <div className="text-xs font-mono text-gray-500 dark:text-gray-400 flex items-center">
             <Clock className="w-3 h-3 mr-1" />
             {new Date(mix.submittedAt).toLocaleDateString()}
           </div>
@@ -130,10 +130,10 @@ export default function AdminMixCard({
 
         {/* Title and Artist */}
         <div className="mb-3">
-          <h4 className="text-lg font-bold font-mono text-gray-900 mb-1 group-hover:text-red-500 transition-colors">
+          <h4 className="text-base sm:text-lg font-bold font-mono text-gray-900 dark:text-white mb-1 group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors">
             {mix.title}
           </h4>
-          <div className="flex items-center text-gray-600 font-mono text-sm">
+          <div className="flex items-center text-gray-600 dark:text-gray-400 font-mono text-sm">
             <User className="w-3 h-3 mr-1" />
             {mix.name}
           </div>
