@@ -87,6 +87,8 @@
       .ticker__inner{ display:flex; gap:2rem; width:max-content;
         animation:scroll var(--ticker-dur,12s) linear infinite; }
       .ticker:not(.is-overflow) .ticker__inner{ animation:none; }
+      /* Hide duplicate copy when not scrolling */
+      .ticker:not(.is-overflow) .ticker__item[aria-hidden="true"]{ display:none; }
       @keyframes scroll{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
       
       /* Respect users who prefer no motion */
