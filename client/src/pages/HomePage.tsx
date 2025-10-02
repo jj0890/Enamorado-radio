@@ -107,7 +107,7 @@ export default function Home() {
       <StickyRadioPlayer />
 
       {/* Top utility/info bar (optional, small) */}
-      <div className="fixed top-0 left-0 right-0 z-40 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
         <div className="flex items-center justify-between px-4 py-2 text-sm font-mono">
           <div className="flex items-center space-x-2">
             <span className="text-gray-600 dark:text-gray-400">ENAMORADO RADIO</span>
@@ -119,7 +119,7 @@ export default function Home() {
       </div>
 
       {/* Main header / nav */}
-      <header className="fixed top-10 left-0 right-0 z-30 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
+      <header className="fixed top-10 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
