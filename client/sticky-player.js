@@ -5,7 +5,8 @@ const RETRY_SECS   = 6;                        // retry fetch cadence
 const audio = document.getElementById('radio-audio');
 const btn   = document.getElementById('radio-toggle');
 const vol   = document.getElementById('radio-volume');
-const title = document.getElementById('radio-title');
+const ticker = document.getElementById('radio-title');
+const text  = document.getElementById('radio-text');
 const sub   = document.getElementById('radio-sub');
 
 let userInteracted = false;
@@ -54,6 +55,25 @@ audio.addEventListener('error', () => {
   sub.textContent = 'Failed to play';
 });
 
+/** Only scroll if content is wider than its container; set speed by pixels/sec */
+function updateTicker(newText) {
+  text.textContent = newText;
+  // duplicate second copy to keep loop seamless
+  const items = ticker.querySelectorAll('.ticker__item');
+  if (items[1]) items[1].textContent = newText;
+
+  requestAnimationFrame(() => {
+    const inner = ticker.querySelector('.ticker__inner');
+    const overflow = inner.scrollWidth > ticker.clientWidth;
+    ticker.classList.toggle('is-overflow', overflow);
+    if (overflow) {
+      const pxPerSec = 80; // speed - adjust if needed
+      const distance = inner.scrollWidth / 2 + ticker.clientWidth; // because duplicated
+      ticker.style.setProperty('--ticker-dur', `${distance / pxPerSec}s`);
+    }
+  });
+}
+
 async function tickNowPlaying(){
   try {
     const r = await fetch(NOWPLAYING, { cache:'no-store' });
@@ -62,9 +82,10 @@ async function tickNowPlaying(){
     const s  = data?.now_playing?.song || data?.playing?.song || {};
     const st = data?.live?.is_live ? 'Live' : (data?.station?.name || 'Enamorado Radio');
 
-    title.textContent = (s.artist && s.title) ? `${s.artist} — ${s.title}` :
-                        s.title || 'Enamorado Radio';
-    sub.textContent   = st;
+    const newTitle = (s.artist && s.title) ? `${s.artist} — ${s.title}` :
+                     s.title || 'Enamorado Radio';
+    updateTicker(newTitle);
+    sub.textContent = st;
 
   } catch(e){
     // keep last known

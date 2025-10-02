@@ -4,7 +4,8 @@ const NOWPLAYING = '/nowplaying';
 const audio = document.getElementById('radio-audio');
 const btn   = document.getElementById('radio-toggle');
 const vol   = document.getElementById('radio-volume');
-const title = document.getElementById('radio-title');
+const ticker = document.getElementById('radio-title');
+const text = document.getElementById('radio-text');
 
 console.log('🎵 Sticky player script loaded');
 
@@ -37,6 +38,25 @@ vol.addEventListener('input', () => {
   console.log('🔊 Volume set to:', vol.value);
 });
 
+/** Only scroll if content is wider than its container; set speed by pixels/sec */
+function updateTicker(newText) {
+  text.textContent = newText;
+  // duplicate second copy to keep loop seamless
+  const items = ticker.querySelectorAll('.ticker__item');
+  if (items[1]) items[1].textContent = newText;
+
+  requestAnimationFrame(() => {
+    const inner = ticker.querySelector('.ticker__inner');
+    const overflow = inner.scrollWidth > ticker.clientWidth;
+    ticker.classList.toggle('is-overflow', overflow);
+    if (overflow) {
+      const pxPerSec = 80; // speed - adjust if needed
+      const distance = inner.scrollWidth / 2 + ticker.clientWidth; // because duplicated
+      ticker.style.setProperty('--ticker-dur', `${distance / pxPerSec}s`);
+    }
+  });
+}
+
 async function fetchNowPlaying() {
   try {
     console.log('📡 Fetching now playing...');
@@ -48,7 +68,7 @@ async function fetchNowPlaying() {
     const newTitle = (s.artist && s.title) ? `${s.artist} — ${s.title}` :
                      s.title || 'Live on Enamorado Radio';
     
-    title.textContent = newTitle;
+    updateTicker(newTitle);
     console.log('✅ Title updated to:', newTitle);
   } catch (e) {
     console.error('❌ Failed to fetch now playing:', e);
