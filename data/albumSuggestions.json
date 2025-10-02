@@ -39,10 +39,10 @@
     "releaseGroupId": null,
     "coverArtUrl": null,
     "spotifyUrl": null,
-    "status": "pending",
+    "status": "rejected",
     "createdAt": "2025-10-01T18:46:57.770Z",
-    "reviewedAt": null,
-    "reviewedBy": null
+    "reviewedAt": "2025-10-01T21:32:21.047Z",
+    "reviewedBy": "jarrad"
   },
   {
     "suggestedBy": "Integration Test",
