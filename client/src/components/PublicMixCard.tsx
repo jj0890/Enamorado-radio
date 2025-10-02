@@ -44,9 +44,12 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+    <div className="relative bg-white rounded-xl overflow-hidden transition-all duration-300 group focus-within:outline-none focus-within:ring-2 focus-within:ring-red-500/50">
+      {/* Hairline border */}
+      <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] transition-shadow"></div>
+      
       {/* Artwork */}
-      <div className="aspect-square bg-gray-200 overflow-hidden relative">
+      <div className="aspect-square bg-gray-200 relative">
         {artwork ? (
           <img 
             src={artwork} 
@@ -62,22 +65,22 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
 
       <div className="p-4">
         {/* Genre and Date */}
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
+        <div className="flex items-center justify-between mb-3 gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded-full uppercase">
               Community Mix
             </span>
             {mix.genre && (
               <Link 
                 href={`/genre/${mix.genre.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')}`}
                 onClick={(e) => e.stopPropagation()}
-                className="text-xs font-mono text-gray-700 bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded uppercase transition-colors"
+                className="text-xs font-mono bg-gray-100 hover:bg-gray-200 px-2 py-1 rounded-full uppercase transition-colors"
               >
                 {mix.genre}
               </Link>
             )}
           </div>
-          <div className="text-xs font-mono text-gray-500 flex items-center">
+          <div className="text-xs font-mono text-gray-500 flex items-center shrink-0">
             <Clock className="w-3 h-3 mr-1" />
             {new Date(mix.date || mix.submittedAt || '').toLocaleDateString()}
           </div>

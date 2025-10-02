@@ -78,9 +78,12 @@ export default function AdminMixCard({
   }
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+    <div className="relative bg-white rounded-xl overflow-hidden transition-all duration-300 group focus-within:outline-none focus-within:ring-2 focus-within:ring-red-500/50">
+      {/* Hairline border */}
+      <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] transition-shadow"></div>
+      
       {/* Artwork */}
-      <div className="aspect-square bg-gray-200 overflow-hidden relative">
+      <div className="aspect-square bg-gray-200 relative">
         {artwork ? (
           <img 
             src={artwork} 
@@ -96,17 +99,17 @@ export default function AdminMixCard({
         {/* Admin Status Badges */}
         <div className="absolute top-3 left-3 space-y-1">
           {isApproved ? (
-            <Badge variant="default" className="text-xs font-mono bg-green-600">
+            <Badge variant="default" className="text-xs font-mono bg-green-600 border-0">
               APPROVED
             </Badge>
           ) : (
-            <Badge variant="outline" className="text-xs font-mono border-yellow-600 text-yellow-600">
+            <Badge className="text-xs font-mono bg-yellow-100 text-yellow-700 border-0">
               PENDING
             </Badge>
           )}
           
           {isFeatured && (
-            <Badge variant="default" className="text-xs font-mono bg-yellow-600">
+            <Badge variant="default" className="text-xs font-mono bg-yellow-600 border-0">
               FEATURED
             </Badge>
           )}
@@ -116,7 +119,7 @@ export default function AdminMixCard({
       <div className="p-4">
         {/* Genre and Date */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono text-red-500 uppercase bg-red-50 px-2 py-1 rounded">
+          <span className="text-xs font-mono bg-red-100 text-red-600 px-2 py-1 rounded-full uppercase">
             {mix.genre}
           </span>
           <div className="text-xs font-mono text-gray-500 flex items-center">
