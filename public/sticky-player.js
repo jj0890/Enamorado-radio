@@ -50,7 +50,9 @@ function updateTicker(newText) {
     const overflow = inner.scrollWidth > ticker.clientWidth;
     ticker.classList.toggle('is-overflow', overflow);
     if (overflow) {
-      const pxPerSec = 80; // speed - adjust if needed
+      // Slower speed on mobile for better readability
+      const isMobile = window.innerWidth <= 640;
+      const pxPerSec = isMobile ? 40 : 80;
       const distance = inner.scrollWidth / 2 + ticker.clientWidth; // because duplicated
       ticker.style.setProperty('--ticker-dur', `${distance / pxPerSec}s`);
     }

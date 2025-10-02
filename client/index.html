@@ -98,6 +98,12 @@
       .rp-right{ margin-left:auto; display:flex; align-items:center; gap:10px; }
       #radio-volume{ width:160px; accent-color:var(--rp-accent); }
       body{ padding-bottom:var(--rp-height); }
+      
+      /* Mobile adjustments */
+      @media (max-width: 640px) {
+        #radio-volume{ display:none; }
+        .rp-right{ margin-left:8px; }
+      }
     </style>
 
     <script type="module" src="/sticky-player.js"></script>
