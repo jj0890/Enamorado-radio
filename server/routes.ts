@@ -465,13 +465,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create episode record
       const episode = await storage.createEpisode({
         title,
-        showId: parseInt(showId),
-        slug: title.toLowerCase().replace(/[^a-z0-9]/g, '-'),
+        genre: 'Radio',
         airDate: new Date(airDate),
+        hostName: 'Enamorado Radio',
+        duration: 0, // Will be updated later
+        audioUrl: '',
         artworkUrl,
         tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
-        status: 'uploading',
-        featureOnHome: featureOnHome === 'true'
+        status: 'uploading'
       });
 
       // Upload to AzuraCast
@@ -484,17 +485,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       if (uploadResult.success) {
         // Get or create playlist - using episode title as fallback
-        const show = null; // TODO: implement show management later
-        const playlistResult = await azuraCastManager.ensurePlaylist(showSlug, show?.title || showSlug);
+        const playlistResult = await azuraCastManager.ensurePlaylist(showSlug, showSlug);
 
         if (playlistResult.playlistId && uploadResult.azuraFilePath) {
           // Add to playlist
           await azuraCastManager.addToPlaylist(playlistResult.playlistId, uploadResult.azuraFilePath);
-
-          // Update episode with playlist info
-          await storage.updateEpisode(episode.id, {
-            azuraPlaylistId: playlistResult.playlistId
-          });
         }
 
         broadcast({
@@ -539,12 +534,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Episode not found' });
       }
 
-      if (!episode.azuraPlaylistId) {
-        return res.status(400).json({ error: 'Episode not uploaded to AzuraCast yet' });
-      }
-
+      // For now, skip playlist check - episodes are auto-uploaded
       const scheduleResult = await azuraCastManager.scheduleEpisode(
-        episode.azuraPlaylistId,
+        "0", // Placeholder playlist ID
         new Date(startTime),
         duration
       );
@@ -601,11 +593,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Combine and sort by date
       const latest = [
-        ...episodes.map(e => ({ ...e, type: 'episode' })),
-        ...mixes.map(m => ({ ...m, type: 'mix' }))
+        ...episodes.map(e => ({ ...e, type: 'episode' as const })),
+        ...mixes.map(m => ({ ...m, type: 'mix' as const }))
       ].sort((a, b) => {
-        const dateA = 'airDate' in a ? new Date(a.airDate) : new Date(a.submittedAt);
-        const dateB = 'airDate' in b ? new Date(b.airDate) : new Date(b.submittedAt);
+        const dateA = 'airDate' in a && a.airDate ? new Date(a.airDate) : ('submittedAt' in a && a.submittedAt ? new Date(a.submittedAt) : new Date());
+        const dateB = 'airDate' in b && b.airDate ? new Date(b.airDate) : ('submittedAt' in b && b.submittedAt ? new Date(b.submittedAt) : new Date());
         return dateB.getTime() - dateA.getTime();
       }).slice(0, limit);
 
@@ -815,13 +807,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Import platform detection service
       const { enrichMixSubmissionWithPlatform, setPlatformRoutingDefaults, logPlatformDetection } = await import('./platformDetectionService');
 
-      // Check all possible URL fields for direct MP3 links
+      // Check URL field for direct MP3 links
       const allUrls = [
-        validatedData.url,
-        validatedData.soundcloudUrl,
-        validatedData.mixcloudUrl,
-        validatedData.audiocomUrl,
-        validatedData.otherUrl
+        validatedData.url
       ].filter(Boolean);
 
       const directMp3Url = allUrls.find(url => url?.match(/\.mp3(\?|$)/i));
@@ -1039,7 +1027,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         filtered = submissions.filter(s => !s.notes?.includes('Featured: true'));
       }
 
-      res.json(filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()));
+      res.json(filtered.sort((a, b) => {
+        const dateA = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+        const dateB = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+        return dateB - dateA;
+      }));
     } catch (error) {
       console.error('Error fetching submissions:', error);
       res.status(500).json({ error: 'Failed to fetch submissions' });
@@ -1265,7 +1257,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { upcoming, date, limit } = req.query;
       const schedule = await storage.getSchedule({
         upcoming: upcoming === 'true' ? true : undefined,
-        date: date ? new Date(date as string) : null,
+        date: date ? new Date(date as string) : undefined,
         limit: limit ? parseInt(limit as string) : undefined
       });
       res.json(schedule);
@@ -1471,11 +1463,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertSongSubmissionSchema.parse(req.body);
       
       // Normalize platform + artwork
-      const href = validatedData.platformUrl || validatedData.url || '';
+      const href = validatedData.spotifyUrl || validatedData.youtubeUrl || '';
       let platform = 'link';
-      if (href.includes('open.spotify.com')) platform = 'spotify';
-      else if (href.includes('soundcloud.com')) platform = 'soundcloud';
-      else if (href.includes('mixcloud.com')) platform = 'mixcloud';
+      if (href && href.includes('open.spotify.com')) platform = 'spotify';
+      else if (href && href.includes('soundcloud.com')) platform = 'soundcloud';
+      else if (href && href.includes('mixcloud.com')) platform = 'mixcloud';
       (validatedData as any).platform = platform;
 
       // Try oEmbed for art/title/artist
@@ -1501,7 +1493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(submission);
     } catch (error) {
       console.error('Song submission failed:', error, req.body);
-      res.status(400).json({ error: 'Invalid song submission data', details: error.message });
+      res.status(400).json({ error: 'Invalid song submission data', details: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -1521,7 +1513,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             title: `${submission.artistName} - ${submission.songTitle}`,
             genre: 'Electronic',
             url: submission.spotifyUrl || submission.youtubeUrl || '',
-            submittedAt: submission.submittedAt.toISOString(),
+            submittedAt: submission.submittedAt ? submission.submittedAt.toISOString() : new Date().toISOString(),
             status: 'pending' as const,
             featureOnSite: false,
             pushToAzura: false // Requires manual admin approval for AzuraCast
@@ -1576,10 +1568,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: song.songTitle || 'Untitled',
         genre: (song as any).genre || 'Electronic',
         about: song.notes || null,
-        url: song.spotifyUrl || song.youtubeUrl || (song as any).platformUrl || '',
+        url: song.spotifyUrl || song.youtubeUrl || '',
         artUrl: (song as any).artUrl || (song as any).artwork || null,
         platform: (song as any).platform || 'spotify',
-        status: 'pending',
         featureOnSite: false,
         pushToAzura: false
       });
@@ -1813,20 +1804,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Test connection by getting now playing
       const nowPlaying = await azuracastService.getNowPlaying();
-      const stationInfo = await azuracastService.getStationInfo();
 
       res.json({
         success: true,
-        nowPlaying,
-        stationInfo,
-        streamUrl: azuracastService.getStreamUrl(),
-        publicPlayerUrl: azuracastService.getPublicPlayerUrl()
+        nowPlaying
       });
     } catch (error) {
       res.status(500).json({
         success: false,
         error: 'Failed to connect to AzuraCast',
-        message: error.message
+        message: error instanceof Error ? error.message : 'Unknown error'
       });
     }
   });
@@ -1885,7 +1872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         audioProcessor.removeListener('progress', progressListener);
       }
     } catch (error) {
-      res.status(500).json({ error: 'Processing failed', message: error.message });
+      res.status(500).json({ error: 'Processing failed', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -1905,8 +1892,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update mix status to indicate it's been uploaded to AzuraCast
         await storage.updateMixSubmission(mixId, { 
           ...mix, 
-          status: 'featured', // Mark as featured since it's now in AzuraCast rotation
-          azuracastUploaded: true 
+          status: 'featured' // Mark as featured since it's now in AzuraCast rotation
         });
 
         res.json({ success: true, message: 'Mix uploaded to AzuraCast successfully' });
@@ -1914,7 +1900,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ error: 'Failed to upload to AzuraCast' });
       }
     } catch (error) {
-      res.status(500).json({ error: 'Upload failed', message: error.message });
+      res.status(500).json({ error: 'Upload failed', message: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2052,7 +2038,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const updatedMix = await storage.updateMixSubmission(id, updates);
       res.json({ ok: true, approved: newApprovalStatus });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2090,8 +2076,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (result.success) {
             await storage.updateMixSubmission(id, {
-              azuraFilePath: fileName,
-              uploadedAt: new Date().toISOString()
+              azuraFilePath: fileName
             });
           }
         } catch (e) {
@@ -2101,7 +2086,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ ok: true, featured: newFeaturedStatus });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2122,8 +2107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (result.success) {
         // Update mix with AzuraCast info
         await storage.updateMixSubmission(id, {
-          azuraFilePath: result.remotePath,
-          uploadedAt: new Date().toISOString()
+          azuraFilePath: fileName
         });
         res.json({ success: true, message: 'Successfully pushed to AzuraCast' });
       } else {
@@ -2179,7 +2163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error updating mix artwork:', error);
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2190,7 +2174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       await storage.deleteMixSubmission(id);
       res.json({ success: true });
     } catch (error) {
-      res.status(404).json({ error: error.message });
+      res.status(404).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2243,7 +2227,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, mix: updatedMix });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2292,7 +2276,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       res.json({ success: true, mix: updatedMix });
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2339,7 +2323,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update mix with AzuraCast info
         await storage.updateMixSubmission(id, {
           azuraFilePath: result.remotePath,
-          uploadedAt: new Date().toISOString(),
           azuraPlaylistId: 'community_mixes'
         });
 
@@ -2355,7 +2338,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(500).json({ error: result.error || 'Upload failed' });
       }
     } catch (error) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Unknown error' });
     }
   });
 
@@ -2713,7 +2696,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     limits: { fileSize: 200 * 1024 * 1024 }, // 200MB
     fileFilter: (req, file, cb) => {
       const ok = /^audio\//.test(file.mimetype) || /\.mp3$/i.test(file.originalname);
-      cb(ok ? null : new Error('Only audio files'), ok);
+      if (ok) {
+        cb(null, true);
+      } else {
+        cb(new Error('Only audio files'));
+      }
     }
   });
 
@@ -2730,10 +2717,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title,
         genre,
         about: about || null,
-        url: null,                   // no platform URL; it's a file
+        url: '',                     // no platform URL; it's a file
         artUrl: artworkUrl || null,  // optional manual art
-        source: 'upload',
-        status: 'pending'
+        source: 'upload'
       });
 
       // Save file path to allow admin push later

@@ -54,7 +54,7 @@
     "genre": "Electronic",
     "about": "Minimalism on a journey through dark and bright soundscapes. Loopy percussion and hypnotic grooves till the end.",
     "id": 4,
-    "status": "approved",
+    "status": "featured",
     "featureOnSite": true,
     "pushToAzura": true,
     "submittedAt": "2025-09-20T10:01:00.000Z",
@@ -78,5 +78,37 @@
     "reviewedBy": "Admin",
     "notes": "Featured jungle mix",
     "artUrl": "https://i1.sndcdn.com/artworks-mebwxmNjlG0S8z6P-gtAVsA-t500x500.jpg"
+  },
+  {
+    "name": "shekdash",
+    "title": "elevatir music",
+    "genre": "house",
+    "about": "",
+    "url": "https://soundcloud.com/elevatormusiclive/shekdash-elevator-music?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+    "artUrl": "https://i1.sndcdn.com/artworks-0gtBl18STzw4RXkh-dl2zrA-t500x500.jpg",
+    "platform": "soundcloud",
+    "playback_mode": "stream",
+    "is_radio_ingestable": true,
+    "requires_alternative": false,
+    "rights_status": "unverified",
+    "featureOnSite": true,
+    "pushToAzura": true,
+    "artwork_url": "https://i1.sndcdn.com/artworks-0gtBl18STzw4RXkh-dl2zrA-t500x500.jpg",
+    "metadata": {
+      "platform": "soundcloud",
+      "trackId": "https://soundcloud.com/elevatormusiclive/shekdash-elevator-music?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing",
+      "title": "shekdash - Elevator Music",
+      "artist": "Elevator Music",
+      "imageUrl": "https://i1.sndcdn.com/artworks-0gtBl18STzw4RXkh-dl2zrA-t500x500.jpg",
+      "externalUrls": {
+        "soundcloud": "https://soundcloud.com/elevatormusiclive/shekdash-elevator-music?utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing"
+      }
+    },
+    "id": 18,
+    "status": "approved",
+    "submittedAt": "2025-10-03T22:10:52.494Z",
+    "reviewedAt": "2025-10-03T22:11:17.032Z",
+    "reviewedBy": "Admin",
+    "notes": "Approved by admin"
   }
 ]

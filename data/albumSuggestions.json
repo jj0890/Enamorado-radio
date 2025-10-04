@@ -59,5 +59,21 @@
     "createdAt": "2025-10-01T18:48:03.957Z",
     "reviewedAt": null,
     "reviewedBy": null
+  },
+  {
+    "suggestedBy": "jarrad",
+    "artist": "454",
+    "title": "FAST TRAX 3",
+    "releaseYear": 2022,
+    "reason": "so good man fr",
+    "id": 19,
+    "musicbrainzId": "e4dbb3b4-77b4-4a84-9375-abc8362a834b",
+    "releaseGroupId": "ebe1d14a-68ed-4b9e-92e9-8c88bd65373c",
+    "coverArtUrl": "http://coverartarchive.org/release/33909fa9-b968-4e0a-a3d8-8c33602aca33/34156145278-500.jpg",
+    "spotifyUrl": "https://open.spotify.com/album/4Wu3A2zAzOPrws6F9QLxqq",
+    "status": "accepted",
+    "createdAt": "2025-10-04T13:12:34.649Z",
+    "reviewedAt": "2025-10-04T13:13:20.979Z",
+    "reviewedBy": "jarrad"
   }
 ]
