@@ -204,6 +204,13 @@ export default function AdminAlbums() {
       setNewPickDescription('');
       toast({ title: 'Pick created', description: 'Draft album pick has been created.' });
     },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to create pick', 
+        description: error.message || 'Could not create the album pick. Please try again.',
+        variant: 'destructive'
+      });
+    },
   });
 
   // Add to pick mutation
@@ -215,6 +222,13 @@ export default function AdminAlbums() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
       toast({ title: 'Album added', description: 'Album added to draft pick.' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to add album', 
+        description: error.message || 'Could not add album to pick. Please try again.',
+        variant: 'destructive'
+      });
     },
   });
 
@@ -251,6 +265,13 @@ export default function AdminAlbums() {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/albums/published'] });
       toast({ title: 'Pick published', description: 'Album pick is now live!' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to publish pick', 
+        description: error.message || 'Could not publish the album pick. Please try again.',
+        variant: 'destructive'
+      });
     },
   });
 

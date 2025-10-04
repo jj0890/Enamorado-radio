@@ -2990,6 +2990,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN: Delete published album pick (editor role required)
+  app.delete('/api/admin/albums/picks/:month', requireRole('editor'), async (req, res) => {
+    try {
+      const { month } = req.params;
+      const pick = await storage.getAlbumPickByMonth(month);
+      
+      if (!pick) {
+        return res.status(404).json({ error: 'Album pick not found' });
+      }
+      
+      await storage.deleteAlbumPick(pick.id);
+      broadcast({ type: 'album_pick_deleted', data: { month } });
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting album pick:', error);
+      res.status(500).json({ error: 'Failed to delete album pick' });
+    }
+  });
+
   // ADMIN: Add note to album suggestion (editor role required)
   app.post('/api/admin/albums/suggestions/:id/notes', requireRole('editor'), async (req, res) => {
     try {

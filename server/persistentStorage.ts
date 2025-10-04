@@ -886,6 +886,20 @@ export class FileStorage implements IStorage {
     return this.albumPicks[index];
   }
 
+  async deleteAlbumPick(pickId: number): Promise<void> {
+    const index = this.albumPicks.findIndex(p => p.id === pickId);
+    if (index !== -1) {
+      this.albumPicks.splice(index, 1);
+      await this.saveData('albumPicks', this.albumPicks);
+      
+      // Also delete all associated pick items
+      const itemsToDelete = this.albumPickItems.filter(item => item.pickId === pickId);
+      for (const item of itemsToDelete) {
+        await this.deleteAlbumPickItem(item.id);
+      }
+    }
+  }
+
   async getPublishedAlbumPickWithItems(month: string): Promise<(AlbumPick & { items: Array<AlbumPickItem & { album: AlbumSuggestion }> }) | null> {
     const pick = this.albumPicks.find(p => p.month === month && p.isPublished);
     if (!pick) return null;
