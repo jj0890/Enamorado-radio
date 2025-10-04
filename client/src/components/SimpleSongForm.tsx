@@ -92,67 +92,67 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4">
+      <div className="bg-white dark:bg-gray-900 rounded-lg shadow-xl max-w-md w-full p-6">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold font-mono text-red-500">SUBMIT SONG</h2>
-          <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded">
+          <button onClick={onClose} className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded text-gray-700 dark:text-gray-300">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-mono mb-1">Your Name</label>
+            <label className="block text-sm font-mono mb-1 text-gray-700 dark:text-gray-300">Your Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 border rounded font-mono"
+              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Enter your name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-mono mb-1">Email</label>
+            <label className="block text-sm font-mono mb-1 text-gray-700 dark:text-gray-300">Email</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-2 border rounded font-mono"
+              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="your@email.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-mono mb-1">Song Title</label>
+            <label className="block text-sm font-mono mb-1 text-gray-700 dark:text-gray-300">Song Title</label>
             <input
               type="text"
               value={song}
               onChange={(e) => setSong(e.target.value)}
-              className="w-full p-2 border rounded font-mono"
+              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Song name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-mono mb-1">Artist</label>
+            <label className="block text-sm font-mono mb-1 text-gray-700 dark:text-gray-300">Artist</label>
             <input
               type="text"
               value={artist}
               onChange={(e) => setArtist(e.target.value)}
-              className="w-full p-2 border rounded font-mono"
+              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Artist name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-mono mb-1">Music URL (optional)</label>
+            <label className="block text-sm font-mono mb-1 text-gray-700 dark:text-gray-300">Music URL (optional)</label>
             <input
               type="url"
               value={url}
               onChange={(e) => setUrl(e.target.value)}
-              className="w-full p-2 border rounded font-mono"
+              className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded font-mono bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500"
               placeholder="Spotify, Apple Music, Bandcamp, SoundCloud, YouTube, etc."
             />
           </div>
@@ -161,7 +161,7 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border rounded font-mono hover:bg-gray-50"
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 rounded font-mono hover:bg-gray-50 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300"
             >
               Cancel
             </button>

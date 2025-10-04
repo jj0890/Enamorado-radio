@@ -1223,7 +1223,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/song-submissions", async (req, res) => {
+  // Legacy endpoint - kept for backwards compatibility but unused
+  app.post("/api/song-submissions-old", async (req, res) => {
     try {
       const validatedData = insertSongSubmissionSchema.parse(req.body);
       const submission = await storage.createSongSubmission(validatedData);
@@ -1231,20 +1232,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating song submission:', error);
       res.status(400).json({ error: 'Invalid song submission data' });
-    }
-  });
-
-  app.patch("/api/song-submissions/:id/status", async (req, res) => {
-    try {
-      const { approvalStatus } = req.body;
-      const submission = await storage.updateSongSubmissionStatus(
-        parseInt(req.params.id),
-        approvalStatus
-      );
-      res.json(submission);
-    } catch (error) {
-      console.error('Error updating song submission status:', error);
-      res.status(500).json({ error: 'Failed to update song submission status' });
     }
   });
 
@@ -1494,42 +1481,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Song submission failed:', error, req.body);
       res.status(400).json({ error: 'Invalid song submission data', details: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  });
-
-  app.patch("/api/song-submissions/:id/status", async (req, res) => {
-    try {
-      const { status } = req.body;
-      const submission = await storage.updateSongSubmissionStatus(
-        parseInt(req.params.id), 
-        status
-      );
-
-      // If approved, automatically create a mix submission for the workflow
-      if (status === 'approved') {
-        try {
-          const mixData = {
-            name: submission.submitterName,
-            title: `${submission.artistName} - ${submission.songTitle}`,
-            genre: 'Electronic',
-            url: submission.spotifyUrl || submission.youtubeUrl || '',
-            submittedAt: submission.submittedAt ? submission.submittedAt.toISOString() : new Date().toISOString(),
-            status: 'pending' as const,
-            featureOnSite: false,
-            pushToAzura: false // Requires manual admin approval for AzuraCast
-          };
-
-          const mixSubmission = await storage.createMixSubmission(mixData);
-          console.log(`✅ Created mix submission for approved song: ${mixSubmission.id}`);
-        } catch (error) {
-          console.warn('Failed to create mix submission from approved song:', error);
-        }
-      }
-
-      res.json(submission);
-    } catch (error) {
-      console.error('Error updating song submission status:', error);
-      res.status(500).json({ error: 'Failed to update song submission status' });
     }
   });
 
