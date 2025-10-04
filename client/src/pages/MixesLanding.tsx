@@ -59,6 +59,9 @@ interface Mix {
   duration?: string;
   genre: string[];
   featured?: boolean;
+  name?: string;
+  artUrl?: string;
+  metadata?: any;
 }
 
 // Featured mixes now come directly from admin-approved content
@@ -358,12 +361,14 @@ export default function MixesLanding() {
                         {/* Genre Tags */}
                         <div className="flex flex-wrap gap-2 mb-6">
                           {mix.genre.map((g, i) => (
-                            <span
+                            <Link
                               key={i}
-                              className="bg-red-500 text-white px-3 py-1 text-sm font-mono"
+                              href={`/genre/${g.toLowerCase().replace(/\s+/g, '-')}`}
                             >
-                              {g}
-                            </span>
+                              <span className="bg-red-500 text-white px-3 py-1 text-sm font-mono cursor-pointer hover:bg-red-600 transition-colors">
+                                {g}
+                              </span>
+                            </Link>
                           ))}
                         </div>
 
@@ -597,12 +602,14 @@ export default function MixesLanding() {
                   {/* Genre Tags */}
                   <div className="flex flex-wrap gap-1">
                     {mix.genre.slice(0, 2).map((genre, index) => (
-                      <span
+                      <Link
                         key={index}
-                        className="bg-red-500 text-white px-2 py-1 text-xs font-mono"
+                        href={`/genre/${genre.toLowerCase().replace(/\s+/g, '-')}`}
                       >
-                        {genre}
-                      </span>
+                        <span className="bg-red-500 text-white px-2 py-1 text-xs font-mono cursor-pointer hover:bg-red-600 transition-colors">
+                          {genre}
+                        </span>
+                      </Link>
                     ))}
                   </div>
 
