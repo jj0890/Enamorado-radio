@@ -307,6 +307,25 @@ export default function AdminAlbums() {
     },
   });
 
+  // Delete published pick mutation
+  const deletePublishedPickMutation = useMutation({
+    mutationFn: async (month: string) => {
+      const res = await apiRequest('DELETE', `/api/admin/albums/picks/${month}`);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/albums/published'] });
+      toast({ title: 'Pick deleted', description: 'Published album pick has been deleted.' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to delete pick', 
+        description: error.message || 'Could not delete the published pick.',
+        variant: 'destructive'
+      });
+    },
+  });
+
   return (
     <div className="container mx-auto p-6 max-w-7xl">
       <div className="flex items-center justify-between mb-6">
@@ -620,10 +639,25 @@ export default function AdminAlbums() {
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{pick.title}</span>
-                      <Badge variant="outline">
-                        <Calendar className="w-3 h-3 mr-1" />
-                        {pick.month}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">
+                          <Calendar className="w-3 h-3 mr-1" />
+                          {pick.month}
+                        </Badge>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            if (confirm(`Are you sure you want to delete "${pick.title}"? This action cannot be undone.`)) {
+                              deletePublishedPickMutation.mutate(pick.month);
+                            }
+                          }}
+                          disabled={deletePublishedPickMutation.isPending}
+                          data-testid={`button-delete-pick-${pick.id}`}
+                        >
+                          <Trash2 className="w-4 h-4 text-red-500" />
+                        </Button>
+                      </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
