@@ -22,9 +22,10 @@ interface PublicMixCardProps {
       artist?: string;
     };
   };
+  onGenreSelect?: (genre: string) => void;
 }
 
-export default function PublicMixCard({ mix }: PublicMixCardProps) {
+export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps) {
   // Robust artwork fallback chain
   const artwork = mix.artwork || mix.artUrl || (mix as any).coverUrl || mix.metadata?.imageUrl || null;
 
@@ -72,9 +73,22 @@ export default function PublicMixCard({ mix }: PublicMixCardProps) {
               Mix
             </span>
             {mix.genre && (
-              <span className="text-[10px] sm:text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full uppercase dark:text-gray-300">
-                {mix.genre}
-              </span>
+              onGenreSelect ? (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onGenreSelect(mix.genre);
+                  }}
+                  data-testid={`tag-genre-${mix.genre.toLowerCase()}`}
+                  className="text-[10px] sm:text-xs font-mono bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 px-1.5 py-0.5 rounded-full uppercase dark:text-gray-300 transition-colors cursor-pointer"
+                >
+                  {mix.genre}
+                </button>
+              ) : (
+                <span className="text-[10px] sm:text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full uppercase dark:text-gray-300">
+                  {mix.genre}
+                </span>
+              )
             )}
           </div>
 

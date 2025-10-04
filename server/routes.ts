@@ -2588,12 +2588,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Public mixes (approved only)
   app.get('/api/public/mixes', async (req, res) => {
     try {
-      const { limit } = req.query;
+      const { limit, genre } = req.query;
       const allMixes = await storage.getMixSubmissions({});
 
       // Filter for mixes that should appear on website (approved OR featured status)
-      const approvedMixes = allMixes
-        .filter(mix => mix.status === 'approved' || mix.status === 'featured')
+      let approvedMixes = allMixes
+        .filter(mix => mix.status === 'approved' || mix.status === 'featured');
+
+      // Apply optional genre filter
+      if (genre && typeof genre === 'string') {
+        const genreLower = genre.toLowerCase();
+        approvedMixes = approvedMixes.filter(mix => 
+          mix.genre && mix.genre.toLowerCase() === genreLower
+        );
+      }
+
+      // Sort and limit
+      approvedMixes = approvedMixes
         .sort((a, b) => {
           // Featured mixes first, then approved
           if (a.status === 'featured' && b.status !== 'featured') return -1;

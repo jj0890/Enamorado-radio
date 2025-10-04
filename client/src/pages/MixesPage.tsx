@@ -6,70 +6,33 @@ import { ArrowLeft, Play, Music, Upload, Clock, User, Star } from "lucide-react"
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import PublicMixCard from "@/components/PublicMixCard";
 
-// Public Mixes Component - Only shows approved mixes
-function AllMixesSection() {
-  const [publicFilter, setPublicFilter] = useState<'all' | 'featured'>('all');
-  
-  const { data: publicMixes = [], isLoading } = useQuery({
-    queryKey: publicFilter === 'featured' ? ["/api/public/mixes/featured", { limit: 12 }] : ["/api/public/mixes", { limit: 12 }],
-    refetchInterval: 30000,
-  });
-
-  if (isLoading) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-gray-600 font-mono">Loading all mixes...</div>
-      </div>
-    );
-  }
-
-  return (
-    <div>
-      {/* Filter Controls for All Mixes */}
-      <div className="mb-6">
-        <div className="flex gap-2 flex-wrap">
-          {['all', 'featured'].map((filterOption) => (
-            <Button
-              key={filterOption}
-              size="sm"
-              variant={publicFilter === filterOption ? 'default' : 'outline'}
-              onClick={() => setPublicFilter(filterOption as typeof publicFilter)}
-              className={publicFilter === filterOption 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
-              }
-            >
-              {filterOption.charAt(0).toUpperCase() + filterOption.slice(1)}
-            </Button>
-          ))}
-        </div>
-      </div>
-
-      {/* Public Mixes Grid */}
-      {publicMixes.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-          {publicMixes.map((mix: any) => (
-            <PublicMixCard key={mix.id} mix={mix} />
-          ))}
-        </div>
-      ) : (
-        <div className="text-center py-8">
-          <Music className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <div className="text-gray-600 dark:text-gray-400 font-mono">No mixes found for {publicFilter} filter.</div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 export default function MixesPage() {
-  const [filter, setFilter] = useState<'approved' | 'featured' | 'pending'>('approved');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'featured'>('all');
+  const [genreFilter, setGenreFilter] = useState<string | null>(null);
 
-  // Fetch mixes with different status filters
+  // Build query key with optional genre
+  const queryKey = statusFilter === 'featured' 
+    ? ["/api/public/mixes/featured", { limit: 20 }]
+    : genreFilter
+      ? ["/api/public/mixes", { limit: 20, genre: genreFilter }]
+      : ["/api/public/mixes", { limit: 20 }];
+
+  // Fetch mixes with filters
   const { data: mixes = [], isLoading } = useQuery({
-    queryKey: filter === 'featured' ? ["/api/public/mixes/featured", { limit: 20 }] : ["/api/public/mixes", { limit: 20 }],
+    queryKey,
     refetchInterval: 30000,
   });
+
+  // Handle genre tag click
+  const handleGenreSelect = (genre: string) => {
+    setGenreFilter(genre);
+    setStatusFilter('all'); // Reset status filter when selecting a genre
+  };
+
+  // Clear genre filter
+  const clearGenreFilter = () => {
+    setGenreFilter(null);
+  };
 
   if (isLoading) {
     return (
@@ -161,63 +124,77 @@ export default function MixesPage() {
 
         {/* Filter Controls */}
         <div className="mb-8">
-          <div className="flex gap-4">
+          <div className="flex gap-2 flex-wrap items-center">
             <Button
-              variant={filter === 'approved' ? 'default' : 'outline'}
-              onClick={() => setFilter('approved')}
-              className={filter === 'approved' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+              size="sm"
+              variant={statusFilter === 'all' && !genreFilter ? 'default' : 'outline'}
+              onClick={() => { setStatusFilter('all'); clearGenreFilter(); }}
+              className={statusFilter === 'all' && !genreFilter
+                ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
+                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
               }
+              data-testid="filter-all"
             >
-              <Music className="w-4 h-4 mr-2" />
-              Community Picks
+              All
             </Button>
             <Button
-              variant={filter === 'featured' ? 'default' : 'outline'}
-              onClick={() => setFilter('featured')}
-              className={filter === 'featured' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+              size="sm"
+              variant={statusFilter === 'featured' ? 'default' : 'outline'}
+              onClick={() => { setStatusFilter('featured'); clearGenreFilter(); }}
+              className={statusFilter === 'featured' 
+                ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
+                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
               }
+              data-testid="filter-featured"
             >
-              <Star className="w-4 h-4 mr-2" />
-              Featured Mixes
+              <Star className="w-3 h-3 mr-1" />
+              Featured
             </Button>
+            {genreFilter && (
+              <div className="flex items-center gap-2 ml-2">
+                <span className="text-xs font-mono text-gray-600 dark:text-gray-400">Genre:</span>
+                <Button
+                  size="sm"
+                  variant="default"
+                  onClick={clearGenreFilter}
+                  className="bg-red-500 hover:bg-red-600 text-white font-mono text-xs"
+                  data-testid="filter-genre-active"
+                >
+                  {genreFilter} ✕
+                </Button>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Mixes Grid */}
         {mixes.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
             {mixes.map((mix: any) => (
-              <PublicMixCard key={mix.id} mix={mix} />
+              <PublicMixCard key={mix.id} mix={mix} onGenreSelect={handleGenreSelect} />
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
-            <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <div className="text-gray-600 font-mono mb-4">
-              No {filter === 'featured' ? 'featured' : 'community'} mixes available yet.
+            <Music className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
+            <div className="text-gray-600 dark:text-gray-400 font-mono mb-4">
+              {genreFilter 
+                ? `No mixes found for genre: ${genreFilter}` 
+                : statusFilter === 'featured' 
+                  ? 'No featured mixes available yet.' 
+                  : 'No mixes available yet.'}
             </div>
-            <p className="text-gray-500 font-mono text-sm mb-6">
+            <p className="text-gray-500 dark:text-gray-500 font-mono text-sm mb-6">
               Be the first to share your work with our community!
             </p>
-            <Button 
-              onClick={() => document.getElementById('all-mixes')?.scrollIntoView({ behavior: 'smooth' })}
-              className="bg-red-500 hover:bg-red-600 text-white font-mono"
-            >
-              <Music className="w-4 h-4 mr-2" />
-              View All Mixes
-            </Button>
+            <Link href="/submit-mix">
+              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+                <Music className="w-4 h-4 mr-2" />
+                Submit a Mix
+              </Button>
+            </Link>
           </div>
         )}
-
-        {/* All Mixes Section */}
-        <div id="all-mixes" className="mt-20 pt-12 border-t border-gray-200">
-          <h2 className="text-4xl font-bold mb-8 font-mono text-red-500">ALL COMMUNITY MIXES</h2>
-          <AllMixesSection />
-        </div>
 
         {/* Community Guidelines */}
         <div className="mt-16 pt-8 border-t border-gray-200">
