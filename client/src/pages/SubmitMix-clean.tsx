@@ -486,12 +486,12 @@ export default function SubmitMix() {
               <p className="text-gray-600 mb-2">
                 Want to become a resident DJ?
               </p>
-              <Link href="/resident-application">
+              <a href="/resident-application" data-testid="link-resident-application">
                 <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   Apply as Resident
                 </Button>
-              </Link>
+              </a>
             </div>
           </div>
         </div>

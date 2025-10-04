@@ -273,12 +273,12 @@ export default function MixesLanding() {
               </Button>
             </Link>
 
-            <Link href="/resident-application">
+            <a href="/resident-application" data-testid="link-resident-application">
               <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
                 <Users className="w-6 h-6" />
                 BECOME A RESIDENT
               </Button>
-            </Link>
+            </a>
 
             <Link href="/residents">
               <Button variant="ghost" className="text-red-500 hover:bg-red-50 font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">

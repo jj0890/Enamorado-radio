@@ -189,12 +189,12 @@ export function SmartHomepageCTA() {
             Submit Your Mix
           </Button>
         </Link>
-        <Link href="/resident-application">
+        <a href="/resident-application" data-testid="link-resident-application">
           <Button variant="outline" className="border-purple-500 text-purple-500 hover:bg-purple-500 hover:text-white font-mono">
             <ExternalLink className="w-4 h-4 mr-2" />
             Become a Resident
           </Button>
-        </Link>
+        </a>
       </div>
     </div>
   );

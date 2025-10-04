@@ -267,12 +267,12 @@ export default function MixesPage() {
                 Submit a Mix
               </Button>
             </Link>
-            <Link href="/resident-application">
+            <a href="/resident-application" data-testid="link-resident-application">
               <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
                 <User className="w-4 h-4 mr-2" />
                 Become a Resident
               </Button>
-            </Link>
+            </a>
           </div>
         </div>
       </main>
