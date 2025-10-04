@@ -18,9 +18,6 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
   
   const { toast } = useToast();
 
-  // Debug: Log all state changes
-  console.log('SimpleSongForm state:', { name, email, song, artist, url, isOpen });
-
   const mutation = useMutation({
     mutationFn: async () => {
       const urlOk = /^https?:\/\/[^\s]+$/i.test(url || '');
@@ -55,7 +52,6 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
         requestedDate: 'none',
       };
       
-      console.log('Submitting simple form:', data);
       return apiRequest('POST', '/api/song-submissions', data);
     },
     onSuccess: () => {
@@ -81,11 +77,6 @@ export default function SimpleSongForm({ isOpen, onClose }: SimpleSongFormProps)
   });
 
   const handleSubmit = () => {
-    console.log('SUBMIT BUTTON CLICKED');
-    console.log('Current form data:', { name, email, song, artist, url });
-    console.log('Mutation pending:', mutation.isPending);
-    
-    // Force submission with current data
     mutation.mutate();
   };
 

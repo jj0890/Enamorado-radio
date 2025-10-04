@@ -1,7 +1,5 @@
-import { Play, Music, Clock, User, Star } from 'lucide-react';
-import { Link } from "wouter";
+import { Play, Music } from 'lucide-react';
 import { Button } from "@/components/ui/button";
-import { slugify } from "@/lib/strings";
 
 interface PublicMixCardProps {
   mix: {
