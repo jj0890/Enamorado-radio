@@ -31,7 +31,9 @@ import {
   insertAlbumVoteSchema,
   insertAlbumPickSchema,
   insertAlbumPickItemSchema,
-  insertAlbumSuggestionNoteSchema
+  insertAlbumSuggestionNoteSchema,
+  type ApiResult,
+  ErrorWithCode
 } from "@shared/schema";
 import { getOEmbedThumbSafe } from './lib/oembed';
 import { rescanLibrary } from './azuracastHelpers';
@@ -2875,7 +2877,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if pick already exists for this month
       const existing = await storage.getAlbumPickByMonth(validated.month);
       if (existing) {
-        return res.json(existing);
+        const result: ApiResult<{ pick: typeof existing; month: string }> = { 
+          ok: true, 
+          data: { pick: existing, month: existing.month } 
+        };
+        return res.json(result);
       }
       
       // Generate slug from month (e.g., "2025-10" -> "2025-10")
@@ -2887,13 +2893,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         slug,
       });
       
-      res.status(201).json(pick);
+      const result: ApiResult<{ pick: typeof pick; month: string }> = { 
+        ok: true, 
+        data: { pick, month: pick.month } 
+      };
+      res.status(201).json(result);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: 'Validation failed', details: error.errors });
+        const result: ApiResult = { ok: false, error: 'Invalid input', code: 'VALIDATION_ERROR' };
+        return res.status(400).json(result);
       }
       console.error('Error creating album pick:', error);
-      res.status(500).json({ error: 'Failed to create album pick' });
+      const result: ApiResult = { ok: false, error: 'Failed to create album pick', code: 'SERVER_ERROR' };
+      res.status(500).json(result);
     }
   });
 
@@ -2981,16 +2993,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const pick = await storage.getAlbumPickByMonth(month);
       
       if (!pick) {
-        return res.status(404).json({ error: 'Album pick not found' });
+        const result: ApiResult = { ok: false, error: 'Album pick not found', code: 'NOT_FOUND' };
+        return res.status(404).json(result);
       }
       
       const published = await storage.publishAlbumPick(pick.id);
       broadcast({ type: 'album_pick_published', data: published });
       
-      res.json(published);
+      const result: ApiResult<typeof published> = { ok: true, data: published };
+      res.json(result);
     } catch (error) {
       console.error('Error publishing album pick:', error);
-      res.status(500).json({ error: 'Failed to publish album pick' });
+      const result: ApiResult = { ok: false, error: 'Failed to publish album pick', code: 'SERVER_ERROR' };
+      res.status(500).json(result);
     }
   });
 

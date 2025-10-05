@@ -397,3 +397,16 @@ export type InsertAlbumPick = z.infer<typeof insertAlbumPickSchema>;
 export type InsertAlbumPickItem = z.infer<typeof insertAlbumPickItemSchema>;
 export type InsertAlbumSuggestionNote = z.infer<typeof insertAlbumSuggestionNoteSchema>;
 
+// API Response Types
+// ==================
+export type ApiOk<T = void> = { ok: true; data: T };
+export type ApiError = { ok: false; error: string; code?: string };
+export type ApiResult<T = void> = ApiOk<T> | ApiError;
+
+export class ErrorWithCode extends Error {
+  constructor(public code: string, message: string) {
+    super(message);
+    this.name = 'ErrorWithCode';
+  }
+}
+

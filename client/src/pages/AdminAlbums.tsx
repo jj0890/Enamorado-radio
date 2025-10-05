@@ -69,7 +69,7 @@ interface AlbumPickItem {
   pickId: number;
   suggestionId: number;
   rank: number;
-  note?: string;
+  blurb?: string;
   addedBy: string;
   createdAt: string;
   album?: AlbumSuggestion;
@@ -195,7 +195,13 @@ export default function AdminAlbums() {
         title: newPickTitle,
         description: newPickDescription,
       });
-      return res.json();
+      const result = await res.json();
+      
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to create pick');
+      }
+      
+      return result.data;
     },
     onSuccess: (data) => {
       setSelectedPickMonth(data.month);
@@ -203,6 +209,7 @@ export default function AdminAlbums() {
       setNewPickTitle('');
       setNewPickDescription('');
       toast({ title: 'Pick created', description: 'Draft album pick has been created.' });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
     },
     onError: (error: any) => {
       toast({ 
@@ -215,8 +222,8 @@ export default function AdminAlbums() {
 
   // Add to pick mutation
   const addToPickMutation = useMutation({
-    mutationFn: async ({ suggestionId, rank, note }: { suggestionId: number; rank: number; note?: string }) => {
-      const res = await apiRequest('POST', `/api/admin/albums/picks/${selectedPickMonth}/items`, { suggestionId, rank, note });
+    mutationFn: async ({ suggestionId, rank, blurb }: { suggestionId: number; rank: number; blurb?: string }) => {
+      const res = await apiRequest('POST', `/api/admin/albums/picks/${selectedPickMonth}/items`, { suggestionId, rank, blurb });
       return res.json();
     },
     onSuccess: () => {
@@ -259,12 +266,19 @@ export default function AdminAlbums() {
   const publishPickMutation = useMutation({
     mutationFn: async () => {
       const res = await apiRequest('POST', `/api/admin/albums/picks/${selectedPickMonth}/publish`);
-      return res.json();
+      const result = await res.json();
+      
+      if (!result.ok) {
+        throw new Error(result.error || 'Failed to publish pick');
+      }
+      
+      return result.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
       queryClient.invalidateQueries({ queryKey: ['/api/albums/published'] });
       toast({ title: 'Pick published', description: 'Album pick is now live!' });
+      setSelectedPickMonth('');
     },
     onError: (error: any) => {
       toast({ 
@@ -601,7 +615,7 @@ export default function AdminAlbums() {
                           <div className="flex-1">
                             <p className="font-medium">{item.album?.title}</p>
                             <p className="text-sm text-muted-foreground">{item.album?.artist}</p>
-                            {item.note && <p className="text-sm italic mt-1">{item.note}</p>}
+                            {item.blurb && <p className="text-sm italic mt-1">{item.blurb}</p>}
                           </div>
 
                           <Button
@@ -616,15 +630,28 @@ export default function AdminAlbums() {
                       ))}
                     </div>
 
+                    {!draftPick?.items.length && (
+                      <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <p className="text-sm text-yellow-800 font-medium">
+                          Add at least one album to this pick before publishing
+                        </p>
+                      </div>
+                    )}
+
                     <div className="mt-4 flex gap-2">
                       <Button
                         onClick={() => publishPickMutation.mutate()}
-                        disabled={!draftPick?.items.length || publishPickMutation.isPending}
+                        disabled={!draftPick?.items?.length || publishPickMutation.isPending}
                         data-testid="button-publish-pick"
                       >
                         <Send className="w-4 h-4 mr-2" />
-                        Publish Pick
+                        {publishPickMutation.isPending ? 'Publishing...' : 'Publish Pick'}
                       </Button>
+                      {draftPick && draftPick.items && draftPick.items.length > 0 && (
+                        <p className="text-sm text-muted-foreground self-center">
+                          {draftPick.items.length} album{draftPick.items.length === 1 ? '' : 's'} ready to publish
+                        </p>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
@@ -632,29 +659,51 @@ export default function AdminAlbums() {
                 <Card>
                   <CardHeader>
                     <CardTitle>Add Albums to Pick</CardTitle>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Select from accepted album suggestions to add to this month's pick
+                    </p>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-3">
-                      {suggestions.filter(s => s.status === 'accepted').map((suggestion) => (
-                        <div key={suggestion.id} className="flex items-center justify-between p-3 border rounded">
-                          <div>
-                            <p className="font-medium">{suggestion.title}</p>
-                            <p className="text-sm text-muted-foreground">{suggestion.artist}</p>
-                          </div>
-                          <Button
-                            size="sm"
-                            onClick={() => addToPickMutation.mutate({
-                              suggestionId: suggestion.id,
-                              rank: (draftPick?.items.length || 0) + 1,
-                            })}
-                            disabled={addToPickMutation.isPending || draftPick?.items.some(i => i.suggestionId === suggestion.id)}
-                            data-testid={`button-add-to-pick-${suggestion.id}`}
-                          >
-                            Add to Pick
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
+                    {suggestions.filter(s => s.status === 'accepted').length === 0 ? (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <p className="font-medium mb-2">No accepted albums available</p>
+                        <p className="text-sm">
+                          Accept some album suggestions in the Suggestions tab first, then come back here to add them to your pick.
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {suggestions.filter(s => s.status === 'accepted').map((suggestion) => {
+                          const alreadyAdded = draftPick?.items.some(i => i.suggestionId === suggestion.id);
+                          return (
+                            <div key={suggestion.id} className="flex items-center justify-between p-3 border rounded">
+                              <div className="flex-1">
+                                <p className="font-medium">{suggestion.title}</p>
+                                <p className="text-sm text-muted-foreground">{suggestion.artist}</p>
+                                {suggestion.releaseYear && (
+                                  <p className="text-xs text-muted-foreground">{suggestion.releaseYear}</p>
+                                )}
+                              </div>
+                              {alreadyAdded ? (
+                                <Badge variant="secondary">Added</Badge>
+                              ) : (
+                                <Button
+                                  size="sm"
+                                  onClick={() => addToPickMutation.mutate({
+                                    suggestionId: suggestion.id,
+                                    rank: (draftPick?.items.length || 0) + 1,
+                                  })}
+                                  disabled={addToPickMutation.isPending}
+                                  data-testid={`button-add-to-pick-${suggestion.id}`}
+                                >
+                                  Add to Pick
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </>

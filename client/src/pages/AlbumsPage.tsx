@@ -17,7 +17,7 @@ interface AlbumPickItem {
   id: number;
   suggestionId: number;
   rank: number;
-  note?: string;
+  blurb?: string;
   album: AlbumSuggestion;
 }
 
@@ -167,9 +167,9 @@ export default function AlbumsPage() {
                               {item.album.releaseYear}
                             </div>
                           )}
-                          {item.note && (
+                          {item.blurb && (
                             <p className="text-xs text-gray-500 italic mt-2 line-clamp-2">
-                              {item.note}
+                              {item.blurb}
                             </p>
                           )}
                           <div className="text-xs text-red-500 font-mono mt-2 flex items-center gap-1">
@@ -202,9 +202,9 @@ export default function AlbumsPage() {
                               {item.album.releaseYear}
                             </div>
                           )}
-                          {item.note && (
+                          {item.blurb && (
                             <p className="text-xs text-gray-500 italic mt-2 line-clamp-2">
-                              {item.note}
+                              {item.blurb}
                             </p>
                           )}
                         </div>

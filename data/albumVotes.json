@@ -14,10 +14,17 @@
     "createdAt": "2025-10-04T13:13:14.154Z"
   },
   {
-    "id": 31,
+    "id": 39,
     "suggestionId": 16,
     "voterUsername": "jarrad",
     "value": 1,
-    "createdAt": "2025-10-05T13:12:20.247Z"
+    "createdAt": "2025-10-05T15:19:19.016Z"
+  },
+  {
+    "id": 40,
+    "suggestionId": 10,
+    "voterUsername": "jarrad",
+    "value": 1,
+    "createdAt": "2025-10-05T15:19:20.118Z"
   }
 ]

@@ -7,10 +7,10 @@
     "musicbrainzId": "ecd965f4-f75f-4360-9dde-26f31dc44f46",
     "releaseGroupId": "9162580e-5df4-32de-80cc-f45a8d8a9b1d",
     "coverArtUrl": "https://coverartarchive.org/release/ecd965f4-f75f-4360-9dde-26f31dc44f46/40587644386-500.jpg",
-    "status": "pending",
+    "status": "accepted",
     "createdAt": "2025-10-01T17:22:22.692Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
+    "reviewedAt": "2025-10-05T15:19:21.946Z",
+    "reviewedBy": "jarrad",
     "spotifyUrl": "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN"
   },
   {
@@ -55,10 +55,10 @@
     "releaseGroupId": "aa997ea0-2936-40bd-884d-3af8a0e064dc",
     "coverArtUrl": "http://coverartarchive.org/release/4867ceba-ffe7-40c0-a093-45be6c03c655/6729981357-500.jpg",
     "spotifyUrl": "https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa",
-    "status": "pending",
+    "status": "accepted",
     "createdAt": "2025-10-01T18:48:03.957Z",
-    "reviewedAt": null,
-    "reviewedBy": null
+    "reviewedAt": "2025-10-05T15:19:23.220Z",
+    "reviewedBy": "jarrad"
   },
   {
     "suggestedBy": "jarrad",
