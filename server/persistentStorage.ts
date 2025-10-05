@@ -233,7 +233,7 @@ export class FileStorage implements IStorage {
       id: this.nextId++,
       viewCount: 0,
       airDate: new Date(),
-      updatedAt: new Date(),
+      createdAt: new Date(),
     };
     this.episodes.push(newEpisode);
     await this.saveData('episodes', this.episodes);
@@ -244,7 +244,7 @@ export class FileStorage implements IStorage {
     const index = this.episodes.findIndex(e => e.id === id);
     if (index === -1) throw new Error('Episode not found');
     
-    this.episodes[index] = { ...this.episodes[index], ...episode, updatedAt: new Date() };
+    this.episodes[index] = { ...this.episodes[index], ...episode };
     await this.saveData('episodes', this.episodes);
     return this.episodes[index];
   }
