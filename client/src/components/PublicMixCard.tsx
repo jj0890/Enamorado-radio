@@ -64,10 +64,10 @@ export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps
           )}
         </div>
 
-        <div className="flex-1 p-2 sm:p-4 lg:p-5 min-w-0">
+        <div className="flex-1 p-2 sm:p-3 min-w-0">
           {/* Genre and Date - Hide date on mobile */}
-          <div className="flex items-center gap-1.5 mb-1 sm:mb-2 lg:mb-3">
-            <span className="text-[10px] sm:text-xs lg:text-sm font-mono text-white bg-red-500 px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full uppercase tracking-wide">
+          <div className="flex items-center gap-1.5 mb-1 sm:mb-1.5">
+            <span className="text-[10px] sm:text-xs font-mono text-white bg-red-500 px-1.5 py-0.5 rounded-full uppercase tracking-wide">
               Mix
             </span>
             {mix.genre && (
@@ -78,12 +78,12 @@ export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps
                     onGenreSelect(mix.genre);
                   }}
                   data-testid={`tag-genre-${mix.genre.toLowerCase()}`}
-                  className="text-[10px] sm:text-xs lg:text-sm font-mono bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full uppercase dark:text-gray-300 transition-all cursor-pointer tracking-wide"
+                  className="text-[10px] sm:text-xs font-mono bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-white dark:hover:bg-red-500 px-1.5 py-0.5 rounded-full uppercase dark:text-gray-300 transition-all cursor-pointer tracking-wide"
                 >
                   {mix.genre}
                 </button>
               ) : (
-                <span className="text-[10px] sm:text-xs lg:text-sm font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 lg:px-2 lg:py-1 rounded-full uppercase dark:text-gray-300 tracking-wide">
+                <span className="text-[10px] sm:text-xs font-mono bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded-full uppercase dark:text-gray-300 tracking-wide">
                   {mix.genre}
                 </span>
               )
@@ -91,11 +91,11 @@ export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps
           </div>
 
           {/* Title - More compact on mobile */}
-          <div className="mb-1 sm:mb-2 lg:mb-3">
-            <h4 className="text-xs sm:text-base lg:text-lg font-bold font-mono text-gray-900 dark:text-white group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors line-clamp-1 sm:line-clamp-2 lg:line-clamp-2">
+          <div className="mb-1 sm:mb-2">
+            <h4 className="text-xs sm:text-sm font-bold font-mono text-gray-900 dark:text-white group-hover:text-red-500 dark:group-hover:text-red-400 transition-colors line-clamp-1 sm:line-clamp-2">
               {mix.title}
             </h4>
-            <div className="flex items-center text-gray-600 dark:text-gray-400 font-mono text-[10px] sm:text-sm lg:text-base mt-0.5 lg:mt-1 line-clamp-1">
+            <div className="flex items-center text-gray-600 dark:text-gray-400 font-mono text-[10px] sm:text-xs mt-0.5 line-clamp-1">
               {mix.artist || mix.name}
             </div>
           </div>
@@ -103,10 +103,10 @@ export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps
           {/* Listen Button - Icon only on mobile */}
           <Button 
             size="sm" 
-            className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white font-mono w-full text-xs sm:text-sm lg:text-base h-7 sm:h-9 lg:h-10 shadow-sm hover:shadow-md transition-all"
+            className="bg-red-500 hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 text-white font-mono w-full text-xs sm:text-sm h-7 sm:h-8 shadow-sm hover:shadow-md transition-all"
             onClick={handlePlay}
           >
-            <Play className="w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 sm:mr-2" />
+            <Play className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
             <span className="hidden sm:inline">Listen</span>
           </Button>
         </div>
