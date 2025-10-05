@@ -55,7 +55,7 @@ export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps
             <img 
               src={artwork} 
               alt={mix.title}
-              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+              className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-500"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 dark:from-gray-800 to-gray-300 dark:to-gray-700">
