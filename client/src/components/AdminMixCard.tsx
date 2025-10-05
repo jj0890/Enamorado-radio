@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Play, Check, Star, X, Upload, ExternalLink, Music, Clock, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,7 +38,47 @@ export default function AdminMixCard({
   
   const isApproved = mix.status === 'approved' || mix.status === 'featured';
   const isFeatured = mix.status === 'featured';
-  const artwork = getThumbUrl(mix.artUrl);
+  const [artwork, setArtwork] = useState<string>(getThumbUrl(mix.artUrl));
+
+  useEffect(() => {
+    let ignore = false;
+    
+    async function fetchOembedArtwork() {
+      if (mix.artUrl || !mix.url) return;
+      
+      if (mix.url.includes('soundcloud.com') || mix.url.includes('mixcloud.com')) {
+        try {
+          const response = await fetch(`/api/oembed?url=${encodeURIComponent(mix.url)}`);
+          if (!response.ok) return;
+          
+          const data = await response.json();
+          if (!ignore && (data?.thumbnail_url || data?.artUrl)) {
+            const artworkUrl = data.thumbnail_url || data.artUrl;
+            setArtwork(artworkUrl);
+            
+            try {
+              const updateResponse = await fetch(`/api/mixes/${mix.id}/artwork`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ artUrl: artworkUrl })
+              });
+              
+              if (updateResponse.ok) {
+                (mix as any).artUrl = artworkUrl;
+              }
+            } catch (error) {
+              console.error('Error saving artwork for mix:', mix.id, error);
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch oembed artwork for mix:', mix.id, error);
+        }
+      }
+    }
+    
+    fetchOembedArtwork();
+    return () => { ignore = true; };
+  }, [mix.url, mix.id, mix.artUrl]);
   
   // Admin toggle functions
   async function toggleApprove() {
