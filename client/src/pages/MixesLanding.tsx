@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation, useSearch } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users, Hash, Music } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
@@ -69,6 +69,10 @@ interface Mix {
 export default function MixesLanding() {
   const [currentMixIndex, setCurrentMixIndex] = useState(0);
   const carouselRef = useRef<HTMLDivElement>(null);
+  const searchString = useSearch();
+  
+  // Parse genre from URL query params
+  const genreFilter = new URLSearchParams(searchString).get('genre');
 
   // Fetch admin-approved featured mixes (professional content controlled by admin)
   const { data: featuredMixes = [] } = useQuery<DjSubmission[]>({
@@ -148,7 +152,14 @@ export default function MixesLanding() {
   // Convert admin-approved content to display format (REAL content controlled by admin!)
   const displayFeaturedMixes = featuredMixes.map(convertSubmissionToMix);
   const displayCommunitySubmissions = communitySubmissions.map(convertSubmissionToMix);
-  const displayCommunityMixes = allApprovedMixes.map(convertSubmissionToMix);
+  
+  // Filter mixes by genre if genre filter is active
+  const allMixes = allApprovedMixes.map(convertSubmissionToMix);
+  const displayCommunityMixes = genreFilter 
+    ? allMixes.filter(mix => 
+        mix.genre.some(g => g.toLowerCase().replace(/\s+/g, '-') === genreFilter.toLowerCase())
+      )
+    : allMixes;
 
   // State for storing fetched thumbnails (now primarily for featured mixes only)
   const [thumbnailCache, setThumbnailCache] = useState<Record<number, string>>({});
@@ -363,7 +374,7 @@ export default function MixesLanding() {
                           {mix.genre.map((g, i) => (
                             <Link
                               key={i}
-                              href={`/genre/${g.toLowerCase().replace(/\s+/g, '-')}`}
+                              href={`/mixes?genre=${g.toLowerCase().replace(/\s+/g, '-')}`}
                             >
                               <span className="bg-red-500 text-white px-3 py-1 text-sm font-mono cursor-pointer hover:bg-red-600 transition-colors">
                                 {g}
@@ -538,91 +549,104 @@ export default function MixesLanding() {
 
         {/* All Mixes Grid */}
         <section>
-          <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">ALL MIXES</h2>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-3xl font-bold font-mono text-red-500">
+              {genreFilter ? `${genreFilter.toUpperCase().replace(/-/g, ' ')} MIXES` : 'ALL MIXES'}
+            </h2>
+            {genreFilter && (
+              <Link href="/mixes">
+                <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+                  Clear Filter
+                </Button>
+              </Link>
+            )}
+          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="space-y-4">
             {displayCommunityMixes.map((mix) => (
               <div
                 key={mix.id}
-                className="bg-gray-50 border-2 border-black rounded-lg p-6 hover:border-red-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
+                className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-red-500 hover:shadow-lg transition-all duration-300 group"
               >
-                {/* Mix Thumbnail */}
-                <div className="aspect-square bg-white rounded-lg mb-4 overflow-hidden relative border-2 border-black">
-                  {(mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? (
-                    <img 
-                      src={mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl} 
-                      alt={`${mix.title} by ${mix.artist}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        console.log('Mix thumbnail failed to load:', e.currentTarget.src);
-                        e.currentTarget.style.display = 'none';
-                        const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                        if (nextElement) {
-                          nextElement.style.display = 'flex';
-                        }
-                      }}
-                    />
-                  ) : null}
-                  <div 
-                    className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
-                      (mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? 'hidden' : 'flex'
-                    }`}
-                  >
-                    <div className="text-gray-400 text-center">
-                      <Play className="w-16 h-16 mx-auto mb-2" />
-                      <p className="text-xs font-mono">Audio Mix</p>
+                <div className="flex flex-col md:flex-row">
+                  {/* Mix Thumbnail - Square on mobile, fixed width on desktop */}
+                  <div className="relative w-full md:w-48 md:h-48 aspect-square md:aspect-auto bg-white border-b-2 md:border-b-0 md:border-r-2 border-black flex-shrink-0">
+                    {(mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? (
+                      <img 
+                        src={mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl} 
+                        alt={`${mix.title} by ${mix.artist}`}
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          console.log('Mix thumbnail failed to load:', e.currentTarget.src);
+                          e.currentTarget.style.display = 'none';
+                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                          if (nextElement) {
+                            nextElement.style.display = 'flex';
+                          }
+                        }}
+                      />
+                    ) : null}
+                    <div 
+                      className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
+                        (mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? 'hidden' : 'flex'
+                      }`}
+                    >
+                      <div className="text-gray-400 text-center">
+                        <Play className="w-12 h-12 mx-auto mb-2" />
+                        <p className="text-xs font-mono">Audio Mix</p>
+                      </div>
+                    </div>
+
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Button 
+                        size="sm" 
+                        className="bg-white text-black hover:bg-gray-200"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (mix.url) {
+                            window.open(mix.url, '_blank');
+                          }
+                        }}
+                      >
+                        <Play className="h-4 w-4 mr-1" />
+                        PLAY
+                      </Button>
                     </div>
                   </div>
 
-                  {/* Play Button Overlay */}
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button 
-                      size="sm" 
-                      className="bg-white text-black hover:bg-gray-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        if (mix.url) {
-                          window.open(mix.url, '_blank');
-                        }
-                      }}
+                  {/* Mix Info - Horizontal layout on desktop */}
+                  <div className="p-4 flex-1 flex flex-col justify-center">
+                    <h3 className="font-bold text-lg leading-tight font-mono mb-1">
+                      {mix.title}
+                    </h3>
+                    <p className="text-gray-600 font-mono text-sm mb-3">{mix.artist}</p>
+
+                    {/* Genre Tags */}
+                    <div className="flex flex-wrap gap-1 mb-3">
+                      {mix.genre.slice(0, 2).map((genre, index) => (
+                        <Link
+                          key={index}
+                          href={`/mixes?genre=${genre.toLowerCase().replace(/\s+/g, '-')}`}
+                        >
+                          <span className="bg-red-500 text-white px-2 py-1 text-xs font-mono cursor-pointer hover:bg-red-600 transition-colors">
+                            {genre}
+                          </span>
+                        </Link>
+                      ))}
+                    </div>
+
+                    {/* Platform Link */}
+                    <a 
+                      href={mix.url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-red-500 gap-1"
                     >
-                      <Play className="h-4 w-4 mr-1" />
-                      PLAY
-                    </Button>
+                      <ExternalLink className="h-3 w-3" />
+                      {mix.platform.toUpperCase()}
+                    </a>
                   </div>
-                </div>
-
-                {/* Mix Info */}
-                <div className="space-y-2">
-                  <h3 className="font-bold text-lg leading-tight font-mono">
-                    {mix.title}
-                  </h3>
-                  <p className="text-gray-600 font-mono">{mix.artist}</p>
-
-                  {/* Genre Tags */}
-                  <div className="flex flex-wrap gap-1">
-                    {mix.genre.slice(0, 2).map((genre, index) => (
-                      <Link
-                        key={index}
-                        href={`/genre/${genre.toLowerCase().replace(/\s+/g, '-')}`}
-                      >
-                        <span className="bg-red-500 text-white px-2 py-1 text-xs font-mono cursor-pointer hover:bg-red-600 transition-colors">
-                          {genre}
-                        </span>
-                      </Link>
-                    ))}
-                  </div>
-
-                  {/* Platform Link */}
-                  <a 
-                    href={mix.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-red-500 gap-1 mt-2"
-                  >
-                    <ExternalLink className="h-3 w-3" />
-                    {mix.platform.toUpperCase()}
-                  </a>
                 </div>
               </div>
             ))}
