@@ -22,7 +22,10 @@ export async function handleApiResponse<T>(response: Response): Promise<ApiResul
       };
     }
     
-    return data as ApiResult<T>;
+    return {
+      ok: true,
+      data: data as T
+    };
   } catch (e) {
     return {
       ok: false,

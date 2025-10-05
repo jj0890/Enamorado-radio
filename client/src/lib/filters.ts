@@ -1,6 +1,7 @@
 export type Mix = {
   id: number;
   genre: string;
+  tags?: string[];
   title: string;
   artist?: string;
   name?: string;
@@ -15,7 +16,11 @@ export function filterByTags(
   if (!active.length) return mixes;
   
   return mixes.filter(mix => {
-    const mixGenres = [mix.genre].filter(Boolean);
+    // Combine genre and tags into a single array
+    const mixGenres = [
+      mix.genre,
+      ...(mix.tags || [])
+    ].filter(Boolean);
     
     return mode === 'AND'
       ? active.every(tag => mixGenres.includes(tag))
