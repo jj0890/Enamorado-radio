@@ -835,6 +835,7 @@ export class FileStorage implements IStorage {
     const pick: AlbumPick = {
       ...data,
       id: this.nextId++,
+      description: data.description || null,
       isPublished: false,
       publishedAt: null,
       createdAt: new Date(),
@@ -860,9 +861,11 @@ export class FileStorage implements IStorage {
   }
 
   async getDraftAlbumPicks(): Promise<AlbumPick[]> {
-    return this.albumPicks.filter(p => !p.isPublished).sort((a, b) => 
-      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
+    return this.albumPicks.filter(p => !p.isPublished).sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
   }
 
   async addAlbumToPickDraft(data: InsertAlbumPickItem): Promise<AlbumPickItem> {
