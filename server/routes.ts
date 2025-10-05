@@ -2884,7 +2884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ADMIN: Create or get album pick for month (editor role required)
   app.post('/api/admin/albums/picks', requireRole('editor'), async (req, res) => {
     try {
-      const validated = insertAlbumPickSchema.omit({ slug: true }).parse(req.body);
+      const validated = insertAlbumPickSchema.omit({ slug: true, createdBy: true }).parse(req.body);
       const username = (req as any).user?.username || 'admin';
       
       // Check if pick already exists for this month
