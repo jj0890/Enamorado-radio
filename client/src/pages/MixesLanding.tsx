@@ -18,7 +18,7 @@ function GenreQuickNav() {
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
       {genres.slice(0, 6).map((genre) => (
-        <Link key={genre.slug} href={`/genre/${genre.slug}`} className="block">
+        <Link key={genre.slug} href={`/mixes?genre=${genre.slug}`} className="block">
           <div className="bg-gray-100 hover:bg-red-500 hover:text-white border-2 border-black p-3 transition-all duration-300 group text-center">
             <Hash className="w-4 h-4 mx-auto mb-1" />
             <div className="font-mono font-bold text-xs uppercase tracking-wide mb-1">

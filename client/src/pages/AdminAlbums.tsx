@@ -474,6 +474,18 @@ export default function AdminAlbums() {
                               </Button>
                             </>
                           )}
+                          {suggestion.status === 'accepted' && (
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => deleteSuggestionMutation.mutate(suggestion.id)}
+                              disabled={deleteSuggestionMutation.isPending}
+                              data-testid={`button-delete-${suggestion.id}`}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Remove
+                            </Button>
+                          )}
                           <Button
                             size="sm"
                             variant="ghost"
