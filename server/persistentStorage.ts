@@ -265,14 +265,18 @@ export class FileStorage implements IStorage {
     let filtered = [...this.guides];
     
     if (filters?.featured !== undefined) {
-      filtered = filtered.filter(g => g.featured === filters.featured);
+      filtered = filtered.filter(g => g.isFeatured === filters.featured);
     }
     
     if (filters?.type) {
-      filtered = filtered.filter(g => g.type === filters.type);
+      filtered = filtered.filter(g => g.guideType === filters.type);
     }
     
-    filtered.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    filtered.sort((a, b) => {
+      const aTime = a.publishedAt ? new Date(a.publishedAt).getTime() : 0;
+      const bTime = b.publishedAt ? new Date(b.publishedAt).getTime() : 0;
+      return bTime - aTime;
+    });
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
