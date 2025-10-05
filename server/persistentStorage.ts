@@ -746,6 +746,7 @@ export class FileStorage implements IStorage {
       title: mbData?.title || data.title,
       coverArtUrl: mbData?.coverArtUrl || null,
       spotifyUrl: spotifyUrl || null,
+      reason: data.reason || null,
       status: 'pending',
       createdAt: new Date(),
       reviewedAt: null,
