@@ -479,18 +479,18 @@ export class FileStorage implements IStorage {
     
     const now = new Date();
     if (filters?.upcoming) {
-      filtered = filtered.filter(s => new Date(s.startTime) > now);
+      filtered = filtered.filter(s => new Date(s.scheduledAt) > now);
     }
     
     if (filters?.date) {
       const targetDate = new Date(filters.date);
       filtered = filtered.filter(s => {
-        const scheduleDate = new Date(s.startTime);
+        const scheduleDate = new Date(s.scheduledAt);
         return scheduleDate.toDateString() === targetDate.toDateString();
       });
     }
     
-    filtered.sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime());
+    filtered.sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -508,7 +508,6 @@ export class FileStorage implements IStorage {
       ...schedule,
       id: this.nextId++,
       createdAt: new Date(),
-      updatedAt: new Date(),
     };
     this.scheduleItems.push(newSchedule);
     await this.saveData('scheduleItems', this.scheduleItems);
