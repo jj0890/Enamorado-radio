@@ -54,51 +54,83 @@ export default function AdminMixSubmissions() {
   const approvedSubmissions = allSubmissions.filter(sub => sub.status === 'approved');
   const featuredSubmissions = allSubmissions.filter(sub => sub.status === 'featured');
 
-  // Approve mix mutation
+  // Approve mix mutation with optimistic updates
   const approveMutation = useMutation({
     mutationFn: async (mixId: number) => {
       return apiRequest('POST', `/api/mixes/${mixId}/approve`, {});
+    },
+    onMutate: async (mixId) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/mixes'] });
+      const previousMixes = queryClient.getQueryData<MixSubmission[]>(['/api/admin/mixes']);
+      
+      if (previousMixes) {
+        queryClient.setQueryData<MixSubmission[]>(['/api/admin/mixes'], 
+          previousMixes.map(m => m.id === mixId ? { ...m, status: 'approved' as const } : m)
+        );
+      }
+      
+      return { previousMixes };
     },
     onSuccess: () => {
       toast({
         title: "Mix Approved",
         description: "Mix has been approved successfully.",
       });
-      // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
-    onError: (error: any) => {
+    onError: (error: any, _mixId, context) => {
+      if (context?.previousMixes) {
+        queryClient.setQueryData(['/api/admin/mixes'], context.previousMixes);
+      }
       toast({
         title: "Approval Failed",
         description: error.message || "Failed to approve mix.",
         variant: "destructive",
       });
     },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
+    },
   });
 
-  // Feature mix mutation  
+  // Feature mix mutation with optimistic updates
   const featureMutation = useMutation({
     mutationFn: async (mixId: number) => {
       return apiRequest('POST', `/api/admin/mixes/${mixId}/feature`, {});
+    },
+    onMutate: async (mixId) => {
+      await queryClient.cancelQueries({ queryKey: ['/api/admin/mixes'] });
+      const previousMixes = queryClient.getQueryData<MixSubmission[]>(['/api/admin/mixes']);
+      
+      if (previousMixes) {
+        queryClient.setQueryData<MixSubmission[]>(['/api/admin/mixes'], 
+          previousMixes.map(m => m.id === mixId ? { ...m, status: 'featured' as const } : m)
+        );
+      }
+      
+      return { previousMixes };
     },
     onSuccess: () => {
       toast({
         title: "Mix Featured",
         description: "Mix has been featured successfully.",
       });
-      // Invalidate admin cache AND public caches for immediate display update
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
-    onError: (error: any) => {
+    onError: (error: any, _mixId, context) => {
+      if (context?.previousMixes) {
+        queryClient.setQueryData(['/api/admin/mixes'], context.previousMixes);
+      }
       toast({
         title: "Feature Failed",
         description: error.message || "Failed to feature mix.",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/public/mixes/featured'] });
     },
   });
 
@@ -301,7 +333,6 @@ export default function AdminMixSubmissions() {
                   <AdminMixCard
                     key={mix.id}
                     mix={mix}
-                    onApprove={handleApprove}
                     onFeature={handleFeature}
                     onDelete={handleDelete}
                   />
@@ -322,8 +353,6 @@ export default function AdminMixSubmissions() {
                   <AdminMixCard
                     key={mix.id}
                     mix={mix}
-                    onApprove={handleApprove}
-                    onFeature={handleFeature}
                     onDelete={handleDelete}
                   />
                 ))}

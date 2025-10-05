@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Play, Check, Star, X, Upload, ExternalLink, Music, Clock, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { getThumbUrl, formatDateSafe } from "@/lib/display";
 
 interface AdminMixCardProps {
   mix: {
@@ -37,7 +38,7 @@ export default function AdminMixCard({
   
   const isApproved = mix.status === 'approved' || mix.status === 'featured';
   const isFeatured = mix.status === 'featured';
-  const artwork = mix.artUrl || null;
+  const artwork = getThumbUrl(mix.artUrl);
   
   // Admin toggle functions
   async function toggleApprove() {
@@ -83,18 +84,12 @@ export default function AdminMixCard({
       <div className="absolute inset-0 rounded-xl pointer-events-none shadow-[0_0_0_1px_rgba(12,12,13,0.08)] dark:shadow-[0_0_0_1px_rgba(255,255,255,0.1)] group-hover:shadow-[0_0_0_1px_rgba(209,77,14,0.3),0_6px_14px_rgba(0,0,0,0.12)] dark:group-hover:shadow-[0_0_0_1px_rgba(239,68,68,0.5),0_6px_14px_rgba(0,0,0,0.5)] transition-shadow"></div>
       
       {/* Artwork */}
-      <div className="aspect-square bg-gray-200 dark:bg-gray-800 relative">
-        {artwork ? (
-          <img 
-            src={artwork} 
-            alt={mix.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-            <Music className="w-12 h-12 text-gray-400" />
-          </div>
-        )}
+      <div className="aspect-square bg-gray-200 dark:bg-gray-800 relative overflow-hidden">
+        <img 
+          src={artwork} 
+          alt={mix.title}
+          className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-300"
+        />
         
         {/* Admin Status Badges */}
         <div className="absolute top-3 left-3 space-y-1">
@@ -124,7 +119,7 @@ export default function AdminMixCard({
           </span>
           <div className="text-xs font-mono text-gray-500 dark:text-gray-400 flex items-center">
             <Clock className="w-3 h-3 mr-1" />
-            {new Date(mix.submittedAt).toLocaleDateString()}
+            {formatDateSafe(mix.submittedAt)}
           </div>
         </div>
 
