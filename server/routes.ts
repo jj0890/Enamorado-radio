@@ -19,6 +19,7 @@ import multer from "multer";
 import path from "path";
 import fs from "fs";
 import mimeTypes from "mime-types";
+import { Readable } from "stream";
 import { 
   insertEpisodeSchema,
   insertGuideSchema,
@@ -1942,18 +1943,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const maxBytes = 200 * 1024 * 1024; // 200MB
 
           await new Promise((resolve, reject) => {
-            response.body?.on('data', (chunk) => {
+            if (!response.body) {
+              reject(new Error('No response body'));
+              return;
+            }
+
+            const nodeStream = Readable.fromWeb(response.body as any);
+            
+            nodeStream.on('data', (chunk) => {
               downloadedBytes += chunk.length;
               if (downloadedBytes > maxBytes) {
                 fileStream.destroy();
-                fs.unlinkSync(filePath).catch(() => {}); // Clean up
+                fs.unlinkSync(filePath);
                 reject(new Error(`Download size exceeded 200MB limit`));
                 return;
               }
             });
 
-            response.body?.pipe(fileStream);
-            response.body?.on('error', reject);
+            nodeStream.pipe(fileStream);
+            nodeStream.on('error', reject);
             fileStream.on('finish', resolve);
             fileStream.on('error', reject);
           });
@@ -2216,8 +2224,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const fileStream = fs.createWriteStream(filePath);
       await new Promise((resolve, reject) => {
-        response.body.pipe(fileStream);
-        response.body.on('error', reject);
+        if (!response.body) {
+          reject(new Error('No response body'));
+          return;
+        }
+        const nodeStream = Readable.fromWeb(response.body as any);
+        nodeStream.pipe(fileStream);
+        nodeStream.on('error', reject);
         fileStream.on('finish', resolve);
       });
 
