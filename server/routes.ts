@@ -2765,6 +2765,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN: Get all draft album picks (editor role required)
+  app.get('/api/admin/albums/drafts', requireRole('editor'), async (req, res) => {
+    try {
+      const drafts = await storage.getDraftAlbumPicks();
+      res.json(drafts);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch draft picks' });
+    }
+  });
+
   // ADMIN: Get all album suggestions with votes (editor role required)
   app.get('/api/admin/albums/suggestions', requireRole('editor'), async (req, res) => {
     try {

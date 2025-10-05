@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useLocation, useSearch } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -100,6 +101,8 @@ const StatusBadge = ({ status }: { status: string }) => {
 export default function AdminAlbums() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  const [location, setLocation] = useLocation();
+  const searchParams = new URLSearchParams(useSearch());
   const [activeTab, setActiveTab] = useState('suggestions');
   const [selectedSuggestion, setSelectedSuggestion] = useState<AlbumSuggestion | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
@@ -107,8 +110,23 @@ export default function AdminAlbums() {
   const [newPickMonth, setNewPickMonth] = useState('');
   const [newPickTitle, setNewPickTitle] = useState('');
   const [newPickDescription, setNewPickDescription] = useState('');
-  const [selectedPickMonth, setSelectedPickMonth] = useState('');
+  const selectedPickMonth = searchParams.get('draft') || '';
   const [noteContent, setNoteContent] = useState('');
+
+  const setSelectedPickMonth = (month: string) => {
+    if (month) {
+      setLocation(`/admin/albums?draft=${month}`);
+    } else {
+      setLocation('/admin/albums');
+    }
+  };
+
+  // Sync active tab from URL draft param on mount and when draft param changes
+  useEffect(() => {
+    if (selectedPickMonth && activeTab !== 'draft') {
+      setActiveTab('draft');
+    }
+  }, [selectedPickMonth]);
 
   // Fetch album suggestions with votes
   const { data: suggestions = [], isLoading: loadingSuggestions } = useQuery<AlbumSuggestion[]>({
@@ -121,6 +139,12 @@ export default function AdminAlbums() {
         credentials: 'include'
       }).then(res => res.json());
     }
+  });
+
+  // Fetch draft picks
+  const { data: draftPicks = [], isLoading: loadingDrafts } = useQuery<AlbumPick[]>({
+    queryKey: ['/api/admin/albums/drafts'],
+    enabled: activeTab === 'draft',
   });
 
   // Fetch published picks
@@ -212,6 +236,7 @@ export default function AdminAlbums() {
       setNewPickDescription('');
       toast({ title: 'Pick created', description: 'Draft album pick has been created.' });
       queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/drafts'] });
     },
     onError: (error: any) => {
       toast({ 
@@ -352,6 +377,7 @@ export default function AdminAlbums() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/albums/published'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/drafts'] });
       toast({ title: 'Pick deleted', description: 'Published album pick has been deleted.' });
     },
     onError: (error: any) => {
@@ -527,47 +553,75 @@ export default function AdminAlbums() {
         <TabsContent value="draft">
           <div className="space-y-6">
             {!selectedPickMonth ? (
-              <Card>
-                <CardHeader>
-                  <CardTitle>Create New Pick</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Month (YYYY-MM)</label>
-                    <Input
-                      type="month"
-                      value={newPickMonth}
-                      onChange={(e) => setNewPickMonth(e.target.value)}
-                      data-testid="input-pick-month"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Title</label>
-                    <Input
-                      value={newPickTitle}
-                      onChange={(e) => setNewPickTitle(e.target.value)}
-                      placeholder="e.g., January 2025 Picks"
-                      data-testid="input-pick-title"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Description (optional)</label>
-                    <Textarea
-                      value={newPickDescription}
-                      onChange={(e) => setNewPickDescription(e.target.value)}
-                      placeholder="Describe this month's theme or selection criteria"
-                      data-testid="textarea-pick-description"
-                    />
-                  </div>
-                  <Button
-                    onClick={() => createPickMutation.mutate()}
-                    disabled={!newPickMonth || !newPickTitle || createPickMutation.isPending}
-                    data-testid="button-create-pick"
-                  >
-                    Create Pick
-                  </Button>
-                </CardContent>
-              </Card>
+              <>
+                {draftPicks.length > 0 && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Existing Drafts</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {draftPicks.map((draft) => (
+                          <div 
+                            key={draft.id}
+                            className="flex items-center justify-between p-3 border rounded hover:bg-muted cursor-pointer"
+                            onClick={() => setSelectedPickMonth(draft.month)}
+                            data-testid={`draft-pick-${draft.month}`}
+                          >
+                            <div>
+                              <p className="font-medium">{draft.title}</p>
+                              <p className="text-sm text-muted-foreground">{draft.month}</p>
+                            </div>
+                            <Badge variant="outline">Draft</Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Create New Pick</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Month (YYYY-MM)</label>
+                      <Input
+                        type="month"
+                        value={newPickMonth}
+                        onChange={(e) => setNewPickMonth(e.target.value)}
+                        data-testid="input-pick-month"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Title</label>
+                      <Input
+                        value={newPickTitle}
+                        onChange={(e) => setNewPickTitle(e.target.value)}
+                        placeholder="e.g., January 2025 Picks"
+                        data-testid="input-pick-title"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Description (optional)</label>
+                      <Textarea
+                        value={newPickDescription}
+                        onChange={(e) => setNewPickDescription(e.target.value)}
+                        placeholder="Describe this month's theme or selection criteria"
+                        data-testid="textarea-pick-description"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => createPickMutation.mutate()}
+                      disabled={!newPickMonth || !newPickTitle || createPickMutation.isPending}
+                      data-testid="button-create-pick"
+                    >
+                      Create Pick
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
             ) : (
               <>
                 <Card>

@@ -89,7 +89,24 @@ export default function AlbumsPage() {
             <p className="font-mono text-gray-600 mb-8">
               Our curated monthly album picks are coming soon. Check back later!
             </p>
-            <Link href="/" className="text-red-500 hover:underline font-mono">
+            
+            <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg border-2 border-gray-200">
+              <h3 className="text-xl font-bold font-mono text-gray-900 mb-2">
+                Have an album to suggest?
+              </h3>
+              <p className="font-mono text-gray-600 mb-4 text-sm">
+                Help us curate our first monthly picks by submitting your album suggestions
+              </p>
+              <Link 
+                href="/submit-album" 
+                className="inline-block bg-red-500 text-white px-6 py-3 rounded font-mono hover:bg-red-600 transition-colors"
+                data-testid="button-suggest-album"
+              >
+                Submit Album Suggestion
+              </Link>
+            </div>
+
+            <Link href="/" className="text-red-500 hover:underline font-mono mt-8 inline-block">
               ← Back home
             </Link>
           </div>

@@ -837,6 +837,12 @@ export class FileStorage implements IStorage {
     );
   }
 
+  async getDraftAlbumPicks(): Promise<AlbumPick[]> {
+    return this.albumPicks.filter(p => !p.isPublished).sort((a, b) => 
+      new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+  }
+
   async addAlbumToPickDraft(data: InsertAlbumPickItem): Promise<AlbumPickItem> {
     const item: AlbumPickItem = {
       ...data,
