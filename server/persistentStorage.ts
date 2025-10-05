@@ -600,7 +600,11 @@ export class FileStorage implements IStorage {
     }
     
     // Sort by submitted date descending (most recent first)
-    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    filtered.sort((a, b) => {
+      const aTime = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const bTime = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return bTime - aTime;
+    });
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -625,6 +629,8 @@ export class FileStorage implements IStorage {
       submittedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      reviewedAt: null,
+      reviewedBy: null,
     };
     this.residentApplications.push(newApplication);
     await this.saveData('residentApplications', this.residentApplications);
