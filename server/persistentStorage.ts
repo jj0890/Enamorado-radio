@@ -234,6 +234,14 @@ export class FileStorage implements IStorage {
       viewCount: 0,
       airDate: new Date(),
       createdAt: new Date(),
+      description: episode.description || null,
+      seriesTitle: episode.seriesTitle || null,
+      episodeNumber: episode.episodeNumber || null,
+      artworkUrl: episode.artworkUrl || null,
+      tags: episode.tags || null,
+      status: episode.status || 'published',
+      isLive: episode.isLive ?? false,
+      isFeatured: episode.isFeatured ?? false,
     };
     this.episodes.push(newEpisode);
     await this.saveData('episodes', this.episodes);
@@ -300,6 +308,11 @@ export class FileStorage implements IStorage {
       viewCount: 0,
       publishedAt: new Date(),
       updatedAt: new Date(),
+      tags: guide.tags || null,
+      status: guide.status || 'published',
+      isFeatured: guide.isFeatured ?? false,
+      sections: guide.sections || null,
+      coverImageUrl: guide.coverImageUrl || null,
     };
     this.guides.push(newGuide);
     await this.saveData('guides', this.guides);
@@ -363,7 +376,11 @@ export class FileStorage implements IStorage {
       filtered = filtered.filter(m => (m as any).featured === filters.featured);
     }
     
-    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    filtered.sort((a, b) => {
+      const aTime = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const bTime = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return bTime - aTime;
+    });
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -388,6 +405,13 @@ export class FileStorage implements IStorage {
       notes: null,
       metadata: submission.metadata || null,
       source: submission.source || null,
+      airDate: submission.airDate || null,
+      artwork_url: submission.artwork_url || null,
+      createdAt: submission.createdAt || new Date(),
+      about: submission.about || null,
+      approved_at: submission.approved_at || null,
+      featured_at: submission.featured_at || null,
+      platform: submission.platform || null,
     };
     this.mixSubmissions.push(newSubmission);
     await this.saveData('mixSubmissions', this.mixSubmissions);
@@ -508,6 +532,13 @@ export class FileStorage implements IStorage {
       ...schedule,
       id: this.nextId++,
       createdAt: new Date(),
+      description: schedule.description || null,
+      artworkUrl: schedule.artworkUrl || null,
+      episodeId: schedule.episodeId || null,
+      recurrencePattern: schedule.recurrencePattern || null,
+      status: schedule.status || 'scheduled',
+      isLive: schedule.isLive ?? false,
+      isRecurring: schedule.isRecurring ?? false,
     };
     this.scheduleItems.push(newSchedule);
     await this.saveData('scheduleItems', this.scheduleItems);
@@ -563,6 +594,8 @@ export class FileStorage implements IStorage {
       submittedAt: new Date(),
       reviewedAt: null,
       notes: submission.notes || null,
+      spotifyUrl: submission.spotifyUrl || null,
+      youtubeUrl: submission.youtubeUrl || null,
     };
     this.songSubmissions.push(newSubmission);
     await this.saveData('songSubmissions', this.songSubmissions);
@@ -631,6 +664,24 @@ export class FileStorage implements IStorage {
       updatedAt: new Date(),
       reviewedAt: null,
       reviewedBy: null,
+      genre: application.genre || null,
+      phone: application.phone || null,
+      location: application.location || null,
+      experience: application.experience || null,
+      bio: application.bio || null,
+      mixUrl: application.mixUrl || null,
+      socialLinks: application.socialLinks || null,
+      availability: application.availability || null,
+      showConcept: application.showConcept || null,
+      equipment: application.equipment || null,
+      additionalInfo: application.additionalInfo || null,
+      googleFormResponseId: application.googleFormResponseId || null,
+      googleSheetRowNumber: application.googleSheetRowNumber || null,
+      reviewNotes: application.reviewNotes || null,
+      interviewScheduled: application.interviewScheduled || null,
+      trialShowDate: application.trialShowDate || null,
+      approvalDate: application.approvalDate || null,
+      showSlot: application.showSlot || null,
     };
     this.residentApplications.push(newApplication);
     await this.saveData('residentApplications', this.residentApplications);
@@ -703,6 +754,11 @@ export class FileStorage implements IStorage {
       id: 1,
       startTime: new Date(),
       isLive: playback.isLive !== undefined ? playback.isLive : null,
+      episodeId: playback.episodeId || null,
+      artist: playback.artist || null,
+      artwork: playback.artwork || null,
+      mixId: playback.mixId || null,
+      trackUrl: playback.trackUrl || null,
     };
     this.currentPlayback = newPlayback;
     await this.saveData('currentPlayback', this.currentPlayback);
@@ -747,6 +803,7 @@ export class FileStorage implements IStorage {
       coverArtUrl: mbData?.coverArtUrl || null,
       spotifyUrl: spotifyUrl || null,
       reason: data.reason || null,
+      releaseYear: data.releaseYear || null,
       status: 'pending',
       createdAt: new Date(),
       reviewedAt: null,
@@ -873,6 +930,11 @@ export class FileStorage implements IStorage {
       ...data,
       id: this.nextId++,
       createdAt: new Date(),
+      tags: data.tags || null,
+      spotifyUrl: data.spotifyUrl || null,
+      appleMusicUrl: data.appleMusicUrl || null,
+      bandcampUrl: data.bandcampUrl || null,
+      blurb: data.blurb || null,
     };
     
     this.albumPickItems.push(item);
@@ -961,7 +1023,11 @@ export class FileStorage implements IStorage {
   async getAlbumSuggestionNotes(suggestionId: number): Promise<AlbumSuggestionNote[]> {
     return this.albumSuggestionNotes
       .filter(n => n.suggestionId === suggestionId)
-      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+      .sort((a, b) => {
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        return aTime - bTime;
+      });
   }
 
   // Emergency reset - clear all data
