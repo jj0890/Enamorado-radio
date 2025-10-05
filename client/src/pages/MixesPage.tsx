@@ -169,7 +169,7 @@ export default function MixesPage() {
 
         {/* Mixes Grid */}
         {mixes.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {mixes.map((mix: any) => (
               <PublicMixCard key={mix.id} mix={mix} onGenreSelect={handleGenreSelect} />
             ))}
