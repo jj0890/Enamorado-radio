@@ -686,6 +686,7 @@ export class FileStorage implements IStorage {
       ...admin,
       id: this.nextId++,
       createdAt: new Date(),
+      role: admin.role || 'admin',
     };
     this.admins.push(newAdmin);
     await this.saveData('admins', this.admins);
@@ -701,6 +702,7 @@ export class FileStorage implements IStorage {
       ...playback,
       id: 1,
       startTime: new Date(),
+      isLive: playback.isLive !== undefined ? playback.isLive : null,
     };
     this.currentPlayback = newPlayback;
     await this.saveData('currentPlayback', this.currentPlayback);
@@ -717,7 +719,11 @@ export class FileStorage implements IStorage {
       filtered = filtered.filter(s => s.status === filters.status);
     }
     
-    filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    filtered.sort((a, b) => {
+      const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return bTime - aTime;
+    });
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
