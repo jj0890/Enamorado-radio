@@ -116,6 +116,14 @@ class MemStorage implements IStorage {
       id: this.nextId++,
       viewCount: 0,
       createdAt: new Date(),
+      status: episode.status || 'published',
+      description: episode.description || null,
+      seriesTitle: episode.seriesTitle || null,
+      episodeNumber: episode.episodeNumber || null,
+      artworkUrl: episode.artworkUrl || null,
+      tags: episode.tags || null,
+      isLive: episode.isLive ?? false,
+      isFeatured: episode.isFeatured ?? false,
     };
     this.episodes.push(newEpisode);
     return newEpisode;
@@ -149,7 +157,7 @@ class MemStorage implements IStorage {
     }
     
     // Sort by published date descending
-    filtered.sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime());
+    filtered.sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -173,6 +181,11 @@ class MemStorage implements IStorage {
       viewCount: 0,
       publishedAt: new Date(),
       updatedAt: new Date(),
+      status: guide.status || 'published',
+      tags: guide.tags || null,
+      sections: guide.sections || null,
+      coverImageUrl: guide.coverImageUrl || null,
+      isFeatured: guide.isFeatured ?? false,
     };
     this.guides.push(newGuide);
     return newGuide;
@@ -214,7 +227,7 @@ class MemStorage implements IStorage {
     }
     
     // Sort by submitted date descending
-    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    filtered.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -241,6 +254,36 @@ class MemStorage implements IStorage {
       reviewedBy: null,
       notes: null,
       metadata: null,
+      about: submission.about || null,
+      approved_at: null,
+      featured_at: null,
+      artwork_url: submission.artwork_url || null,
+      platform: submission.platform || null,
+      playback_mode: submission.playback_mode || 'stream',
+      is_radio_ingestable: submission.is_radio_ingestable ?? true,
+      requires_alternative: submission.requires_alternative ?? false,
+      radio_alt_url: submission.radio_alt_url || null,
+      radio_file_path: submission.radio_file_path || null,
+      rights_status: submission.rights_status || 'unverified',
+      featured: submission.featured ?? false,
+      approved: submission.approved ?? false,
+      coverUrl: submission.coverUrl || null,
+      artUrl: submission.artUrl || null,
+      source: submission.source || 'url',
+      sourceUrl: submission.sourceUrl || null,
+      filePath: submission.filePath || null,
+      fileName: submission.fileName || null,
+      featureOnSite: submission.featureOnSite ?? true,
+      pushToAzura: submission.pushToAzura ?? false,
+      targetPlaylist: submission.targetPlaylist || 'General Rotation',
+      airDate: submission.airDate || null,
+      azuraFilePath: submission.azuraFilePath || null,
+      azuraPlaylistId: submission.azuraPlaylistId || null,
+      approvedAt: submission.approvedAt || null,
+      uploadedAt: submission.uploadedAt || null,
+      rescannedAt: submission.rescannedAt || null,
+      playlistLinkedAt: submission.playlistLinkedAt || null,
+      createdAt: submission.createdAt || new Date(),
     };
     this.mixSubmissions.push(newSubmission);
     return newSubmission;
@@ -336,6 +379,13 @@ class MemStorage implements IStorage {
       ...schedule,
       id: this.nextId++,
       createdAt: new Date(),
+      status: schedule.status || 'scheduled',
+      description: schedule.description || null,
+      episodeId: schedule.episodeId || null,
+      isLive: schedule.isLive ?? false,
+      isRecurring: schedule.isRecurring ?? false,
+      recurrencePattern: schedule.recurrencePattern || null,
+      artworkUrl: schedule.artworkUrl || null,
     };
     this.scheduleItems.push(newSchedule);
     return newSchedule;
@@ -365,7 +415,7 @@ class MemStorage implements IStorage {
     }
     
     // Sort by submitted date descending
-    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    filtered.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -385,6 +435,9 @@ class MemStorage implements IStorage {
       approvalStatus: 'pending',
       submittedAt: new Date(),
       reviewedAt: null,
+      notes: submission.notes || null,
+      spotifyUrl: submission.spotifyUrl || null,
+      youtubeUrl: submission.youtubeUrl || null,
     };
     this.songSubmissions.push(newSubmission);
     return newSubmission;
@@ -415,7 +468,7 @@ class MemStorage implements IStorage {
     }
     
     // Sort by submitted date descending (most recent first)
-    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    filtered.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -440,6 +493,26 @@ class MemStorage implements IStorage {
       submittedAt: new Date(),
       createdAt: new Date(),
       updatedAt: new Date(),
+      reviewedAt: null,
+      reviewedBy: null,
+      reviewNotes: application.reviewNotes || null,
+      interviewScheduled: application.interviewScheduled || null,
+      trialShowDate: application.trialShowDate || null,
+      approvalDate: application.approvalDate || null,
+      showSlot: application.showSlot || null,
+      googleFormResponseId: application.googleFormResponseId || null,
+      googleSheetRowNumber: application.googleSheetRowNumber || null,
+      phone: application.phone || null,
+      location: application.location || null,
+      experience: application.experience || null,
+      genre: application.genre || null,
+      bio: application.bio || null,
+      mixUrl: application.mixUrl || null,
+      socialLinks: application.socialLinks || null,
+      availability: application.availability || null,
+      showConcept: application.showConcept || null,
+      equipment: application.equipment || null,
+      additionalInfo: application.additionalInfo || null,
     };
     this.residentApplications.push(newApplication);
     return newApplication;
@@ -488,6 +561,7 @@ class MemStorage implements IStorage {
       ...admin,
       id: this.nextId++,
       createdAt: new Date(),
+      role: admin.role || 'admin',
     };
     this.admins.push(newAdmin);
     return newAdmin;
@@ -502,6 +576,12 @@ class MemStorage implements IStorage {
       ...playback,
       id: 1,
       startTime: new Date(),
+      artist: playback.artist || null,
+      artwork: playback.artwork || null,
+      episodeId: playback.episodeId || null,
+      mixId: playback.mixId || null,
+      trackUrl: playback.trackUrl || null,
+      isLive: playback.isLive ?? true,
     };
     this.currentPlayback = newPlayback;
     return newPlayback;
