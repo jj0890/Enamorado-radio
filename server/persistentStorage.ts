@@ -387,6 +387,7 @@ export class FileStorage implements IStorage {
       reviewedBy: null,
       notes: null,
       metadata: submission.metadata || null,
+      source: submission.source || null,
     };
     this.mixSubmissions.push(newSubmission);
     await this.saveData('mixSubmissions', this.mixSubmissions);
