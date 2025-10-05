@@ -542,7 +542,11 @@ export class FileStorage implements IStorage {
       filtered = filtered.filter(s => s.approvalStatus === filters.status);
     }
     
-    filtered.sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+    filtered.sort((a, b) => {
+      const aTime = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const bTime = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return bTime - aTime;
+    });
     
     if (filters?.limit) {
       filtered = filtered.slice(0, filters.limit);
@@ -558,6 +562,7 @@ export class FileStorage implements IStorage {
       approvalStatus: 'pending',
       submittedAt: new Date(),
       reviewedAt: null,
+      notes: submission.notes || null,
     };
     this.songSubmissions.push(newSubmission);
     await this.saveData('songSubmissions', this.songSubmissions);
