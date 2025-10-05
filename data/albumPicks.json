@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "month": "2025-10",
+    "title": "October Picks",
+    "description": "testing",
+    "createdBy": "jarrad",
+    "slug": "2025-10",
+    "id": 41,
+    "isPublished": false,
+    "publishedAt": null,
+    "createdAt": "2025-10-05T15:48:04.531Z"
+  }
+]
