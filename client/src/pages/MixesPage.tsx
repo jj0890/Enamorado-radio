@@ -18,7 +18,7 @@ export default function MixesPage() {
       : ["/api/public/mixes", { limit: 20 }];
 
   // Fetch mixes with filters
-  const { data: mixes = [], isLoading } = useQuery({
+  const { data: mixes = [], isLoading } = useQuery<any[]>({
     queryKey,
     refetchInterval: 30000,
   });
