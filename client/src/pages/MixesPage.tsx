@@ -5,33 +5,38 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Music, Upload, Clock, User, Star } from "lucide-react";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import PublicMixCard from "@/components/PublicMixCard";
+import { filterByTags, type Mix } from "@/lib/filters";
 
 export default function MixesPage() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'featured'>('all');
-  const [genreFilter, setGenreFilter] = useState<string | null>(null);
+  const [activeTags, setActiveTags] = useState<string[]>([]);
+  const [mode, setMode] = useState<'AND' | 'OR'>('OR');
 
-  // Build query key with optional genre
+  // Fetch all mixes
   const queryKey = statusFilter === 'featured' 
     ? ["/api/public/mixes/featured", { limit: 20 }]
-    : genreFilter
-      ? ["/api/public/mixes", { limit: 20, genre: genreFilter }]
-      : ["/api/public/mixes", { limit: 20 }];
+    : ["/api/public/mixes", { limit: 20 }];
 
-  // Fetch mixes with filters
-  const { data: mixes = [], isLoading } = useQuery<any[]>({
+  const { data: allMixes = [], isLoading } = useQuery<Mix[]>({
     queryKey,
     refetchInterval: 30000,
   });
 
-  // Handle genre tag click
-  const handleGenreSelect = (genre: string) => {
-    setGenreFilter(genre);
-    setStatusFilter('all'); // Reset status filter when selecting a genre
-  };
+  // Apply client-side filtering
+  const mixes = filterByTags(allMixes, activeTags, mode);
 
-  // Clear genre filter
-  const clearGenreFilter = () => {
-    setGenreFilter(null);
+  // Toggle tag selection
+  function toggleTag(tag: string) {
+    setActiveTags(prev =>
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+    setStatusFilter('all'); // Reset status filter when selecting tags
+  }
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setActiveTags([]);
+    setStatusFilter('all');
   };
 
   if (isLoading) {
@@ -127,9 +132,9 @@ export default function MixesPage() {
           <div className="flex gap-2 flex-wrap items-center">
             <Button
               size="sm"
-              variant={statusFilter === 'all' && !genreFilter ? 'default' : 'outline'}
-              onClick={() => { setStatusFilter('all'); clearGenreFilter(); }}
-              className={statusFilter === 'all' && !genreFilter
+              variant={statusFilter === 'all' && activeTags.length === 0 ? 'default' : 'outline'}
+              onClick={clearAllFilters}
+              className={statusFilter === 'all' && activeTags.length === 0
                 ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
                 : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
               }
@@ -140,7 +145,7 @@ export default function MixesPage() {
             <Button
               size="sm"
               variant={statusFilter === 'featured' ? 'default' : 'outline'}
-              onClick={() => { setStatusFilter('featured'); clearGenreFilter(); }}
+              onClick={() => { setStatusFilter('featured'); setActiveTags([]); }}
               className={statusFilter === 'featured' 
                 ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
                 : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
@@ -150,18 +155,34 @@ export default function MixesPage() {
               <Star className="w-3 h-3 mr-1" />
               Featured
             </Button>
-            {genreFilter && (
+            
+            {activeTags.length > 0 && (
               <div className="flex items-center gap-2 ml-2">
-                <span className="text-xs font-mono text-gray-600 dark:text-gray-400">Genre:</span>
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={clearGenreFilter}
-                  className="bg-red-500 hover:bg-red-600 text-white font-mono text-xs"
-                  data-testid="filter-genre-active"
-                >
-                  {genreFilter} ✕
-                </Button>
+                <span className="text-xs font-mono text-gray-600 dark:text-gray-400">Active tags:</span>
+                {activeTags.map(tag => (
+                  <Button
+                    key={tag}
+                    size="sm"
+                    variant="default"
+                    onClick={() => toggleTag(tag)}
+                    className="bg-red-500 hover:bg-red-600 text-white font-mono text-xs"
+                    data-testid={`filter-tag-active-${tag.toLowerCase()}`}
+                  >
+                    {tag} ✕
+                  </Button>
+                ))}
+                
+                {activeTags.length > 1 && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setMode(mode === 'OR' ? 'AND' : 'OR')}
+                    className="border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 font-mono text-xs"
+                    data-testid="filter-mode-toggle"
+                  >
+                    {mode}
+                  </Button>
+                )}
               </div>
             )}
           </div>
@@ -171,15 +192,15 @@ export default function MixesPage() {
         {mixes.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {mixes.map((mix: any) => (
-              <PublicMixCard key={mix.id} mix={mix} onGenreSelect={handleGenreSelect} />
+              <PublicMixCard key={mix.id} mix={mix} onGenreSelect={toggleTag} />
             ))}
           </div>
         ) : (
           <div className="text-center py-16">
             <Music className="w-16 h-16 text-gray-400 dark:text-gray-600 mx-auto mb-4" />
             <div className="text-gray-600 dark:text-gray-400 font-mono mb-4">
-              {genreFilter 
-                ? `No mixes found for genre: ${genreFilter}` 
+              {activeTags.length > 0
+                ? `No mixes found matching ${mode === 'AND' ? 'all of' : 'any of'}: ${activeTags.join(', ')}` 
                 : statusFilter === 'featured' 
                   ? 'No featured mixes available yet.' 
                   : 'No mixes available yet.'}
