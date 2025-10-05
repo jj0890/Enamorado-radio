@@ -1,21 +1,5 @@
 [
   {
-    "suggestedBy": "test-user",
-    "artist": "Radiohead",
-    "title": "TestAlbum5J10rC",
-    "releaseYear": 1997,
-    "reason": "Testing Spotify integration for album linking",
-    "id": 15,
-    "musicbrainzId": null,
-    "releaseGroupId": null,
-    "coverArtUrl": null,
-    "spotifyUrl": null,
-    "status": "rejected",
-    "createdAt": "2025-10-01T18:46:57.770Z",
-    "reviewedAt": "2025-10-01T21:32:21.047Z",
-    "reviewedBy": "jarrad"
-  },
-  {
     "suggestedBy": "jarrad",
     "artist": "454",
     "title": "FAST TRAX 3",
