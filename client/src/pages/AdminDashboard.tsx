@@ -165,10 +165,10 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
           <p className="text-gray-600 font-mono">Radio station administration overview</p>
         </div>
 
-        {/* Stats Grid */}
+        {/* Top KPIs - Simplified to 4 key metrics */}
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(8)].map((_, i) => (
+            {[...Array(4)].map((_, i) => (
               <Card key={i} className="animate-pulse">
                 <CardContent className="p-6">
                   <div className="h-4 bg-gray-200 rounded mb-2"></div>
@@ -179,18 +179,6 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
           </div>
         ) : stats ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Total Mix Submissions</p>
-                    <p className="text-3xl font-bold font-mono">{stats.totalMixSubmissions}</p>
-                  </div>
-                  <Music className="w-8 h-8 text-red-500" />
-                </div>
-              </CardContent>
-            </Card>
-
             <Card>
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
@@ -231,87 +219,46 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
               <CardContent className="p-6">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm font-mono text-gray-600">Total Shows</p>
-                    <p className="text-3xl font-bold font-mono">{stats.totalShows}</p>
-                  </div>
-                  <Radio className="w-8 h-8 text-blue-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Live Shows</p>
-                    <p className="text-3xl font-bold font-mono text-red-600">{stats.liveShows}</p>
-                  </div>
-                  <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse"></div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Total Episodes</p>
-                    <p className="text-3xl font-bold font-mono">{stats.totalEpisodes}</p>
-                  </div>
-                  <BarChart3 className="w-8 h-8 text-gray-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Total Applications</p>
-                    <p className="text-3xl font-bold font-mono text-blue-600">{stats.totalApplications || 0}</p>
+                    <p className="text-sm font-mono text-gray-600">DJ Applications</p>
+                    <p className="text-3xl font-bold font-mono text-blue-600">{stats.pendingApplications || 0}</p>
                   </div>
                   <Users className="w-8 h-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Pending Applications</p>
-                    <p className="text-3xl font-bold font-mono text-orange-600">{stats.pendingApplications || 0}</p>
-                  </div>
-                  <AlertTriangle className="w-8 h-8 text-orange-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Active Residents</p>
-                    <p className="text-3xl font-bold font-mono text-green-600">{stats.activeResidents || 0}</p>
-                  </div>
-                  <Badge className="bg-green-100 text-green-800">★</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Recent Submissions (7d)</p>
-                    <p className="text-3xl font-bold font-mono text-indigo-600">{stats.recentSubmissions}</p>
-                  </div>
-                  <RefreshCw className="w-8 h-8 text-indigo-500" />
-                </div>
-              </CardContent>
-            </Card>
           </div>
         ) : null}
+
+        {/* Quick Actions */}
+        <div className="mb-8">
+          <h3 className="text-xl font-bold font-mono text-gray-900 mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <Link href="/admin/mix-submissions">
+              <Button className="w-full h-20 text-lg font-mono" variant="outline">
+                <Music className="w-6 h-6 mr-2" />
+                Review Mixes
+              </Button>
+            </Link>
+            <Link href="/admin/upload">
+              <Button className="w-full h-20 text-lg font-mono" variant="outline">
+                <Upload className="w-6 h-6 mr-2" />
+                Upload Episode
+              </Button>
+            </Link>
+            <Link href="/admin/azuracast">
+              <Button className="w-full h-20 text-lg font-mono" variant="outline">
+                <Radio className="w-6 h-6 mr-2" />
+                AzuraCast
+              </Button>
+            </Link>
+            <Link href="/admin/albums">
+              <Button className="w-full h-20 text-lg font-mono" variant="outline">
+                <Disc className="w-6 h-6 mr-2" />
+                Albums
+              </Button>
+            </Link>
+          </div>
+        </div>
 
         {/* Admin Navigation Grid - Organized by Category */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
