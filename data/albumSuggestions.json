@@ -1,34 +1,5 @@
 [
   {
-    "submittedBy": "Test User ox4wU8",
-    "artist": "The Beatles",
-    "title": "Abbey Road",
-    "id": 10,
-    "musicbrainzId": "ecd965f4-f75f-4360-9dde-26f31dc44f46",
-    "releaseGroupId": "9162580e-5df4-32de-80cc-f45a8d8a9b1d",
-    "coverArtUrl": "https://coverartarchive.org/release/ecd965f4-f75f-4360-9dde-26f31dc44f46/40587644386-500.jpg",
-    "status": "accepted",
-    "createdAt": "2025-10-01T17:22:22.692Z",
-    "reviewedAt": "2025-10-05T15:19:21.946Z",
-    "reviewedBy": "jarrad",
-    "spotifyUrl": "https://open.spotify.com/album/0ETFjACtuP2ADo6LFhL6HN"
-  },
-  {
-    "suggestedBy": "Test User",
-    "artist": "The Beatles",
-    "title": "Abbey Road",
-    "releaseYear": 1969,
-    "reason": "Timeless classic",
-    "id": 11,
-    "musicbrainzId": "d6010be3-98f8-422c-a6c9-787e2e491e58",
-    "releaseGroupId": "9162580e-5df4-32de-80cc-f45a8d8a9b1d",
-    "coverArtUrl": "http://coverartarchive.org/release/d6010be3-98f8-422c-a6c9-787e2e491e58/1229601191-500.jpg",
-    "status": "accepted",
-    "createdAt": "2025-10-01T17:32:48.090Z",
-    "reviewedAt": "2025-10-01T17:34:41.671Z",
-    "reviewedBy": "jarrad"
-  },
-  {
     "suggestedBy": "test-user",
     "artist": "Radiohead",
     "title": "TestAlbum5J10rC",
@@ -42,22 +13,6 @@
     "status": "rejected",
     "createdAt": "2025-10-01T18:46:57.770Z",
     "reviewedAt": "2025-10-01T21:32:21.047Z",
-    "reviewedBy": "jarrad"
-  },
-  {
-    "suggestedBy": "Integration Test",
-    "artist": "Daft Punk",
-    "title": "Random Access Memories",
-    "releaseYear": 2013,
-    "reason": "Testing Spotify integration",
-    "id": 16,
-    "musicbrainzId": "ecf72e5a-e378-485e-bb87-7ebbd0430a79",
-    "releaseGroupId": "aa997ea0-2936-40bd-884d-3af8a0e064dc",
-    "coverArtUrl": "http://coverartarchive.org/release/4867ceba-ffe7-40c0-a093-45be6c03c655/6729981357-500.jpg",
-    "spotifyUrl": "https://open.spotify.com/album/4m2880jivSbbyEGAKfITCa",
-    "status": "accepted",
-    "createdAt": "2025-10-01T18:48:03.957Z",
-    "reviewedAt": "2025-10-05T15:19:23.220Z",
     "reviewedBy": "jarrad"
   },
   {
