@@ -1,29 +1,55 @@
-export type Mix = {
-  id: number;
+export type Filterable = {
   genre: string;
   tags?: string[];
-  title: string;
-  artist?: string;
-  name?: string;
   [key: string]: any;
 };
 
-export function filterByTags(
-  mixes: Mix[],
-  active: string[],
+const normalize = (s: string): string =>
+  s
+    .toLowerCase()
+    .trim()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+const explode = (s?: string): string[] =>
+  (s ?? '')
+    .split(/[,/|+&]+|\s{2,}/g)
+    .map(x => x.trim())
+    .filter(Boolean);
+
+export function filterByTags<T extends Filterable>(
+  items: T[],
+  activeTags: string[],
   mode: 'AND' | 'OR' = 'OR'
-): Mix[] {
-  if (!active.length) return mixes;
-  
-  return mixes.filter(mix => {
-    // Combine genre and tags into a single array
-    const mixGenres = [
-      mix.genre,
-      ...(mix.tags || [])
-    ].filter(Boolean);
-    
+): T[] {
+  if (!activeTags.length) return items;
+
+  const activeNormalized = activeTags.map(normalize);
+
+  return items.filter((item) => {
+    const source = [
+      ...explode(item.genre),
+      ...(item.tags ?? []),
+    ]
+      .map(normalize)
+      .filter(Boolean);
+
+    const uniqueTags = new Set(source);
+
     return mode === 'AND'
-      ? active.every(tag => mixGenres.includes(tag))
-      : active.some(tag => mixGenres.includes(tag));
+      ? activeNormalized.every(t => uniqueTags.has(t))
+      : activeNormalized.some(t => uniqueTags.has(t));
   });
+}
+
+export function extractUniqueTags<T extends Filterable>(items: T[]): string[] {
+  const allTags = new Set<string>();
+  
+  items.forEach(item => {
+    explode(item.genre).forEach(tag => allTags.add(tag));
+    (item.tags ?? []).forEach(tag => allTags.add(tag));
+  });
+
+  return Array.from(allTags).sort();
 }
