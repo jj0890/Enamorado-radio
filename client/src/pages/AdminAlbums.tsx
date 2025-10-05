@@ -112,9 +112,11 @@ export default function AdminAlbums() {
 
   // Fetch album suggestions with votes
   const { data: suggestions = [], isLoading: loadingSuggestions } = useQuery<AlbumSuggestion[]>({
-    queryKey: ['/api/admin/albums/suggestions', statusFilter],
+    queryKey: ['/api/admin/albums/suggestions', statusFilter, activeTab],
     queryFn: async () => {
-      const params = statusFilter !== 'all' ? `?status=${statusFilter}` : '';
+      // In Draft Pick tab, fetch all suggestions so we can filter for accepted ones
+      const effectiveFilter = activeTab === 'draft' ? 'all' : statusFilter;
+      const params = effectiveFilter !== 'all' ? `?status=${effectiveFilter}` : '';
       return fetch(`/api/admin/albums/suggestions${params}`, {
         credentials: 'include'
       }).then(res => res.json());
