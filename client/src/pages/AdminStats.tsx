@@ -22,18 +22,21 @@ interface AdminStatsData {
 }
 
 interface NowPlayingData {
-  song: {
-    title: string;
-    artist: string;
-    album?: string;
+  is_online: boolean;
+  now_playing: {
+    song: {
+      title: string;
+      artist: string;
+      album?: string;
+    };
   };
   listeners: {
     current: number;
-    peak: number;
+    total: number;
+    unique: number;
   };
   station: {
     name: string;
-    is_online: boolean;
   };
 }
 
@@ -100,16 +103,16 @@ export default function AdminStats() {
               ) : nowPlaying ? (
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
-                    <div className={`w-3 h-3 rounded-full ${nowPlaying.station?.is_online ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
+                    <div className={`w-3 h-3 rounded-full ${nowPlaying.is_online ? 'bg-green-400' : 'bg-red-400'} animate-pulse`}></div>
                     <span className="font-mono text-sm">
-                      {nowPlaying.station?.is_online ? 'ONLINE' : 'OFFLINE'}
+                      {nowPlaying.is_online ? 'ONLINE' : 'OFFLINE'}
                     </span>
                   </div>
                   <div className="font-mono text-sm">
-                    <div className="font-semibold">{nowPlaying.song?.title || 'No Track Info'}</div>
-                    <div className="text-gray-600">{nowPlaying.song?.artist || 'Unknown Artist'}</div>
-                    {nowPlaying.song?.album && (
-                      <div className="text-gray-500 text-xs">{nowPlaying.song.album}</div>
+                    <div className="font-semibold">{nowPlaying.now_playing?.song?.title || 'No Track Info'}</div>
+                    <div className="text-gray-600">{nowPlaying.now_playing?.song?.artist || 'Unknown Artist'}</div>
+                    {nowPlaying.now_playing?.song?.album && (
+                      <div className="text-gray-500 text-xs">{nowPlaying.now_playing.song.album}</div>
                     )}
                   </div>
                 </div>
@@ -138,7 +141,7 @@ export default function AdminStats() {
                     {nowPlaying.listeners.current}
                   </div>
                   <div className="text-sm text-gray-600 font-mono">
-                    Peak today: {nowPlaying.listeners.peak}
+                    Total: {nowPlaying.listeners.total} | Unique: {nowPlaying.listeners.unique}
                   </div>
                 </div>
               ) : (
