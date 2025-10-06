@@ -13,6 +13,14 @@ export interface UIMix {
   status: 'pending' | 'approved' | 'featured';
   date: Date;
   about?: string;
+  featureOnSite?: boolean;
+  pushToAzura?: boolean;
+  targetPlaylist?: string | null;
+  azuraFilePath?: string | null;
+  uploadedAt?: Date | null;
+  rescannedAt?: Date | null;
+  playlistLinkedAt?: Date | null;
+  name?: string;
 }
 
 /**
@@ -66,8 +74,16 @@ export function serializeMix(row: MixSubmission): UIMix {
     platform,
     approved,
     featured,
-    status,  // Add the status field that frontend expects
+    status,
     date: new Date(date),
-    about: row.about
+    about: row.about ?? undefined,
+    featureOnSite: row.featureOnSite ?? undefined,
+    pushToAzura: row.pushToAzura ?? undefined,
+    targetPlaylist: row.targetPlaylist ?? undefined,
+    azuraFilePath: row.azuraFilePath ?? undefined,
+    uploadedAt: row.uploadedAt ?? undefined,
+    rescannedAt: row.rescannedAt ?? undefined,
+    playlistLinkedAt: row.playlistLinkedAt ?? undefined,
+    name: row.name
   };
 }
