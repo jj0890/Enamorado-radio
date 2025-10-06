@@ -194,7 +194,11 @@ export default function AdminMixRouting() {
                       </div>
                       <div>
                         <span className="font-medium">AzuraCast:</span>{' '}
-                        {mix.pushToAzura ? '📻 Enabled' : '❌ Disabled'}
+                        {mix.azuraFilePath && mix.uploadedAt 
+                          ? '✅ Uploaded' 
+                          : mix.pushToAzura 
+                            ? '⏳ Pending' 
+                            : '❌ Disabled'}
                       </div>
                       {mix.targetPlaylist && (
                         <div className="col-span-2">
@@ -204,6 +208,7 @@ export default function AdminMixRouting() {
                       {mix.azuraFilePath && (
                         <div className="col-span-2 text-xs text-gray-500">
                           File: {mix.azuraFilePath}
+                          {mix.uploadedAt && <span className="ml-2">• Uploaded {new Date(mix.uploadedAt).toLocaleDateString()}</span>}
                         </div>
                       )}
                     </div>
@@ -340,7 +345,9 @@ function UpdateRoutingControls({
           </Label>
         </div>
         <p className="text-sm text-gray-600 ml-6">
-          Upload to radio library and add to rotation
+          {mix.azuraFilePath && mix.uploadedAt 
+            ? '✅ Already uploaded to AzuraCast radio library'
+            : 'Automatically process and upload to radio library (or use /admin/azuracast for manual control)'}
         </p>
       </CardContent>
       

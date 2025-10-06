@@ -10,11 +10,16 @@ export default function AzuraCastAdmin() {
   const [uploadingMixId, setUploadingMixId] = useState<number | null>(null);
   const [processingMixTitle, setProcessingMixTitle] = useState<string>('');
 
-  // Get approved mixes ready for AzuraCast upload
-  const { data: approvedMixes = [] } = useQuery({
+  // Get approved mixes ready for AzuraCast upload (filter out already uploaded)
+  const { data: allApprovedMixes = [] } = useQuery({
     queryKey: ['/api/mixes', 'approved'],
     queryFn: () => fetch('/api/mixes?status=approved').then(res => res.json())
   });
+
+  // Filter to only show mixes that haven't been uploaded yet
+  const approvedMixes = allApprovedMixes.filter((mix: any) => 
+    !mix.azuraFilePath || !mix.uploadedAt
+  );
 
   // Get AzuraCast connection status
   const { data: azuracastStatus, isLoading: statusLoading } = useQuery({
@@ -141,8 +146,12 @@ export default function AzuraCastAdmin() {
             Approved Mixes Ready for AzuraCast ({approvedMixes.length})
           </h2>
           
+          <p className="text-sm text-gray-600 mb-3">
+            Shows approved mixes that haven't been uploaded yet. Already uploaded mixes can be managed in <a href="/admin/routing" className="text-blue-600 hover:underline">/admin/routing</a>.
+          </p>
+          
           {approvedMixes.length === 0 ? (
-            <p className="text-gray-500 italic">No approved mixes waiting for upload</p>
+            <p className="text-gray-500 italic">No approved mixes waiting for upload. All mixes have been processed!</p>
           ) : (
             <div className="space-y-4">
               {approvedMixes.map((mix: any) => (
