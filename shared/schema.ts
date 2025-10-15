@@ -193,6 +193,16 @@ export const admins = pgTable("admins", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// System Settings - Configuration for integrations
+export const settings = pgTable("settings", {
+  id: serial("id").primaryKey(),
+  key: text("key").notNull().unique(), // e.g., "azuracast_api_key", "azuracast_station_id"
+  value: text("value").notNull(),
+  description: text("description"), // What this setting is for
+  isSecret: boolean("is_secret").default(false), // Mask in UI if true
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Residents - DJs/Hosts with streaming access
 export const residents = pgTable("residents", {
   id: serial("id").primaryKey(),
@@ -207,6 +217,8 @@ export const residents = pgTable("residents", {
   azuracastUsername: text("azuracast_username").notNull().unique(),
   azuracastPassword: text("azuracast_password").notNull(),
   mountPoint: text("mount_point").notNull(), // e.g., "/live/dj1"
+  azuracastStreamerId: integer("azuracast_streamer_id"), // ID from AzuraCast API (if auto-created)
+  azuracastAutoCreated: boolean("azuracast_auto_created").default(false), // Track if account was created via API
   
   // Status & permissions
   isActive: boolean("is_active").default(true),
@@ -366,10 +378,17 @@ export const insertAdminSchema = createInsertSchema(admins).omit({
   createdAt: true,
 });
 
+export const insertSettingsSchema = createInsertSchema(settings).omit({
+  id: true,
+  updatedAt: true,
+});
+
 export const insertResidentSchema = createInsertSchema(residents).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+  azuracastStreamerId: true, // Set by API after creation
+  azuracastAutoCreated: true, // Set automatically
 });
 
 export const insertAlbumSuggestionSchema = createInsertSchema(albumSuggestions).omit({
@@ -413,6 +432,7 @@ export type Schedule = typeof schedule.$inferSelect;
 export type SongSubmission = typeof songSubmissions.$inferSelect;
 export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
+export type Settings = typeof settings.$inferSelect;
 export type Resident = typeof residents.$inferSelect;
 export type CurrentPlayback = typeof currentPlayback.$inferSelect;
 export type StreamStatus = typeof streamStatus.$inferSelect;
@@ -429,6 +449,7 @@ export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type InsertSettings = z.infer<typeof insertSettingsSchema>;
 export type InsertResident = z.infer<typeof insertResidentSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
 export type InsertAlbumSuggestion = z.infer<typeof insertAlbumSuggestionSchema>;
