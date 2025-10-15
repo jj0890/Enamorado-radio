@@ -129,6 +129,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Update live status (protected)
+  app.post('/api/resident/live-status', requireResident, async (req, res) => {
+    try {
+      const { scheduleId, status } = req.body;
+      const requestingResident = (req as any).resident;
+      
+      if (!scheduleId || !status) {
+        return res.status(400).json({ error: 'scheduleId and status are required' });
+      }
+      
+      if (!['live', 'offline', 'completed'].includes(status)) {
+        return res.status(400).json({ error: 'invalid status' });
+      }
+      
+      // Get the schedule item
+      const scheduleItem = await storage.getScheduleById(scheduleId);
+      if (!scheduleItem) {
+        return res.status(404).json({ error: 'schedule item not found' });
+      }
+      
+      // Verify the schedule belongs to this resident
+      if (scheduleItem.residentId !== requestingResident.residentId) {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+      
+      // Update the live status
+      const updated = await storage.updateSchedule(scheduleId, { liveStatus: status });
+      
+      // Broadcast to WebSocket clients
+      broadcast({
+        type: 'live_status_update',
+        scheduleId,
+        residentId: requestingResident.residentId,
+        status,
+        timestamp: new Date().toISOString()
+      });
+      
+      res.json(updated);
+    } catch (error) {
+      console.error('Error updating live status:', error);
+      res.status(500).json({ error: 'failed to update live status' });
+    }
+  });
+  
   // =================
   // ADMIN RESIDENT MANAGEMENT ROUTES
   // =================

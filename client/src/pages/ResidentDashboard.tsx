@@ -7,6 +7,7 @@ import { useToast } from '@/hooks/use-toast';
 import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle } from 'lucide-react';
 import { useState } from 'react';
 import type { Resident, Schedule } from '@shared/schema';
+import StreamingGuide from '@/components/StreamingGuide';
 
 interface ResidentDashboardProps {
   onLogout: () => void;
@@ -41,6 +42,26 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
     },
   });
 
+  const goLiveMutation = useMutation({
+    mutationFn: async ({ scheduleId, status }: { scheduleId: number; status: string }) => {
+      return await apiRequest('POST', '/api/resident/live-status', { scheduleId, status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/schedule/resident/${residentData.id}`] });
+      toast({
+        title: "Status Updated",
+        description: "Your live status has been updated.",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error?.message || "Failed to update live status.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast({
@@ -49,10 +70,61 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
     });
   };
 
+  // Find current or next show
+  const now = new Date();
+  
+  // Current live show = any show marked as live
+  const currentLiveShow = schedule.find(s => s.liveStatus === 'live');
+  
+  // Active slot = most recent show that has started and isn't completed
+  // This is the show the resident should control, regardless of how long ago it started
+  const activeSlot = schedule
+    .filter(s => new Date(s.scheduledAt) <= now && s.liveStatus !== 'completed')
+    .sort((a, b) => new Date(b.scheduledAt).getTime() - new Date(a.scheduledAt).getTime())[0];
+  
+  // Next upcoming show = future shows within 4 hours
+  const fourHoursFromNow = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+  const nextUpcomingShow = schedule
+    .filter(s => {
+      const showTime = new Date(s.scheduledAt);
+      return showTime > now && 
+             showTime <= fourHoursFromNow && 
+             s.liveStatus !== 'completed';
+    })
+    .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())[0];
+  
+  // The show to control = active slot (if exists and not already live elsewhere) OR next upcoming
+  const showToControl = (activeSlot && !currentLiveShow) ? activeSlot : 
+                        currentLiveShow ? currentLiveShow : 
+                        nextUpcomingShow;
+
   const upcomingShows = schedule
-    .filter(s => new Date(s.scheduledAt) > new Date())
+    .filter(s => new Date(s.scheduledAt) > now && s.liveStatus !== 'completed')
     .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
     .slice(0, 5);
+  
+  const handleGoLive = () => {
+    if (!showToControl) {
+      toast({
+        title: "No Show Available",
+        description: "You don't have any active or upcoming shows within the next 4 hours.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    // Toggle: if this show is live, go offline; otherwise go live
+    const newStatus = showToControl.liveStatus === 'live' ? 'offline' : 'live';
+    goLiveMutation.mutate({ scheduleId: showToControl.id, status: newStatus });
+  };
+  
+  const handleCompleteShow = () => {
+    if (!activeSlot) return;
+    
+    if (confirm(`Mark "${activeSlot.title}" as completed? This will allow you to go live for your next show.`)) {
+      goLiveMutation.mutate({ scheduleId: activeSlot.id, status: 'completed' });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#FEFCF9]">
@@ -175,11 +247,53 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
                     </div>
                   </div>
 
-                  {resident.canGoLive && (
-                    <Button className="w-full" size="lg" data-testid="button-go-live">
-                      <PlayCircle className="w-5 h-5 mr-2" />
-                      Go Live Now
-                    </Button>
+                  {resident.canGoLive && resident.azuracastUsername && resident.azuracastPassword && resident.mountPoint && (
+                    <div className="space-y-3">
+                      <StreamingGuide 
+                        credentials={{
+                          azuracastUsername: resident.azuracastUsername,
+                          azuracastPassword: resident.azuracastPassword,
+                          mountPoint: resident.mountPoint
+                        }}
+                      />
+                      {showToControl && (
+                        <div className="p-3 bg-gray-100 rounded-lg text-sm">
+                          <p className="font-medium">
+                            {showToControl.liveStatus === 'live' ? 'Currently Live:' : 
+                             activeSlot === showToControl ? 'Active Slot:' : 
+                             'Next Show:'}
+                          </p>
+                          <p className="text-gray-600">{showToControl.title}</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {new Date(showToControl.scheduledAt).toLocaleString()}
+                          </p>
+                        </div>
+                      )}
+                      <div className="flex gap-2">
+                        <Button 
+                          className="flex-1" 
+                          size="lg" 
+                          onClick={handleGoLive}
+                          disabled={goLiveMutation.isPending || !showToControl}
+                          variant={showToControl?.liveStatus === 'live' ? 'destructive' : 'default'}
+                          data-testid="button-go-live"
+                        >
+                          <PlayCircle className="w-5 h-5 mr-2" />
+                          {showToControl?.liveStatus === 'live' ? 'Go Offline' : 'Go Live'}
+                        </Button>
+                        {activeSlot && activeSlot.liveStatus !== 'live' && (
+                          <Button 
+                            variant="outline" 
+                            size="lg"
+                            onClick={handleCompleteShow}
+                            disabled={goLiveMutation.isPending}
+                            data-testid="button-complete-show"
+                          >
+                            Complete
+                          </Button>
+                        )}
+                      </div>
+                    </div>
                   )}
                 </>
               ) : (
