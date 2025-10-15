@@ -4,6 +4,20 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**✅ COMPLETE: AzuraCast Automatic Streamer Account Creation (October 2025)**
+- ✅ Complete AzuraCast API integration with automatic streamer account provisioning
+- ✅ Settings management system (database schema, storage layer, admin UI) for AzuraCast configuration
+- ✅ Auto-creation: When creating a resident, system automatically creates AzuraCast streamer account via API
+- ✅ Auto-cleanup: When deleting a resident, system removes AzuraCast account (only if auto-created)
+- ✅ Admin Settings page (/admin/settings) for configuring AzuraCast Base URL, API Key, and Station ID
+- ✅ Resident schema enhanced with azuracastStreamerId and azuracastAutoCreated tracking fields
+- ✅ AzuraCast service with create/update/delete streamer methods and configuration validation
+- ✅ Graceful degradation: Resident operations succeed even if AzuraCast API fails
+- ✅ Comprehensive documentation in Streaming Guide explaining auto-creation and playlist interruption
+- ✅ Warning messages in admin and resident views about playlist behavior
+- ✅ Environment secrets integration: AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID
+- ✅ Production-ready with proper error handling, logging, and data persistence
+
 **✅ COMPLETE: Dark Mode & Mobile Card Optimizations (October 2025)**
 - ✅ Full dark mode implementation with theme toggle in header
 - ✅ Persistent theme preference saved to localStorage
@@ -119,6 +133,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Albums of the Month**: Community-driven monthly album curation with submission workflow, editor voting (consensus-based), MusicBrainz integration for artwork, and ranked publication system. Public users submit suggestions via /submit-album, editors vote and curate monthly picks, and published selections appear on /albums with full metadata and artwork.
 - **Mix Upload & Playback**: Community mix submission system with manual playback - AzuraCast handles scheduling and rotation.
 - **AzuraCast Integration**: Backend handles live programming, auto-rotation, scheduling - frontend focuses on community content and manual selection.
+- **Resident DJ System**: Full-stack resident management with automatic AzuraCast streamer account provisioning. When admins create residents, the system automatically generates streaming credentials in AzuraCast via API (POST /api/station/{station_id}/streamers). Auto-created accounts are tracked and automatically removed when residents are deleted. Credentials stored in environment secrets (AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID). Features graceful degradation - resident operations succeed even if AzuraCast API is unavailable. Residents can go live using their auto-provisioned credentials with BUTT/Mixxx.
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
 - **Mix Submission Backend**: Complete persistent JSON-based storage system for mix submissions with approval workflow. Supports SoundCloud, Mixcloud, and Audio.com URLs. Features admin approval pipeline with status management (pending → approved/featured).
 - **SoundCloud Metadata Integration**: Automatic fetching and storage of enhanced metadata (titles, artists, thumbnails) via oEmbed API with intelligent display priority logic.
