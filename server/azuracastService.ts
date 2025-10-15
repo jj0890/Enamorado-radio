@@ -1,9 +1,29 @@
 import Client from 'ssh2-sftp-client';
 import path from 'path';
+import axios, { AxiosInstance } from 'axios';
+import { IStorage } from './storage';
+
+export interface CreateStreamerRequest {
+  streamer_username: string;
+  streamer_password: string;
+  display_name: string;
+  comments?: string;
+  is_active?: boolean;
+}
+
+export interface StreamerResponse {
+  id: number;
+  streamer_username: string;
+  display_name: string;
+  is_active: boolean;
+}
 
 export class AzuraCastService {
   private baseUrl = process.env.AZURACAST_BASE_URL || 'http://24.199.109.18';
   private apiKey = process.env.AZURACAST_API_KEY;
+  private client: AxiosInstance | null = null;
+  private storage: IStorage | null = null;
+  private stationId: string | null = null;
   
   async testConnection() {
     try {
@@ -115,6 +135,108 @@ export class AzuraCastService {
     } catch (error) {
       await sftp.end().catch(() => {});
       throw error;
+    }
+  }
+
+  /**
+   * Initialize the service with storage for dynamic config
+   */
+  async initializeWithStorage(storage: IStorage): Promise<boolean> {
+    this.storage = storage;
+
+    const baseUrl = await storage.getSettingByKey('azuracast_base_url');
+    const apiKey = await storage.getSettingByKey('azuracast_api_key');
+    const stationId = await storage.getSettingByKey('azuracast_station_id');
+
+    if (baseUrl) this.baseUrl = baseUrl.value;
+    if (apiKey) this.apiKey = apiKey.value;
+    if (stationId) this.stationId = stationId.value;
+
+    if (!this.apiKey || !this.stationId) {
+      console.log('⚠️  AzuraCast streamer management not configured - auto-creation disabled');
+      return false;
+    }
+
+    this.client = axios.create({
+      baseURL: this.baseUrl,
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    console.log('✅ AzuraCast streamer management initialized');
+    return true;
+  }
+
+  /**
+   * Check if streamer management is configured
+   */
+  isStreamerManagementConfigured(): boolean {
+    return this.client !== null && this.stationId !== null;
+  }
+
+  /**
+   * Create a streamer account in AzuraCast
+   */
+  async createStreamer(data: CreateStreamerRequest): Promise<StreamerResponse> {
+    if (!this.client || !this.stationId) {
+      throw new Error('AzuraCast streamer management not configured');
+    }
+
+    try {
+      const response = await this.client.post<StreamerResponse>(
+        `/api/station/${this.stationId}/streamers`,
+        data
+      );
+
+      console.log(`✅ Created AzuraCast streamer: ${data.streamer_username} (ID: ${response.data.id})`);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Failed to create AzuraCast streamer:', error.response?.data || error.message);
+      throw new Error(`AzuraCast API error: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Update a streamer account in AzuraCast
+   */
+  async updateStreamer(streamerId: number, data: Partial<CreateStreamerRequest>): Promise<StreamerResponse> {
+    if (!this.client || !this.stationId) {
+      throw new Error('AzuraCast streamer management not configured');
+    }
+
+    try {
+      const response = await this.client.put<StreamerResponse>(
+        `/api/station/${this.stationId}/streamers/${streamerId}`,
+        data
+      );
+
+      console.log(`✅ Updated AzuraCast streamer: ${streamerId}`);
+      return response.data;
+    } catch (error: any) {
+      console.error('❌ Failed to update AzuraCast streamer:', error.response?.data || error.message);
+      throw new Error(`AzuraCast API error: ${error.response?.data?.message || error.message}`);
+    }
+  }
+
+  /**
+   * Delete a streamer account in AzuraCast
+   */
+  async deleteStreamer(streamerId: number): Promise<void> {
+    if (!this.client || !this.stationId) {
+      throw new Error('AzuraCast streamer management not configured');
+    }
+
+    try {
+      await this.client.delete(
+        `/api/station/${this.stationId}/streamers/${streamerId}`
+      );
+
+      console.log(`✅ Deleted AzuraCast streamer: ${streamerId}`);
+    } catch (error: any) {
+      console.error('❌ Failed to delete AzuraCast streamer:', error.response?.data || error.message);
+      throw new Error(`AzuraCast API error: ${error.response?.data?.message || error.message}`);
     }
   }
 }
