@@ -8,6 +8,7 @@ import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
 import { requireAdmin, loginAdmin, logoutAdmin, checkAuth } from "./adminAuth";
+import { requireResident, loginResident, logoutResident, checkResidentAuth } from "./residentAuth";
 import { requireRole } from "./roleAuth";
 import { musicbrainzService } from "./musicbrainzService";
 import { backupManager } from "./backupManager";
@@ -71,6 +72,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/login', loginAdmin);
   app.post('/api/admin/logout', logoutAdmin);
   app.get('/api/admin/auth', checkAuth);
+  
+  // =================
+  // RESIDENT AUTHENTICATION ROUTES
+  // =================
+  
+  app.post('/api/resident/login', loginResident(storage));
+  app.post('/api/resident/logout', logoutResident);
+  app.get('/api/resident/auth', checkResidentAuth(storage));
+  
+  // =================
+  // RESIDENT DATA ROUTES
+  // =================
+  
+  // Get resident by ID (protected)
+  app.get('/api/residents/:id', requireResident, async (req, res) => {
+    try {
+      const residentId = parseInt(req.params.id);
+      const requestingResident = (req as any).resident;
+      
+      // Only allow residents to access their own data
+      if (requestingResident.residentId !== residentId) {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+      
+      const resident = await storage.getResidentById(residentId);
+      if (!resident) {
+        return res.status(404).json({ error: 'resident not found' });
+      }
+      
+      res.json(resident);
+    } catch (error) {
+      console.error('Error fetching resident:', error);
+      res.status(500).json({ error: 'failed to fetch resident' });
+    }
+  });
+  
+  // Get resident's schedule (protected)
+  app.get('/api/schedule/resident/:residentId', requireResident, async (req, res) => {
+    try {
+      const residentId = parseInt(req.params.residentId);
+      const requestingResident = (req as any).resident;
+      
+      // Only allow residents to access their own schedule
+      if (requestingResident.residentId !== residentId) {
+        return res.status(403).json({ error: 'forbidden' });
+      }
+      
+      const allSchedule = await storage.getSchedule();
+      const residentSchedule = allSchedule.filter(s => s.residentId === residentId);
+      
+      res.json(residentSchedule);
+    } catch (error) {
+      console.error('Error fetching resident schedule:', error);
+      res.status(500).json({ error: 'failed to fetch schedule' });
+    }
+  });
+  
+  // =================
+  // ADMIN RESIDENT MANAGEMENT ROUTES
+  // =================
+  
+  // Get all residents (admin only)
+  app.get('/api/admin/residents', requireAdmin, async (req, res) => {
+    try {
+      const residents = await storage.getResidents({});
+      res.json(residents);
+    } catch (error) {
+      console.error('Error fetching residents:', error);
+      res.status(500).json({ error: 'failed to fetch residents' });
+    }
+  });
+  
+  // Create new resident (admin only)
+  app.post('/api/admin/residents', requireAdmin, async (req, res) => {
+    try {
+      const newResident = await storage.createResident(req.body);
+      res.json(newResident);
+    } catch (error) {
+      console.error('Error creating resident:', error);
+      res.status(500).json({ error: 'failed to create resident' });
+    }
+  });
+  
+  // Update resident (admin only)
+  app.patch('/api/admin/residents/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updatedResident = await storage.updateResident(id, req.body);
+      res.json(updatedResident);
+    } catch (error) {
+      console.error('Error updating resident:', error);
+      res.status(500).json({ error: 'failed to update resident' });
+    }
+  });
+  
+  // Delete resident (admin only)
+  app.delete('/api/admin/residents/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteResident(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting resident:', error);
+      res.status(500).json({ error: 'failed to delete resident' });
+    }
+  });
   
   // Admin stats dashboard
   app.get('/api/admin/stats', requireAdmin, async (req, res) => {

@@ -12,6 +12,7 @@ import AzuraCastAdmin from "@/pages/AzuraCastAdmin";
 import AdminMixRouting from "@/pages/AdminMixRouting";
 import AdminEpisodeUpload from "@/pages/AdminEpisodeUpload";
 import AdminResidentApplications from "@/pages/AdminResidentApplications";
+import AdminResidents from "@/pages/AdminResidents";
 import AdminAlbums from "@/pages/AdminAlbums";
 import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
@@ -121,6 +122,8 @@ export default function AdminAuthWrapper() {
         return <EditorialWorkflow />;
       case '/admin/resident-applications':
         return <AdminResidentApplications />;
+      case '/admin/residents':
+        return <AdminResidents />;
       case '/admin/albums':
         return <AdminAlbums />;
       default:

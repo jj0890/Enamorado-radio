@@ -11,6 +11,7 @@ import Schedule from "./pages/Schedule";
 
 import EditorialWorkflow from "./pages/EditorialWorkflow";
 import AdminAuthWrapper from "./components/AdminAuthWrapper";
+import ResidentAuthWrapper from "./components/ResidentAuthWrapper";
 import Discover from "./pages/Discover";
 import MixUpload from "./pages/MixUpload";
 import LiveMixDemo from "./pages/LiveMixDemo";
@@ -48,6 +49,7 @@ function Router() {
 
       {/* /resident-application handled by Express redirect to Google Form */}
       <Route path="/admin/*" component={AdminAuthWrapper} />
+      <Route path="/resident/*" component={ResidentAuthWrapper} />
       <Route path="/schedule" component={Schedule} />
 
       <Route path="/mix-upload" component={MixUpload} />
