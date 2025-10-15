@@ -1,0 +1,26 @@
+[
+  {
+    "id": 43,
+    "key": "azuracast_base_url",
+    "value": "https://test.azuracast.com",
+    "description": "AzuraCast server base URL",
+    "isSecret": false,
+    "updatedAt": "2025-10-15T05:36:32.828Z"
+  },
+  {
+    "id": 44,
+    "key": "azuracast_api_key",
+    "value": "test_api_key_12345",
+    "description": "AzuraCast API key for authentication",
+    "isSecret": true,
+    "updatedAt": "2025-10-15T05:36:32.844Z"
+  },
+  {
+    "id": 45,
+    "key": "azuracast_station_id",
+    "value": "1",
+    "description": "AzuraCast station ID",
+    "isSecret": false,
+    "updatedAt": "2025-10-15T05:36:32.856Z"
+  }
+]

@@ -1,0 +1,24 @@
+[
+  {
+    "username": "test_npRm9FAq",
+    "password": "testpassword123",
+    "displayName": "Test Resident test_npRm9FAq",
+    "email": null,
+    "bio": null,
+    "showTitle": null,
+    "showDescription": null,
+    "azuracastUsername": "",
+    "azuracastPassword": "",
+    "mountPoint": "",
+    "isActive": true,
+    "canGoLive": true,
+    "azuracastStreamerId": null,
+    "azuracastAutoCreated": false,
+    "id": 46,
+    "avatarUrl": null,
+    "genres": null,
+    "socialLinks": null,
+    "createdAt": "2025-10-15T05:38:00.386Z",
+    "updatedAt": "2025-10-15T05:38:00.386Z"
+  }
+]

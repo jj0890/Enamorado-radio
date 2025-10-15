@@ -18,7 +18,8 @@ import {
   Trash2,
   RefreshCw,
   Upload,
-  Disc
+  Disc,
+  Settings
 } from "lucide-react";
 
 interface AdminStats {
@@ -62,6 +63,7 @@ const navItems = [
   // System Management
   { href: "/admin/stats", label: "Stats Dashboard", icon: BarChart3, category: "system" },
   { href: "/admin/backups", label: "Backup System", icon: RefreshCw, category: "system" },
+  { href: "/admin/settings", label: "Settings", icon: Settings, category: "system" },
   { href: "/admin/danger-zone", label: "Danger Zone", icon: AlertTriangle, category: "system" },
   { href: "/admin/editorial-workflow", label: "Editorial", icon: AlertTriangle, category: "system" },
 ];
