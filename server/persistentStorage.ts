@@ -9,6 +9,7 @@ import {
   ResidentApplication,
   Resident,
   Admin,
+  Settings,
   CurrentPlayback,
   AlbumSuggestion,
   AlbumVote,
@@ -23,6 +24,7 @@ import {
   InsertResidentApplication,
   InsertResident,
   InsertAdmin,
+  InsertSettings,
   InsertCurrentPlayback,
   InsertAlbumSuggestion,
   InsertAlbumVote,
@@ -46,6 +48,7 @@ export class FileStorage implements IStorage {
   private residentApplications: ResidentApplication[] = [];
   private residents: Resident[] = [];
   private admins: Admin[] = [];
+  private settings: Settings[] = [];
   private currentPlayback: CurrentPlayback | null = null;
   private albumSuggestions: AlbumSuggestion[] = [];
   private albumVotes: AlbumVote[] = [];
@@ -116,6 +119,7 @@ export class FileStorage implements IStorage {
         'residentApplications.json',
         'residents.json',
         'admins.json',
+        'settings.json',
         'currentPlayback.json',
         'albumSuggestions.json',
         'albumVotes.json',
@@ -154,6 +158,9 @@ export class FileStorage implements IStorage {
               break;
             case 'admins.json':
               this.admins = parsed || [];
+              break;
+            case 'settings.json':
+              this.settings = parsed || [];
               break;
             case 'currentPlayback.json':
               this.currentPlayback = parsed || null;
@@ -861,6 +868,54 @@ export class FileStorage implements IStorage {
     this.currentPlayback = newPlayback;
     await this.saveData('currentPlayback', this.currentPlayback);
     return newPlayback;
+  }
+
+  // Settings
+  async getSettings(): Promise<Settings[]> {
+    return [...this.settings];
+  }
+
+  async getSettingByKey(key: string): Promise<Settings | undefined> {
+    return this.settings.find(s => s.key === key);
+  }
+
+  async upsertSetting(key: string, value: string, description?: string, isSecret?: boolean): Promise<Settings> {
+    const existingIndex = this.settings.findIndex(s => s.key === key);
+    
+    if (existingIndex !== -1) {
+      // Update existing
+      this.settings[existingIndex] = {
+        ...this.settings[existingIndex],
+        value,
+        description: description ?? this.settings[existingIndex].description,
+        isSecret: isSecret ?? this.settings[existingIndex].isSecret,
+        updatedAt: new Date(),
+      };
+      await this.saveData('settings', this.settings);
+      return this.settings[existingIndex];
+    } else {
+      // Create new
+      const newSetting: Settings = {
+        id: this.nextId++,
+        key,
+        value,
+        description: description || null,
+        isSecret: isSecret || false,
+        updatedAt: new Date(),
+      };
+      this.settings.push(newSetting);
+      await this.saveData('settings', this.settings);
+      return newSetting;
+    }
+  }
+
+  async deleteSetting(key: string): Promise<void> {
+    const index = this.settings.findIndex(s => s.key === key);
+    if (index !== -1) {
+      await backupManager.createBackup(`Before deleting setting ${key}`);
+      this.settings.splice(index, 1);
+      await this.saveData('settings', this.settings);
+    }
   }
 
   // Albums of the Month

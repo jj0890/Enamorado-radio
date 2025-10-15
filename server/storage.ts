@@ -7,6 +7,7 @@ import {
   ResidentApplication,
   Resident,
   Admin,
+  Settings,
   CurrentPlayback,
   InsertEpisode,
   InsertGuide, 
@@ -16,6 +17,7 @@ import {
   InsertResidentApplication,
   InsertResident,
   InsertAdmin,
+  InsertSettings,
   InsertCurrentPlayback
 } from "@shared/schema";
 
@@ -80,6 +82,12 @@ export interface IStorage {
   createAdmin(admin: InsertAdmin): Promise<Admin>;
   getCurrentPlayback(): Promise<CurrentPlayback | undefined>;
   updateCurrentPlayback(playback: InsertCurrentPlayback): Promise<CurrentPlayback>;
+  
+  // Settings - System configuration
+  getSettings(): Promise<Settings[]>;
+  getSettingByKey(key: string): Promise<Settings | undefined>;
+  upsertSetting(key: string, value: string, description?: string, isSecret?: boolean): Promise<Settings>;
+  deleteSetting(key: string): Promise<void>;
 }
 
 // In-Memory Implementation
@@ -662,6 +670,52 @@ class MemStorage implements IStorage {
     };
     this.currentPlayback = newPlayback;
     return newPlayback;
+  }
+
+  // Settings
+  private settings: Settings[] = [];
+
+  async getSettings(): Promise<Settings[]> {
+    return [...this.settings];
+  }
+
+  async getSettingByKey(key: string): Promise<Settings | undefined> {
+    return this.settings.find(s => s.key === key);
+  }
+
+  async upsertSetting(key: string, value: string, description?: string, isSecret?: boolean): Promise<Settings> {
+    const existingIndex = this.settings.findIndex(s => s.key === key);
+    
+    if (existingIndex !== -1) {
+      // Update existing
+      this.settings[existingIndex] = {
+        ...this.settings[existingIndex],
+        value,
+        description: description ?? this.settings[existingIndex].description,
+        isSecret: isSecret ?? this.settings[existingIndex].isSecret,
+        updatedAt: new Date(),
+      };
+      return this.settings[existingIndex];
+    } else {
+      // Create new
+      const newSetting: Settings = {
+        id: this.nextId++,
+        key,
+        value,
+        description: description || null,
+        isSecret: isSecret || false,
+        updatedAt: new Date(),
+      };
+      this.settings.push(newSetting);
+      return newSetting;
+    }
+  }
+
+  async deleteSetting(key: string): Promise<void> {
+    const index = this.settings.findIndex(s => s.key === key);
+    if (index !== -1) {
+      this.settings.splice(index, 1);
+    }
   }
 }
 
