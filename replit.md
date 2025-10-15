@@ -4,19 +4,20 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
-**✅ COMPLETE: AzuraCast Automatic Streamer Account Creation (October 2025)**
-- ✅ Complete AzuraCast API integration with automatic streamer account provisioning
+**✅ COMPLETE: AzuraCast Semi-Automated Streamer Account Setup (October 2025)**
+- ✅ One-click "Copy to AzuraCast" credential system for streamlined admin workflow
 - ✅ Settings management system (database schema, storage layer, admin UI) for AzuraCast configuration
-- ✅ Auto-creation: When creating a resident, system automatically creates AzuraCast streamer account via API
-- ✅ Auto-cleanup: When deleting a resident, system removes AzuraCast account (only if auto-created)
 - ✅ Admin Settings page (/admin/settings) for configuring AzuraCast Base URL, API Key, and Station ID
-- ✅ Resident schema enhanced with azuracastStreamerId and azuracastAutoCreated tracking fields
-- ✅ AzuraCast service with create/update/delete streamer methods and configuration validation
-- ✅ Graceful degradation: Resident operations succeed even if AzuraCast API fails
-- ✅ Comprehensive documentation in Streaming Guide explaining auto-creation and playlist interruption
+- ✅ Resident creation auto-generates secure AzuraCast credentials stored in system database
+- ✅ "Copy to AzuraCast" button provides pre-formatted credentials for instant paste into AzuraCast
+- ✅ Direct link to AzuraCast admin from resident management page
+- ✅ Seamless resident experience: credentials displayed in dashboard, ready for BUTT/Mixxx
+- ✅ API Limitation Note: AzuraCast streamers endpoint requires web session auth (not API key), preventing full automation
+- ✅ Workflow: Admin creates resident → clicks "Copy to AzuraCast" → pastes into AzuraCast UI (10 seconds total)
+- ✅ Comprehensive documentation explaining semi-automated setup and playlist interruption behavior
 - ✅ Warning messages in admin and resident views about playlist behavior
 - ✅ Environment secrets integration: AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID
-- ✅ Production-ready with proper error handling, logging, and data persistence
+- ✅ Production-ready with proper error handling, logging, and credential security
 
 **✅ COMPLETE: Dark Mode & Mobile Card Optimizations (October 2025)**
 - ✅ Full dark mode implementation with theme toggle in header
@@ -133,7 +134,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Albums of the Month**: Community-driven monthly album curation with submission workflow, editor voting (consensus-based), MusicBrainz integration for artwork, and ranked publication system. Public users submit suggestions via /submit-album, editors vote and curate monthly picks, and published selections appear on /albums with full metadata and artwork.
 - **Mix Upload & Playback**: Community mix submission system with manual playback - AzuraCast handles scheduling and rotation.
 - **AzuraCast Integration**: Backend handles live programming, auto-rotation, scheduling - frontend focuses on community content and manual selection.
-- **Resident DJ System**: Full-stack resident management with automatic AzuraCast streamer account provisioning. When admins create residents, the system automatically generates streaming credentials in AzuraCast via API (POST /api/station/{station_id}/streamers). Auto-created accounts are tracked and automatically removed when residents are deleted. Credentials stored in environment secrets (AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID). Features graceful degradation - resident operations succeed even if AzuraCast API is unavailable. Residents can go live using their auto-provisioned credentials with BUTT/Mixxx.
+- **Resident DJ System**: Full-stack resident management with semi-automated AzuraCast streamer account setup. When admins create residents, the system auto-generates secure streaming credentials. Admins use the one-click "Copy to AzuraCast" button to copy pre-formatted credentials, then paste them into AzuraCast UI (takes 10 seconds). Residents see their credentials in their dashboard and can immediately stream using BUTT/Mixxx. API limitation: AzuraCast streamers endpoint requires web session authentication (not API key), preventing full automation. Credentials stored in environment secrets (AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID).
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
 - **Mix Submission Backend**: Complete persistent JSON-based storage system for mix submissions with approval workflow. Supports SoundCloud, Mixcloud, and Audio.com URLs. Features admin approval pipeline with status management (pending → approved/featured).
 - **SoundCloud Metadata Integration**: Automatic fetching and storage of enhanced metadata (titles, artists, thumbnails) via oEmbed API with intelligent display priority logic.
