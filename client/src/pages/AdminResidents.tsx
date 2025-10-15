@@ -9,12 +9,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, User, Key, Radio } from 'lucide-react';
+import { Plus, Edit, Trash2, User, Key, Radio, AlertTriangle } from 'lucide-react';
 import { useState } from 'react';
 import type { Resident } from '@shared/schema';
 import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ResidentFormData {
   username: string;
@@ -318,6 +319,24 @@ export default function AdminResidents() {
                       />
                     </div>
                   </div>
+
+                  <Alert className="bg-yellow-50 border-yellow-200">
+                    <AlertTriangle className="h-4 w-4 text-yellow-600" />
+                    <AlertTitle className="text-yellow-800">Important: Playlist Interruption</AlertTitle>
+                    <AlertDescription className="text-yellow-700 text-sm">
+                      When residents connect to AzuraCast via BUTT/Mixxx, the scheduled playlist will automatically stop and their live stream will take over. 
+                      The playlist resumes when they disconnect. The "Go Live" button only updates internal status - actual broadcasting happens when they connect via streaming software.
+                    </AlertDescription>
+                  </Alert>
+
+                  <Alert className="bg-blue-50 border-blue-200">
+                    <Radio className="h-4 w-4 text-blue-600" />
+                    <AlertTitle className="text-blue-800">AzuraCast Account Auto-Creation</AlertTitle>
+                    <AlertDescription className="text-blue-700 text-sm">
+                      When you create a resident, the system automatically attempts to create an AzuraCast streamer account using their username and password. 
+                      If this fails, you'll need to manually create the account in AzuraCast under Streamers/DJs section.
+                    </AlertDescription>
+                  </Alert>
 
                   <div className="border-t pt-4 mt-4 space-y-3">
                     <FormField

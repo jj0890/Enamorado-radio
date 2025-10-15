@@ -226,6 +226,45 @@ export default function StreamingGuide({ credentials }: StreamingGuideProps) {
           </TabsContent>
         </Tabs>
 
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Server className="w-4 h-4" />
+              Important: How Streaming Works
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="text-sm space-y-2">
+              <p className="font-semibold text-gray-900">Your AzuraCast Account:</p>
+              <ul className="list-disc list-inside space-y-1 text-gray-700">
+                <li>Your streaming credentials are managed automatically by the admin</li>
+                <li>When an admin creates your resident account, an AzuraCast streamer account is created for you</li>
+                <li>Your username and password are the same for both this portal and AzuraCast streaming</li>
+              </ul>
+              
+              <p className="font-semibold text-gray-900 mt-3">Playlist Interruption:</p>
+              <ul className="list-disc list-inside space-y-1 text-gray-700">
+                <li>When you connect BUTT/Mixxx, the scheduled playlist will automatically stop</li>
+                <li>Your live stream will take over the broadcast</li>
+                <li>When you disconnect, the playlist will resume automatically</li>
+                <li>The "Go Live" button on this dashboard only updates your status - actual broadcasting happens when you connect via BUTT/Mixxx</li>
+              </ul>
+
+              <p className="font-semibold text-gray-900 mt-3">Manual Account Setup (if needed):</p>
+              <p className="text-gray-700">
+                If automatic account creation fails, an admin will need to manually create your AzuraCast streamer account:
+              </p>
+              <ol className="list-decimal list-inside space-y-1 text-gray-700 ml-2">
+                <li>Admin logs into AzuraCast</li>
+                <li>Goes to Streamers/DJs section</li>
+                <li>Creates a new streamer with your username and password</li>
+                <li>Sets your account to "Active"</li>
+                <li>You can then use the credentials above to stream</li>
+              </ol>
+            </div>
+          </CardContent>
+        </Card>
+
         <Card className="bg-blue-50 border-blue-200">
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">

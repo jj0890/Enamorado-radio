@@ -44,6 +44,9 @@ import { serializeMix } from './lib/serializeMix';
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
+  // Initialize AzuraCast service with storage for streamer management
+  await azuracastService.initializeWithStorage(storage);
+
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   const clients = new Set<WebSocket>();
@@ -191,7 +194,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Create new resident (admin only)
   app.post('/api/admin/residents', requireAdmin, async (req, res) => {
     try {
-      const newResident = await storage.createResident(req.body);
+      let azuracastStreamerId: number | null = null;
+      let azuracastAutoCreated = false;
+
+      // Try to auto-create AzuraCast streamer account if configured
+      if (azuracastService.isStreamerManagementConfigured()) {
+        try {
+          const streamerResponse = await azuracastService.createStreamer({
+            streamer_username: req.body.username,
+            streamer_password: req.body.password,
+            display_name: req.body.name,
+            comments: `Auto-created for resident: ${req.body.name}`,
+            is_active: true,
+          });
+
+          azuracastStreamerId = streamerResponse.id;
+          azuracastAutoCreated = true;
+          console.log(`✅ Auto-created AzuraCast account for ${req.body.username}`);
+        } catch (error) {
+          console.error('⚠️  Failed to auto-create AzuraCast account:', error);
+          // Continue creating resident even if AzuraCast creation fails
+        }
+      }
+
+      const newResident = await storage.createResident({
+        ...req.body,
+        azuracastStreamerId,
+        azuracastAutoCreated,
+      });
+
       res.json(newResident);
     } catch (error) {
       console.error('Error creating resident:', error);
@@ -215,6 +246,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/admin/residents/:id', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
+      
+      // Get resident to check if we need to delete from AzuraCast
+      const resident = await storage.getResidentById(id);
+      
+      // Delete from AzuraCast if auto-created
+      if (resident?.azuracastStreamerId && resident?.azuracastAutoCreated && azuracastService.isStreamerManagementConfigured()) {
+        try {
+          await azuracastService.deleteStreamer(resident.azuracastStreamerId);
+          console.log(`✅ Deleted AzuraCast account for ${resident.username}`);
+        } catch (error) {
+          console.error('⚠️  Failed to delete AzuraCast account:', error);
+          // Continue deleting resident even if AzuraCast deletion fails
+        }
+      }
+      
       await storage.deleteResident(id);
       res.json({ success: true });
     } catch (error) {
@@ -3231,6 +3277,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(notes);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch notes' });
+    }
+  });
+
+  // =================
+  // SETTINGS ROUTES (ADMIN ONLY)
+  // =================
+
+  // Get all settings
+  app.get('/api/admin/settings', requireAdmin, async (req, res) => {
+    try {
+      const settings = await storage.getSettings();
+      res.json(settings);
+    } catch (error) {
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+  });
+
+  // Get setting by key
+  app.get('/api/admin/settings/:key', requireAdmin, async (req, res) => {
+    try {
+      const setting = await storage.getSettingByKey(req.params.key);
+      if (!setting) {
+        return res.status(404).json({ error: 'Setting not found' });
+      }
+      res.json(setting);
+    } catch (error) {
+      console.error('Error fetching setting:', error);
+      res.status(500).json({ error: 'Failed to fetch setting' });
+    }
+  });
+
+  // Upsert setting (create or update)
+  app.post('/api/admin/settings', requireAdmin, async (req, res) => {
+    try {
+      const { key, value, description, isSecret } = req.body;
+      
+      if (!key || value === undefined) {
+        return res.status(400).json({ error: 'key and value are required' });
+      }
+
+      const setting = await storage.upsertSetting(key, value, description, isSecret);
+      
+      // Re-initialize AzuraCast service if AzuraCast settings were updated
+      if (key.startsWith('azuracast_')) {
+        await azuracastService.initializeWithStorage(storage);
+      }
+      
+      res.json(setting);
+    } catch (error) {
+      console.error('Error upserting setting:', error);
+      res.status(500).json({ error: 'Failed to upsert setting' });
+    }
+  });
+
+  // Delete setting
+  app.delete('/api/admin/settings/:key', requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteSetting(req.params.key);
+      
+      // Re-initialize AzuraCast service if AzuraCast settings were deleted
+      if (req.params.key.startsWith('azuracast_')) {
+        await azuracastService.initializeWithStorage(storage);
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting setting:', error);
+      res.status(500).json({ error: 'Failed to delete setting' });
     }
   });
 

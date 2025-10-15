@@ -4,10 +4,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle } from 'lucide-react';
+import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info } from 'lucide-react';
 import { useState } from 'react';
 import type { Resident, Schedule } from '@shared/schema';
 import StreamingGuide from '@/components/StreamingGuide';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 interface ResidentDashboardProps {
   onLogout: () => void;
@@ -256,6 +257,16 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
                           mountPoint: resident.mountPoint
                         }}
                       />
+                      
+                      <Alert className="bg-blue-50 border-blue-200">
+                        <Info className="h-4 w-4 text-blue-600" />
+                        <AlertTitle className="text-blue-800">How to Go Live</AlertTitle>
+                        <AlertDescription className="text-blue-700 text-sm">
+                          The "Go Live" button only updates your status in this portal. To actually broadcast, you must connect BUTT/Mixxx using your credentials above. 
+                          When you connect, the playlist will automatically stop and your stream will take over. When you disconnect, the playlist resumes.
+                        </AlertDescription>
+                      </Alert>
+
                       {showToControl && (
                         <div className="p-3 bg-gray-100 rounded-lg text-sm">
                           <p className="font-medium">

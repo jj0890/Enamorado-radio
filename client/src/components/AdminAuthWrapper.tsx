@@ -14,6 +14,7 @@ import AdminEpisodeUpload from "@/pages/AdminEpisodeUpload";
 import AdminResidentApplications from "@/pages/AdminResidentApplications";
 import AdminResidents from "@/pages/AdminResidents";
 import AdminAlbums from "@/pages/AdminAlbums";
+import AdminSettings from "@/pages/AdminSettings";
 import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
@@ -126,6 +127,8 @@ export default function AdminAuthWrapper() {
         return <AdminResidents />;
       case '/admin/albums':
         return <AdminAlbums />;
+      case '/admin/settings':
+        return <AdminSettings />;
       default:
         return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
     }
