@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Edit, Trash2, User, Key, Radio, AlertTriangle } from 'lucide-react';
+import { Plus, Edit, Trash2, User, Key, Radio, AlertTriangle, Copy, ExternalLink } from 'lucide-react';
 import { useState } from 'react';
 import type { Resident } from '@shared/schema';
 import { useForm } from 'react-hook-form';
@@ -153,6 +153,45 @@ export default function AdminResidents() {
     }
   };
 
+  const copyToAzuraCast = (resident: Resident) => {
+    if (!resident.azuracastUsername || !resident.azuracastPassword) {
+      toast({
+        title: "Missing Credentials",
+        description: "This resident doesn't have AzuraCast credentials set up.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Pre-formatted data for easy copying
+    const credentials = `AZURACAST STREAMER ACCOUNT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Streamer/DJ Username: ${resident.azuracastUsername}
+Streamer/DJ Password: ${resident.azuracastPassword}
+Display Name: ${resident.displayName}
+Comments: ${resident.showTitle || 'Resident DJ'}
+
+INSTRUCTIONS:
+1. Go to AzuraCast → Station → Streamers/DJs
+2. Click "Add Streamer/DJ Account"
+3. Copy the credentials above and paste into the form
+4. Save the account
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
+
+    navigator.clipboard.writeText(credentials).then(() => {
+      toast({
+        title: "✅ Copied to Clipboard!",
+        description: "Paste these credentials into AzuraCast to complete setup.",
+      });
+    }).catch(() => {
+      toast({
+        title: "Copy Failed",
+        description: "Please manually copy the credentials from the resident details.",
+        variant: "destructive",
+      });
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#FEFCF9] p-6">
       <div className="max-w-7xl mx-auto">
@@ -161,6 +200,15 @@ export default function AdminResidents() {
           <div>
             <h1 className="text-3xl font-bold font-mono text-red-500">RESIDENTS MANAGEMENT</h1>
             <p className="text-gray-600 mt-2">Manage resident DJs and their streaming credentials</p>
+            <a
+              href="http://24.199.109.18/admin/stations/manage/1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-1"
+            >
+              <ExternalLink className="w-3 h-3" />
+              Open AzuraCast Admin
+            </a>
           </div>
           <Dialog open={isCreateOpen || !!editingResident} onOpenChange={(open) => {
             setIsCreateOpen(open);
@@ -331,10 +379,11 @@ export default function AdminResidents() {
 
                   <Alert className="bg-blue-50 border-blue-200">
                     <Radio className="h-4 w-4 text-blue-600" />
-                    <AlertTitle className="text-blue-800">AzuraCast Account Auto-Creation</AlertTitle>
+                    <AlertTitle className="text-blue-800">AzuraCast Setup - One-Click Copy</AlertTitle>
                     <AlertDescription className="text-blue-700 text-sm">
-                      When you create a resident, the system automatically attempts to create an AzuraCast streamer account using their username and password. 
-                      If this fails, you'll need to manually create the account in AzuraCast under Streamers/DJs section.
+                      After creating a resident, click the "Copy to AzuraCast" button to copy pre-formatted credentials. 
+                      Then paste them into AzuraCast → Streamers/DJs → Add Streamer. Takes 10 seconds! 
+                      Residents will see their credentials in their dashboard and can stream immediately.
                     </AlertDescription>
                   </Alert>
 
@@ -435,6 +484,18 @@ export default function AdminResidents() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
+                      {resident.azuracastUsername && resident.azuracastPassword && (
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => copyToAzuraCast(resident)}
+                          data-testid={`button-copy-azuracast-${resident.id}`}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Copy className="w-4 h-4 mr-1" />
+                          Copy to AzuraCast
+                        </Button>
+                      )}
                       <Button
                         variant="outline"
                         size="sm"
