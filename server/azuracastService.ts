@@ -140,17 +140,25 @@ export class AzuraCastService {
 
   /**
    * Initialize the service with storage for dynamic config
+   * Prioritizes environment secrets over database settings
    */
   async initializeWithStorage(storage: IStorage): Promise<boolean> {
     this.storage = storage;
 
+    // Prioritize environment secrets over database settings
     const baseUrl = await storage.getSettingByKey('azuracast_base_url');
     const apiKey = await storage.getSettingByKey('azuracast_api_key');
     const stationId = await storage.getSettingByKey('azuracast_station_id');
 
-    if (baseUrl) this.baseUrl = baseUrl.value;
-    if (apiKey) this.apiKey = apiKey.value;
-    if (stationId) this.stationId = stationId.value;
+    // Use environment secrets if available, otherwise fall back to database
+    if (!process.env.AZURACAST_BASE_URL && baseUrl) this.baseUrl = baseUrl.value;
+    if (!process.env.AZURACAST_API_KEY && apiKey) this.apiKey = apiKey.value;
+    if (!process.env.AZURACAST_STATION_ID && stationId) this.stationId = stationId.value;
+    
+    // Update from environment if set
+    if (process.env.AZURACAST_BASE_URL) this.baseUrl = process.env.AZURACAST_BASE_URL;
+    if (process.env.AZURACAST_API_KEY) this.apiKey = process.env.AZURACAST_API_KEY;
+    if (process.env.AZURACAST_STATION_ID) this.stationId = process.env.AZURACAST_STATION_ID;
 
     if (!this.apiKey || !this.stationId) {
       console.log('⚠️  AzuraCast streamer management not configured - auto-creation disabled');
@@ -166,6 +174,8 @@ export class AzuraCastService {
     });
 
     console.log('✅ AzuraCast streamer management initialized');
+    console.log(`   Base URL: ${this.baseUrl} (from ${process.env.AZURACAST_BASE_URL ? 'env secrets' : 'database'})`);
+    console.log(`   Station ID: ${this.stationId} (from ${process.env.AZURACAST_STATION_ID ? 'env secrets' : 'database'})`);
     return true;
   }
 
