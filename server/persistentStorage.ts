@@ -7,6 +7,7 @@ import {
   Schedule, 
   SongSubmission,
   ResidentApplication,
+  Resident,
   Admin,
   CurrentPlayback,
   AlbumSuggestion,
@@ -20,6 +21,7 @@ import {
   InsertSchedule,
   InsertSongSubmission,
   InsertResidentApplication,
+  InsertResident,
   InsertAdmin,
   InsertCurrentPlayback,
   InsertAlbumSuggestion,
@@ -42,6 +44,7 @@ export class FileStorage implements IStorage {
   private scheduleItems: Schedule[] = [];
   private songSubmissions: SongSubmission[] = [];
   private residentApplications: ResidentApplication[] = [];
+  private residents: Resident[] = [];
   private admins: Admin[] = [];
   private currentPlayback: CurrentPlayback | null = null;
   private albumSuggestions: AlbumSuggestion[] = [];
@@ -111,6 +114,7 @@ export class FileStorage implements IStorage {
         'scheduleItems.json',
         'songSubmissions.json',
         'residentApplications.json',
+        'residents.json',
         'admins.json',
         'currentPlayback.json',
         'albumSuggestions.json',
@@ -144,6 +148,9 @@ export class FileStorage implements IStorage {
               break;
             case 'residentApplications.json':
               this.residentApplications = parsed || [];
+              break;
+            case 'residents.json':
+              this.residents = parsed || [];
               break;
             case 'admins.json':
               this.admins = parsed || [];
@@ -412,6 +419,28 @@ export class FileStorage implements IStorage {
       approved_at: submission.approved_at || null,
       featured_at: submission.featured_at || null,
       platform: submission.platform || null,
+      playback_mode: submission.playback_mode || 'stream',
+      is_radio_ingestable: submission.is_radio_ingestable ?? true,
+      requires_alternative: submission.requires_alternative ?? false,
+      radio_alt_url: submission.radio_alt_url || null,
+      radio_file_path: submission.radio_file_path || null,
+      rights_status: submission.rights_status || 'unverified',
+      featured: submission.featured ?? false,
+      approved: submission.approved ?? false,
+      coverUrl: submission.coverUrl || null,
+      artUrl: submission.artUrl || null,
+      sourceUrl: submission.sourceUrl || null,
+      filePath: submission.filePath || null,
+      fileName: submission.fileName || null,
+      featureOnSite: submission.featureOnSite ?? true,
+      pushToAzura: submission.pushToAzura ?? false,
+      targetPlaylist: submission.targetPlaylist || 'General Rotation',
+      azuraFilePath: submission.azuraFilePath || null,
+      azuraPlaylistId: submission.azuraPlaylistId || null,
+      approvedAt: submission.approvedAt || null,
+      uploadedAt: submission.uploadedAt || null,
+      rescannedAt: submission.rescannedAt || null,
+      playlistLinkedAt: submission.playlistLinkedAt || null,
     };
     this.mixSubmissions.push(newSubmission);
     await this.saveData('mixSubmissions', this.mixSubmissions);
@@ -535,8 +564,11 @@ export class FileStorage implements IStorage {
       description: schedule.description || null,
       artworkUrl: schedule.artworkUrl || null,
       episodeId: schedule.episodeId || null,
+      residentId: schedule.residentId || null,
       recurrencePattern: schedule.recurrencePattern || null,
       status: schedule.status || 'scheduled',
+      liveStatus: schedule.liveStatus || 'scheduled',
+      streamingCredentials: schedule.streamingCredentials || null,
       isLive: schedule.isLive ?? false,
       isRecurring: schedule.isRecurring ?? false,
     };
@@ -724,6 +756,72 @@ export class FileStorage implements IStorage {
       
       this.residentApplications.splice(index, 1);
       await this.saveData('residentApplications', this.residentApplications);
+    }
+  }
+
+  // Residents - DJs/Hosts with streaming access
+  async getResidents(filters?: { isActive?: boolean; limit?: number }): Promise<Resident[]> {
+    let filtered = [...this.residents];
+    
+    if (filters?.isActive !== undefined) {
+      filtered = filtered.filter(r => r.isActive === filters.isActive);
+    }
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    return filtered;
+  }
+
+  async getResidentById(id: number): Promise<Resident | undefined> {
+    return this.residents.find(r => r.id === id);
+  }
+
+  async getResidentByUsername(username: string): Promise<Resident | undefined> {
+    return this.residents.find(r => r.username === username);
+  }
+
+  async createResident(resident: InsertResident): Promise<Resident> {
+    const newResident: Resident = {
+      ...resident,
+      id: this.nextId++,
+      email: resident.email || null,
+      bio: resident.bio || null,
+      avatarUrl: resident.avatarUrl || null,
+      isActive: resident.isActive ?? true,
+      canGoLive: resident.canGoLive ?? true,
+      showTitle: resident.showTitle || null,
+      showDescription: resident.showDescription || null,
+      genres: resident.genres || null,
+      socialLinks: resident.socialLinks || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.residents.push(newResident);
+    await this.saveData('residents', this.residents);
+    return newResident;
+  }
+
+  async updateResident(id: number, updates: Partial<Resident>): Promise<Resident> {
+    const index = this.residents.findIndex(r => r.id === id);
+    if (index === -1) throw new Error('Resident not found');
+    
+    this.residents[index] = {
+      ...this.residents[index],
+      ...updates,
+      updatedAt: new Date()
+    };
+    await this.saveData('residents', this.residents);
+    return this.residents[index];
+  }
+
+  async deleteResident(id: number): Promise<void> {
+    const index = this.residents.findIndex(r => r.id === id);
+    if (index !== -1) {
+      await backupManager.createBackup(`Before deleting resident ${id}`);
+      this.residents.splice(index, 1);
+      await this.saveData('residents', this.residents);
     }
   }
 

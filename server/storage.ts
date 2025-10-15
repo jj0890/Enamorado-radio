@@ -5,6 +5,7 @@ import {
   Schedule, 
   SongSubmission,
   ResidentApplication,
+  Resident,
   Admin,
   CurrentPlayback,
   InsertEpisode,
@@ -13,6 +14,7 @@ import {
   InsertSchedule,
   InsertSongSubmission,
   InsertResidentApplication,
+  InsertResident,
   InsertAdmin,
   InsertCurrentPlayback
 } from "@shared/schema";
@@ -64,6 +66,14 @@ export interface IStorage {
   updateResidentApplication(id: number, updates: Partial<ResidentApplication>): Promise<ResidentApplication>;
   updateResidentApplicationStatus(id: number, status: string, notes?: string): Promise<ResidentApplication>;
   deleteResidentApplication(id: number): Promise<void>;
+
+  // Residents - DJs/Hosts with streaming access
+  getResidents(filters?: { isActive?: boolean; limit?: number }): Promise<Resident[]>;
+  getResidentById(id: number): Promise<Resident | undefined>;
+  getResidentByUsername(username: string): Promise<Resident | undefined>;
+  createResident(resident: InsertResident): Promise<Resident>;
+  updateResident(id: number, updates: Partial<Resident>): Promise<Resident>;
+  deleteResident(id: number): Promise<void>;
 
   // Admin & System
   getAdminByUsername(username: string): Promise<Admin | undefined>;
@@ -382,10 +392,13 @@ class MemStorage implements IStorage {
       status: schedule.status || 'scheduled',
       description: schedule.description || null,
       episodeId: schedule.episodeId || null,
+      residentId: schedule.residentId || null,
       isLive: schedule.isLive ?? false,
       isRecurring: schedule.isRecurring ?? false,
       recurrencePattern: schedule.recurrencePattern || null,
       artworkUrl: schedule.artworkUrl || null,
+      liveStatus: schedule.liveStatus || 'scheduled',
+      streamingCredentials: schedule.streamingCredentials || null,
     };
     this.scheduleItems.push(newSchedule);
     return newSchedule;
@@ -548,6 +561,70 @@ class MemStorage implements IStorage {
     const index = this.residentApplications.findIndex(a => a.id === id);
     if (index !== -1) {
       this.residentApplications.splice(index, 1);
+    }
+  }
+
+  // Residents
+  private residents: Resident[] = [];
+
+  async getResidents(filters?: { isActive?: boolean; limit?: number }): Promise<Resident[]> {
+    let filtered = [...this.residents];
+    
+    if (filters?.isActive !== undefined) {
+      filtered = filtered.filter(r => r.isActive === filters.isActive);
+    }
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    return filtered;
+  }
+
+  async getResidentById(id: number): Promise<Resident | undefined> {
+    return this.residents.find(r => r.id === id);
+  }
+
+  async getResidentByUsername(username: string): Promise<Resident | undefined> {
+    return this.residents.find(r => r.username === username);
+  }
+
+  async createResident(resident: InsertResident): Promise<Resident> {
+    const newResident: Resident = {
+      ...resident,
+      id: this.nextId++,
+      email: resident.email || null,
+      bio: resident.bio || null,
+      avatarUrl: resident.avatarUrl || null,
+      isActive: resident.isActive ?? true,
+      canGoLive: resident.canGoLive ?? true,
+      showTitle: resident.showTitle || null,
+      showDescription: resident.showDescription || null,
+      genres: resident.genres || null,
+      socialLinks: resident.socialLinks || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.residents.push(newResident);
+    return newResident;
+  }
+
+  async updateResident(id: number, updates: Partial<Resident>): Promise<Resident> {
+    const index = this.residents.findIndex(r => r.id === id);
+    if (index === -1) throw new Error('Resident not found');
+    
+    this.residents[index] = {
+      ...this.residents[index],
+      ...updates,
+      updatedAt: new Date()
+    };
+    return this.residents[index];
+  }
+
+  async deleteResident(id: number): Promise<void> {
+    const index = this.residents.findIndex(r => r.id === id);
+    if (index !== -1) {
+      this.residents.splice(index, 1);
     }
   }
 

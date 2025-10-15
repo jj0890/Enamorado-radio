@@ -112,11 +112,14 @@ export const schedule = pgTable("schedule", {
   scheduledAt: timestamp("scheduled_at").notNull(),
   duration: integer("duration").notNull(), // in minutes
   episodeId: integer("episode_id").references(() => episodes.id),
+  residentId: integer("resident_id").references(() => residents.id), // Link to resident DJ
   isLive: boolean("is_live").default(false),
   isRecurring: boolean("is_recurring").default(false),
   recurrencePattern: text("recurrence_pattern"), // "weekly", "monthly", etc.
   artworkUrl: text("artwork_url"),
   status: text("status").notNull().default("scheduled"), // scheduled, live, completed, cancelled
+  liveStatus: text("live_status").default("scheduled"), // scheduled, live, completed, offline
+  streamingCredentials: jsonb("streaming_credentials"), // Resident-specific stream info
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -188,6 +191,35 @@ export const admins = pgTable("admins", {
   password: text("password").notNull(),
   role: text("role").notNull().default("admin"), // viewer, contributor, editor, admin
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Residents - DJs/Hosts with streaming access
+export const residents = pgTable("residents", {
+  id: serial("id").primaryKey(),
+  username: text("username").notNull().unique(),
+  password: text("password").notNull(),
+  displayName: text("display_name").notNull(), // Show name / DJ name
+  email: text("email"),
+  bio: text("bio"),
+  avatarUrl: text("avatar_url"),
+  
+  // AzuraCast streaming credentials
+  azuracastUsername: text("azuracast_username").notNull().unique(),
+  azuracastPassword: text("azuracast_password").notNull(),
+  mountPoint: text("mount_point").notNull(), // e.g., "/live/dj1"
+  
+  // Status & permissions
+  isActive: boolean("is_active").default(true),
+  canGoLive: boolean("can_go_live").default(true),
+  
+  // Metadata
+  showTitle: text("show_title"), // Their regular show name
+  showDescription: text("show_description"),
+  genres: text("genres").array(),
+  socialLinks: jsonb("social_links"), // {instagram: "@...", soundcloud: "..."}
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Albums of the Month Feature
@@ -334,6 +366,12 @@ export const insertAdminSchema = createInsertSchema(admins).omit({
   createdAt: true,
 });
 
+export const insertResidentSchema = createInsertSchema(residents).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertAlbumSuggestionSchema = createInsertSchema(albumSuggestions).omit({
   id: true,
   createdAt: true,
@@ -375,6 +413,7 @@ export type Schedule = typeof schedule.$inferSelect;
 export type SongSubmission = typeof songSubmissions.$inferSelect;
 export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
+export type Resident = typeof residents.$inferSelect;
 export type CurrentPlayback = typeof currentPlayback.$inferSelect;
 export type StreamStatus = typeof streamStatus.$inferSelect;
 export type AlbumSuggestion = typeof albumSuggestions.$inferSelect;
@@ -390,6 +429,7 @@ export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
+export type InsertResident = z.infer<typeof insertResidentSchema>;
 export type InsertCurrentPlayback = z.infer<typeof insertCurrentPlaybackSchema>;
 export type InsertAlbumSuggestion = z.infer<typeof insertAlbumSuggestionSchema>;
 export type InsertAlbumVote = z.infer<typeof insertAlbumVoteSchema>;
