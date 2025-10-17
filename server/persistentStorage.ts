@@ -802,6 +802,8 @@ export class FileStorage implements IStorage {
       showDescription: resident.showDescription || null,
       genres: resident.genres || null,
       socialLinks: resident.socialLinks || null,
+      azuracastStreamerId: null, // Set by API after creation
+      azuracastAutoCreated: false, // Set automatically when API creates
       createdAt: new Date(),
       updatedAt: new Date(),
     };

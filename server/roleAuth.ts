@@ -22,16 +22,13 @@ export interface AuthenticatedUser {
  * Middleware to require minimum role level
  * Usage: app.get('/admin/albums', requireRole('editor'), handler)
  * 
- * Note: Since we don't have a user roles table yet, all authenticated admins
- * are treated as having 'admin' role (highest level). This satisfies all role requirements.
+ * Checks user role from session token and validates against required role level.
  */
 export function requireRole(minRole: UserRole) {
   return (req: Request, res: Response, next: NextFunction) => {
     // First, check admin authentication using the same system as requireAdmin
     requireAdmin(req, res, () => {
       // If we reach here, admin is authenticated
-      // For now, all authenticated admins have 'admin' role (level 3)
-      // which satisfies all role requirements including 'editor' (level 2)
       const admin = (req as any).admin;
       
       if (!admin) {
@@ -41,9 +38,8 @@ export function requireRole(minRole: UserRole) {
         });
       }
       
-      // For now, all authenticated admins have 'admin' role
-      // In the future, this would check against a users table
-      const userRole: UserRole = 'admin';
+      // Get user role from session (now stored in session token)
+      const userRole: UserRole = (admin.role || 'admin') as UserRole;
       const userRoleLevel = roleHierarchy[userRole];
       const requiredRoleLevel = roleHierarchy[minRole];
       

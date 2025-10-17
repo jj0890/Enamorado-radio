@@ -1,23 +1,41 @@
 import { Request, Response, NextFunction } from 'express';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { storage } from './storage';
+import type { Admin } from '@shared/schema';
 
 const ADMIN_COOKIE = 'radio_admin';
 const SESSION_SECRET = process.env.SESSION_SECRET || 'change-me-in-production';
-const ADMIN_USER = (process.env.ADMIN_USER || 'admin').trim();
-const ADMIN_PASS = (process.env.ADMIN_PASS || 'change-me').trim();
 
 // Validate admin credentials on startup
-export function validateAdminCredentials() {
-  if (ADMIN_USER === 'admin' && ADMIN_PASS === 'change-me') {
+export async function validateAdminCredentials() {
+  // Check if there are any admins in the database
+  const envUser = (process.env.ADMIN_USER || 'admin').trim();
+  const envPass = (process.env.ADMIN_PASS || 'change-me').trim();
+  
+  const existingAdmin = await storage.getAdminByUsername(envUser);
+  
+  if (!existingAdmin) {
+    // Create default admin from environment variables
+    await storage.createAdmin({
+      username: envUser,
+      password: envPass, // TODO: Hash passwords in future
+      role: 'admin',
+    });
+    console.log(`✅ Created default admin user: ${envUser}`);
+  } else {
+    console.log(`✅ Admin system initialized for user: ${envUser}`);
+  }
+  
+  if (envUser === 'admin' && envPass === 'change-me') {
     console.warn('⚠️  WARNING: Using default admin credentials! Set ADMIN_USER and ADMIN_PASS environment variables.');
   }
-  console.log(`✅ Admin system initialized for user: ${ADMIN_USER}`);
 }
 
 // Create secure session token
-function createSessionToken(username: string): string {
+function createSessionToken(username: string, role: string = 'admin'): string {
   const payload = JSON.stringify({
     user: username,
+    role: role,
     exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
   });
   const signature = createHmac('sha256', SESSION_SECRET)
@@ -27,7 +45,7 @@ function createSessionToken(username: string): string {
 }
 
 // Verify session token
-function verifySessionToken(token: string): { user: string; exp: number } | null {
+function verifySessionToken(token: string): { user: string; role: string; exp: number } | null {
   try {
     const { payload, signature } = JSON.parse(Buffer.from(token, 'base64').toString());
     const expectedSignature = createHmac('sha256', SESSION_SECRET)
@@ -50,16 +68,24 @@ function verifySessionToken(token: string): { user: string; exp: number } | null
 }
 
 // Validate credentials with timing-safe comparison
-export function validateCredentials(username: string, password: string): boolean {
+export async function validateCredentials(username: string, password: string): Promise<Admin | null> {
   // Trim inputs to avoid whitespace issues
   const trimmedUser = username.trim();
   const trimmedPass = password.trim();
   
-  // Secure comparison
-  const validUser = trimmedUser === ADMIN_USER;
-  const validPass = trimmedPass === ADMIN_PASS;
+  // Look up user in database
+  const admin = await storage.getAdminByUsername(trimmedUser);
   
-  return validUser && validPass;
+  if (!admin) {
+    return null;
+  }
+  
+  // Validate password (TODO: Use proper password hashing)
+  if (admin.password === trimmedPass) {
+    return admin;
+  }
+  
+  return null;
 }
 
 // Admin authentication middleware
@@ -81,14 +107,15 @@ export function requireAdmin(req: Request, res: Response, next: NextFunction) {
 }
 
 // Login endpoint
-export function loginAdmin(req: Request, res: Response) {
+export async function loginAdmin(req: Request, res: Response) {
   const { username, password } = req.body;
   
-  if (!validateCredentials(username, password)) {
+  const admin = await validateCredentials(username, password);
+  if (!admin) {
     return res.status(401).json({ error: 'invalid credentials' });
   }
   
-  const token = createSessionToken(username);
+  const token = createSessionToken(username, admin.role);
   res.cookie(ADMIN_COOKIE, token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
@@ -96,7 +123,7 @@ export function loginAdmin(req: Request, res: Response) {
     maxAge: 24 * 60 * 60 * 1000 // 24 hours
   });
   
-  res.json({ ok: true });
+  res.json({ ok: true, role: admin.role });
 }
 
 // Logout endpoint
@@ -119,5 +146,5 @@ export function checkAuth(req: Request, res: Response) {
     return res.json({ authenticated: false });
   }
   
-  res.json({ authenticated: true, user: session.user });
+  res.json({ authenticated: true, user: session.user, role: session.role });
 }
