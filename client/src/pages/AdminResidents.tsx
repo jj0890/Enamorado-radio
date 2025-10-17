@@ -201,13 +201,13 @@ INSTRUCTIONS:
             <h1 className="text-3xl font-bold font-mono text-red-500">RESIDENTS MANAGEMENT</h1>
             <p className="text-gray-600 mt-2">Manage resident DJs and their streaming credentials</p>
             <a
-              href="http://24.199.109.18/admin/stations/manage/1"
+              href="http://24.199.109.18/admin#/station/1/streamers"
               target="_blank"
               rel="noopener noreferrer"
               className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-1"
             >
               <ExternalLink className="w-3 h-3" />
-              Open AzuraCast Admin
+              Open AzuraCast Streamers/DJs
             </a>
           </div>
           <Dialog open={isCreateOpen || !!editingResident} onOpenChange={(open) => {
