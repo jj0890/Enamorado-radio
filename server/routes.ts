@@ -158,7 +158,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Update the live status
-      const updated = await storage.updateSchedule(scheduleId, { liveStatus: status });
+      const updated = await storage.updateScheduleItem(scheduleId, { liveStatus: status });
       
       // Broadcast to WebSocket clients
       broadcast({

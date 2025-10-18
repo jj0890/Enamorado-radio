@@ -129,7 +129,7 @@ export default function RadioOps() {
                 >
                   {isLive ? '🔴 LIVE' : '🤖 AUTO'}
                 </Badge>
-                {isLive && liveStatus.streamerName && (
+                {isLive && liveStatus?.streamerName && (
                   <span className="text-sm text-gray-600">{liveStatus.streamerName}</span>
                 )}
               </div>
@@ -147,10 +147,10 @@ export default function RadioOps() {
             <CardContent>
               {statusLoading ? (
                 <p className="text-gray-500">Loading...</p>
-              ) : nowPlaying ? (
+              ) : nowPlaying?.song ? (
                 <div>
-                  <p className="font-semibold">{nowPlaying.song.title}</p>
-                  <p className="text-sm text-gray-600">{nowPlaying.song.artist}</p>
+                  <p className="font-semibold">{nowPlaying.song.title || 'Unknown Track'}</p>
+                  <p className="text-sm text-gray-600">{nowPlaying.song.artist || 'Unknown Artist'}</p>
                   {nowPlaying.song.album && (
                     <p className="text-xs text-gray-500">{nowPlaying.song.album}</p>
                   )}
