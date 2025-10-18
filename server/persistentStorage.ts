@@ -3,7 +3,8 @@ import path from 'path';
 import {
   Episode, 
   Guide, 
-  MixSubmission, 
+  MixSubmission,
+  EpisodeSubmission,
   Schedule, 
   SongSubmission,
   ResidentApplication,
@@ -19,6 +20,7 @@ import {
   InsertEpisode,
   InsertGuide, 
   InsertMixSubmission,
+  InsertEpisodeSubmission,
   InsertSchedule,
   InsertSongSubmission,
   InsertResidentApplication,
@@ -43,6 +45,7 @@ export class FileStorage implements IStorage {
   private episodes: Episode[] = [];
   private guides: Guide[] = [];
   private mixSubmissions: MixSubmission[] = [];
+  private episodeSubmissions: EpisodeSubmission[] = [];
   private scheduleItems: Schedule[] = [];
   private songSubmissions: SongSubmission[] = [];
   private residentApplications: ResidentApplication[] = [];
@@ -114,6 +117,7 @@ export class FileStorage implements IStorage {
         'episodes.json',
         'guides.json', 
         'mixSubmissions.json',
+        'episodeSubmissions.json',
         'scheduleItems.json',
         'songSubmissions.json',
         'residentApplications.json',
@@ -143,6 +147,9 @@ export class FileStorage implements IStorage {
               break;
             case 'mixSubmissions.json':
               this.mixSubmissions = (parsed || []).map((mix: any) => this.migrateMixData(mix));
+              break;
+            case 'episodeSubmissions.json':
+              this.episodeSubmissions = parsed || [];
               break;
             case 'scheduleItems.json':
               this.scheduleItems = parsed || [];
@@ -531,6 +538,100 @@ export class FileStorage implements IStorage {
     this.mixSubmissions.splice(index, 1);
     await this.saveData('mixSubmissions', this.mixSubmissions);
     console.log(`FileStorage: Deleted mix submission ${id}`);
+  }
+
+  // Episode Submissions
+  async getEpisodeSubmissions(filters?: { 
+    status?: string; 
+    residentId?: number; 
+    limit?: number;
+  }): Promise<EpisodeSubmission[]> {
+    let filtered = [...this.episodeSubmissions];
+    
+    if (filters?.status) {
+      filtered = filtered.filter(e => e.status === filters.status);
+    }
+    
+    if (filters?.residentId) {
+      filtered = filtered.filter(e => e.residentId === filters.residentId);
+    }
+    
+    // Sort by submission date (newest first)
+    filtered.sort((a, b) => {
+      const dateA = new Date(a.submittedAt || 0).getTime();
+      const dateB = new Date(b.submittedAt || 0).getTime();
+      return dateB - dateA;
+    });
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    return filtered;
+  }
+
+  async getEpisodeSubmissionById(id: number): Promise<EpisodeSubmission | undefined> {
+    return this.episodeSubmissions.find(e => e.id === id);
+  }
+
+  async createEpisodeSubmission(submission: InsertEpisodeSubmission): Promise<EpisodeSubmission> {
+    const newSubmission: EpisodeSubmission = {
+      ...submission,
+      id: this.nextId++,
+      status: 'pending',
+      submittedAt: new Date(),
+      reviewedAt: null,
+      reviewedBy: null,
+      adminNotes: null,
+      rejectionReason: null,
+      scheduledAirDate: null,
+      airedAt: null,
+      azuracastFileId: null,
+      azuracastPlaylistId: null,
+      uploadedToAzuracastAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      description: submission.description || null,
+      showNotes: submission.showNotes || null,
+      seriesTitle: submission.seriesTitle || null,
+      episodeNumber: submission.episodeNumber || null,
+      tags: submission.tags || null,
+      audioFileSize: submission.audioFileSize || null,
+      duration: submission.duration || null,
+      coverArtPath: submission.coverArtPath || null,
+      coverArtUrl: submission.coverArtUrl || null,
+    };
+    
+    this.episodeSubmissions.push(newSubmission);
+    await this.saveData('episodeSubmissions', this.episodeSubmissions);
+    console.log(`FileStorage: Created episode submission ${newSubmission.id} by resident ${submission.residentName}`);
+    return newSubmission;
+  }
+
+  async updateEpisodeSubmission(id: number, updates: Partial<EpisodeSubmission>): Promise<EpisodeSubmission> {
+    const index = this.episodeSubmissions.findIndex(e => e.id === id);
+    if (index === -1) throw new Error('Episode submission not found');
+    
+    this.episodeSubmissions[index] = { 
+      ...this.episodeSubmissions[index], 
+      ...updates,
+      updatedAt: new Date()
+    };
+    await this.saveData('episodeSubmissions', this.episodeSubmissions);
+    console.log(`FileStorage: Updated episode submission ${id}`);
+    return this.episodeSubmissions[index];
+  }
+
+  async deleteEpisodeSubmission(id: number): Promise<void> {
+    const index = this.episodeSubmissions.findIndex(e => e.id === id);
+    if (index === -1) throw new Error('Episode submission not found');
+    
+    // Create backup before destructive operation
+    await backupManager.createBackup(`Before deleting episode submission ${id}`);
+    
+    this.episodeSubmissions.splice(index, 1);
+    await this.saveData('episodeSubmissions', this.episodeSubmissions);
+    console.log(`FileStorage: Deleted episode submission ${id}`);
   }
 
   // Schedule
