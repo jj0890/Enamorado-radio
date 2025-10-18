@@ -117,9 +117,9 @@ export default function AlbumsPage() {
 
   return (
     <div className="min-h-screen bg-[#FEFCF9]">
-      <div className="max-w-6xl mx-auto px-4 py-10">
+      <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
-        <div className="mb-10">
+        <div className="pt-16 pb-8 mb-8">
           <div className="flex items-center gap-3 mb-2">
             <Disc className="w-8 h-8 text-red-500" />
             <h1 className="text-4xl font-bold font-mono text-red-500">Albums of the Month</h1>

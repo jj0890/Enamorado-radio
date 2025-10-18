@@ -136,9 +136,9 @@ export default function LatestPage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4">
         {/* Back Navigation */}
-        <div className="mb-8">
+        <div className="pt-16 pb-8 mb-8">
           <Link
             href="/"
             className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
@@ -149,7 +149,7 @@ export default function LatestPage() {
         </div>
 
         {/* Page Header */}
-        <div className="mb-12">
+        <div className="pt-16 pb-8 mb-8">
           <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">LATEST</h1>
           <p className="text-xl text-gray-600 max-w-2xl font-mono">
             The most recent episodes, shows, and mixes from our community
@@ -157,7 +157,7 @@ export default function LatestPage() {
         </div>
 
         {/* Filter Controls */}
-        <div className="mb-8">
+        <div className="pt-16 pb-8 mb-8">
           <div className="flex gap-4">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}

@@ -62,9 +62,9 @@ export default function SchedulePage() {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 py-8">
+      <main className="max-w-7xl mx-auto px-4">
         {/* Back Navigation */}
-        <div className="mb-8">
+        <div className="pt-16 pb-8 mb-8">
           <Link
             href="/"
             className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
@@ -75,7 +75,7 @@ export default function SchedulePage() {
         </div>
 
         {/* Page Header */}
-        <div className="mb-12">
+        <div className="pt-16 pb-8 mb-8">
           <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">SCHEDULE</h1>
           <p className="text-xl text-gray-600 max-w-3xl font-mono">
             Weekly programming grid showing upcoming shows, live broadcasts, and past episodes
@@ -83,7 +83,7 @@ export default function SchedulePage() {
         </div>
 
         {/* View Toggle */}
-        <div className="mb-8">
+        <div className="pt-16 pb-8 mb-8">
           <div className="flex gap-4">
             <Button
               variant={viewMode === 'upcoming' ? 'default' : 'outline'}
