@@ -36,6 +36,7 @@ export default function AdminResidents() {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
+  const [copiedId, setCopiedId] = useState<number | null>(null);
 
   const { data: residents = [], isLoading } = useQuery<Resident[]>({
     queryKey: ['/api/admin/residents'],
@@ -179,9 +180,14 @@ INSTRUCTIONS:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━`;
 
     navigator.clipboard.writeText(credentials).then(() => {
+      // Visual feedback: change button state
+      setCopiedId(resident.id);
+      setTimeout(() => setCopiedId(null), 3000);
+      
       toast({
         title: "✅ Copied to Clipboard!",
         description: "Paste these credentials into AzuraCast to complete setup.",
+        duration: 5000,
       });
     }).catch(() => {
       toast({
@@ -490,10 +496,10 @@ INSTRUCTIONS:
                           size="sm"
                           onClick={() => copyToAzuraCast(resident)}
                           data-testid={`button-copy-azuracast-${resident.id}`}
-                          className="bg-blue-600 hover:bg-blue-700"
+                          className={copiedId === resident.id ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
                         >
                           <Copy className="w-4 h-4 mr-1" />
-                          Copy to AzuraCast
+                          {copiedId === resident.id ? "Copied!" : "Copy to AzuraCast"}
                         </Button>
                       )}
                       <Button

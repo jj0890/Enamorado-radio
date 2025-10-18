@@ -1,1 +1,24 @@
-[]
+[
+  {
+    "username": "jarrad1",
+    "password": "41,VsS4A2;_V",
+    "displayName": "jarrad",
+    "email": "jarradjones7@gmail.com",
+    "bio": null,
+    "showTitle": "2good4radio.fm",
+    "showDescription": "just playing what i want 2 hear. ",
+    "azuracastUsername": "jarrad1",
+    "azuracastPassword": "41,VsS4A2;_V",
+    "mountPoint": "/2good4radio",
+    "isActive": true,
+    "canGoLive": true,
+    "azuracastStreamerId": null,
+    "azuracastAutoCreated": false,
+    "id": 2,
+    "avatarUrl": null,
+    "genres": null,
+    "socialLinks": null,
+    "createdAt": "2025-10-18T07:43:41.817Z",
+    "updatedAt": "2025-10-18T07:43:41.817Z"
+  }
+]
