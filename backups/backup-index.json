@@ -1,5 +1,12 @@
 [
   {
+    "id": "backup-2025-10-18T07-35-53-965Z",
+    "timestamp": "2025-10-18T07:35:53.965Z",
+    "size": 6027,
+    "reason": "Before deleting resident 46",
+    "fileCount": 4
+  },
+  {
     "id": "backup-2025-09-24T02-04-40-220Z",
     "timestamp": "2025-09-24T02:04:40.220Z",
     "size": 5879,
@@ -130,13 +137,6 @@
     "timestamp": "2025-09-19T05:14:12.015Z",
     "size": 4766,
     "reason": "Final security test",
-    "fileCount": 3
-  },
-  {
-    "id": "backup-2025-09-19T05-09-44-814Z",
-    "timestamp": "2025-09-19T05:09:44.814Z",
-    "size": 4766,
-    "reason": "e2e backup test",
     "fileCount": 3
   }
 ]
