@@ -4,6 +4,18 @@
 This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
 
 ## Recent Changes
+**✅ COMPLETE: Radio Ops Panel - Monitoring Dashboard (October 2025)**
+- ✅ Created Radio Ops Panel (/admin/radio-ops) as real-time monitoring dashboard
+- ✅ Displays live broadcast status (LIVE vs AUTO mode) with auto-refresh every 5 seconds
+- ✅ Shows now playing information (track, artist, album) from AzuraCast API
+- ✅ Displays "Coming Up Next" track when in AUTO mode
+- ✅ Integrated into admin dashboard Quick Actions and navigation menu
+- ⚠️ **API Limitation**: Control endpoints (skip track, go live, disconnect) require web session authentication (cookies), not API keys
+- ✅ Semi-automated workflow: Panel is monitoring-only with direct "Open AzuraCast Admin Panel" link for active controls
+- ✅ Clean error handling with safe optional chaining for incomplete data
+- ✅ Station info display with stream URL and location details
+- ✅ Production-ready with proper AzuraCast API integration via environment secrets
+
 **✅ COMPLETE: AzuraCast Semi-Automated Streamer Account Setup (October 2025)**
 - ✅ One-click "Copy to AzuraCast" credential system for streamlined admin workflow
 - ✅ Settings management system (database schema, storage layer, admin UI) for AzuraCast configuration
