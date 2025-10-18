@@ -15,6 +15,7 @@ interface ResidentAuthData {
 export default function ResidentAuthWrapper() {
   const [location] = useLocation();
   const queryClient = useQueryClient();
+  console.log('🏠 ResidentAuthWrapper loaded, location:', location);
 
   const { data: authData, isLoading, isFetching, refetch } = useQuery<ResidentAuthData>({
     queryKey: ['/api/resident/auth'],
