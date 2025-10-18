@@ -103,6 +103,54 @@ export const mixSubmissions = pgTable("mix_submissions", {
   createdAt: timestamp("created_at").defaultNow(), // Creation timestamp
 });
 
+// Episode Submissions - Resident-created pre-recorded episodes
+export const episodeSubmissions = pgTable("episode_submissions", {
+  id: serial("id").primaryKey(),
+  
+  // Resident information
+  residentId: integer("resident_id").references(() => residents.id).notNull(),
+  residentName: text("resident_name").notNull(), // Denormalized for easy display
+  
+  // Episode metadata
+  title: text("title").notNull(),
+  description: text("description"),
+  showNotes: text("show_notes"), // Extended show notes/tracklist
+  seriesTitle: text("series_title"), // e.g., "Late Night Sessions"
+  episodeNumber: integer("episode_number"),
+  genre: text("genre").notNull(),
+  tags: text("tags").array(), // ["house", "techno", "mix"]
+  
+  // Audio file information
+  audioFilePath: text("audio_file_path").notNull(), // Local file path to uploaded MP3
+  audioFileName: text("audio_file_name").notNull(),
+  audioFileSize: integer("audio_file_size"), // in bytes
+  duration: integer("duration"), // in seconds (can be extracted from MP3)
+  
+  // Artwork
+  coverArtPath: text("cover_art_path"), // Path to uploaded cover art
+  coverArtUrl: text("cover_art_url"), // URL if from external source
+  
+  // Submission workflow
+  status: text("status").notNull().default("pending"), // pending, approved, rejected, scheduled, aired
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  reviewedBy: text("reviewed_by"), // Admin username
+  adminNotes: text("admin_notes"), // Private notes for admin team
+  rejectionReason: text("rejection_reason"), // Feedback if rejected
+  
+  // Scheduling information
+  scheduledAirDate: timestamp("scheduled_air_date"), // When episode will air
+  airedAt: timestamp("aired_at"), // Actual air timestamp
+  
+  // AzuraCast integration
+  azuracastFileId: text("azuracast_file_id"), // AzuraCast media ID after upload
+  azuracastPlaylistId: text("azuracast_playlist_id"),
+  uploadedToAzuracastAt: timestamp("uploaded_to_azuracast_at"),
+  
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schedule - Upcoming and past shows
 export const schedule = pgTable("schedule", {
   id: serial("id").primaryKey(),
@@ -346,6 +394,16 @@ export const insertMixSubmissionSchema = createInsertSchema(mixSubmissions).omit
   status: true,
 });
 
+export const insertEpisodeSubmissionSchema = createInsertSchema(episodeSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertScheduleSchema = createInsertSchema(schedule).omit({
   id: true,
   createdAt: true,
@@ -428,6 +486,7 @@ export const insertAlbumSuggestionNoteSchema = createInsertSchema(albumSuggestio
 export type Episode = typeof episodes.$inferSelect;
 export type Guide = typeof guides.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
+export type EpisodeSubmission = typeof episodeSubmissions.$inferSelect;
 export type Schedule = typeof schedule.$inferSelect;
 export type SongSubmission = typeof songSubmissions.$inferSelect;
 export type ResidentApplication = typeof residentApplications.$inferSelect;
@@ -445,6 +504,7 @@ export type AlbumSuggestionNote = typeof albumSuggestionNotes.$inferSelect;
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;
+export type InsertEpisodeSubmission = z.infer<typeof insertEpisodeSubmissionSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
