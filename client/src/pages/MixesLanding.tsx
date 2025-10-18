@@ -272,9 +272,9 @@ export default function MixesLanding() {
 
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="text-center mb-12">
+        <div className="text-center pt-16 pb-8 mb-8">
           <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">MIXES</h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto font-mono">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-mono">
             Curated collection of mixes from our community
           </p>
 
@@ -305,7 +305,9 @@ export default function MixesLanding() {
 
         {/* Featured Mix Carousel */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">FEATURED MIXES</h2>
+          <div className="pt-16 pb-8 mb-8">
+            <h2 className="text-3xl font-bold font-mono text-red-500">FEATURED MIXES</h2>
+          </div>
 
           {/* SoundCloud Featured Carousel */}
           <div className="relative">
@@ -419,7 +421,7 @@ export default function MixesLanding() {
 
         {/* Browse by Genre */}
         <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center justify-between pt-16 pb-8 mb-8">
             <h2 className="text-2xl font-bold font-mono text-red-500">BROWSE BY GENRE</h2>
             <Link href="/genres" className="text-red-500 hover:underline font-mono text-sm flex items-center">
               View All →
@@ -431,7 +433,9 @@ export default function MixesLanding() {
 
         {/* Fresh Community Submissions */}
         <section className="mb-16">
-          <h2 className="text-3xl font-bold mb-8 font-mono text-red-500">FRESH FROM THE COMMUNITY</h2>
+          <div className="pt-16 pb-8 mb-8">
+            <h2 className="text-3xl font-bold font-mono text-red-500">FRESH FROM THE COMMUNITY</h2>
+          </div>
 
           {communitySubmissions.length === 0 ? (
             <div className="bg-gray-50 border-2 border-black rounded-lg p-6 mb-8">
