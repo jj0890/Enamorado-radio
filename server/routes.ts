@@ -269,6 +269,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // =================
+  // RADIO OPS PANEL - Broadcast Controls
+  // =================
+  
+  // Import AzuraCast Ops controller
+  const azuracastOps = await import('./azuracastOps');
+  
+  // Get live broadcast status
+  app.get('/api/admin/radio/status', requireAdmin, async (req, res) => {
+    try {
+      const status = await azuracastOps.getLiveStatus();
+      res.json(status);
+    } catch (error) {
+      console.error('Error fetching radio status:', error);
+      res.status(500).json({ error: 'Failed to fetch radio status' });
+    }
+  });
+  
+  // Go live (switch to live input)
+  app.post('/api/admin/radio/go-live', requireAdmin, async (req, res) => {
+    try {
+      const result = await azuracastOps.goLive();
+      if (result.success) {
+        res.json({ success: true, message: result.message });
+      } else {
+        res.status(400).json({ error: result.message });
+      }
+    } catch (error) {
+      console.error('Error going live:', error);
+      res.status(500).json({ error: 'Failed to go live' });
+    }
+  });
+  
+  // Return to AutoDJ
+  app.post('/api/admin/radio/return-to-auto', requireAdmin, async (req, res) => {
+    try {
+      const result = await azuracastOps.returnToAuto();
+      if (result.success) {
+        res.json({ success: true, message: result.message });
+      } else {
+        res.status(400).json({ error: result.message });
+      }
+    } catch (error) {
+      console.error('Error returning to auto:', error);
+      res.status(500).json({ error: 'Failed to return to auto mode' });
+    }
+  });
+  
+  // Skip current track
+  app.post('/api/admin/radio/skip', requireAdmin, async (req, res) => {
+    try {
+      const result = await azuracastOps.skipTrack();
+      if (result.success) {
+        res.json({ success: true, message: result.message });
+      } else {
+        res.status(400).json({ error: result.message });
+      }
+    } catch (error) {
+      console.error('Error skipping track:', error);
+      res.status(500).json({ error: 'Failed to skip track' });
+    }
+  });
+  
   // Admin stats dashboard
   app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     try {

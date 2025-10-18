@@ -231,9 +231,9 @@ export default function Home() {
 
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
-          <div className="text-center mb-12">
+          <div className="text-center pt-16 pb-8 mb-8">
             <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">EXPLORE</h2>
-            <p className="text-xl text-gray-600 max-w-3xl mx-auto font-mono">
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
               Discover curated content, join our community, and contribute to the station
             </p>
           </div>
@@ -388,7 +388,7 @@ export default function Home() {
         {/* Fresh From the Community — uses the SAME card as /mixes */}
         {freshMixes.length > 0 && (
           <section className="py-12">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between pt-16 pb-8 mb-8">
               <h2 className="text-3xl font-bold font-mono text-red-500">
                 FRESH FROM THE COMMUNITY
               </h2>

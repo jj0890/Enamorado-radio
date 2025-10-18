@@ -56,6 +56,7 @@ const navItems = [
   { href: "/admin/queue", label: "Queue", icon: PlayCircle, category: "community" },
   
   // AzuraCast Integration
+  { href: "/admin/radio-ops", label: "Radio Ops Panel", icon: Radio, category: "integration" },
   { href: "/admin/azuracast", label: "AzuraCast", icon: Radio, category: "integration" },
   { href: "/admin/azuracast-upload", label: "AzuraCast Upload", icon: Upload, category: "integration" },
   { href: "/admin/mix-manager", label: "Mix Manager", icon: Radio, category: "integration" },
@@ -247,10 +248,10 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
                 Upload Episode
               </Button>
             </Link>
-            <Link href="/admin/azuracast">
+            <Link href="/admin/radio-ops">
               <Button className="w-full h-20 text-lg font-mono" variant="outline">
                 <Radio className="w-6 h-6 mr-2" />
-                AzuraCast
+                Radio Ops
               </Button>
             </Link>
             <Link href="/admin/albums">
