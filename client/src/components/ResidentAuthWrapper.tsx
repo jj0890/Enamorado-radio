@@ -69,7 +69,7 @@ export default function ResidentAuthWrapper() {
             }}
           />
         );
-      case '/resident/submit-episode':
+      case '/resident/episode-submit':
         return <ResidentEpisodeSubmit />;
       default:
         return (
