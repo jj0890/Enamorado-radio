@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import ResidentLogin from '@/pages/ResidentLogin';
 import ResidentDashboard from '@/pages/ResidentDashboard';
+import ResidentEpisodeSubmit from '@/pages/ResidentEpisodeSubmit';
 
 interface ResidentAuthData {
   authenticated: boolean;
@@ -68,6 +69,8 @@ export default function ResidentAuthWrapper() {
             }}
           />
         );
+      case '/resident/submit-episode':
+        return <ResidentEpisodeSubmit />;
       default:
         return (
           <ResidentDashboard 

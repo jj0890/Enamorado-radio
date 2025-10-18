@@ -836,6 +836,209 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
+  // RESIDENT EPISODE SUBMISSION API
+  // =================
+
+  // Resident submits episode for review (local storage only, no AzuraCast upload yet)
+  app.post("/api/resident/episode/submit", requireResident, upload.single('audioFile'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'Audio file is required' });
+      }
+
+      const {
+        residentId,
+        residentName,
+        title,
+        description,
+        showNotes,
+        seriesTitle,
+        episodeNumber,
+        genre,
+        tags,
+        coverArtUrl
+      } = req.body;
+
+      console.log(`📥 Resident episode submission: "${title}" by ${residentName}`);
+
+      // Store file locally in uploads directory
+      const audioPath = req.file.path;
+      const audioFileName = req.file.originalname;
+      const audioFileSize = req.file.size;
+
+      // Create episode submission record
+      const submission = await storage.createEpisodeSubmission({
+        residentId: residentId ? parseInt(residentId) : null,
+        residentName,
+        title,
+        genre,
+        description,
+        showNotes,
+        seriesTitle,
+        episodeNumber: episodeNumber ? parseInt(episodeNumber) : null,
+        tags: tags ? tags.split(',').map((t: string) => t.trim()) : null,
+        audioFilePath: audioPath,
+        audioFileName,
+        audioFileSize,
+        coverArtUrl: coverArtUrl || null,
+      });
+
+      // Broadcast to admins that new submission arrived
+      broadcast({
+        type: 'newEpisodeSubmission',
+        submissionId: submission.id,
+        residentName,
+        title,
+      });
+
+      res.json({
+        success: true,
+        submission,
+        message: 'Episode submitted successfully for review'
+      });
+
+    } catch (error) {
+      console.error('Episode submission failed:', error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Submission failed',
+        success: false
+      });
+    }
+  });
+
+  // Get episode submissions for a specific resident
+  app.get("/api/resident/episodes", requireResident, async (req, res) => {
+    try {
+      const { residentId, status } = req.query;
+
+      if (!residentId) {
+        return res.status(400).json({ error: 'residentId is required' });
+      }
+
+      const submissions = await storage.getEpisodeSubmissions({
+        residentId: parseInt(residentId as string),
+        status: status as string
+      });
+
+      res.json(submissions);
+    } catch (error) {
+      console.error('Error fetching resident episodes:', error);
+      res.status(500).json({ error: 'Failed to fetch episodes' });
+    }
+  });
+
+  // Get all episode submissions for admin review
+  app.get("/api/admin/episode-submissions", requireAdmin, async (req, res) => {
+    try {
+      const { status, limit } = req.query;
+
+      const submissions = await storage.getEpisodeSubmissions({
+        status: status as string,
+        limit: limit ? parseInt(limit as string) : undefined
+      });
+
+      res.json(submissions);
+    } catch (error) {
+      console.error('Error fetching episode submissions:', error);
+      res.status(500).json({ error: 'Failed to fetch submissions' });
+    }
+  });
+
+  // Get single episode submission by ID
+  app.get("/api/admin/episode-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const submission = await storage.getEpisodeSubmissionById(id);
+
+      if (!submission) {
+        return res.status(404).json({ error: 'Episode submission not found' });
+      }
+
+      res.json(submission);
+    } catch (error) {
+      console.error('Error fetching episode submission:', error);
+      res.status(500).json({ error: 'Failed to fetch submission' });
+    }
+  });
+
+  // Update episode submission (approve, reject, request changes)
+  app.patch("/api/admin/episode-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const {
+        status,
+        adminNotes,
+        rejectionReason,
+        scheduledAirDate,
+        reviewedBy
+      } = req.body;
+
+      const submission = await storage.getEpisodeSubmissionById(id);
+      if (!submission) {
+        return res.status(404).json({ error: 'Episode submission not found' });
+      }
+
+      // Build update object
+      const updates: Partial<typeof submission> = {
+        status,
+        reviewedAt: new Date(),
+        reviewedBy,
+        adminNotes,
+        rejectionReason: status === 'rejected' ? rejectionReason : null,
+        scheduledAirDate: scheduledAirDate ? new Date(scheduledAirDate) : null,
+      };
+
+      const updated = await storage.updateEpisodeSubmission(id, updates);
+
+      // Broadcast status change
+      broadcast({
+        type: 'episodeSubmissionUpdated',
+        submissionId: id,
+        status,
+        residentName: submission.residentName,
+        title: submission.title,
+      });
+
+      res.json({
+        success: true,
+        submission: updated,
+        message: `Episode ${status}`
+      });
+
+    } catch (error) {
+      console.error('Error updating episode submission:', error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Update failed'
+      });
+    }
+  });
+
+  // Delete episode submission
+  app.delete("/api/admin/episode-submissions/:id", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+
+      await storage.deleteEpisodeSubmission(id);
+
+      broadcast({
+        type: 'episodeSubmissionDeleted',
+        submissionId: id,
+      });
+
+      res.json({
+        success: true,
+        message: 'Episode submission deleted'
+      });
+
+    } catch (error) {
+      console.error('Error deleting episode submission:', error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Delete failed'
+      });
+    }
+  });
+
+  // =================
   // LATEST API - Recent episodes, shows, and mixes
   // =================
 

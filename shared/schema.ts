@@ -123,7 +123,7 @@ export const episodeSubmissions = pgTable("episode_submissions", {
   // Audio file information
   audioFilePath: text("audio_file_path").notNull(), // Local file path to uploaded MP3
   audioFileName: text("audio_file_name").notNull(),
-  audioFileSize: integer("audio_file_size"), // in bytes
+  audioFileSize: integer("audio_file_size").notNull(), // in bytes
   duration: integer("duration"), // in seconds (can be extracted from MP3)
   
   // Artwork

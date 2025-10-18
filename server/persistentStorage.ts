@@ -596,7 +596,6 @@ export class FileStorage implements IStorage {
       seriesTitle: submission.seriesTitle || null,
       episodeNumber: submission.episodeNumber || null,
       tags: submission.tags || null,
-      audioFileSize: submission.audioFileSize || null,
       duration: submission.duration || null,
       coverArtPath: submission.coverArtPath || null,
       coverArtUrl: submission.coverArtUrl || null,

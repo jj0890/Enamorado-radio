@@ -11,6 +11,7 @@ import AdminQueue from "@/pages/AdminQueue";
 import AzuraCastAdmin from "@/pages/AzuraCastAdmin";
 import AdminMixRouting from "@/pages/AdminMixRouting";
 import AdminEpisodeUpload from "@/pages/AdminEpisodeUpload";
+import AdminEpisodeQueue from "@/pages/AdminEpisodeQueue";
 import AdminResidentApplications from "@/pages/AdminResidentApplications";
 import AdminResidents from "@/pages/AdminResidents";
 import AdminAlbums from "@/pages/AdminAlbums";
@@ -93,6 +94,8 @@ export default function AdminAuthWrapper() {
         return <AdminMixRouting />;
       case '/admin/upload':
         return <AdminEpisodeUpload />;
+      case '/admin/episode-queue':
+        return <AdminEpisodeQueue />;
       case '/admin/azuracast-upload':
         return (
           <div className="min-h-screen bg-[#FEFCF9] p-6">
