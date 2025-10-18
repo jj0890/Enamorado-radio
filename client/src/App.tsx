@@ -49,6 +49,7 @@ function Router() {
 
       {/* /resident-application handled by Express redirect to Google Form */}
       <Route path="/admin/*" component={AdminAuthWrapper} />
+      <Route path="/editor" component={AdminAuthWrapper} />
       <Route path="/resident/*" component={ResidentAuthWrapper} />
       <Route path="/schedule" component={Schedule} />
 
