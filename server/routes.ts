@@ -17,6 +17,7 @@ import { audioProcessor } from "./audioProcessor";
 import { z } from "zod";
 import http from "http";
 import multer from "multer";
+import { sanitizeText, sanitizeUrl, sanitizeFilename } from "./sanitization";
 import path from "path";
 import fs from "fs";
 import mimeTypes from "mime-types";
@@ -846,49 +847,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Audio file is required' });
       }
 
-      const {
-        residentId,
-        residentName,
-        title,
-        description,
-        showNotes,
-        seriesTitle,
-        episodeNumber,
-        genre,
-        tags,
-        coverArtUrl
-      } = req.body;
+      // Server-side file validation (don't trust client)
+      if (!req.file.mimetype.startsWith('audio/') && !req.file.originalname.endsWith('.mp3')) {
+        return res.status(400).json({ error: 'Only audio files are allowed' });
+      }
 
-      console.log(`📥 Resident episode submission: "${title}" by ${residentName}`);
+      if (req.file.size > 500 * 1024 * 1024) { // 500MB
+        return res.status(400).json({ error: 'File size must be under 500MB' });
+      }
+
+      // Get resident identity from authenticated session - NEVER trust request body
+      const residentSession = (req as any).resident;
+      if (!residentSession || !residentSession.residentId) {
+        return res.status(401).json({ error: 'Resident authentication required' });
+      }
+
+      // Validate input with Zod schema (no residentId/residentName from body)
+      const episodeSubmissionSchema = z.object({
+        title: z.string().min(1).max(200),
+        genre: z.string().min(1).max(50),
+        description: z.string().max(2000).optional(),
+        showNotes: z.string().max(10000).optional(),
+        seriesTitle: z.string().max(100).optional(),
+        episodeNumber: z.coerce.number().int().positive().nullable().optional(),
+        tags: z.string().max(200).optional(),
+        coverArtUrl: z.string().url().max(500).optional().or(z.literal('')),
+      });
+
+      const validatedData = episodeSubmissionSchema.parse(req.body);
+
+      console.log(`📥 Resident episode submission: "${validatedData.title}" by ${residentSession.displayName || residentSession.username}`);
 
       // Store file locally in uploads directory
       const audioPath = req.file.path;
-      const audioFileName = req.file.originalname;
+      const audioFileName = sanitizeFilename(req.file.originalname);
       const audioFileSize = req.file.size;
+
+      // Sanitize all text inputs to prevent XSS attacks
+      const sanitizedData = {
+        residentId: residentSession.residentId, // From authenticated session
+        residentName: sanitizeText(residentSession.displayName || residentSession.username), // From authenticated session
+        title: sanitizeText(validatedData.title),
+        genre: sanitizeText(validatedData.genre),
+        description: validatedData.description ? sanitizeText(validatedData.description) : undefined,
+        showNotes: validatedData.showNotes ? sanitizeText(validatedData.showNotes) : undefined,
+        seriesTitle: validatedData.seriesTitle ? sanitizeText(validatedData.seriesTitle) : undefined,
+        episodeNumber: validatedData.episodeNumber || null,
+        tags: validatedData.tags ? validatedData.tags.split(',').map((t: string) => sanitizeText(t)).filter(t => t) : null,
+        coverArtUrl: validatedData.coverArtUrl ? sanitizeUrl(validatedData.coverArtUrl) : null,
+      };
 
       // Create episode submission record
       const submission = await storage.createEpisodeSubmission({
-        residentId: residentId ? parseInt(residentId) : null,
-        residentName,
-        title,
-        genre,
-        description,
-        showNotes,
-        seriesTitle,
-        episodeNumber: episodeNumber ? parseInt(episodeNumber) : null,
-        tags: tags ? tags.split(',').map((t: string) => t.trim()) : null,
+        ...sanitizedData,
         audioFilePath: audioPath,
         audioFileName,
         audioFileSize,
-        coverArtUrl: coverArtUrl || null,
       });
 
       // Broadcast to admins that new submission arrived
       broadcast({
         type: 'newEpisodeSubmission',
         submissionId: submission.id,
-        residentName,
-        title,
+        residentName: validatedData.residentName,
+        title: validatedData.title,
       });
 
       res.json({
@@ -909,15 +931,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get episode submissions for a specific resident
   app.get("/api/resident/episodes", requireResident, async (req, res) => {
     try {
-      const { residentId, status } = req.query;
+      // Validate query params
+      const querySchema = z.object({
+        residentId: z.coerce.number().int().positive(),
+        status: z.enum(['pending', 'approved', 'rejected', 'scheduled', 'aired']).optional(),
+      });
 
-      if (!residentId) {
-        return res.status(400).json({ error: 'residentId is required' });
-      }
+      const { residentId, status } = querySchema.parse(req.query);
 
       const submissions = await storage.getEpisodeSubmissions({
-        residentId: parseInt(residentId as string),
-        status: status as string
+        residentId,
+        status
       });
 
       res.json(submissions);
@@ -930,11 +954,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get all episode submissions for admin review
   app.get("/api/admin/episode-submissions", requireAdmin, async (req, res) => {
     try {
-      const { status, limit } = req.query;
+      // Validate query params
+      const querySchema = z.object({
+        status: z.enum(['all', 'pending', 'approved', 'rejected', 'scheduled', 'aired']).optional(),
+        limit: z.coerce.number().int().positive().optional(),
+      });
+
+      const { status, limit } = querySchema.parse(req.query);
 
       const submissions = await storage.getEpisodeSubmissions({
-        status: status as string,
-        limit: limit ? parseInt(limit as string) : undefined
+        status: status === 'all' ? undefined : status,
+        limit
       });
 
       res.json(submissions);
@@ -964,28 +994,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Update episode submission (approve, reject, request changes)
   app.patch("/api/admin/episode-submissions/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const {
-        status,
-        adminNotes,
-        rejectionReason,
-        scheduledAirDate,
-        reviewedBy
-      } = req.body;
+      // Validate ID from URL params
+      const id = z.coerce.number().int().positive().parse(req.params.id);
+
+      // Validate request body
+      const updateSchema = z.object({
+        status: z.enum(['pending', 'approved', 'rejected', 'scheduled', 'aired']),
+        adminNotes: z.string().max(2000).optional(),
+        rejectionReason: z.string().max(1000).optional(),
+        scheduledAirDate: z.string().datetime().optional(),
+      });
+
+      const validatedData = updateSchema.parse(req.body);
 
       const submission = await storage.getEpisodeSubmissionById(id);
       if (!submission) {
         return res.status(404).json({ error: 'Episode submission not found' });
       }
 
-      // Build update object
+      // Get reviewedBy from session (admin user) - don't trust request body
+      const reviewedBy = (req as any).session?.user || 'admin';
+
+      // Build update object with sanitized inputs
       const updates: Partial<typeof submission> = {
-        status,
+        status: validatedData.status,
         reviewedAt: new Date(),
-        reviewedBy,
-        adminNotes,
-        rejectionReason: status === 'rejected' ? rejectionReason : null,
-        scheduledAirDate: scheduledAirDate ? new Date(scheduledAirDate) : null,
+        reviewedBy: sanitizeText(reviewedBy),
+        adminNotes: validatedData.adminNotes ? sanitizeText(validatedData.adminNotes) : null,
+        rejectionReason: validatedData.status === 'rejected' && validatedData.rejectionReason 
+          ? sanitizeText(validatedData.rejectionReason) 
+          : null,
+        scheduledAirDate: validatedData.scheduledAirDate ? new Date(validatedData.scheduledAirDate) : null,
       };
 
       const updated = await storage.updateEpisodeSubmission(id, updates);
@@ -1016,7 +1055,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Delete episode submission
   app.delete("/api/admin/episode-submissions/:id", requireAdmin, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      // Validate ID from URL params
+      const id = z.coerce.number().int().positive().parse(req.params.id);
 
       await storage.deleteEpisodeSubmission(id);
 
