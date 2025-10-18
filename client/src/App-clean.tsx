@@ -15,6 +15,7 @@ import SubmitMix from "./pages/SubmitMix-clean";
 import AlbumsPage from "./pages/AlbumsPage";
 import SubmitAlbum from "./pages/SubmitAlbum";
 import AdminAuthWrapper from "./components/AdminAuthWrapper";
+import ResidentAuthWrapper from "./components/ResidentAuthWrapper";
 
 // Genre pages
 import GenrePage from "./pages/GenrePage";
@@ -47,6 +48,10 @@ function Router() {
       {/* Admin - explicit routes */}
       <Route path="/admin" component={AdminAuthWrapper} />
       <Route path="/admin/:rest*" component={AdminAuthWrapper} />
+      
+      {/* Resident - explicit routes */}
+      <Route path="/resident" component={ResidentAuthWrapper} />
+      <Route path="/resident/:rest*" component={ResidentAuthWrapper} />
       
       {/* Legacy/Compatibility */}
       <Route path="/mobile" component={MobileRadio} />
