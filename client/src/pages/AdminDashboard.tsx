@@ -48,11 +48,13 @@ const navItems = [
   { href: "/admin/song-submissions", label: "Song Review", icon: Music, category: "content" },
   { href: "/admin/routing", label: "Mix Routing", icon: PlayCircle, category: "content" },
   { href: "/admin/upload", label: "Episode Upload", icon: Upload, category: "content" },
+  { href: "/admin/episode-queue", label: "Episode Queue", icon: Music, category: "content" },
   { href: "/admin/albums", label: "Albums of the Month", icon: Disc, category: "content" },
   
   // Community
   { href: "/admin/submissions", label: "Community Submissions", icon: Music, category: "community" },
   { href: "/admin/resident-applications", label: "DJ Applications", icon: Users, category: "community" },
+  { href: "/admin/residents", label: "Residents", icon: Users, category: "community" },
   { href: "/admin/queue", label: "Queue", icon: PlayCircle, category: "community" },
   
   // AzuraCast Integration
