@@ -1,105 +1,7 @@
-# Replit.md - Radio Station Web Application
+# Radio Station Web Application
 
 ## Overview
-This is a full-stack web application for a radio station platform that allows users to browse stations, discover shows, and listen to live audio streams. The application aims to provide a modern, engaging experience for music discovery and community interaction, featuring live programming, curated content, and user submissions.
-
-## Recent Changes
-**✅ COMPLETE: Radio Ops Panel - Monitoring Dashboard (October 2025)**
-- ✅ Created Radio Ops Panel (/admin/radio-ops) as real-time monitoring dashboard
-- ✅ Displays live broadcast status (LIVE vs AUTO mode) with auto-refresh every 5 seconds
-- ✅ Shows now playing information (track, artist, album) from AzuraCast API
-- ✅ Displays "Coming Up Next" track when in AUTO mode
-- ✅ Integrated into admin dashboard Quick Actions and navigation menu
-- ⚠️ **API Limitation**: Control endpoints (skip track, go live, disconnect) require web session authentication (cookies), not API keys
-- ✅ Semi-automated workflow: Panel is monitoring-only with direct "Open AzuraCast Admin Panel" link for active controls
-- ✅ Clean error handling with safe optional chaining for incomplete data
-- ✅ Station info display with stream URL and location details
-- ✅ Production-ready with proper AzuraCast API integration via environment secrets
-
-**✅ COMPLETE: AzuraCast Semi-Automated Streamer Account Setup (October 2025)**
-- ✅ One-click "Copy to AzuraCast" credential system for streamlined admin workflow
-- ✅ Settings management system (database schema, storage layer, admin UI) for AzuraCast configuration
-- ✅ Admin Settings page (/admin/settings) for configuring AzuraCast Base URL, API Key, and Station ID
-- ✅ Resident creation auto-generates secure AzuraCast credentials stored in system database
-- ✅ "Copy to AzuraCast" button provides pre-formatted credentials for instant paste into AzuraCast
-- ✅ Direct link to AzuraCast admin from resident management page
-- ✅ Seamless resident experience: credentials displayed in dashboard, ready for BUTT/Mixxx
-- ✅ API Limitation Note: AzuraCast streamers endpoint requires web session auth (not API key), preventing full automation
-- ✅ Workflow: Admin creates resident → clicks "Copy to AzuraCast" → pastes into AzuraCast UI (10 seconds total)
-- ✅ Comprehensive documentation explaining semi-automated setup and playlist interruption behavior
-- ✅ Warning messages in admin and resident views about playlist behavior
-- ✅ Environment secrets integration: AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID
-- ✅ Production-ready with proper error handling, logging, and credential security
-
-**✅ COMPLETE: Dark Mode & Mobile Card Optimizations (October 2025)**
-- ✅ Full dark mode implementation with theme toggle in header
-- ✅ Persistent theme preference saved to localStorage
-- ✅ Complete dark mode styling for all pages, cards, and UI components
-- ✅ Mobile-optimized card design: reduced padding (p-3), smaller text, tighter spacing
-- ✅ Refined card aesthetics: hairline borders, rounded-xl corners, filled badge backgrounds
-- ✅ Smooth theme transitions with proper dark/light color variants
-- ✅ Accessibility-focused with keyboard navigation and focus rings
-- ✅ End-to-end testing confirms mobile responsiveness and theme persistence
-
-**✅ COMPLETE: Albums of the Month Feature (October 2025)**
-- ✅ Full role-based authentication system (viewer/contributor/editor/admin) with requireRole middleware
-- ✅ MusicBrainz API integration for album metadata and Cover Art Archive with highest-rated fallback
-- ✅ Complete album suggestion workflow: submission → voting → acceptance → draft → publishing
-- ✅ AlbumSuggestion, AlbumVote, AlbumPick, and AlbumPickItem schema with persistent FileStorage
-- ✅ Public submission page (/submit-album) for community album recommendations
-- ✅ Admin interface (/admin/albums) with tabbed views: Suggestions, Draft, Published
-- ✅ Editor voting system requiring consensus (2+ votes) for acceptance
-- ✅ Monthly album picks with ranked items and publication workflow
-- ✅ Public Albums of the Month page (/albums) displaying published monthly selections
-- ✅ Protected admin API endpoints with proper authentication and authorization
-- ✅ End-to-end testing confirms complete workflow functionality
-- ✅ Production-ready implementation with proper error handling and data persistence
-
-**✅ COMPLETE: Resident Applications Management System (September 2025)**
-- ✅ Full-stack resident DJ application system with Google Sheets integration
-- ✅ ResidentApplication schema with comprehensive fields (status, review stages, priority)
-- ✅ FileStorage implementation with persistent JSON-based data storage
-- ✅ Complete CRUD API with admin authentication and proper error handling
-- ✅ AdminResidentApplications React interface with sync functionality and filtering
-- ✅ Google Sheets service with automatic form response import and duplicate detection
-- ✅ Toast notification system configured and working for user feedback
-- ✅ Admin dashboard integration with application statistics display
-- ✅ Manual and automatic sync capabilities with configurable intervals
-- ✅ Status workflow management (Submitted → Under Review → Approved/Rejected)
-- ✅ End-to-end testing confirms complete functionality (requires Google API credentials for production)
-
-**Critical Data Corruption Fixes (September 2025)**
-- ✅ Fixed persistent data corruption bug where approved mixes incorrectly appeared in featured tab
-- ✅ Resolved root cause: migrateMixData function was deleting canonical status field on every server restart
-- ✅ Implemented comprehensive multi-layer fix: serialization logic, storage filtering, admin endpoint authentication
-- ✅ Created dedicated admin-authenticated endpoint (/api/admin/mixes) with proper status filtering
-- ✅ Restored data integrity by preserving status field as primary source of truth with backward compatibility
-- ✅ Updated real SoundCloud thumbnails for community mixes replacing placeholder artwork
-- ✅ End-to-end testing confirms correct data distribution: Pending(1), Approved(1), Featured(3)
-
-**Working Sticky Radio Player Implementation (January 2025)**
-- ✅ HTTPS proxy endpoints (/stream.mp3 and /nowplaying) fix mixed-content blocking
-- ✅ Top banner player matching sharedfrequenciesradio.com design exactly
-- ✅ Real-time AzuraCast integration with live metadata polling
-- ✅ Functional play/pause controls with proper error handling and debugging
-- ✅ Volume controls and responsive design
-- Stream URL proxied through: /stream.mp3 (HTTPS-safe)
-
-**Standardized Mix Routing System (January 2025)**
-- ✅ Complete routing control system with featureOnSite/pushToAzura flags
-- ✅ Single backend router handling all post-approval workflows
-- ✅ Admin interface at `/admin/routing` for granular control over mix destinations
-- ✅ Audit trail tracking: approval → upload → rescan → playlist addition
-- ✅ Idempotent operations supporting retries and routing updates
-- ✅ AzuraCast integration with SFTP upload and playlist management
-
-**Clean Schema Migration Completed (January 2025)**
-- Successfully migrated from complex legacy schema to streamlined clean architecture
-- Consolidated all routing and type definitions into single source of truth files
-- Moved deprecated files (routes.ts, schema.ts, storage.ts) to dedicated deprecated/ folder
-- Updated all imports across client and server to use clean schema system
-- Resolved all TypeScript/LSP errors and ensured type consistency
-- Maintained full functionality while simplifying codebase structure
+This full-stack web application provides a modern, engaging platform for a radio station. It enables users to discover and listen to live audio streams, browse stations and shows, and interact with curated content. The project aims to offer a comprehensive experience for music discovery, community interaction, featuring live programming, user submissions, and a robust admin system for content management and resident DJ operations. The business vision is to create a hub for music enthusiasts, fostering community and promoting new artists through a streamlined and user-friendly interface.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -115,11 +17,10 @@ External forms: Prefer Google Forms for complex applications over custom form im
 ### Frontend Architecture
 - **Framework**: React with TypeScript
 - **Build Tool**: Vite
-- **Styling**: Tailwind CSS with shadcn/ui component library
+- **Styling**: Tailwind CSS with shadcn/ui component library, Radix UI primitives
 - **State Management**: TanStack Query
 - **Routing**: Wouter
-- **UI Components**: Radix UI primitives
-- **UI/UX Decisions**: Responsive design (mobile-first), Dark Theme (default), IBM Plex Mono typography, white/cream backgrounds with #FF0000 red accent scheme. Features include iPod Cover Flow-inspired album showcase, macOS folder-style guide navigation, and a single persistent radio player in the top-right corner. Customizable player themes are available.
+- **UI/UX Decisions**: Responsive design (mobile-first), Dark Theme (default), IBM Plex Mono typography, white/cream backgrounds with #FF0000 red accent. Features include an iPod Cover Flow-inspired album showcase, macOS folder-style guide navigation, and a single persistent radio player with customizable themes.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
@@ -127,32 +28,24 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Real-time Communication**: WebSocket server for live updates
 - **API Design**: RESTful API with real-time WebSocket enhancements
 - **Core Functionality**: Manages radio programs, schedules, content rotation, user submissions, and an admin approval queue.
-- **Streaming**: Integrated with AzuraCast for professional radio streaming - AzuraCast handles stream management, scheduling, and auto-playlists.
-- **Data Persistence**: File-based persistent storage (`server/persistentStorage.ts`) with JSON files in `./data/` directory ensures data survives server restarts and maintains consistency.
+- **Streaming**: Integrated with AzuraCast for professional radio streaming (stream management, scheduling, auto-playlists).
+- **Data Persistence**: File-based persistent storage (`server/persistentStorage.ts`) using JSON files in `./data/`.
 
 ### Database Architecture
-- **Database**: PostgreSQL with connection pooling (ready for production)
+- **Database**: PostgreSQL with connection pooling (Neon serverless PostgreSQL)
 - **ORM**: Drizzle ORM
 - **Migrations**: Drizzle Kit
-- **Connection**: Neon serverless PostgreSQL
-- **Current Setup**: Clean schema architecture with streamlined types and consistent naming conventions
+- **Current Setup**: Clean schema architecture with streamlined types and consistent naming conventions.
 
 ### Key Features
-- **Audio System**: Simplified AudioPlayer compatible with AzuraCast backend - AzuraCast handles complex audio features like auto-playlists and rotation.
-- **Station Management**: Browse stations by genre, featured shows, live status indicators, and organized content.
-- **Editorial Workflow System**: Supports newsroom-style stages (Submitted → Copy Ready → Web Ready → Published) for zine content (though currently de-emphasized).
-- **Physical Media Generation**: Functionality for creating NFC tags, QR stickers, and mini CDs linked to digital publications (Issuu.com integration).
-- **Content Discovery**: NTS-inspired episode system, Spotify integration for music discovery, curated guides, and monthly album picks.
-- **Albums of the Month**: Community-driven monthly album curation with submission workflow, editor voting (consensus-based), MusicBrainz integration for artwork, and ranked publication system. Public users submit suggestions via /submit-album, editors vote and curate monthly picks, and published selections appear on /albums with full metadata and artwork.
-- **Mix Upload & Playback**: Community mix submission system with manual playback - AzuraCast handles scheduling and rotation.
-- **AzuraCast Integration**: Backend handles live programming, auto-rotation, scheduling - frontend focuses on community content and manual selection.
-- **Resident DJ System**: Full-stack resident management with semi-automated AzuraCast streamer account setup. When admins create residents, the system auto-generates secure streaming credentials. Admins use the one-click "Copy to AzuraCast" button to copy pre-formatted credentials, then paste them into AzuraCast UI (takes 10 seconds). Residents see their credentials in their dashboard and can immediately stream using BUTT/Mixxx. API limitation: AzuraCast streamers endpoint requires web session authentication (not API key), preventing full automation. Credentials stored in environment secrets (AZURACAST_BASE_URL, AZURACAST_API_KEY, AZURACAST_STATION_ID).
-- **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section, no harsh rejections, automatic metadata enhancement (e.g., Last.fm, Spotify).
-- **Mix Submission Backend**: Complete persistent JSON-based storage system for mix submissions with approval workflow. Supports SoundCloud, Mixcloud, and Audio.com URLs. Features admin approval pipeline with status management (pending → approved/featured).
-- **SoundCloud Metadata Integration**: Automatic fetching and storage of enhanced metadata (titles, artists, thumbnails) via oEmbed API with intelligent display priority logic.
-- **Resident Application System**: Express redirect route from /resident-application to external Google Form for streamlined application processing.
-- **Admin Controls**: Stream control panel (play/pause/skip), manual now playing updates, comprehensive CRUD operations for content.
-- **Enhanced Routing Structure**: Complete navigation system with Latest, Explore (guides), Episodes (archive), Schedule (live programming), and Mixes (community) sections. Guides are treated as collections/editorials distinct from individual episodes, following a magazine-style content architecture.
+- **Audio System**: Simplified AudioPlayer compatible with AzuraCast backend; AzuraCast handles complex audio features.
+- **Station Management**: Browse stations by genre, featured shows, live status, and organized content.
+- **Albums of the Month**: Community-driven album curation with a public submission page, editor voting, MusicBrainz integration for artwork, and a ranked publication system.
+- **Mix Upload & Playback**: Community mix submission system with persistent JSON-based storage, admin approval workflow, and SoundCloud/Mixcloud/Audio.com URL support. Includes automatic metadata fetching via oEmbed API.
+- **Resident DJ System**: Full-stack resident management with semi-automated AzuraCast streamer account setup. This involves auto-generating secure credentials and a one-click "Copy to AzuraCast" button for admin-assisted configuration due to AzuraCast API limitations.
+- **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section and automatic metadata enhancement.
+- **Admin Controls**: Radio Ops Panel for real-time monitoring of broadcast status and now playing information from AzuraCast, along with comprehensive CRUD operations for content and AzuraCast configuration via an admin settings page.
+- **Enhanced Routing Structure**: Comprehensive navigation including Latest, Explore (guides), Episodes (archive), Schedule (live programming), and Mixes (community).
 
 ## External Dependencies
 
@@ -160,6 +53,133 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **UI Framework**: Radix UI primitives, Tailwind CSS
 - **Database**: Drizzle ORM, Neon serverless PostgreSQL
 - **Development**: Vite, TypeScript, ESLint
-- **Audio**: Web Audio API, WebSocket for live updates
-- **Streaming**: Icecast streaming server, HTML5 audio
-- **Metadata/APIs**: SoundCloud oEmbed API, Last.fm, Spotify API, MusicBrainz API (album metadata and Cover Art Archive), Issuu.com (mock API)
+- **Audio**: Web Audio API, HTML5 audio
+- **Streaming**: AzuraCast (with Icecast server)
+- **Broadcasting Software**: BUTT, Mixxx, Audio Hijack, OBS Studio (for resident streaming)
+- **Metadata/APIs**: SoundCloud oEmbed API, Last.fm, Spotify API, MusicBrainz API (album metadata and Cover Art Archive)
+- **External Forms**: Google Sheets (for Resident Applications)
+
+## Streaming Workflows
+
+### Resident DJ Streaming Setup
+**Complete End-to-End Workflow: From Account Creation to Going Live**
+
+#### Phase 1: Admin Creates Resident Account
+1. Admin logs into admin portal (/admin)
+2. Navigate to Residents Management (/admin/residents)
+3. Click "Create New Resident" and fill in resident details (name, bio, etc.)
+4. System automatically generates secure streaming credentials:
+   - Username: `resident_[firstname_lastname]`
+   - Password: Randomly generated secure password
+   - Server: Hostname extracted from AZURACAST_BASE_URL (e.g., 24.199.109.18)
+   - Port: 8000 (default Icecast port)
+   - Mount Point: /radio.mp3
+
+#### Phase 2: Admin Configures Streamer in AzuraCast (Semi-Automated)
+1. After resident creation, admin sees "Copy to AzuraCast" button
+2. Click button to copy pre-formatted credentials to clipboard
+3. Click "Open AzuraCast Admin Panel" to access AzuraCast in new tab
+4. In AzuraCast: Navigate to Streamers → Add Streamer
+5. Paste copied credentials directly into AzuraCast form
+6. Save streamer configuration in AzuraCast (total time: ~10 seconds)
+7. **Note**: This semi-automated workflow exists because AzuraCast's streamer management endpoint requires web session authentication (cookies), not API keys
+
+#### Phase 3: Resident Receives Credentials
+1. Resident logs into their dashboard (/resident)
+2. Credentials are displayed in a clear, copy-friendly format
+3. Resident can copy individual fields or entire credential set
+4. **Important Warning Displayed**: "When you go live, the automated playlist will stop playing. Your live broadcast takes priority."
+
+#### Phase 4: Resident Configures Broadcasting Software
+Residents can use any of these recommended software options:
+
+**Option A: BUTT (Broadcast Using This Tool) - Free, Cross-Platform**
+- Download from https://danielnoethen.de/butt/
+- Configure streaming settings:
+  - Server: [from credentials]
+  - Port: 8000
+  - Password: [from credentials]
+  - Mount Point: /radio.mp3
+  - Encoder: MP3 (128kbps or higher recommended)
+- Select audio input source (microphone, line-in, or virtual audio device)
+- Click "Play" to start streaming
+
+**Option B: Mixxx - Free DJ Software**
+- Download from https://mixxx.org
+- Enable Live Broadcasting in Preferences → Live Broadcasting
+- Configure Icecast 2 settings using provided credentials
+- Use Mixxx's DJ features while streaming live
+
+**Option C: Audio Hijack (macOS) - Advanced Audio Routing**
+- Download from https://rogueamoeba.com/audiohijack/
+- Create new session with desired audio sources:
+  - Application audio (Spotify, Apple Music, web browsers)
+  - Microphone input for announcements
+  - Music library for playback
+- Add "Broadcast" block and configure with AzuraCast credentials:
+  - Type: Icecast
+  - Server: [from credentials]
+  - Port: 8000
+  - Mount Point: /radio.mp3
+  - Password: [from credentials]
+- Use Audio Hijack's powerful routing to mix multiple audio sources
+- Click "Record & Broadcast" to go live
+
+**Option D: OBS Studio + Icecast Plugin**
+- Download OBS Studio from https://obsproject.com/
+- Install the obs-icecast plugin:
+  - For Windows/Mac: Download from https://github.com/iamscottxu/obs-icecast/releases
+  - Extract and copy files to OBS plugins folder
+  - Restart OBS Studio
+- Configure audio-only streaming:
+  - Create a new Scene with audio sources (Desktop Audio, Mic/Aux)
+  - Go to Settings → Output
+  - Set Output Mode to "Advanced"
+  - Enable "Audio Track 1" for your audio sources
+- Configure Icecast streaming:
+  - In Settings → Stream, select "Icecast" as Service
+  - Enter server details from credentials:
+    - Server: [hostname without http://]
+    - Port: 8000
+    - Mount Point: /radio.mp3
+    - Password: [from credentials]
+  - Set Audio Bitrate to 128 kbps or higher
+- Click "Start Streaming" to go live
+- Monitor stream status in OBS status bar
+
+#### Phase 5: Going Live - What Happens
+1. Resident starts streaming from their software
+2. AzuraCast receives the live stream connection
+3. **Automated playlist immediately stops** - Live broadcast takes priority
+4. Stream switches from AUTO mode to LIVE mode
+5. Radio Ops Panel (/admin/radio-ops) shows:
+   - Status: "🔴 LIVE"
+   - Now Playing: Updates with metadata from live stream
+   - "Coming Up Next" section disappears (no queue during live broadcast)
+6. Listeners hear the resident's live broadcast in real-time
+
+#### Phase 6: Ending Live Broadcast
+1. Resident stops streaming from their software
+2. AzuraCast detects disconnection
+3. **Automated playlist automatically resumes** - Ensures continuous audio
+4. Stream switches from LIVE mode back to AUTO mode
+5. Radio Ops Panel shows:
+   - Status: "⚡ AUTO"
+   - Now Playing: Current automated playlist track
+   - "Coming Up Next" reappears with queue information
+
+#### Technical Notes & Best Practices
+- **Playlist Interruption**: This is expected AzuraCast behavior - live broadcasts take priority over automation
+- **Bandwidth**: Recommend streaming at 128kbps MP3 for quality/bandwidth balance
+- **Latency**: Typical stream delay is 5-15 seconds between broadcast and listener playback
+- **Monitoring**: Admins can monitor live status via Radio Ops Panel with auto-refresh every 5 seconds
+- **Security**: All credentials are stored securely in the database and transmitted over HTTPS
+- **Fallback**: If a resident's stream drops unexpectedly, automated playlist resumes immediately
+- **Multiple Residents**: AzuraCast supports multiple streamer accounts, but only one can be live at a time
+
+#### Troubleshooting Common Issues
+- **"Connection Refused"**: Verify server URL and port (should be http://[server]:8000)
+- **"Authentication Failed"**: Double-check password - no extra spaces or characters
+- **"Mount Point Error"**: Ensure using `/radio.mp3` exactly as provided
+- **"Stream Not Appearing"**: Check that automated playlist has stopped - if it's still playing, live connection may not be established
+- **"Audio Quality Issues"**: Increase bitrate to 192kbps or use AAC encoding for better quality
