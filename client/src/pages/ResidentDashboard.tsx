@@ -404,6 +404,11 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
                     Submit New Episode
                   </Link>
                 </Button>
+                <Link href="/resident/recording-guide">
+                  <button className="w-full text-sm text-blue-600 hover:text-blue-800 hover:underline font-medium" data-testid="link-recording-guide">
+                    📚 New to recording? Read our step-by-step Audacity guide →
+                  </button>
+                </Link>
               </div>
             </CardContent>
           </Card>

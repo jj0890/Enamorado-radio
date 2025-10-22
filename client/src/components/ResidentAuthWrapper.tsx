@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import ResidentLogin from '@/pages/ResidentLogin';
 import ResidentDashboard from '@/pages/ResidentDashboard';
 import ResidentEpisodeSubmit from '@/pages/ResidentEpisodeSubmit';
+import RecordingGuide from '@/pages/RecordingGuide';
 
 interface ResidentAuthData {
   authenticated: boolean;
@@ -71,7 +72,10 @@ export default function ResidentAuthWrapper() {
           />
         );
       case '/resident/episode-submit':
+      case '/resident/submit-episode':
         return <ResidentEpisodeSubmit />;
+      case '/resident/recording-guide':
+        return <RecordingGuide />;
       default:
         return (
           <ResidentDashboard 
