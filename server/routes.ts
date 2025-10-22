@@ -384,6 +384,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Editor stats dashboard (accessible by editors and admins)
+  app.get('/api/editor/stats', requireRole('editor'), async (req, res) => {
+    try {
+      const allMixes = await storage.getMixSubmissions({ limit: 1000 });
+      const allEpisodeSubmissions = await storage.getEpisodeSubmissions({ limit: 1000 });
+      const allAlbumSuggestions = await storage.getAlbumSuggestions({ limit: 1000 });
+      
+      // Count pending items
+      const pendingEpisodes = allEpisodeSubmissions.filter(e => e.status === 'pending').length;
+      const pendingMixes = allMixes.filter(m => m.status === 'pending').length;
+      const pendingAlbums = allAlbumSuggestions.filter(a => a.status === 'pending').length;
+      
+      // Gather recent activity from all sources
+      const recentActivity = [
+        ...allEpisodeSubmissions
+          .filter(e => e.status === 'pending')
+          .slice(0, 5)
+          .map(e => ({
+            type: 'episode' as const,
+            title: e.title,
+            submitter: e.residentName,
+            submittedAt: e.submittedAt || new Date().toISOString()
+          })),
+        ...allMixes
+          .filter(m => m.status === 'pending')
+          .slice(0, 5)
+          .map(m => ({
+            type: 'mix' as const,
+            title: m.title || 'Untitled',
+            submitter: m.name || 'Unknown',
+            submittedAt: m.submittedAt || new Date().toISOString()
+          })),
+        ...allAlbumSuggestions
+          .filter(a => a.status === 'pending')
+          .slice(0, 5)
+          .map(a => ({
+            type: 'album' as const,
+            title: `${a.artist} - ${a.title}`,
+            submitter: a.suggestedBy,
+            submittedAt: a.createdAt || new Date().toISOString()
+          }))
+      ]
+      .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+      .slice(0, 10);
+      
+      res.json({
+        pendingEpisodes,
+        pendingMixes,
+        pendingAlbums,
+        recentActivity
+      });
+    } catch (error) {
+      console.error('Error fetching editor stats:', error);
+      res.status(500).json({ error: 'Failed to fetch stats' });
+    }
+  });
+
   // =================
   // DANGER ZONE - Destructive Admin Operations
   // =================
@@ -909,8 +966,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       broadcast({
         type: 'newEpisodeSubmission',
         submissionId: submission.id,
-        residentName: validatedData.residentName,
-        title: validatedData.title,
+        residentName: sanitizedData.residentName,
+        title: sanitizedData.title,
       });
 
       res.json({
