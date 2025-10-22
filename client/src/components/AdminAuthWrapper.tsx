@@ -22,6 +22,7 @@ import EditorPortal from "@/pages/EditorPortal";
 import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
+import ScheduleManagement from "@/pages/ScheduleManagement";
 import { useLocation, Link } from "wouter";
 import { ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,6 +175,8 @@ export default function AdminAuthWrapper() {
         return <AdminEpisodeUpload />;
       case '/admin/episode-queue':
         return <AdminEpisodeQueue />;
+      case '/admin/schedule-management':
+        return <ScheduleManagement />;
       case '/admin/azuracast-upload':
         return (
           <div className="min-h-screen bg-[#FEFCF9] p-6">

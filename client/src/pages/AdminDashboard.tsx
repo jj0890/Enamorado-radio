@@ -19,7 +19,8 @@ import {
   RefreshCw,
   Upload,
   Disc,
-  Settings
+  Settings,
+  Calendar
 } from "lucide-react";
 
 interface AdminStats {
@@ -49,6 +50,7 @@ const navItems = [
   { href: "/admin/routing", label: "Mix Routing", icon: PlayCircle, category: "content" },
   { href: "/admin/upload", label: "Episode Upload", icon: Upload, category: "content" },
   { href: "/admin/episode-queue", label: "Episode Queue", icon: Music, category: "content" },
+  { href: "/admin/schedule-management", label: "Schedule Manager", icon: Calendar, category: "content" },
   { href: "/admin/albums", label: "Albums of the Month", icon: Disc, category: "content" },
   
   // Community
