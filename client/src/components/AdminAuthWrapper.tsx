@@ -22,12 +22,70 @@ import EditorPortal from "@/pages/EditorPortal";
 import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
+import { ShieldAlert } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 interface AdminAuthData {
   authenticated: boolean;
   user?: string;
   role?: 'viewer' | 'contributor' | 'editor' | 'admin';
+}
+
+// Define admin-only routes (editors cannot access these)
+const ADMIN_ONLY_ROUTES = [
+  '/admin/residents',
+  '/admin/resident-applications',
+  '/admin/settings',
+  '/admin/azuracast',
+  '/admin/routing',
+  '/admin/radio-ops',
+  '/admin/backups',
+  '/admin/danger-zone',
+  '/admin/stats',
+  '/admin/azuracast-upload',
+  '/admin/mix-manager',
+];
+
+// Access Denied component for non-admins trying to access admin-only pages
+function AccessDenied({ role, onLogout }: { role?: string; onLogout: () => void }) {
+  return (
+    <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center p-6">
+      <Card className="max-w-md">
+        <CardHeader>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
+              <ShieldAlert className="w-6 h-6 text-red-600" />
+            </div>
+            <CardTitle className="text-2xl">Access Denied</CardTitle>
+          </div>
+          <CardDescription>
+            You don't have permission to access this page
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <p className="text-sm text-gray-700">
+              <strong>Your role:</strong> {role || 'Unknown'}<br/>
+              <strong>Required role:</strong> Admin
+            </p>
+          </div>
+          <p className="text-sm text-gray-600">
+            This page is restricted to administrators only. If you believe you should have access, please contact your system administrator.
+          </p>
+          <div className="flex gap-3">
+            <Button asChild variant="default" className="flex-1">
+              <Link href="/admin">Go to Dashboard</Link>
+            </Button>
+            <Button variant="outline" onClick={onLogout} data-testid="button-logout">
+              Logout
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
 }
 
 export default function AdminAuthWrapper() {
@@ -79,6 +137,15 @@ export default function AdminAuthWrapper() {
     
     // Normalize path by removing trailing slash and query parameters
     const normalizedPath = location.split('?')[0].replace(/\/+$/, '') || '/admin';
+    
+    // Check if route is admin-only using prefix matching to catch nested routes
+    const isAdminOnlyRoute = ADMIN_ONLY_ROUTES.some(route => normalizedPath.startsWith(route));
+    const isAdmin = authData?.role === 'admin';
+    
+    if (isAdminOnlyRoute && !isAdmin) {
+      console.log('🚫 Access denied: User role', authData?.role, 'cannot access', normalizedPath);
+      return <AccessDenied role={authData?.role} onLogout={handleLogout} />;
+    }
     
     // Role-based routing for /admin root path
     if (normalizedPath === '/admin') {

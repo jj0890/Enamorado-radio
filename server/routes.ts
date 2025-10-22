@@ -1929,7 +1929,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/azuracast/upload/:id", async (req, res) => {
+  app.post("/api/azuracast/upload/:id", requireAdmin, async (req, res) => {
     try {
       const mixId = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(mixId);
@@ -2343,7 +2343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Process approved mix for AzuraCast upload
-  app.post('/api/azuracast/process-mix/:id', async (req, res) => {
+  app.post('/api/azuracast/process-mix/:id', requireAdmin, async (req, res) => {
     try {
       const mixId = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(mixId);
@@ -2391,7 +2391,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Upload processed audio to AzuraCast
-  app.post('/api/azuracast/upload/:id', async (req, res) => {
+  app.post('/api/azuracast/upload/:id', requireAdmin, async (req, res) => {
     try {
       const mixId = parseInt(req.params.id);
       const mix = await storage.getMixSubmission(mixId);
