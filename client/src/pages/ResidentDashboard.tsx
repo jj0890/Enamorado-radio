@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info, Upload, FileAudio } from 'lucide-react';
+import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info, Upload, FileAudio, Clock, CheckCircle, XCircle, CalendarCheck, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'wouter';
 import type { Resident, Schedule } from '@shared/schema';
@@ -464,17 +464,24 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
                           </p>
                         )}
                       </div>
-                      <div className="ml-4">
+                      <div className="ml-4 flex items-center gap-2">
                         <Badge 
                           variant={
-                            episode.status === 'approved' || episode.status === 'scheduled' ? 'default' :
+                            episode.status === 'approved' ? 'default' :
+                            episode.status === 'scheduled' ? 'default' :
                             episode.status === 'rejected' ? 'destructive' :
                             episode.status === 'aired' ? 'secondary' :
                             'outline'
                           }
+                          className="flex items-center gap-1"
                           data-testid={`badge-status-${episode.id}`}
                         >
-                          {episode.status}
+                          {episode.status === 'pending' && <Clock className="w-3 h-3" />}
+                          {episode.status === 'approved' && <CheckCircle className="w-3 h-3" />}
+                          {episode.status === 'rejected' && <XCircle className="w-3 h-3" />}
+                          {episode.status === 'scheduled' && <CalendarCheck className="w-3 h-3" />}
+                          {episode.status === 'aired' && <Sparkles className="w-3 h-3" />}
+                          {episode.status.charAt(0).toUpperCase() + episode.status.slice(1)}
                         </Badge>
                       </div>
                     </div>
