@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import AdminLogin from "@/pages/AdminLogin";
 import AdminDashboard from "@/pages/AdminDashboard";
+import EditorDashboard from "@/pages/EditorDashboard";
 import AdminBackups from "@/pages/AdminBackups";
 import AdminMixSubmissions from "@/pages/AdminMixSubmissions";
 import AdminStats from "@/pages/AdminStats";
@@ -26,6 +27,7 @@ import { useLocation } from "wouter";
 interface AdminAuthData {
   authenticated: boolean;
   user?: string;
+  role?: 'viewer' | 'contributor' | 'editor' | 'admin';
 }
 
 export default function AdminAuthWrapper() {
@@ -73,13 +75,22 @@ export default function AdminAuthWrapper() {
   // Authenticated - route to appropriate admin page
   const renderAdminPage = () => {
     console.log('🔀 AdminAuthWrapper routing to:', location);
+    console.log('👤 User role:', authData?.role);
     
     // Normalize path by removing trailing slash and query parameters
     const normalizedPath = location.split('?')[0].replace(/\/+$/, '') || '/admin';
     
+    // Role-based routing for /admin root path
+    if (normalizedPath === '/admin') {
+      // Editors get their task-focused dashboard
+      if (authData?.role === 'editor') {
+        return <EditorDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
+      }
+      // Admins, contributors, and viewers get full admin dashboard
+      return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
+    }
+    
     switch (normalizedPath) {
-      case '/admin':
-        return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/mix-submissions':
         return <AdminMixSubmissions />; // Use dedicated mix submissions component
       case '/admin/submissions':
