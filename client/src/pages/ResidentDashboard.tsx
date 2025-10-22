@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info } from 'lucide-react';
+import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info, Upload, FileAudio } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'wouter';
 import type { Resident, Schedule } from '@shared/schema';
 import StreamingGuide from '@/components/StreamingGuide';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -32,6 +33,22 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
   // Fetch resident's schedule
   const { data: schedule = [], isLoading: scheduleLoading } = useQuery<Schedule[]>({
     queryKey: [`/api/schedule/resident/${residentData.id}`],
+  });
+
+  // Fetch resident's episode submissions
+  interface EpisodeSubmission {
+    id: number;
+    title: string;
+    seriesTitle?: string;
+    episodeNumber?: number;
+    status: string;
+    submittedAt: string;
+    rejectionReason?: string;
+    scheduledAirDate?: string;
+  }
+  
+  const { data: episodes = [], isLoading: episodesLoading } = useQuery<EpisodeSubmission[]>({
+    queryKey: [`/api/resident/episodes?residentId=${residentData.id}`],
   });
 
   const logoutMutation = useMutation({
@@ -361,6 +378,119 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
                 </>
               ) : (
                 <p className="text-sm text-gray-500">Unable to load show information</p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Submit Episode */}
+          <Card data-testid="card-submit-episode" className="bg-gradient-to-br from-red-50 to-white border-red-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-600">
+                <Upload className="w-5 h-5" />
+                Submit Pre-Recorded Episode
+              </CardTitle>
+              <CardDescription>
+                Upload your pre-recorded episodes for review and scheduling
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <p className="text-sm text-gray-600">
+                  Record your episode using Audacity or your preferred audio software, then submit it here for editorial review and scheduling.
+                </p>
+                <Button asChild className="w-full" size="lg" data-testid="button-submit-episode">
+                  <Link href="/resident/submit-episode">
+                    <Upload className="w-4 h-4 mr-2" />
+                    Submit New Episode
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* My Episodes */}
+          <Card className="lg:col-span-2" data-testid="card-my-episodes">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileAudio className="w-5 h-5" />
+                My Episode Submissions
+              </CardTitle>
+              <CardDescription>Track your submitted episodes and their status</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {episodesLoading ? (
+                <div className="text-center py-8">
+                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                </div>
+              ) : episodes.length > 0 ? (
+                <div className="space-y-3">
+                  {episodes.slice(0, 5).map((episode) => (
+                    <div
+                      key={episode.id}
+                      className="flex items-start justify-between p-4 border rounded-lg hover:bg-gray-50"
+                      data-testid={`episode-item-${episode.id}`}
+                    >
+                      <div className="flex-1">
+                        <h4 className="font-medium">{episode.title}</h4>
+                        {episode.seriesTitle && (
+                          <p className="text-xs text-gray-500">{episode.seriesTitle} {episode.episodeNumber && `#${episode.episodeNumber}`}</p>
+                        )}
+                        <p className="text-sm text-gray-600 mt-1">
+                          Submitted {new Date(episode.submittedAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric',
+                          })}
+                        </p>
+                        {episode.status === 'rejected' && episode.rejectionReason && (
+                          <p className="text-sm text-red-600 mt-2">
+                            <strong>Feedback:</strong> {episode.rejectionReason}
+                          </p>
+                        )}
+                        {episode.status === 'scheduled' && episode.scheduledAirDate && (
+                          <p className="text-sm text-green-600 mt-2">
+                            <strong>Air Date:</strong> {new Date(episode.scheduledAirDate).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                              hour: 'numeric',
+                              minute: '2-digit',
+                            })}
+                          </p>
+                        )}
+                      </div>
+                      <div className="ml-4">
+                        <Badge 
+                          variant={
+                            episode.status === 'approved' || episode.status === 'scheduled' ? 'default' :
+                            episode.status === 'rejected' ? 'destructive' :
+                            episode.status === 'aired' ? 'secondary' :
+                            'outline'
+                          }
+                          data-testid={`badge-status-${episode.id}`}
+                        >
+                          {episode.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                  {episodes.length > 5 && (
+                    <p className="text-center text-sm text-gray-500 pt-2">
+                      Showing 5 of {episodes.length} episodes
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <FileAudio className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-gray-500 mb-4">No episodes submitted yet</p>
+                  <Button asChild variant="outline" data-testid="button-submit-first-episode">
+                    <Link href="/resident/submit-episode">
+                      <Upload className="w-4 h-4 mr-2" />
+                      Submit Your First Episode
+                    </Link>
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
