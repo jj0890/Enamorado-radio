@@ -1924,12 +1924,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/schedule", async (req, res) => {
     try {
-      const { upcoming, date, limit } = req.query;
-      const schedule = await storage.getSchedule({
-        upcoming: upcoming === 'true' ? true : undefined,
-        date: date ? new Date(date as string) : undefined,
-        limit: limit ? parseInt(limit as string) : undefined
+      const { upcoming } = req.query;
+      
+      // Get scheduled and aired episode submissions
+      const episodes = await storage.getEpisodeSubmissions({});
+      
+      // Filter for scheduled and aired episodes
+      let scheduledEpisodes = episodes.filter(ep => 
+        (ep.status === 'scheduled' || ep.status === 'aired') && ep.scheduledAirDate
+      );
+      
+      // Filter by upcoming if requested
+      if (upcoming === 'true') {
+        const now = new Date();
+        scheduledEpisodes = scheduledEpisodes.filter(ep => 
+          new Date(ep.scheduledAirDate!) > now
+        );
+      }
+      
+      // Sort by air date (upcoming first, then chronological)
+      scheduledEpisodes.sort((a, b) => {
+        const dateA = new Date(a.scheduledAirDate!).getTime();
+        const dateB = new Date(b.scheduledAirDate!).getTime();
+        return dateA - dateB;
       });
+      
+      // Format for frontend
+      const schedule = scheduledEpisodes.map(ep => ({
+        id: ep.id,
+        title: ep.title,
+        hostName: ep.residentName,
+        description: ep.description || '',
+        scheduledAt: ep.scheduledAirDate,
+        duration: ep.duration ? Math.floor(ep.duration / 60) : 60, // Convert to minutes
+        status: ep.status === 'aired' ? 'aired' : (new Date(ep.scheduledAirDate!) <= new Date() ? 'live' : 'upcoming'),
+        artworkUrl: null, // No artwork for episodes yet
+        isRecurring: false,
+        recurrencePattern: null
+      }));
+      
       res.json(schedule);
     } catch (error) {
       console.error('Error fetching schedule:', error);
