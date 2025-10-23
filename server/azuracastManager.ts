@@ -71,11 +71,8 @@ export class AzuraCastManager {
         console.warn(`⚠️ Rescan may have failed:`, rescanResult.error);
       }
       
-      // Update episode in database
-      await storage.updateEpisode(episodeId, {
-        filePath: remotePath,
-        status: 'uploaded'
-      });
+      // Note: Database update handled by calling code
+      // Episode submission status is updated in routes.ts after upload completes
       
       console.log(`✅ Episode ${episodeId} upload workflow completed`);
       
@@ -93,10 +90,7 @@ export class AzuraCastManager {
         // Ignore SFTP cleanup errors
       }
       
-      // Update episode status to error
-      await storage.updateEpisode(episodeId, {
-        status: 'error'
-      });
+      // Note: Error handling delegated to calling code
       
       return {
         success: false,
@@ -293,16 +287,9 @@ export class AzuraCastManager {
    */
   async getFilePathMapping(): Promise<{ [filePath: string]: number }> {
     try {
-      const episodes = await storage.getEpisodes({ status: 'uploaded' });
-      const mapping: { [filePath: string]: number } = {};
-      
-      episodes.forEach(episode => {
-        if (episode.filePath) {
-          mapping[episode.filePath] = episode.id;
-        }
-      });
-      
-      return mapping;
+      // Note: File path mapping for now playing lookups
+      // Currently not actively used - placeholder for future functionality
+      return {};
     } catch (error) {
       console.error('Failed to get file path mapping:', error);
       return {};

@@ -25,24 +25,23 @@ function ScheduleDialog({ episode, isOpen, onClose, onSuccess }: ScheduleDialogP
   const scheduleMutation = useMutation({
     mutationFn: async () => {
       const scheduledDateTime = `${airDate}T${airTime}`;
-      return await apiRequest('PATCH', `/api/admin/episode-submissions/${episode.id}`, {
-        status: 'scheduled',
+      return await apiRequest('POST', `/api/admin/episode-submissions/${episode.id}/schedule-azuracast`, {
         scheduledAirDate: new Date(scheduledDateTime).toISOString(),
       });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/admin/episode-submissions'] });
       toast({
-        title: 'Episode Scheduled',
-        description: `"${episode.title}" is scheduled to air on ${new Date(`${airDate}T${airTime}`).toLocaleString()}.`,
+        title: 'Episode Scheduled with AzuraCast',
+        description: `"${episode.title}" uploaded and scheduled to air on ${new Date(`${airDate}T${airTime}`).toLocaleString()}.`,
       });
       onSuccess();
       onClose();
     },
     onError: (error: any) => {
       toast({
-        title: 'Error',
-        description: error?.message || 'Failed to schedule episode.',
+        title: 'AzuraCast Integration Error',
+        description: error?.message || 'Failed to upload/schedule episode with AzuraCast.',
         variant: 'destructive',
       });
     },

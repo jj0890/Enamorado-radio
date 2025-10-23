@@ -1109,6 +1109,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Schedule episode submission with AzuraCast integration
+  app.post("/api/admin/episode-submissions/:id/schedule-azuracast", requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { scheduledAirDate } = req.body;
+
+      if (!scheduledAirDate) {
+        return res.status(400).json({ error: 'scheduledAirDate is required' });
+      }
+
+      // Validate that air date is in the future
+      const airDate = new Date(scheduledAirDate);
+      if (airDate <= new Date()) {
+        return res.status(400).json({ 
+          error: 'Air date must be in the future',
+          providedDate: scheduledAirDate
+        });
+      }
+
+      const submission = await storage.getEpisodeSubmissionById(id);
+      if (!submission) {
+        return res.status(404).json({ error: 'Episode submission not found' });
+      }
+
+      if (submission.status !== 'approved') {
+        return res.status(400).json({ error: 'Only approved episodes can be scheduled' });
+      }
+
+      // Step 1: Upload to AzuraCast via SFTP
+      console.log(`📤 Uploading episode submission ${id} to AzuraCast...`);
+      const uploadResult = await azuraCastManager.uploadEpisode(id, submission.audioFilePath, {
+        title: submission.title,
+        showSlug: submission.seriesTitle || submission.residentName.toLowerCase().replace(/\s+/g, '-'),
+        artist: submission.residentName,
+        album: submission.seriesTitle || 'Episode Submissions'
+      });
+
+      if (!uploadResult.success) {
+        return res.status(500).json({
+          error: 'Failed to upload to AzuraCast',
+          details: uploadResult.error
+        });
+      }
+
+      // Step 2: Ensure playlist exists for the resident
+      const playlistResult = await azuraCastManager.ensurePlaylist(
+        submission.residentName.toLowerCase().replace(/\s+/g, '-'),
+        `${submission.residentName} Episodes`
+      );
+
+      if (!playlistResult.playlistId) {
+        return res.status(500).json({
+          error: 'Failed to create/find AzuraCast playlist',
+          details: playlistResult.error
+        });
+      }
+
+      // Step 3: Add uploaded file to playlist
+      console.log(`📋 Adding file to playlist ${playlistResult.playlistId}...`);
+      const addToPlaylistResult = await azuraCastManager.addToPlaylist(
+        playlistResult.playlistId,
+        uploadResult.azuraFilePath!
+      );
+
+      if (!addToPlaylistResult.success) {
+        return res.status(500).json({
+          error: 'Failed to add episode to AzuraCast playlist',
+          details: addToPlaylistResult.error
+        });
+      }
+
+      // Step 4: Schedule the episode in AzuraCast
+      const duration = submission.duration || 3600; // Default 1 hour
+
+      const scheduleResult = await azuraCastManager.scheduleEpisode(
+        playlistResult.playlistId,
+        airDate,
+        duration
+      );
+
+      if (!scheduleResult.success) {
+        return res.status(500).json({
+          error: 'Failed to schedule in AzuraCast',
+          details: scheduleResult.error
+        });
+      }
+
+      // Step 5: Update database (convert dates to ISO strings for JSON persistence)
+      const updated = await storage.updateEpisodeSubmission(id, {
+        status: 'scheduled',
+        scheduledAirDate: airDate.toISOString(),
+        uploadedToAzuracastAt: new Date().toISOString(),
+        azuracastFileId: uploadResult.azuraFilePath,
+        azuracastPlaylistId: playlistResult.playlistId,
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: (req as any).session?.user || 'admin'
+      } as any);
+
+      broadcast({
+        type: 'episodeSubmissionScheduled',
+        submissionId: id,
+        scheduledAirDate: airDate.toISOString(),
+        title: submission.title,
+        residentName: submission.residentName
+      });
+
+      res.json({
+        success: true,
+        submission: updated,
+        message: `Episode scheduled to air on ${airDate.toLocaleString()}`
+      });
+
+    } catch (error) {
+      console.error('Error scheduling episode submission:', error);
+      res.status(500).json({
+        error: error instanceof Error ? error.message : 'Scheduling failed'
+      });
+    }
+  });
+
   // Delete episode submission
   app.delete("/api/admin/episode-submissions/:id", requireAdmin, async (req, res) => {
     try {

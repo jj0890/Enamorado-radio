@@ -9,7 +9,7 @@ export default function SchedulePage() {
   const [viewMode, setViewMode] = useState<'upcoming' | 'past' | 'all'>('upcoming');
 
   // Fetch schedule data
-  const { data: schedule = [], isLoading } = useQuery({
+  const { data: schedule = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/schedule", { upcoming: viewMode === 'upcoming' ? true : undefined }],
     refetchInterval: 60000, // Refresh every minute for live updates
   });
