@@ -309,7 +309,7 @@ export default function MixUpload() {
                     value={mixData.title}
                     onChange={handleMixInputChange}
                     placeholder="Enter mix title"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                   />
                 </div>
 
@@ -321,7 +321,7 @@ export default function MixUpload() {
                     value={mixData.artist}
                     onChange={handleMixInputChange}
                     placeholder="Your artist name"
-                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                   />
                 </div>
 
@@ -331,18 +331,18 @@ export default function MixUpload() {
                     name="genre"
                     value={mixData.genre}
                     onChange={handleMixInputChange}
-                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white [&>option]:text-gray-900 [&>option]:bg-white"
                   >
-                    <option value="">Select genre</option>
-                    <option value="Electronic">Electronic</option>
-                    <option value="Hip-Hop">Hip-Hop</option>
-                    <option value="House">House</option>
-                    <option value="Techno">Techno</option>
-                    <option value="Ambient">Ambient</option>
-                    <option value="Jazz">Jazz</option>
-                    <option value="Footwork">Footwork</option>
-                    <option value="Juke">Juke</option>
-                    <option value="Other">Other</option>
+                    <option value="" className="text-gray-900 bg-white">Select genre</option>
+                    <option value="Electronic" className="text-gray-900 bg-white">Electronic</option>
+                    <option value="Hip-Hop" className="text-gray-900 bg-white">Hip-Hop</option>
+                    <option value="House" className="text-gray-900 bg-white">House</option>
+                    <option value="Techno" className="text-gray-900 bg-white">Techno</option>
+                    <option value="Ambient" className="text-gray-900 bg-white">Ambient</option>
+                    <option value="Jazz" className="text-gray-900 bg-white">Jazz</option>
+                    <option value="Footwork" className="text-gray-900 bg-white">Footwork</option>
+                    <option value="Juke" className="text-gray-900 bg-white">Juke</option>
+                    <option value="Other" className="text-gray-900 bg-white">Other</option>
                   </select>
                 </div>
 
@@ -352,7 +352,7 @@ export default function MixUpload() {
                     type="file"
                     accept="audio/*"
                     onChange={(e) => handleFileUpload(e, 'audio')}
-                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                    className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white file:text-white file:bg-purple-600 file:border-0 file:px-4 file:py-2 file:rounded file:mr-4"
                   />
                 </div>
               </div>
@@ -365,7 +365,7 @@ export default function MixUpload() {
                   onChange={handleMixInputChange}
                   placeholder="Describe your mix..."
                   rows={4}
-                  className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                  className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                 />
               </div>
 
@@ -375,7 +375,7 @@ export default function MixUpload() {
                   type="file"
                   accept="image/*"
                   onChange={(e) => handleFileUpload(e, 'artwork')}
-                  className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                  className="w-full px-4 py-3 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white file:text-white file:bg-purple-600 file:border-0 file:px-4 file:py-2 file:rounded file:mr-4"
                 />
               </div>
 
@@ -413,7 +413,7 @@ export default function MixUpload() {
                       value={currentTrack.title}
                       onChange={handleTrackInputChange}
                       placeholder="Track title"
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -425,7 +425,7 @@ export default function MixUpload() {
                       value={currentTrack.artist}
                       onChange={handleTrackInputChange}
                       placeholder="Artist name"
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -436,7 +436,7 @@ export default function MixUpload() {
                       name="startTime"
                       value={currentTrack.startTime}
                       onChange={handleTrackInputChange}
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -447,7 +447,7 @@ export default function MixUpload() {
                       name="endTime"
                       value={currentTrack.endTime || ''}
                       onChange={handleTrackInputChange}
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -459,7 +459,7 @@ export default function MixUpload() {
                       value={currentTrack.label}
                       onChange={handleTrackInputChange}
                       placeholder="Record label"
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -470,7 +470,7 @@ export default function MixUpload() {
                       name="year"
                       value={currentTrack.year || ''}
                       onChange={handleTrackInputChange}
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -481,7 +481,7 @@ export default function MixUpload() {
                       name="bpm"
                       value={currentTrack.bpm || ''}
                       onChange={handleTrackInputChange}
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
 
@@ -493,7 +493,7 @@ export default function MixUpload() {
                       value={currentTrack.key}
                       onChange={handleTrackInputChange}
                       placeholder="Musical key"
-                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white"
+                      className="w-full px-3 py-2 bg-black/20 border border-white/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-white placeholder:text-gray-400"
                     />
                   </div>
                 </div>
