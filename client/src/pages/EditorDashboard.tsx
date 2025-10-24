@@ -57,8 +57,8 @@ export default function EditorDashboard({ onLogout, currentUser }: EditorDashboa
       dataTestId: "card-mixes"
     },
     {
-      title: "Album Suggestions",
-      description: "Moderate album of the month submissions",
+      title: "Team Album Picks",
+      description: "Submit picks, vote on teammates' albums, build monthly draft",
       icon: Disc,
       href: "/admin/albums",
       count: stats?.pendingAlbums || 0,

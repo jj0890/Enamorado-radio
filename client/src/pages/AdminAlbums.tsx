@@ -103,15 +103,16 @@ export default function AdminAlbums() {
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
   const searchParams = new URLSearchParams(useSearch());
-  const [activeTab, setActiveTab] = useState('suggestions');
+  const [activeTab, setActiveTab] = useState('team-picks'); // Changed from 'suggestions'
   const [selectedSuggestion, setSelectedSuggestion] = useState<AlbumSuggestion | null>(null);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [statusFilter, setStatusFilter] = useState('pending');
+  const [statusFilter, setStatusFilter] = useState('all'); // Changed from 'pending' to show all by default
   const [newPickMonth, setNewPickMonth] = useState('');
   const [newPickTitle, setNewPickTitle] = useState('');
   const [newPickDescription, setNewPickDescription] = useState('');
   const selectedPickMonth = searchParams.get('draft') || '';
   const [noteContent, setNoteContent] = useState('');
+  const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
 
   const setSelectedPickMonth = (month: string) => {
     if (month) {
@@ -123,17 +124,20 @@ export default function AdminAlbums() {
 
   // Sync active tab from URL draft param on mount and when draft param changes
   useEffect(() => {
-    if (selectedPickMonth && activeTab !== 'draft') {
-      setActiveTab('draft');
+    // If draft param exists and we're not already on monthly-draft tab, switch to it
+    if (selectedPickMonth && activeTab !== 'monthly-draft') {
+      setActiveTab('monthly-draft');
     }
-  }, [selectedPickMonth]);
+    // If no draft param and we're on monthly-draft, don't force a switch
+    // (user may have manually navigated to the tab)
+  }, [selectedPickMonth, activeTab]);
 
   // Fetch album suggestions with votes
   const { data: suggestions = [], isLoading: loadingSuggestions } = useQuery<AlbumSuggestion[]>({
     queryKey: ['/api/admin/albums/suggestions', statusFilter, activeTab],
     queryFn: async () => {
       // In Draft Pick tab, fetch all suggestions so we can filter for accepted ones
-      const effectiveFilter = activeTab === 'draft' ? 'all' : statusFilter;
+      const effectiveFilter = activeTab === 'monthly-draft' ? 'all' : statusFilter;
       const params = effectiveFilter !== 'all' ? `?status=${effectiveFilter}` : '';
       return fetch(`/api/admin/albums/suggestions${params}`, {
         credentials: 'include'
@@ -144,7 +148,7 @@ export default function AdminAlbums() {
   // Fetch draft picks
   const { data: draftPicks = [], isLoading: loadingDrafts } = useQuery<AlbumPick[]>({
     queryKey: ['/api/admin/albums/drafts'],
-    enabled: activeTab === 'draft',
+    enabled: activeTab === 'monthly-draft',
   });
 
   // Fetch published picks
@@ -162,7 +166,7 @@ export default function AdminAlbums() {
         credentials: 'include'
       }).then(res => res.ok ? res.json() : null);
     },
-    enabled: activeTab === 'draft' && !!selectedPickMonth,
+    enabled: activeTab === 'monthly-draft' && !!selectedPickMonth,
   });
 
   // Fetch notes for selected suggestion
@@ -254,7 +258,8 @@ export default function AdminAlbums() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks', selectedPickMonth] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/drafts'] });
       toast({ title: 'Album added', description: 'Album added to draft pick.' });
     },
     onError: (error: any) => {
@@ -273,7 +278,8 @@ export default function AdminAlbums() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks', selectedPickMonth] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/drafts'] });
     },
   });
 
@@ -284,7 +290,8 @@ export default function AdminAlbums() {
       return res.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks', selectedPickMonth] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/drafts'] });
       toast({ title: 'Album removed', description: 'Album removed from draft pick.' });
     },
   });
@@ -302,7 +309,8 @@ export default function AdminAlbums() {
       return result.data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/picks', selectedPickMonth] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/drafts'] });
       queryClient.invalidateQueries({ queryKey: ['/api/albums/published'] });
       toast({ title: 'Pick published', description: 'Album pick is now live!' });
       setSelectedPickMonth('');
@@ -405,30 +413,47 @@ export default function AdminAlbums() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="mb-4">
-          <TabsTrigger value="suggestions" data-testid="tab-suggestions">
-            Suggestions ({suggestions.filter(s => s.status === 'pending').length})
+          <TabsTrigger value="team-picks" data-testid="tab-team-picks">
+            Team Picks ({suggestions.length})
           </TabsTrigger>
-          <TabsTrigger value="draft" data-testid="tab-draft">
-            Draft Pick
+          <TabsTrigger value="monthly-draft" data-testid="tab-monthly-draft">
+            Monthly Draft
           </TabsTrigger>
           <TabsTrigger value="published" data-testid="tab-published">
             Published ({publishedPicks.length})
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="suggestions">
-          <div className="mb-4 flex items-center gap-4">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[200px]" data-testid="select-status-filter">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Suggestions</SelectItem>
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="accepted">Accepted</SelectItem>
-                <SelectItem value="rejected">Rejected</SelectItem>
-              </SelectContent>
-            </Select>
+        <TabsContent value="team-picks">
+          <div className="mb-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <p className="text-sm text-blue-900 mb-2">
+              <strong>How it works:</strong> Submit albums you love, vote on your teammates' picks, and the top-voted albums get added to the monthly draft!
+            </p>
+          </div>
+
+          <div className="mb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[200px]" data-testid="select-status-filter">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Team Picks</SelectItem>
+                  <SelectItem value="pending">Pending Review</SelectItem>
+                  <SelectItem value="accepted">Accepted</SelectItem>
+                  <SelectItem value="rejected">Rejected</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button 
+              onClick={() => setIsSubmitDialogOpen(true)}
+              className="bg-red-500 hover:bg-red-600 text-white"
+              data-testid="button-submit-pick"
+            >
+              <Disc className="w-4 h-4 mr-2" />
+              Submit Your Pick
+            </Button>
           </div>
 
           {loadingSuggestions ? (
@@ -550,7 +575,13 @@ export default function AdminAlbums() {
           )}
         </TabsContent>
 
-        <TabsContent value="draft">
+        <TabsContent value="monthly-draft">
+          <div className="mb-6 bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <p className="text-sm text-purple-900">
+              <strong>Monthly Draft:</strong> Build your monthly album list by selecting top-voted picks from the Team Picks tab. Add your editorial notes and publish when ready!
+            </p>
+          </div>
+
           <div className="space-y-6">
             {!selectedPickMonth ? (
               <>
