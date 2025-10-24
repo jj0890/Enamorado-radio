@@ -228,15 +228,15 @@ export default function SubmitMix() {
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
-          <div className="bg-gray-50 border-2 border-black rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6 font-mono text-gray-900 flex items-center">
+          <div className="bg-gray-50 dark:bg-gray-900 border-2 border-black dark:border-white rounded-lg p-8">
+            <h2 className="text-2xl font-bold mb-6 font-mono text-gray-900 dark:text-white flex items-center">
               <Music className="w-6 h-6 mr-3 text-red-500" />
               Mix Information
             </h2>
 
             {/* Upload Mode Selector */}
-            <div className="mb-6 p-4 bg-white border border-gray-200 rounded-lg">
-              <Label className="text-sm font-mono text-gray-700 mb-3 block">
+            <div className="mb-6 p-4 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg">
+              <Label className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-3 block">
                 How would you like to submit your mix? *
               </Label>
               <div className="flex space-x-4">
@@ -245,26 +245,26 @@ export default function SubmitMix() {
                   onClick={() => setUploadMode('url')}
                   className={`flex-1 p-3 border-2 rounded-lg font-mono text-sm transition-colors ${
                     uploadMode === 'url' 
-                      ? 'border-red-500 bg-red-50 text-red-600' 
-                      : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-red-500 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
                   <ExternalLink className="w-4 h-4 mx-auto mb-1" />
                   Platform URL
-                  <div className="text-xs text-gray-500 mt-1">SoundCloud, Mixcloud, direct .mp3 link</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">SoundCloud, Mixcloud, direct .mp3 link</div>
                 </button>
                 <button
                   type="button"
                   onClick={() => setUploadMode('file')}
                   className={`flex-1 p-3 border-2 rounded-lg font-mono text-sm transition-colors ${
                     uploadMode === 'file' 
-                      ? 'border-red-500 bg-red-50 text-red-600' 
-                      : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-red-500 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400' 
+                      : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
                   <Upload className="w-4 h-4 mx-auto mb-1" />
                   Upload File
-                  <div className="text-xs text-gray-500 mt-1">Direct MP3 file upload</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">Direct MP3 file upload</div>
                 </button>
               </div>
             </div>
@@ -272,7 +272,7 @@ export default function SubmitMix() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Your Name */}
               <div>
-                <Label htmlFor="name" className="text-sm font-mono text-gray-700 mb-2 block">
+                <Label htmlFor="name" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                   Your Name *
                 </Label>
                 <Input
@@ -281,7 +281,7 @@ export default function SubmitMix() {
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g. DJ Shadow"
-                  className="font-mono border-gray-300 focus:border-red-500"
+                  className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
                   required
                 />
               </div>
@@ -297,7 +297,7 @@ export default function SubmitMix() {
                   value={formData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder="e.g. Late Night Vibes Vol. 1"
-                  className="font-mono border-gray-300 focus:border-red-500"
+                  className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
                   required
                 />
               </div>
@@ -308,7 +308,7 @@ export default function SubmitMix() {
                   Genre *
                 </Label>
                 <Select value={formData.genre} onValueChange={(value) => handleInputChange('genre', value)}>
-                  <SelectTrigger className="font-mono border-gray-300 focus:border-red-500">
+                  <SelectTrigger className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500">
                     <SelectValue placeholder="Select a genre" />
                   </SelectTrigger>
                   <SelectContent>
@@ -342,10 +342,10 @@ export default function SubmitMix() {
                       value={formData.url}
                       onChange={(e) => handleInputChange('url', e.target.value)}
                       placeholder="https://soundcloud.com/your-mix or https://example.com/mix.mp3"
-                      className="font-mono border-gray-300 focus:border-red-500"
+                      className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
                       required
                     />
-                    <div className="mt-2 text-xs font-mono text-gray-500">
+                    <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                       Supported: SoundCloud, Mixcloud, Audio.com, or direct .mp3 file links
                     </div>
                   </>
@@ -360,7 +360,7 @@ export default function SubmitMix() {
                         type="file"
                         accept="audio/*,.mp3,.wav,.flac,.aiff,.alac"
                         onChange={handleFileChange}
-                        className="block w-full text-sm text-gray-500 font-mono
+                        className="block w-full text-sm text-gray-500 dark:text-gray-400 font-mono
                           file:mr-4 file:py-2 file:px-4
                           file:rounded-full file:border-0
                           file:text-sm file:font-mono
@@ -374,7 +374,7 @@ export default function SubmitMix() {
                         </div>
                       )}
                     </div>
-                    <div className="mt-2 text-xs font-mono text-gray-500">
+                    <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                       Max file size: 200MB. Supported formats: MP3, WAV, FLAC, AIFF, ALAC
                     </div>
                   </>
@@ -420,9 +420,9 @@ export default function SubmitMix() {
           </div>
 
           {/* Submission Guidelines */}
-          <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
-            <h3 className="text-lg font-bold mb-4 font-mono text-blue-900">Submission Guidelines</h3>
-            <ul className="space-y-2 text-sm font-mono text-blue-800">
+          <div className="bg-blue-50 dark:bg-blue-950 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-6">
+            <h3 className="text-lg font-bold mb-4 font-mono text-blue-900 dark:text-blue-100">Submission Guidelines</h3>
+            <ul className="space-y-2 text-sm font-mono text-blue-800 dark:text-blue-200">
               <li>• Original mixes and DJ sets are preferred</li>
               <li>• All genres welcome - diversity is encouraged</li>
               <li>• Include track listings when possible</li>
@@ -433,7 +433,7 @@ export default function SubmitMix() {
 
           {/* Submit Button */}
           <div className="flex items-center justify-between pt-6">
-            <div className="text-sm font-mono text-gray-500">
+            <div className="text-sm font-mono text-gray-500 dark:text-gray-400">
               All submissions are reviewed by our team
             </div>
             
@@ -442,7 +442,7 @@ export default function SubmitMix() {
                 <Button 
                   variant="outline" 
                   type="button"
-                  className="border-gray-300 text-gray-600 hover:bg-gray-50 font-mono"
+                  className="border-gray-300 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 font-mono"
                 >
                   Cancel
                 </Button>
@@ -470,20 +470,20 @@ export default function SubmitMix() {
         </form>
 
         {/* Help Section */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <h3 className="text-lg font-bold mb-4 font-mono text-gray-900">Need Help?</h3>
+        <div className="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-bold mb-4 font-mono text-gray-900 dark:text-white">Need Help?</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-mono">
             <div>
-              <h4 className="font-bold text-gray-700 mb-2">Platform Tips:</h4>
-              <ul className="space-y-1 text-gray-600">
+              <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-2">Platform Tips:</h4>
+              <ul className="space-y-1 text-gray-600 dark:text-gray-400">
                 <li>• SoundCloud: Use private or public track links</li>
                 <li>• Mixcloud: Ensure mix is not set to private</li>
                 <li>• Audio.com: Direct file links work best</li>
               </ul>
             </div>
             <div>
-              <h4 className="font-bold text-gray-700 mb-2">Questions?</h4>
-              <p className="text-gray-600 mb-2">
+              <h4 className="font-bold text-gray-700 dark:text-gray-300 mb-2">Questions?</h4>
+              <p className="text-gray-600 dark:text-gray-400 mb-2">
                 Want to become a resident DJ?
               </p>
               <a href="/resident-application" data-testid="link-resident-application">
