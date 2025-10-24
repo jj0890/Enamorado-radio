@@ -113,6 +113,14 @@ export default function AdminAlbums() {
   const selectedPickMonth = searchParams.get('draft') || '';
   const [noteContent, setNoteContent] = useState('');
   const [isSubmitDialogOpen, setIsSubmitDialogOpen] = useState(false);
+  
+  // Album submission form state
+  const [submitFormData, setSubmitFormData] = useState({
+    artist: '',
+    title: '',
+    releaseYear: '',
+    reason: ''
+  });
 
   const setSelectedPickMonth = (month: string) => {
     if (month) {
@@ -121,6 +129,11 @@ export default function AdminAlbums() {
       setLocation('/admin/albums');
     }
   };
+
+  // Get current user
+  const { data: authData } = useQuery<{ user: string; role: string }>({
+    queryKey: ['/api/admin/auth'],
+  });
 
   // Sync active tab from URL draft param on mount and when draft param changes
   useEffect(() => {
@@ -372,6 +385,27 @@ export default function AdminAlbums() {
       toast({ 
         title: 'Failed to add Spotify URL', 
         description: error.message || 'No Spotify album found for this artist and title.',
+        variant: 'destructive'
+      });
+    },
+  });
+
+  // Submit album suggestion mutation
+  const submitSuggestionMutation = useMutation({
+    mutationFn: async (data: { artist: string; title: string; releaseYear?: number; reason?: string; suggestedBy: string }) => {
+      const res = await apiRequest('POST', '/api/albums/suggest', data);
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/suggestions'] });
+      toast({ title: 'Suggestion submitted', description: 'Your album suggestion has been submitted for review.' });
+      setIsSubmitDialogOpen(false);
+      setSubmitFormData({ artist: '', title: '', releaseYear: '', reason: '' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to submit suggestion', 
+        description: error.message || 'Could not submit your album suggestion. Please try again.',
         variant: 'destructive'
       });
     },
@@ -940,6 +974,87 @@ export default function AdminAlbums() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isSubmitDialogOpen} onOpenChange={setIsSubmitDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Suggest Album of the Month</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="text-sm font-medium mb-2 block">Album Title *</label>
+              <Input
+                value={submitFormData.title}
+                onChange={(e) => setSubmitFormData({ ...submitFormData, title: e.target.value })}
+                placeholder="e.g., Random Access Memories"
+                data-testid="input-album-title"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Artist Name *</label>
+              <Input
+                value={submitFormData.artist}
+                onChange={(e) => setSubmitFormData({ ...submitFormData, artist: e.target.value })}
+                placeholder="e.g., Daft Punk"
+                data-testid="input-artist-name"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Release Year (optional)</label>
+              <Input
+                type="number"
+                value={submitFormData.releaseYear}
+                onChange={(e) => setSubmitFormData({ ...submitFormData, releaseYear: e.target.value })}
+                placeholder="e.g., 2013"
+                data-testid="input-release-year"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-2 block">Why this album? (optional)</label>
+              <Textarea
+                value={submitFormData.reason}
+                onChange={(e) => setSubmitFormData({ ...submitFormData, reason: e.target.value })}
+                placeholder="Share why this album deserves to be featured..."
+                rows={3}
+                data-testid="textarea-reason"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => setIsSubmitDialogOpen(false)}
+                data-testid="button-cancel-submit"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (!submitFormData.artist || !submitFormData.title) {
+                    toast({ 
+                      title: 'Missing information', 
+                      description: 'Please provide both album title and artist name.',
+                      variant: 'destructive'
+                    });
+                    return;
+                  }
+                  submitSuggestionMutation.mutate({
+                    artist: submitFormData.artist,
+                    title: submitFormData.title,
+                    releaseYear: submitFormData.releaseYear ? parseInt(submitFormData.releaseYear) : undefined,
+                    reason: submitFormData.reason || undefined,
+                    suggestedBy: authData?.user || 'anonymous'
+                  });
+                }}
+                disabled={submitSuggestionMutation.isPending || !submitFormData.artist || !submitFormData.title}
+                className="bg-red-500 hover:bg-red-600 text-white"
+                data-testid="button-submit-suggestion"
+              >
+                {submitSuggestionMutation.isPending ? 'Submitting...' : 'Submit Suggestion'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

@@ -5,5 +5,12 @@
     "voterUsername": "jarrad",
     "value": 1,
     "createdAt": "2025-10-04T13:13:14.154Z"
+  },
+  {
+    "id": 3,
+    "suggestionId": 2,
+    "voterUsername": "editor1",
+    "value": 1,
+    "createdAt": "2025-10-24T05:59:51.528Z"
   }
 ]

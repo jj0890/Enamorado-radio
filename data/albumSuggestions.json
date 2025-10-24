@@ -14,5 +14,21 @@
     "createdAt": "2025-10-04T13:12:34.649Z",
     "reviewedAt": "2025-10-04T13:13:20.979Z",
     "reviewedBy": "jarrad"
+  },
+  {
+    "suggestedBy": "editor1",
+    "artist": "Daft Punk",
+    "title": "RAM-b_EQ",
+    "releaseYear": 2013,
+    "reason": "Timeless electronic masterpiece",
+    "id": 2,
+    "musicbrainzId": null,
+    "releaseGroupId": null,
+    "coverArtUrl": null,
+    "spotifyUrl": null,
+    "status": "pending",
+    "createdAt": "2025-10-24T05:59:18.782Z",
+    "reviewedAt": null,
+    "reviewedBy": null
   }
 ]
