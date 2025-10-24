@@ -159,24 +159,24 @@ export default function SubmitMix() {
 
   if (showSuccess) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-white dark:bg-black flex items-center justify-center">
         <StickyRadioPlayer />
         <div className="text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-mono font-bold text-red-500 mb-4">Mix Submitted!</h1>
-          <p className="text-gray-600 font-mono mb-4">Your mix has been submitted for review.</p>
-          <p className="text-gray-500 font-mono text-sm">Redirecting to mixes page...</p>
+          <p className="text-gray-600 dark:text-gray-400 font-mono mb-4">Your mix has been submitted for review.</p>
+          <p className="text-gray-500 dark:text-gray-500 font-mono text-sm">Redirecting to mixes page...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
       <StickyRadioPlayer />
 
       {/* Header */}
-      <header className="border-b border-black bg-white">
+      <header className="border-b border-black dark:border-white bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
@@ -184,16 +184,16 @@ export default function SubmitMix() {
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/latest" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   LATEST
                 </Link>
-                <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/explore" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/schedule" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   SCHEDULE
                 </Link>
-                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/mixes" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
                   MIXES
                 </Link>
               </nav>
@@ -208,7 +208,7 @@ export default function SubmitMix() {
         <div className="mb-8">
           <Link
             href="/mixes"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Mixes
@@ -220,7 +220,7 @@ export default function SubmitMix() {
           <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">
             Submit a Mix
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto mb-8 font-mono">
+          <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8 font-mono">
             Share your work with our community for potential featuring, 
             airplay, or collaboration opportunities.
           </p>
