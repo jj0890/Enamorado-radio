@@ -165,7 +165,7 @@ export default function SubmitMix() {
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
           <h1 className="text-3xl font-mono font-bold text-red-500 mb-4">Mix Submitted!</h1>
           <p className="text-gray-600 dark:text-gray-400 font-mono mb-4">Your mix has been submitted for review.</p>
-          <p className="text-gray-500 dark:text-gray-500 font-mono text-sm">Redirecting to mixes page...</p>
+          <p className="text-gray-500 dark:text-gray-400 font-mono text-sm">Redirecting to mixes page...</p>
         </div>
       </div>
     );
@@ -288,7 +288,7 @@ export default function SubmitMix() {
 
               {/* Mix Title */}
               <div>
-                <Label htmlFor="title" className="text-sm font-mono text-gray-700 mb-2 block">
+                <Label htmlFor="title" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                   Mix Title *
                 </Label>
                 <Input
@@ -304,7 +304,7 @@ export default function SubmitMix() {
 
               {/* Genre */}
               <div>
-                <Label htmlFor="genre" className="text-sm font-mono text-gray-700 mb-2 block">
+                <Label htmlFor="genre" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                   Genre *
                 </Label>
                 <Select value={formData.genre} onValueChange={(value) => handleInputChange('genre', value)}>
@@ -333,7 +333,7 @@ export default function SubmitMix() {
               <div>
                 {uploadMode === 'url' ? (
                   <>
-                    <Label htmlFor="url" className="text-sm font-mono text-gray-700 mb-2 block">
+                    <Label htmlFor="url" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                       Mix URL *
                     </Label>
                     <Input
@@ -351,7 +351,7 @@ export default function SubmitMix() {
                   </>
                 ) : (
                   <>
-                    <Label htmlFor="file" className="text-sm font-mono text-gray-700 mb-2 block">
+                    <Label htmlFor="file" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                       Upload Audio File *
                     </Label>
                     <div className="relative">
@@ -365,7 +365,8 @@ export default function SubmitMix() {
                           file:rounded-full file:border-0
                           file:text-sm file:font-mono
                           file:bg-red-50 file:text-red-700
-                          hover:file:bg-red-100"
+                          dark:file:bg-red-900 dark:file:text-red-200
+                          hover:file:bg-red-100 dark:hover:file:bg-red-800"
                         required
                       />
                       {selectedFile && (
@@ -384,7 +385,7 @@ export default function SubmitMix() {
 
             {/* Artwork URL (Optional) */}
             <div className="mt-6">
-              <Label htmlFor="artUrl" className="text-sm font-mono text-gray-700 mb-2 block">
+              <Label htmlFor="artUrl" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                 Artwork URL (Optional)
               </Label>
               <Input
@@ -393,16 +394,16 @@ export default function SubmitMix() {
                 value={formData.artUrl}
                 onChange={(e) => handleInputChange('artUrl', e.target.value)}
                 placeholder="https://example.com/cover.jpg"
-                className="font-mono border-gray-300 focus:border-red-500"
+                className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
               />
-              <div className="mt-2 text-xs font-mono text-gray-500">
+              <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                 For direct .mp3 links without embedded artwork. SoundCloud/Mixcloud artwork is auto-fetched.
               </div>
             </div>
 
             {/* About */}
             <div className="mt-6">
-              <Label htmlFor="about" className="text-sm font-mono text-gray-700 mb-2 block">
+              <Label htmlFor="about" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
                 About This Mix
               </Label>
               <Textarea
@@ -411,9 +412,9 @@ export default function SubmitMix() {
                 onChange={(e) => handleInputChange('about', e.target.value)}
                 placeholder="Tell us about your mix - what inspired it, the mood, key tracks, or anything you'd like listeners to know..."
                 rows={4}
-                className="font-mono border-gray-300 focus:border-red-500 resize-none"
+                className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500 resize-none"
               />
-              <div className="mt-2 text-xs font-mono text-gray-500">
+              <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                 Optional — share anything you want listeners to know.
               </div>
             </div>
