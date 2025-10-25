@@ -1,4 +1,5 @@
 import { 
+  Show,
   Episode, 
   Guide, 
   MixSubmission, 
@@ -9,6 +10,7 @@ import {
   Admin,
   Settings,
   CurrentPlayback,
+  InsertShow,
   InsertEpisode,
   InsertGuide, 
   InsertMixSubmission,
@@ -23,6 +25,14 @@ import {
 
 // Clean Storage Interface - Single source of truth for all data operations
 export interface IStorage {
+  // Shows - Radio show series/programs
+  getShows(filters?: { status?: string; limit?: number }): Promise<Show[]>;
+  getShowById(id: number): Promise<Show | undefined>;
+  getShowBySlug(slug: string): Promise<Show | undefined>;
+  createShow(show: InsertShow): Promise<Show>;
+  updateShow(id: number, show: Partial<Show>): Promise<Show>;
+  deleteShow(id: number): Promise<void>;
+
   // Episodes - Latest content
   getEpisodes(filters?: { featured?: boolean; genre?: string; limit?: number }): Promise<Episode[]>;
   getEpisodeById(id: number): Promise<Episode | undefined>;

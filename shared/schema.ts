@@ -6,6 +6,21 @@ import { z } from "zod";
 // Core Content Types
 // =================
 
+// Shows - Radio show series/programs
+export const shows = pgTable("shows", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(), // Display name (e.g., "Footwork Fridays")
+  slug: text("slug").notNull().unique(), // URL/file-safe slug (e.g., "footwork-fridays")
+  description: text("description"),
+  hostName: text("host_name"), // Primary host
+  genre: text("genre"),
+  tags: text("tags").array(),
+  artworkUrl: text("artwork_url"),
+  status: text("status").notNull().default("active"), // active, archived
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Episodes - Main audio content (replaces shows, mixUploads, etc.)
 export const episodes = pgTable("episodes", {
   id: serial("id").primaryKey(),
@@ -373,6 +388,12 @@ export const streamStatus = pgTable("stream_status", {
 // Insert Schemas
 // =============
 
+export const insertShowSchema = createInsertSchema(shows).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertEpisodeSchema = createInsertSchema(episodes).omit({
   id: true,
   createdAt: true,
@@ -483,6 +504,7 @@ export const insertAlbumSuggestionNoteSchema = createInsertSchema(albumSuggestio
 });
 
 // Type exports  
+export type Show = typeof shows.$inferSelect;
 export type Episode = typeof episodes.$inferSelect;
 export type Guide = typeof guides.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
@@ -501,6 +523,7 @@ export type AlbumPick = typeof albumPicks.$inferSelect;
 export type AlbumPickItem = typeof albumPickItems.$inferSelect;
 export type AlbumSuggestionNote = typeof albumSuggestionNotes.$inferSelect;
 
+export type InsertShow = z.infer<typeof insertShowSchema>;
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;

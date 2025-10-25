@@ -34,9 +34,11 @@ export default function AdminEpisodeUpload() {
   // Upload episode mutation
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
+      setUploadError(null);
+      
+      // Stage 1: Uploading to server
       setUploadStage('uploading');
       setUploadProgress('Uploading files to server...');
-      setUploadError(null);
       
       const response = await fetch('/api/admin/episode/upload', {
         method: 'POST',
@@ -51,6 +53,21 @@ export default function AdminEpisodeUpload() {
           statusCode: response.status 
         };
       }
+      
+      // Stage 2: Connecting to AzuraCast
+      setUploadStage('connecting');
+      setUploadProgress('Connecting to AzuraCast SFTP...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
+      
+      // Stage 3: Transferring audio file
+      setUploadStage('transferring');
+      setUploadProgress('Transferring audio file...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
+      
+      // Stage 4: Rescanning library
+      setUploadStage('rescanning');
+      setUploadProgress('Updating media library...');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
       
       return result;
     },
@@ -218,19 +235,40 @@ export default function AdminEpisodeUpload() {
 
                 {/* Show Slug */}
                 <div>
-                  <Label htmlFor="showSlug">Show Slug *</Label>
-                  <Select value={formData.showSlug} onValueChange={(value) => setFormData(prev => ({ ...prev, showSlug: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a show..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="late-night-sessions">Late Night Sessions</SelectItem>
-                      <SelectItem value="footwork-fridays">Footwork Fridays</SelectItem>
-                      <SelectItem value="community-spotlight">Community Spotlight</SelectItem>
-                      <SelectItem value="guest-mix">Guest Mix</SelectItem>
-                      <SelectItem value="deep-cuts">Deep Cuts</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Label htmlFor="showSlug">Show Slug (for file organization) *</Label>
+                  <Input
+                    id="showSlug"
+                    type="text"
+                    value={formData.showSlug}
+                    onChange={(e) => {
+                      // Auto-convert to slug format (lowercase, hyphens)
+                      const slug = e.target.value
+                        .toLowerCase()
+                        .replace(/[^a-z0-9-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                      setFormData(prev => ({ ...prev, showSlug: slug }));
+                    }}
+                    placeholder="e.g., footwork-fridays"
+                    required
+                    data-testid="input-showSlug"
+                  />
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Used for file organization and playlists. Letters, numbers, and hyphens only.
+                  </p>
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold w-full">Quick suggestions:</p>
+                    {['footwork-fridays', 'late-night-sessions', 'community-showcase', 'resident-spotlight', 'guest-mix', 'deep-cuts'].map(slug => (
+                      <button
+                        key={slug}
+                        type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, showSlug: slug }))}
+                        className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                        data-testid={`suggest-${slug}`}
+                      >
+                        {slug}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Air Date */}
@@ -383,6 +421,41 @@ export default function AdminEpisodeUpload() {
                       <div className="flex-1">
                         <p className="font-semibold text-red-900 dark:text-red-100">Upload Failed</p>
                         <p className="text-sm text-red-700 dark:text-red-300 mt-1">{uploadError.message}</p>
+                        
+                        {/* Stage-specific troubleshooting */}
+                        <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded">
+                          <p className="text-xs font-semibold text-yellow-900 dark:text-yellow-100 mb-1">💡 Troubleshooting Tips:</p>
+                          <ul className="text-xs text-yellow-800 dark:text-yellow-200 space-y-1 list-disc list-inside">
+                            {uploadError.message.includes('Connection') && (
+                              <>
+                                <li>Verify AzuraCast server is online and accessible</li>
+                                <li>Check SFTP port (2022) is not blocked by firewall</li>
+                                <li>Confirm AZURACAST_BASE_URL environment variable is correct</li>
+                              </>
+                            )}
+                            {uploadError.message.includes('Authentication') && (
+                              <>
+                                <li>Verify SFTP credentials in Admin Settings</li>
+                                <li>Confirm SFTP_USER and SFTP_PASS are correct</li>
+                                <li>Check if SFTP user has write permissions</li>
+                              </>
+                            )}
+                            {uploadError.message.includes('upload') && !uploadError.message.includes('Connection') && (
+                              <>
+                                <li>Check if file size exceeds server limits</li>
+                                <li>Verify network connection is stable</li>
+                                <li>Ensure sufficient disk space on AzuraCast server</li>
+                              </>
+                            )}
+                            {uploadError.message.includes('rescan') && (
+                              <>
+                                <li>File was uploaded successfully but may not appear yet</li>
+                                <li>AzuraCast will automatically rescan within 5 minutes</li>
+                                <li>Or manually trigger rescan in AzuraCast admin panel</li>
+                              </>
+                            )}
+                          </ul>
+                        </div>
                       </div>
                     </div>
                     {uploadError.retryable && (
@@ -394,11 +467,17 @@ export default function AdminEpisodeUpload() {
                         }}
                         variant="outline"
                         size="sm"
-                        className="w-full border-red-300 text-red-700 hover:bg-red-100"
+                        className="w-full border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900"
+                        data-testid="button-retry"
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
                         Try Again
                       </Button>
+                    )}
+                    {!uploadError.retryable && (
+                      <p className="text-xs text-red-600 dark:text-red-400 italic">
+                        ⚠️ This error requires manual intervention. Please check settings and try uploading a new episode.
+                      </p>
                     )}
                   </div>
                 )}

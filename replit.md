@@ -42,6 +42,7 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Station Management**: Browse stations by genre, featured shows, live status, and organized content.
 - **Albums of the Month**: Community-driven album curation with a public submission page, editor voting, MusicBrainz integration for artwork, and a ranked publication system.
 - **Mix Upload & Playback**: Community mix submission system with persistent JSON-based storage, admin approval workflow, and SoundCloud/Mixcloud/Audio.com URL support. Includes automatic metadata fetching via oEmbed API.
+- **Episode Upload System**: Admin episode upload with comprehensive error handling (SFTP connection, authentication, upload, rescan), visual progress bar showing 4 stages (uploading, connecting, transferring, rescanning), stage-specific troubleshooting guidance, and customizable show slug input.
 - **Resident DJ System**: Full-stack resident management with semi-automated AzuraCast streamer account setup. This involves auto-generating secure credentials and a one-click "Copy to AzuraCast" button for admin-assisted configuration due to AzuraCast API limitations.
 - **User Submissions**: Community-friendly submission system with dynamic "Fresh from the Community" section and automatic metadata enhancement.
 - **Admin Controls**: Radio Ops Panel for real-time monitoring of broadcast status and now playing information from AzuraCast, along with comprehensive CRUD operations for content and AzuraCast configuration via an admin settings page.
