@@ -4,8 +4,8 @@
     "genre": "Radio",
     "airDate": "2025-10-25T06:54:53.249Z",
     "hostName": "Enamorado Radio",
-    "duration": 0,
-    "audioUrl": "",
+    "duration": 180,
+    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
     "artworkUrl": "https://i.pinimg.com/736x/ad/a1/ea/ada1ea900429b75a3c97a35133f29860.jpg",
     "tags": [
       "rock"
@@ -25,8 +25,8 @@
     "genre": "Radio",
     "airDate": "2025-10-25T07:14:57.604Z",
     "hostName": "Enamorado Radio",
-    "duration": 0,
-    "audioUrl": "",
+    "duration": 180,
+    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
     "artworkUrl": "/artwork/late-night-sessions-1761376497602-sm2gla.png",
     "tags": [
       "radio",
@@ -48,8 +48,8 @@
     "genre": "Radio",
     "airDate": "2025-10-25T07:23:55.290Z",
     "hostName": "Enamorado Radio",
-    "duration": 0,
-    "audioUrl": "",
+    "duration": 180,
+    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
     "artworkUrl": "/artwork/late-night-sessions-1761377035280-w58v8ak.png",
     "tags": [
       "radio",
@@ -71,8 +71,8 @@
     "genre": "Radio",
     "airDate": "2025-10-25T07:50:22.441Z",
     "hostName": "Enamorado Radio",
-    "duration": 0,
-    "audioUrl": "",
+    "duration": 180,
+    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
     "artworkUrl": "/artwork/enamorado-radio-1761378622440-fi07u.jpg",
     "tags": [
       "mix",
@@ -94,8 +94,8 @@
     "genre": "Radio",
     "airDate": "2025-10-25T07:58:22.669Z",
     "hostName": "Enamorado Radio",
-    "duration": 0,
-    "audioUrl": "https://example.com/audio.mp3",
+    "duration": 180,
+    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
     "artworkUrl": "/artwork/enamorado-radio-tails.jpg",
     "tags": [
       "mix",

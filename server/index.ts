@@ -84,6 +84,19 @@ app.use('/attached_assets', express.static('attached_assets', {
   }
 }));
 
+// Serve files from public directory (episodes, artwork, etc.)
+app.use(express.static('public', {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.mp3')) {
+      res.setHeader('Content-Type', 'audio/mpeg');
+    } else if (path.endsWith('.jpg') || path.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (path.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    }
+  }
+}));
+
 // Set up multer for file uploads
 const upload = multer({ 
   dest: '/tmp/uploads/',
