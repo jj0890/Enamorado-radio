@@ -193,7 +193,12 @@ export default function Home() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {featuredEpisodes.slice(0, 3).map((episode: any) => (
-                <div key={episode.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+                <div key={episode.id} className="bg-white dark:bg-gray-900 border-4 border-red-500 rounded-lg overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 group relative">
+                  {/* FEATURED badge */}
+                  <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
+                    FEATURED
+                  </div>
+                  
                   <div className="aspect-square bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
                     <img 
                       src={episode.artworkUrl || "/assets/default-episode-artwork.jpg"} 
@@ -201,13 +206,13 @@ export default function Home() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                     />
                   </div>
-                  <div className="p-4">
+                  <div className="p-4 bg-gradient-to-b from-transparent to-red-500/10">
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
-                        Featured
+                      <span className="text-xs font-mono text-white bg-black dark:bg-white dark:text-black px-2 py-1 uppercase">
+                        RADIO
                       </span>
                       <div className="text-xs font-mono text-gray-500 dark:text-gray-400">
-                        {new Date(episode.airDate).toLocaleDateString()}
+                        {Math.floor(episode.duration / 60)} MIN
                       </div>
                     </div>
                     <h4 className="text-lg font-bold font-mono text-gray-900 dark:text-white group-hover:text-red-500 transition-colors mb-2">
@@ -218,7 +223,7 @@ export default function Home() {
                     </p>
                     <Link
                       href={`/episode/${episode.id}`}
-                      className="inline-flex items-center gap-2 text-sm font-mono text-red-500 hover:text-red-600 transition-colors"
+                      className="inline-flex items-center gap-2 text-sm font-mono text-red-500 hover:text-red-600 transition-colors font-bold"
                     >
                       <Play className="w-4 h-4" />
                       Listen Now

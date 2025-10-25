@@ -1,95 +1,5 @@
 [
   {
-    "title": "Enamorado Radio Vol.1 Testing",
-    "genre": "Radio",
-    "airDate": "2025-10-25T06:54:53.249Z",
-    "hostName": "Enamorado Radio",
-    "duration": 180,
-    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
-    "artworkUrl": "https://i.pinimg.com/736x/ad/a1/ea/ada1ea900429b75a3c97a35133f29860.jpg",
-    "tags": [
-      "rock"
-    ],
-    "status": "uploading",
-    "id": 2,
-    "viewCount": 0,
-    "createdAt": "2025-10-25T06:54:53.249Z",
-    "description": null,
-    "seriesTitle": null,
-    "episodeNumber": null,
-    "isLive": false,
-    "isFeatured": false
-  },
-  {
-    "title": "Enamorado Radio Vol.1 (Testing)",
-    "genre": "Radio",
-    "airDate": "2025-10-25T07:14:57.604Z",
-    "hostName": "Enamorado Radio",
-    "duration": 180,
-    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
-    "artworkUrl": "/artwork/late-night-sessions-1761376497602-sm2gla.png",
-    "tags": [
-      "radio",
-      "test",
-      "volume-1"
-    ],
-    "status": "uploading",
-    "id": 2,
-    "viewCount": 0,
-    "createdAt": "2025-10-25T07:14:57.604Z",
-    "description": null,
-    "seriesTitle": null,
-    "episodeNumber": null,
-    "isLive": false,
-    "isFeatured": false
-  },
-  {
-    "title": "Enamorado Radio Vol.1 (Testing)",
-    "genre": "Radio",
-    "airDate": "2025-10-25T07:23:55.290Z",
-    "hostName": "Enamorado Radio",
-    "duration": 180,
-    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
-    "artworkUrl": "/artwork/late-night-sessions-1761377035280-w58v8ak.png",
-    "tags": [
-      "radio",
-      "test",
-      "volume-1"
-    ],
-    "status": "uploading",
-    "id": 43,
-    "viewCount": 0,
-    "createdAt": "2025-10-25T07:23:55.290Z",
-    "description": null,
-    "seriesTitle": null,
-    "episodeNumber": null,
-    "isLive": false,
-    "isFeatured": false
-  },
-  {
-    "title": "Enamorado Radio Vol. 1",
-    "genre": "Radio",
-    "airDate": "2025-10-25T07:50:22.441Z",
-    "hostName": "Enamorado Radio",
-    "duration": 180,
-    "audioUrl": "/episodes/enamorado-radio-vol1.mp3",
-    "artworkUrl": "/artwork/enamorado-radio-1761378622440-fi07u.jpg",
-    "tags": [
-      "mix",
-      "community",
-      "vol1"
-    ],
-    "status": "uploading",
-    "id": 44,
-    "viewCount": 0,
-    "createdAt": "2025-10-25T07:50:22.441Z",
-    "description": null,
-    "seriesTitle": null,
-    "episodeNumber": null,
-    "isLive": false,
-    "isFeatured": false
-  },
-  {
     "title": "Enamorado Radio Vol. 1",
     "genre": "Radio",
     "airDate": "2025-10-25T07:58:22.669Z",
@@ -110,6 +20,7 @@
     "description": null,
     "seriesTitle": null,
     "episodeNumber": null,
-    "isLive": false
+    "isLive": false,
+    "tracklist": "[{\"artist\":\"Paris Texas\",\"title\":\"Bullseye\"},{\"artist\":\"Vince Staples\",\"title\":\"Homage\"},{\"artist\":\"Magdalena Bay\",\"title\":\"Image\"},{\"artist\":\"Title Fight\",\"title\":\"Leaf\"},{\"artist\":\"Kung Fu Generation\",\"title\":\"Haruka Kanata\"},{\"artist\":\"Cocteau Twins\",\"title\":\"Serpentskirt\"},{\"artist\":\"Glokk40spazz\",\"title\":\"duvet\"},{\"artist\":\"Bktherula\",\"title\":\"partyonu\"},{\"artist\":\"Charli XCX & Shygirl\",\"title\":\"365 (remix)\"},{\"artist\":\"RealYungPhil & Evilgiane\",\"title\":\"nextmove2\"},{\"artist\":\"Julie\",\"title\":\"skipping tiles\"},{\"artist\":\"Fiona Apple\",\"title\":\"I Want You to Love Me\"}]"
   }
 ]
