@@ -115,12 +115,12 @@ export function HeroOption2_SplitStatic() {
 }
 
 export function HeroOption3_FullWidth() {
-  // Full-width banner style - bold and simple
+  // Full-width banner style - bold and simple, no redundant tune-in button
   return (
     <section className="mb-16 -mx-4">
       <div className="bg-gradient-to-r from-red-500 to-pink-600 border-y-4 border-black dark:border-gray-700 py-20 px-4">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center space-y-8 text-white">
+          <div className="text-center space-y-6 text-white">
             <h1 className="text-6xl md:text-8xl font-bold font-mono leading-tight">
               ENAMORADO RADIO
             </h1>
@@ -128,49 +128,58 @@ export function HeroOption3_FullWidth() {
               Internet radio from San Antonio dedicated to the things we are enamored with
             </p>
             
+            {/* Primary CTAs - content discovery focused */}
             <div className="flex flex-wrap justify-center gap-4 pt-6">
-              <button className="bg-white text-red-500 px-10 py-4 font-mono font-bold hover:bg-gray-100 transition-colors inline-flex items-center gap-3 text-lg border-2 border-black">
-                <Radio className="w-6 h-6" />
-                TUNE IN
-              </button>
+              <Link
+                href="/latest"
+                className="bg-white text-red-500 px-8 py-4 font-mono font-bold hover:bg-gray-100 transition-colors inline-flex items-center gap-3 border-2 border-black"
+                data-testid="button-hero-latest"
+              >
+                <Play className="w-5 h-5" />
+                LATEST EPISODES
+              </Link>
               <Link
                 href="/schedule"
-                className="bg-transparent border-2 border-white text-white px-10 py-4 font-mono font-bold hover:bg-white hover:text-red-500 transition-colors inline-flex items-center gap-3 text-lg"
+                className="bg-transparent border-2 border-white text-white px-8 py-4 font-mono font-bold hover:bg-white hover:text-red-500 transition-colors inline-flex items-center gap-3"
+                data-testid="button-hero-schedule"
               >
-                <Calendar className="w-6 h-6" />
+                <Calendar className="w-5 h-5" />
                 SCHEDULE
+              </Link>
+              <Link
+                href="/mixes"
+                className="bg-transparent border-2 border-white text-white px-8 py-4 font-mono font-bold hover:bg-white hover:text-red-500 transition-colors inline-flex items-center gap-3"
+                data-testid="button-hero-mixes"
+              >
+                <Music className="w-5 h-5" />
+                MIXES
               </Link>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Quick nav pills below */}
+      {/* Secondary nav pills below banner */}
       <div className="max-w-7xl mx-auto px-4 -mt-6">
         <div className="flex flex-wrap justify-center gap-3">
-          <Link
-            href="/latest"
-            className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
-          >
-            Latest Episodes
-          </Link>
-          <Link
-            href="/mixes"
-            className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
-          >
-            Community Mixes
-          </Link>
           <Link
             href="/explore"
             className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
           >
+            <Compass className="w-4 h-4 inline mr-2" />
             Explore Guides
+          </Link>
+          <Link
+            href="/albums"
+            className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
+          >
+            Albums of the Month
           </Link>
           <Link
             href="/submit-mix"
             className="bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors shadow-lg"
           >
-            Submit Mix
+            Submit a Mix
           </Link>
         </div>
       </div>
