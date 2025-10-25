@@ -39,8 +39,15 @@ export class AzuraCastManager {
     showSlug: string;
     artist?: string;
     album?: string;
-  }): Promise<{ success: boolean; azuraFilePath?: string; error?: string }> {
+  }): Promise<{ 
+    success: boolean; 
+    azuraFilePath?: string; 
+    error?: string;
+    errorType?: 'sftp_connection' | 'sftp_auth' | 'sftp_upload' | 'rescan' | 'network' | 'unknown';
+    stage?: 'connecting' | 'uploading' | 'rescanning' | 'completed';
+  }> {
     const sftp = new Client();
+    let currentStage: 'connecting' | 'uploading' | 'rescanning' | 'completed' = 'connecting';
 
     try {
       console.log(`🚀 Starting upload for episode ${episodeId}`);
@@ -49,42 +56,68 @@ export class AzuraCastManager {
       const fileName = `${metadata.showSlug}-${Date.now()}.mp3`;
       const remotePath = `/var/azuracast/stations/${this.stationSlug}/media/Shows/${metadata.showSlug}/${fileName}`;
       
-      // SFTP Upload
-      console.log(`📤 Connecting to SFTP...`);
-      await sftp.connect(this.sftpConfig);
+      // SFTP Upload - Connection Stage
+      console.log(`📤 Connecting to SFTP at ${this.sftpConfig.host}:${this.sftpConfig.port}...`);
+      currentStage = 'connecting';
       
-      // Ensure directory exists - use station SLUG
+      try {
+        await sftp.connect(this.sftpConfig);
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+        
+        // Determine specific error type
+        if (errorMsg.includes('ECONNREFUSED') || errorMsg.includes('ETIMEDOUT') || errorMsg.includes('EHOSTUNREACH')) {
+          throw new Error(`Connection failed: Could not reach SFTP server at ${this.sftpConfig.host}:${this.sftpConfig.port}. Please verify the server is running and accessible.`);
+        } else if (errorMsg.includes('authentication') || errorMsg.includes('password') || errorMsg.includes('denied')) {
+          throw new Error(`Authentication failed: Invalid SFTP credentials. Please check username and password in settings.`);
+        } else {
+          throw new Error(`SFTP connection error: ${errorMsg}`);
+        }
+      }
+      
+      console.log(`✅ Connected to SFTP server`);
+      
+      // Create directory if needed
       const remoteDir = `/var/azuracast/stations/${this.stationSlug}/media/Shows/${metadata.showSlug}`;
-      await sftp.mkdir(remoteDir, true);
+      try {
+        await sftp.mkdir(remoteDir, true);
+      } catch (error) {
+        console.warn(`⚠️ Could not create directory (may already exist): ${remoteDir}`);
+      }
       
+      // Upload Stage
       console.log(`📤 Uploading to: ${remotePath}`);
+      currentStage = 'uploading';
+      
       await sftp.put(filePath, remotePath);
       await sftp.end();
       
       console.log(`✅ SFTP upload completed`);
       
-      // Trigger AzuraCast library rescan
+      // Rescan Stage
       console.log(`🔄 Triggering library rescan...`);
+      currentStage = 'rescanning';
+      
       const rescanResult = await this.triggerRescan();
       
       if (rescanResult.success) {
         console.log(`✅ Library rescan completed`);
       } else {
         console.warn(`⚠️ Rescan may have failed:`, rescanResult.error);
+        // Don't fail the whole upload if rescan fails - file is already there
       }
       
-      // Note: Database update handled by calling code
-      // Episode submission status is updated in routes.ts after upload completes
-      
+      currentStage = 'completed';
       console.log(`✅ Episode ${episodeId} upload workflow completed`);
       
       return {
         success: true,
-        azuraFilePath: remotePath
+        azuraFilePath: remotePath,
+        stage: 'completed'
       };
       
     } catch (error) {
-      console.error(`❌ Upload failed for episode ${episodeId}:`, error);
+      console.error(`❌ Upload failed for episode ${episodeId} at stage: ${currentStage}`, error);
       
       try {
         await sftp.end();
@@ -92,11 +125,30 @@ export class AzuraCastManager {
         // Ignore SFTP cleanup errors
       }
       
-      // Note: Error handling delegated to calling code
+      const errorMsg = error instanceof Error ? error.message : 'Unknown upload error';
+      
+      // Determine error type
+      let errorType: 'sftp_connection' | 'sftp_auth' | 'sftp_upload' | 'rescan' | 'network' | 'unknown' = 'unknown';
+      
+      if (currentStage === 'connecting') {
+        if (errorMsg.includes('Authentication') || errorMsg.includes('denied') || errorMsg.includes('credentials')) {
+          errorType = 'sftp_auth';
+        } else if (errorMsg.includes('Connection') || errorMsg.includes('ECONNREFUSED') || errorMsg.includes('ETIMEDOUT')) {
+          errorType = 'sftp_connection';
+        } else {
+          errorType = 'network';
+        }
+      } else if (currentStage === 'uploading') {
+        errorType = 'sftp_upload';
+      } else if (currentStage === 'rescanning') {
+        errorType = 'rescan';
+      }
       
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown upload error'
+        error: errorMsg,
+        errorType,
+        stage: currentStage
       };
     }
   }

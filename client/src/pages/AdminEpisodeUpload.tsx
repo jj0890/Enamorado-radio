@@ -7,11 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Upload, Radio, Clock, CheckCircle, AlertCircle } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Upload, Radio, Clock, CheckCircle, AlertCircle, RefreshCw, Wifi, HardDrive, Radio as RadioIcon } from 'lucide-react';
+
+type UploadStage = 'idle' | 'uploading' | 'connecting' | 'transferring' | 'rescanning' | 'completed' | 'failed';
 
 export default function AdminEpisodeUpload() {
   const queryClient = useQueryClient();
   const [uploadProgress, setUploadProgress] = useState<string>('');
+  const [uploadStage, setUploadStage] = useState<UploadStage>('idle');
+  const [uploadError, setUploadError] = useState<{ message: string; retryable: boolean; episodeId?: number } | null>(null);
   
   const [formData, setFormData] = useState({
     title: '',
@@ -29,48 +34,66 @@ export default function AdminEpisodeUpload() {
   // Upload episode mutation
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      setUploadProgress('Uploading to server...');
+      setUploadStage('uploading');
+      setUploadProgress('Uploading files to server...');
+      setUploadError(null);
       
       const response = await fetch('/api/admin/episode/upload', {
         method: 'POST',
         body: data
       });
       
+      const result = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Upload failed');
+        throw { 
+          ...result, 
+          statusCode: response.status 
+        };
       }
       
-      return response.json();
+      return result;
     },
     onSuccess: (result) => {
-      setUploadProgress('Upload completed successfully!');
-      alert(`Episode "${result.episode.title}" uploaded successfully!`);
+      setUploadStage('completed');
+      setUploadProgress('✅ Episode uploaded successfully!');
+      setUploadError(null);
       
-      // Reset form
-      setFormData({
-        title: '',
-        showSlug: '',
-        audioFile: null,
-        artworkFile: null,
-        airDate: '',
-        tags: '',
-        featureOnHome: false,
-        artworkUrl: '',
-        scheduleImmediate: false,
-        scheduledTime: ''
-      });
-      
-      // Clear file inputs
-      const audioInput = document.getElementById('audioFile') as HTMLInputElement;
-      if (audioInput) audioInput.value = '';
-      const artworkInput = document.getElementById('artworkFile') as HTMLInputElement;
-      if (artworkInput) artworkInput.value = '';
+      // Reset form after 2 seconds
+      setTimeout(() => {
+        setFormData({
+          title: '',
+          showSlug: '',
+          audioFile: null,
+          artworkFile: null,
+          airDate: '',
+          tags: '',
+          featureOnHome: false,
+          artworkUrl: '',
+          scheduleImmediate: false,
+          scheduledTime: ''
+        });
+        
+        // Clear file inputs
+        const audioInput = document.getElementById('audioFile') as HTMLInputElement;
+        if (audioInput) audioInput.value = '';
+        const artworkInput = document.getElementById('artworkFile') as HTMLInputElement;
+        if (artworkInput) artworkInput.value = '';
+        
+        setUploadStage('idle');
+        setUploadProgress('');
+      }, 3000);
       
       queryClient.invalidateQueries({ queryKey: ['/api/episodes'] });
     },
-    onError: (error: Error) => {
-      setUploadProgress(`Upload failed: ${error.message}`);
+    onError: (error: any) => {
+      setUploadStage('failed');
+      setUploadError({
+        message: error.message || 'Upload failed',
+        retryable: error.retryable !== false,
+        episodeId: error.episodeId
+      });
+      setUploadProgress(`❌ Upload failed: ${error.message}`);
       console.error('Upload error:', error);
     }
   });
@@ -293,23 +316,96 @@ export default function AdminEpisodeUpload() {
                   <Label htmlFor="featureOnHome">Feature on Homepage</Label>
                 </div>
 
+                {/* Progress Bar */}
+                {(uploadStage !== 'idle' && uploadStage !== 'failed') && (
+                  <div className="space-y-2">
+                    <Progress 
+                      value={
+                        uploadStage === 'uploading' ? 33 :
+                        uploadStage === 'connecting' ? 50 :
+                        uploadStage === 'transferring' ? 75 :
+                        uploadStage === 'rescanning' ? 90 :
+                        100
+                      } 
+                      className="h-2"
+                    />
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      {uploadStage === 'uploading' && (
+                        <>
+                          <HardDrive className="w-4 h-4 animate-pulse" />
+                          <span>Uploading files to server...</span>
+                        </>
+                      )}
+                      {uploadStage === 'connecting' && (
+                        <>
+                          <Wifi className="w-4 h-4 animate-pulse" />
+                          <span>Connecting to AzuraCast...</span>
+                        </>
+                      )}
+                      {uploadStage === 'transferring' && (
+                        <>
+                          <Upload className="w-4 h-4 animate-pulse" />
+                          <span>Transferring audio file...</span>
+                        </>
+                      )}
+                      {uploadStage === 'rescanning' && (
+                        <>
+                          <RadioIcon className="w-4 h-4 animate-spin" />
+                          <span>Updating media library...</span>
+                        </>
+                      )}
+                      {uploadStage === 'completed' && (
+                        <>
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <span className="text-green-600">Upload completed successfully!</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
                 {/* Submit Button */}
                 <Button 
                   type="submit" 
                   disabled={uploadMutation.isPending || !formData.audioFile}
                   className="w-full bg-red-600 hover:bg-red-700"
+                  data-testid="button-upload"
                 >
                   {getStatusIcon()}
                   {uploadMutation.isPending ? 'Uploading...' : 'Upload to AzuraCast'}
                 </Button>
 
-                {/* Progress */}
-                {uploadProgress && (
-                  <div className={`p-3 rounded text-sm ${
-                    uploadMutation.isError ? 'bg-red-50 text-red-700' :
-                    uploadMutation.isSuccess ? 'bg-green-50 text-green-700' :
-                    'bg-blue-50 text-blue-700'
-                  }`}>
+                {/* Error Display with Retry */}
+                {uploadError && (
+                  <div className="p-4 border-2 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 rounded space-y-3">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <p className="font-semibold text-red-900 dark:text-red-100">Upload Failed</p>
+                        <p className="text-sm text-red-700 dark:text-red-300 mt-1">{uploadError.message}</p>
+                      </div>
+                    </div>
+                    {uploadError.retryable && (
+                      <Button
+                        onClick={() => {
+                          // Clear error and let user try again
+                          setUploadError(null);
+                          setUploadStage('idle');
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="w-full border-red-300 text-red-700 hover:bg-red-100"
+                      >
+                        <RefreshCw className="w-4 h-4 mr-2" />
+                        Try Again
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {/* Success Message */}
+                {uploadProgress && uploadStage === 'completed' && (
+                  <div className="p-3 rounded text-sm bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
                     {uploadProgress}
                   </div>
                 )}

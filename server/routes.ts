@@ -853,6 +853,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (uploadResult.success) {
+        // Update episode status to uploaded
+        await storage.updateEpisode(episode.id, {
+          status: 'published',
+          audioUrl: uploadResult.azuraFilePath || ''
+        });
+
         // Get or create playlist - using episode title as fallback
         const playlistResult = await azuraCastManager.ensurePlaylist(showSlug, showSlug);
 
@@ -871,15 +877,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({
           success: true,
-          episode,
+          episode: await storage.getEpisodeById(episode.id), // Return updated episode
           azuraFilePath: uploadResult.azuraFilePath,
           message: 'Episode uploaded successfully'
         });
       } else {
+        // Update episode with error status
+        await storage.updateEpisode(episode.id, {
+          status: 'failed'
+        });
+
+        // Provide detailed error message based on error type
+        let userMessage = 'Upload to AzuraCast failed';
+        let retryable = true;
+
+        switch (uploadResult.errorType) {
+          case 'sftp_connection':
+            userMessage = 'Could not connect to AzuraCast server. Please check server status and try again.';
+            break;
+          case 'sftp_auth':
+            userMessage = 'Authentication failed. Please verify SFTP credentials in settings.';
+            retryable = false; // Don't retry auth failures
+            break;
+          case 'sftp_upload':
+            userMessage = 'File upload failed. The file may be too large or the connection was interrupted.';
+            break;
+          case 'rescan':
+            userMessage = 'File uploaded but library rescan failed. The episode may appear in AzuraCast after the next automatic scan.';
+            retryable = false; // File is already uploaded
+            break;
+          case 'network':
+            userMessage = 'Network error occurred. Please check your connection and try again.';
+            break;
+          default:
+            userMessage = uploadResult.error || 'Unknown upload error';
+        }
+
         res.status(500).json({
           success: false,
           error: uploadResult.error,
-          message: 'Upload to AzuraCast failed'
+          errorType: uploadResult.errorType,
+          stage: uploadResult.stage,
+          message: userMessage,
+          retryable,
+          episodeId: episode.id
         });
       }
 
@@ -887,7 +928,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Episode upload failed:', error);
       res.status(500).json({ 
         error: error instanceof Error ? error.message : 'Upload failed',
-        success: false
+        success: false,
+        retryable: true
+      });
+    }
+  });
+
+  // Retry episode upload to AzuraCast
+  app.post("/api/admin/episode/:id/retry", async (req, res) => {
+    try {
+      const episodeId = parseInt(req.params.id);
+      const episode = await storage.getEpisodeById(episodeId);
+
+      if (!episode) {
+        return res.status(404).json({ error: 'Episode not found' });
+      }
+
+      // Episode must be in failed or uploading state to retry
+      if (episode.status !== 'failed' && episode.status !== 'uploading') {
+        return res.status(400).json({ 
+          error: 'Episode is not in a retryable state',
+          currentStatus: episode.status 
+        });
+      }
+
+      // Check if original audio file still exists (from temp upload)
+      // Since we can't retry without the original file, return error
+      return res.status(400).json({
+        error: 'Cannot retry: Original audio file not available. Please upload the episode again.',
+        retryable: false
+      });
+
+    } catch (error) {
+      console.error('Episode retry failed:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Retry failed'
       });
     }
   });
