@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Users, Music, Heart, Play, Calendar, Compass } from "lucide-react";
-import { HeroOption1_Minimal, HeroOption2_SplitStatic, HeroOption3_FullWidth } from "./HomePageAlt";
+import { HeroOption3_FullWidth } from "./HomePageAlt";
 
 // Components (use your alias/paths; adjust if different)
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
@@ -32,7 +32,6 @@ interface FeaturedSubmission {
 export default function Home() {
   const [showSongSubmission, setShowSongSubmission] = useState(false);
   const [trackThumbnails, setTrackThumbnails] = useState<Record<number, string>>({});
-  const [heroVersion, setHeroVersion] = useState<'current' | 'minimal' | 'split' | 'fullwidth'>('current');
 
   // --- DATA: Featured DJ submissions (for big centered feature) ---
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
@@ -158,132 +157,8 @@ export default function Home() {
 
       {/* MAIN */}
       <main className="pt-32 pb-28 px-4 max-w-7xl mx-auto">
-        {/* Hero Version Switcher - DEMO ONLY */}
-        <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
-          <div className="font-mono text-sm mb-2 font-bold text-yellow-900 dark:text-yellow-200">👀 DEMO: Try different hero layouts</div>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => setHeroVersion('current')}
-              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'current' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-            >
-              Current (Dynamic)
-            </button>
-            <button
-              onClick={() => setHeroVersion('minimal')}
-              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'minimal' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-            >
-              Option 1: Minimal
-            </button>
-            <button
-              onClick={() => setHeroVersion('split')}
-              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'split' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-            >
-              Option 2: Split Static
-            </button>
-            <button
-              onClick={() => setHeroVersion('fullwidth')}
-              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'fullwidth' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
-            >
-              Option 3: Full Width
-            </button>
-          </div>
-        </div>
-
-        {/* Render selected hero */}
-        {heroVersion === 'minimal' && <HeroOption1_Minimal />}
-        {heroVersion === 'split' && <HeroOption2_SplitStatic />}
-        {heroVersion === 'fullwidth' && <HeroOption3_FullWidth />}
-        
-        {/* HERO - Split Layout (Current/Dynamic) */}
-        {heroVersion === 'current' && (
-        <section className="mb-16">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            {/* LEFT: Text Content */}
-            <div className="space-y-6">
-              <h1 className="text-6xl md:text-7xl font-bold font-mono text-red-500 leading-tight">
-                ENAMORADO<br />RADIO
-              </h1>
-              <p className="text-2xl text-gray-600 dark:text-gray-400 font-mono leading-relaxed">
-                A space dedicated to the things we are enamored with.
-              </p>
-              <p className="text-lg text-gray-500 dark:text-gray-500 font-mono max-w-lg">
-                Listener-driven internet radio from San Antonio. Community mixes, resident shows, and themed programming.
-              </p>
-              
-              {/* Quick Action Links */}
-              <div className="flex flex-wrap gap-3 pt-4">
-                <Link
-                  href="/latest"
-                  className="inline-flex items-center gap-2 bg-red-500 text-white px-6 py-3 font-mono text-sm hover:bg-red-600 transition-colors"
-                  data-testid="button-hero-latest"
-                >
-                  <Play className="w-4 h-4" />
-                  LATEST
-                </Link>
-                <Link
-                  href="/schedule"
-                  className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  data-testid="button-hero-schedule"
-                >
-                  <Calendar className="w-4 h-4" />
-                  SCHEDULE
-                </Link>
-                <Link
-                  href="/submit-mix"
-                  className="inline-flex items-center gap-2 bg-white dark:bg-gray-900 border-2 border-black dark:border-gray-700 px-6 py-3 font-mono text-sm hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
-                  data-testid="button-hero-submit"
-                >
-                  <Music className="w-4 h-4" />
-                  SUBMIT
-                </Link>
-              </div>
-            </div>
-
-            {/* RIGHT: Now Playing Visual */}
-            <div className="space-y-4">
-              <div className="bg-gradient-to-br from-gray-50 to-white dark:from-gray-900 dark:to-black border-2 border-black dark:border-gray-700 p-8">
-                <div className="text-xs font-mono text-red-500 mb-4 tracking-wider">NOW PLAYING</div>
-                
-                {/* Album Art Placeholder */}
-                <div className="aspect-square bg-gradient-to-br from-red-500 to-pink-500 mb-6 flex items-center justify-center border-2 border-black dark:border-gray-700">
-                  <div className="text-center text-white p-8">
-                    <Music className="w-16 h-16 mx-auto mb-4" />
-                    <div className="font-mono text-sm">LIVE BROADCAST</div>
-                  </div>
-                </div>
-
-                {/* Track Info */}
-                <div className="space-y-2 mb-6">
-                  <div className="font-mono font-bold text-lg">Enamorado Radio</div>
-                  <div className="font-mono text-sm text-gray-600 dark:text-gray-400">24/7 Music Stream</div>
-                </div>
-
-                {/* Listen Button */}
-                <button className="w-full bg-red-500 text-white py-4 font-mono font-bold hover:bg-red-600 transition-colors flex items-center justify-center gap-2">
-                  <Play className="w-5 h-5" />
-                  LISTEN LIVE
-                </button>
-              </div>
-              
-              {/* Quick Stats */}
-              <div className="grid grid-cols-3 gap-2 text-center font-mono text-xs">
-                <div className="bg-white dark:bg-gray-900 border border-black dark:border-gray-700 p-3">
-                  <div className="text-red-500 font-bold text-lg">24/7</div>
-                  <div className="text-gray-600 dark:text-gray-400">LIVE</div>
-                </div>
-                <div className="bg-white dark:bg-gray-900 border border-black dark:border-gray-700 p-3">
-                  <div className="text-red-500 font-bold text-lg">{freshMixes.length}+</div>
-                  <div className="text-gray-600 dark:text-gray-400">MIXES</div>
-                </div>
-                <div className="bg-white dark:bg-gray-900 border border-black dark:border-gray-700 p-3">
-                  <div className="text-red-500 font-bold text-lg">SA</div>
-                  <div className="text-gray-600 dark:text-gray-400">BASED</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </section>
-        )}
+        {/* HERO - Full Width Banner */}
+        <HeroOption3_FullWidth />
 
         {/* About Blurb – centered, compact */}
         <section className="max-w-3xl mx-auto mt-6 mb-12 text-center">
