@@ -38,6 +38,18 @@ export default function Home() {
     queryKey: ["/api/public/mixes/featured"],
   });
 
+  // --- DATA: Featured Episodes ---
+  const { data: featuredEpisodes = [] } = useQuery({
+    queryKey: ["/api/episodes", { featured: true }],
+    queryFn: async () => {
+      const r = await fetch("/api/episodes");
+      if (!r.ok) throw new Error("Failed to fetch episodes");
+      const episodes = await r.json();
+      return episodes.filter((e: any) => e.isFeatured && e.status === 'published');
+    },
+    refetchOnWindowFocus: false,
+  });
+
   // --- DATA: Fresh mixes (same cards as /mixes) ---
   const { data: freshMixes = [] } = useQuery({
     queryKey: ["/api/public/mixes", { limit: 6 }],
@@ -169,6 +181,54 @@ export default function Home() {
           </p>
         </section>
 
+
+        {/* Featured Episodes */}
+        {featuredEpisodes.length > 0 && (
+          <section className="mb-16">
+            <div className="text-center pt-16 pb-8 mb-8">
+              <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">FEATURED EPISODES</h2>
+              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
+                Handpicked episodes and special broadcasts
+              </p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {featuredEpisodes.slice(0, 3).map((episode: any) => (
+                <div key={episode.id} className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+                  <div className="aspect-square bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
+                    <img 
+                      src={episode.artworkUrl || "/assets/default-episode-artwork.jpg"} 
+                      alt={episode.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    />
+                  </div>
+                  <div className="p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
+                        Featured
+                      </span>
+                      <div className="text-xs font-mono text-gray-500 dark:text-gray-400">
+                        {new Date(episode.airDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    <h4 className="text-lg font-bold font-mono text-gray-900 dark:text-white group-hover:text-red-500 transition-colors mb-2">
+                      {episode.title}
+                    </h4>
+                    <p className="text-sm font-mono text-gray-600 dark:text-gray-400 mb-4">
+                      {episode.hostName}
+                    </p>
+                    <Link
+                      href={`/episode/${episode.id}`}
+                      className="inline-flex items-center gap-2 text-sm font-mono text-red-500 hover:text-red-600 transition-colors"
+                    >
+                      <Play className="w-4 h-4" />
+                      Listen Now
+                    </Link>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
           <div className="text-center pt-16 pb-8 mb-8">

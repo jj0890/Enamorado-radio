@@ -841,8 +841,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         audioUrl: '',
         artworkUrl: finalArtworkUrl,
         tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
-        status: 'uploading'
+        status: 'uploading',
+        isFeatured: featureOnHome === 'true' || featureOnHome === true || featureOnHome === 'on'
       });
+
+      console.log(`📝 Episode created with isFeatured=${episode.isFeatured}, featureOnHome param=${featureOnHome}`);
 
       // Upload to AzuraCast
       const uploadResult = await azuraCastManager.uploadEpisode(episode.id, audioFile.path, {

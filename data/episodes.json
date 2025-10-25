@@ -65,5 +65,51 @@
     "episodeNumber": null,
     "isLive": false,
     "isFeatured": false
+  },
+  {
+    "title": "Enamorado Radio Vol. 1",
+    "genre": "Radio",
+    "airDate": "2025-10-25T07:50:22.441Z",
+    "hostName": "Enamorado Radio",
+    "duration": 0,
+    "audioUrl": "",
+    "artworkUrl": "/artwork/enamorado-radio-1761378622440-fi07u.jpg",
+    "tags": [
+      "mix",
+      "community",
+      "vol1"
+    ],
+    "status": "uploading",
+    "id": 44,
+    "viewCount": 0,
+    "createdAt": "2025-10-25T07:50:22.441Z",
+    "description": null,
+    "seriesTitle": null,
+    "episodeNumber": null,
+    "isLive": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Enamorado Radio Vol. 1",
+    "genre": "Radio",
+    "airDate": "2025-10-25T07:58:22.669Z",
+    "hostName": "Enamorado Radio",
+    "duration": 0,
+    "audioUrl": "https://example.com/audio.mp3",
+    "artworkUrl": "/artwork/enamorado-radio-tails.jpg",
+    "tags": [
+      "mix",
+      "community",
+      "vol1"
+    ],
+    "status": "published",
+    "isFeatured": true,
+    "id": 45,
+    "viewCount": 0,
+    "createdAt": "2025-10-25T07:58:22.669Z",
+    "description": null,
+    "seriesTitle": null,
+    "episodeNumber": null,
+    "isLive": false
   }
 ]

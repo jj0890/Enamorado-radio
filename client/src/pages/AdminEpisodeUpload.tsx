@@ -34,42 +34,54 @@ export default function AdminEpisodeUpload() {
   // Upload episode mutation
   const uploadMutation = useMutation({
     mutationFn: async (data: FormData) => {
-      setUploadError(null);
-      
-      // Stage 1: Uploading to server
-      setUploadStage('uploading');
-      setUploadProgress('Uploading files to server...');
-      
-      const response = await fetch('/api/admin/episode/upload', {
-        method: 'POST',
-        body: data
-      });
-      
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw { 
-          ...result, 
-          statusCode: response.status 
-        };
+      try {
+        setUploadError(null);
+        
+        // Stage 1: Uploading to server
+        setUploadStage('uploading');
+        setUploadProgress('Uploading files to server...');
+        
+        console.log('🎵 Starting episode upload...');
+        
+        const response = await fetch('/api/admin/episode/upload', {
+          method: 'POST',
+          body: data
+        });
+        
+        console.log('📡 Upload response received:', response.status);
+        
+        const result = await response.json();
+        console.log('📦 Upload result:', result);
+        
+        if (!response.ok) {
+          console.error('❌ Upload failed:', result);
+          throw { 
+            ...result, 
+            statusCode: response.status 
+          };
+        }
+        
+        // Stage 2: Connecting to AzuraCast
+        setUploadStage('connecting');
+        setUploadProgress('Connecting to AzuraCast SFTP...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
+        
+        // Stage 3: Transferring audio file
+        setUploadStage('transferring');
+        setUploadProgress('Transferring audio file...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
+        
+        // Stage 4: Rescanning library
+        setUploadStage('rescanning');
+        setUploadProgress('Updating media library...');
+        await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
+        
+        console.log('✅ Upload completed successfully!');
+        return result;
+      } catch (error) {
+        console.error('💥 Upload mutation error:', error);
+        throw error;
       }
-      
-      // Stage 2: Connecting to AzuraCast
-      setUploadStage('connecting');
-      setUploadProgress('Connecting to AzuraCast SFTP...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
-      
-      // Stage 3: Transferring audio file
-      setUploadStage('transferring');
-      setUploadProgress('Transferring audio file...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
-      
-      // Stage 4: Rescanning library
-      setUploadStage('rescanning');
-      setUploadProgress('Updating media library...');
-      await new Promise(resolve => setTimeout(resolve, 500)); // Visual feedback
-      
-      return result;
     },
     onSuccess: (result) => {
       setUploadStage('completed');
