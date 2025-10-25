@@ -183,7 +183,10 @@ export default function StickyRadioPlayer() {
   return (
     <>
       {/* Bottom sticky player */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 bg-black text-white border-t border-gray-800">
+      <div 
+        data-sticky-player
+        className="fixed bottom-0 left-0 right-0 z-50 bg-black text-white border-t border-gray-800"
+      >
         <div className="flex items-center h-16 px-4">
           {/* Station Logo/Brand */}
           <div className="flex items-center gap-3">

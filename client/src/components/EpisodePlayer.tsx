@@ -5,7 +5,7 @@ import { Play, Pause, SkipBack, SkipForward, Volume2, MoreHorizontal, ExternalLi
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
-import type { Episode } from '@shared/schema-clean';
+import type { Episode } from '@shared/schema';
 
 interface EpisodePlayerProps {
   episode: Episode;
@@ -23,20 +23,67 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
     episode.tracklist ? JSON.parse(episode.tracklist) : [];
   const currentTrack = null;
 
+  // Hide persistent radio player when on episode page
+  useEffect(() => {
+    const hidePlayer = () => {
+      const persistentPlayer = document.querySelector('[data-sticky-player]');
+      console.log('🎵 Looking for sticky player...', persistentPlayer);
+      if (persistentPlayer) {
+        (persistentPlayer as HTMLElement).style.display = 'none';
+        console.log('✅ Sticky player hidden');
+        return true;
+      }
+      return false;
+    };
+
+    // Try immediately
+    if (!hidePlayer()) {
+      // If not found, try again after a short delay
+      const timeout = setTimeout(hidePlayer, 100);
+      
+      return () => {
+        clearTimeout(timeout);
+        const persistentPlayer = document.querySelector('[data-sticky-player]');
+        if (persistentPlayer) {
+          (persistentPlayer as HTMLElement).style.display = 'block';
+          console.log('✅ Sticky player restored');
+        }
+      };
+    }
+    
+    // Show it again when leaving
+    return () => {
+      const persistentPlayer = document.querySelector('[data-sticky-player]');
+      if (persistentPlayer) {
+        (persistentPlayer as HTMLElement).style.display = 'block';
+        console.log('✅ Sticky player restored');
+      }
+    };
+  }, []);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handlePlayPause = () => {
-    if (audioRef.current) {
-      if (isPlaying) {
-        audioRef.current.pause();
-      } else {
-        audioRef.current.play();
+  const handlePlayPause = async () => {
+    if (!audioRef.current) return;
+    
+    console.log('🎵 Episode player: handlePlayPause, isPlaying:', isPlaying);
+    
+    if (isPlaying) {
+      console.log('⏸ Pausing episode audio...');
+      audioRef.current.pause();
+      setIsPlaying(false);
+    } else {
+      console.log('▶️ Playing episode audio...');
+      try {
+        await audioRef.current.play();
+        setIsPlaying(true);
+      } catch (error) {
+        console.error('❌ Episode play error:', error);
       }
-      setIsPlaying(!isPlaying);
     }
   };
 
@@ -127,7 +174,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
               {episode.seriesTitle} • {formatTime(episode.duration)}
             </p>
             <div className="flex flex-wrap gap-1 mt-2">
-              {episode.tags?.map((tag, index) => (
+              {episode.tags?.map((tag: string, index: number) => (
                 <Link key={index} href={`/episodes?tag=${encodeURIComponent(tag)}`}>
                   <Badge variant="secondary" className="text-xs bg-gray-800 text-gray-300 cursor-pointer hover:bg-red-500 hover:text-white transition-colors">
                     {tag}
