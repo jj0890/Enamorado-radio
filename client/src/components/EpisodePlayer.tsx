@@ -25,38 +25,38 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
 
   // Hide persistent radio player when on episode page
   useEffect(() => {
+    let attempts = 0;
+    const maxAttempts = 10;
+    
     const hidePlayer = () => {
+      attempts++;
       const persistentPlayer = document.querySelector('[data-sticky-player]');
-      console.log('🎵 Looking for sticky player...', persistentPlayer);
+      console.log(`🎵 Attempt ${attempts}: Looking for sticky player...`, persistentPlayer);
+      
       if (persistentPlayer) {
         (persistentPlayer as HTMLElement).style.display = 'none';
-        console.log('✅ Sticky player hidden');
+        console.log('✅ Sticky player HIDDEN successfully!');
         return true;
+      }
+      
+      if (attempts < maxAttempts) {
+        console.log(`⏳ Retry in 200ms (attempt ${attempts}/${maxAttempts})`);
+        setTimeout(hidePlayer, 200);
+      } else {
+        console.log('❌ Could not find sticky player after', maxAttempts, 'attempts');
       }
       return false;
     };
 
-    // Try immediately
-    if (!hidePlayer()) {
-      // If not found, try again after a short delay
-      const timeout = setTimeout(hidePlayer, 100);
-      
-      return () => {
-        clearTimeout(timeout);
-        const persistentPlayer = document.querySelector('[data-sticky-player]');
-        if (persistentPlayer) {
-          (persistentPlayer as HTMLElement).style.display = 'block';
-          console.log('✅ Sticky player restored');
-        }
-      };
-    }
+    // Start trying to hide it
+    hidePlayer();
     
-    // Show it again when leaving
+    // Cleanup: Show it again when leaving
     return () => {
       const persistentPlayer = document.querySelector('[data-sticky-player]');
       if (persistentPlayer) {
         (persistentPlayer as HTMLElement).style.display = 'block';
-        console.log('✅ Sticky player restored');
+        console.log('✅ Sticky player restored on cleanup');
       }
     };
   }, []);
@@ -215,7 +215,10 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
       </div>
 
       {/* Audio Controls - Fixed Bottom */}
-      <div className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 p-4">
+      <div 
+        data-testid="episode-player-controls"
+        className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-800 p-4 z-[60]"
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center space-x-4">
             <Button
