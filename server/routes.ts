@@ -756,20 +756,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fileSize: 500 * 1024 * 1024 // 500MB limit
     },
     fileFilter: (req, file, cb) => {
-      if (file.mimetype.startsWith('audio/') || file.originalname.endsWith('.mp3')) {
+      // Accept audio files for audioFile field
+      if (file.fieldname === 'audioFile' && (file.mimetype.startsWith('audio/') || file.originalname.endsWith('.mp3'))) {
+        cb(null, true);
+      }
+      // Accept image files for artworkFile field
+      else if (file.fieldname === 'artworkFile' && file.mimetype.startsWith('image/')) {
         cb(null, true);
       } else {
-        cb(new Error('Only audio files are allowed'));
+        cb(new Error('Invalid file type'));
       }
     }
   });
 
   // Upload episode to AzuraCast
-  app.post("/api/admin/episode/upload", upload.single('audioFile'), async (req, res) => {
+  app.post("/api/admin/episode/upload", upload.fields([
+    { name: 'audioFile', maxCount: 1 },
+    { name: 'artworkFile', maxCount: 1 }
+  ]), async (req, res) => {
     try {
-      if (!req.file) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+      
+      if (!files || !files.audioFile || files.audioFile.length === 0) {
         return res.status(400).json({ error: 'Audio file is required' });
       }
+
+      const audioFile = files.audioFile[0];
+      const artworkFile = files.artworkFile?.[0];
 
       const { 
         title, 
@@ -783,6 +796,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log(`🎵 Processing upload: ${title} for show ${showSlug}`);
 
+      // Handle artwork - either from file upload or URL
+      let finalArtworkUrl = artworkUrl;
+      if (artworkFile) {
+        // Validate file extension (security)
+        const ext = path.extname(artworkFile.originalname).toLowerCase();
+        const allowedExtensions = ['.jpg', '.jpeg', '.png', '.webp'];
+        if (!allowedExtensions.includes(ext)) {
+          fs.unlinkSync(artworkFile.path); // Clean up
+          return res.status(400).json({ error: 'Invalid artwork file type. Only JPG, PNG, and WEBP allowed.' });
+        }
+
+        // Save artwork file to a public directory
+        const artworkDir = path.join(process.cwd(), 'public', 'artwork');
+        if (!fs.existsSync(artworkDir)) {
+          fs.mkdirSync(artworkDir, { recursive: true });
+        }
+        
+        // Generate secure filename using sanitized showSlug + UUID + extension (prevents path traversal)
+        const sanitizedShowSlug = sanitizeFilename(showSlug);
+        const artworkFileName = `${sanitizedShowSlug}-${Date.now()}-${Math.random().toString(36).substring(7)}${ext}`;
+        const artworkPath = path.join(artworkDir, path.basename(artworkFileName)); // path.basename prevents directory traversal
+        
+        fs.copyFileSync(artworkFile.path, artworkPath);
+        fs.unlinkSync(artworkFile.path); // Clean up temp file
+        
+        finalArtworkUrl = `/artwork/${artworkFileName}`;
+        console.log(`🖼️ Artwork saved: ${finalArtworkUrl}`);
+      }
+
+      // Ensure artwork is provided (either file or URL)
+      if (!finalArtworkUrl || finalArtworkUrl.trim() === '') {
+        // Use a default placeholder if no artwork provided
+        finalArtworkUrl = '/assets/default-episode-artwork.jpg';
+      }
+
       // Create episode record
       const episode = await storage.createEpisode({
         title,
@@ -791,13 +839,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         hostName: 'Enamorado Radio',
         duration: 0, // Will be updated later
         audioUrl: '',
-        artworkUrl,
+        artworkUrl: finalArtworkUrl,
         tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
         status: 'uploading'
       });
 
       // Upload to AzuraCast
-      const uploadResult = await azuraCastManager.uploadEpisode(episode.id, req.file.path, {
+      const uploadResult = await azuraCastManager.uploadEpisode(episode.id, audioFile.path, {
         title,
         showSlug,
         artist: 'Enamorado Radio',

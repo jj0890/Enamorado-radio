@@ -59,6 +59,16 @@ External forms: Prefer Google Forms for complex applications over custom form im
 - **Metadata/APIs**: SoundCloud oEmbed API, Last.fm, Spotify API, MusicBrainz API (album metadata and Cover Art Archive)
 - **External Forms**: Google Sheets (for Resident Applications)
 
+## Environment Configuration
+
+### Required AzuraCast Secrets
+- **AZURACAST_BASE_URL**: Base URL of AzuraCast instance (e.g., http://24.199.109.18)
+- **AZURACAST_API_KEY**: API key for AzuraCast authentication
+- **AZURACAST_STATION_ID**: Numeric station ID for API calls (e.g., "1")
+- **AZURACAST_STATION_SLUG**: Station slug for SFTP file paths (e.g., "enamorado_radio")
+
+**Note:** AzuraCast uses different identifiers for different purposes - numeric IDs for API endpoints and slugs for file system paths. Both are required for proper operation.
+
 ## Streaming Workflows
 
 ### Resident DJ Streaming Setup

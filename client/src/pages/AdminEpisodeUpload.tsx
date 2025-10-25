@@ -17,6 +17,7 @@ export default function AdminEpisodeUpload() {
     title: '',
     showSlug: '',
     audioFile: null as File | null,
+    artworkFile: null as File | null,
     airDate: '',
     tags: '',
     featureOnHome: false,
@@ -51,6 +52,7 @@ export default function AdminEpisodeUpload() {
         title: '',
         showSlug: '',
         audioFile: null,
+        artworkFile: null,
         airDate: '',
         tags: '',
         featureOnHome: false,
@@ -59,9 +61,11 @@ export default function AdminEpisodeUpload() {
         scheduledTime: ''
       });
       
-      // Clear file input
-      const fileInput = document.getElementById('audioFile') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      // Clear file inputs
+      const audioInput = document.getElementById('audioFile') as HTMLInputElement;
+      if (audioInput) audioInput.value = '';
+      const artworkInput = document.getElementById('artworkFile') as HTMLInputElement;
+      if (artworkInput) artworkInput.value = '';
       
       queryClient.invalidateQueries({ queryKey: ['/api/episodes'] });
     },
@@ -107,6 +111,9 @@ export default function AdminEpisodeUpload() {
 
     const data = new FormData();
     data.append('audioFile', formData.audioFile);
+    if (formData.artworkFile) {
+      data.append('artworkFile', formData.artworkFile);
+    }
     data.append('title', formData.title);
     data.append('showSlug', formData.showSlug);
     data.append('airDate', formData.airDate || new Date().toISOString());
@@ -228,17 +235,52 @@ export default function AdminEpisodeUpload() {
                   <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
                 </div>
 
-                {/* Artwork URL */}
-                <div>
-                  <Label htmlFor="artworkUrl">Artwork URL</Label>
-                  <Input
-                    id="artworkUrl"
-                    type="url"
-                    value={formData.artworkUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, artworkUrl: e.target.value }))}
-                    placeholder="https://example.com/artwork.jpg"
-                    className="mt-1"
-                  />
+                {/* Artwork - File or URL */}
+                <div className="space-y-4 p-4 border-2 border-gray-200 dark:border-gray-700 rounded">
+                  <Label className="text-sm font-medium">Episode Artwork</Label>
+                  
+                  {/* Artwork File Upload */}
+                  <div>
+                    <Label htmlFor="artworkFile" className="text-sm text-gray-600 dark:text-gray-400">Upload Image File</Label>
+                    <Input
+                      id="artworkFile"
+                      type="file"
+                      accept="image/jpeg,image/png,image/jpg"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          setFormData(prev => ({ ...prev, artworkFile: file, artworkUrl: '' }));
+                        }
+                      }}
+                      className="mt-1"
+                    />
+                    {formData.artworkFile && (
+                      <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                        ✓ Selected: {formData.artworkFile.name}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="text-center text-xs text-gray-500 dark:text-gray-400">— OR —</div>
+
+                  {/* Artwork URL */}
+                  <div>
+                    <Label htmlFor="artworkUrl" className="text-sm text-gray-600 dark:text-gray-400">Artwork URL</Label>
+                    <Input
+                      id="artworkUrl"
+                      type="url"
+                      value={formData.artworkUrl}
+                      onChange={(e) => setFormData(prev => ({ ...prev, artworkUrl: e.target.value, artworkFile: null }))}
+                      placeholder="https://example.com/artwork.jpg"
+                      className="mt-1"
+                      disabled={!!formData.artworkFile}
+                    />
+                    {formData.artworkUrl && !formData.artworkFile && (
+                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                        Using URL: {formData.artworkUrl.substring(0, 40)}...
+                      </p>
+                    )}
+                  </div>
                 </div>
 
                 {/* Feature on Homepage */}

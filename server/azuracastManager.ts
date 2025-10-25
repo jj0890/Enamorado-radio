@@ -8,7 +8,8 @@ import { storage } from './storage';
 export class AzuraCastManager {
   private baseUrl: string;
   private apiKey: string;
-  private stationId: string;
+  private stationId: string; // Numeric ID for API calls (e.g., "1")
+  private stationSlug: string; // Slug for SFTP paths (e.g., "enamorado_radio")
   private sftpConfig: {
     host: string;
     port: number;
@@ -19,7 +20,8 @@ export class AzuraCastManager {
   constructor() {
     this.baseUrl = process.env.AZURACAST_BASE_URL || 'http://24.199.109.18';
     this.apiKey = process.env.AZURACAST_API_KEY || '';
-    this.stationId = process.env.AZURACAST_STATION || 'enamorado_radio';
+    this.stationId = process.env.AZURACAST_STATION_ID || '1'; // Numeric ID
+    this.stationSlug = process.env.AZURACAST_STATION_SLUG || 'enamorado_radio'; // Slug for file paths
     
     this.sftpConfig = {
       host: process.env.SFTP_HOST || '24.199.109.18',
@@ -43,16 +45,16 @@ export class AzuraCastManager {
     try {
       console.log(`🚀 Starting upload for episode ${episodeId}`);
       
-      // Generate AzuraCast file path
+      // Generate AzuraCast file path - use station SLUG for SFTP paths, not numeric ID
       const fileName = `${metadata.showSlug}-${Date.now()}.mp3`;
-      const remotePath = `/var/azuracast/stations/${this.stationId}/media/Shows/${metadata.showSlug}/${fileName}`;
+      const remotePath = `/var/azuracast/stations/${this.stationSlug}/media/Shows/${metadata.showSlug}/${fileName}`;
       
       // SFTP Upload
       console.log(`📤 Connecting to SFTP...`);
       await sftp.connect(this.sftpConfig);
       
-      // Ensure directory exists
-      const remoteDir = `/var/azuracast/stations/${this.stationId}/media/Shows/${metadata.showSlug}`;
+      // Ensure directory exists - use station SLUG
+      const remoteDir = `/var/azuracast/stations/${this.stationSlug}/media/Shows/${metadata.showSlug}`;
       await sftp.mkdir(remoteDir, true);
       
       console.log(`📤 Uploading to: ${remotePath}`);

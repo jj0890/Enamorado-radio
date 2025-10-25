@@ -1,0 +1,23 @@
+[
+  {
+    "title": "Enamorado Radio Vol.1 Testing",
+    "genre": "Radio",
+    "airDate": "2025-10-25T06:54:53.249Z",
+    "hostName": "Enamorado Radio",
+    "duration": 0,
+    "audioUrl": "",
+    "artworkUrl": "https://i.pinimg.com/736x/ad/a1/ea/ada1ea900429b75a3c97a35133f29860.jpg",
+    "tags": [
+      "rock"
+    ],
+    "status": "uploading",
+    "id": 2,
+    "viewCount": 0,
+    "createdAt": "2025-10-25T06:54:53.249Z",
+    "description": null,
+    "seriesTitle": null,
+    "episodeNumber": null,
+    "isLive": false,
+    "isFeatured": false
+  }
+]
