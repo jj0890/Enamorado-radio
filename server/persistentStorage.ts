@@ -202,6 +202,32 @@ export class FileStorage implements IStorage {
         this.nextId = 1;
       }
 
+      // Safety check: Ensure nextId is higher than all existing IDs to prevent collisions
+      const allIds: number[] = [
+        ...this.episodes.map(e => e.id),
+        ...this.guides.map(g => g.id),
+        ...this.mixSubmissions.map(m => m.id),
+        ...this.episodeSubmissions.map(e => e.id),
+        ...this.scheduleItems.map(s => s.id),
+        ...this.songSubmissions.map(s => s.id),
+        ...this.residentApplications.map(r => r.id),
+        ...this.residents.map(r => r.id),
+        ...this.admins.map(a => a.id),
+        ...this.albumSuggestions.map(a => a.id),
+        ...this.albumVotes.map(v => v.id),
+        ...this.albumPicks.map(p => p.id),
+        ...this.albumPickItems.map(i => i.id),
+        ...this.albumSuggestionNotes.map(n => n.id)
+      ];
+      
+      const maxExistingId = allIds.length > 0 ? Math.max(...allIds) : 0;
+      if (maxExistingId >= this.nextId) {
+        this.nextId = maxExistingId + 1;
+        console.log(`⚠️  nextId corrected from file to ${this.nextId} (max existing ID: ${maxExistingId})`);
+        // Save corrected nextId
+        await fs.writeFile(this.nextIdFile, JSON.stringify({ nextId: this.nextId }));
+      }
+
       console.log(`Loaded persistent data: ${this.mixSubmissions.length} mix submissions found`);
       
     } catch (error) {

@@ -19,5 +19,51 @@
     "episodeNumber": null,
     "isLive": false,
     "isFeatured": false
+  },
+  {
+    "title": "Enamorado Radio Vol.1 (Testing)",
+    "genre": "Radio",
+    "airDate": "2025-10-25T07:14:57.604Z",
+    "hostName": "Enamorado Radio",
+    "duration": 0,
+    "audioUrl": "",
+    "artworkUrl": "/artwork/late-night-sessions-1761376497602-sm2gla.png",
+    "tags": [
+      "radio",
+      "test",
+      "volume-1"
+    ],
+    "status": "uploading",
+    "id": 2,
+    "viewCount": 0,
+    "createdAt": "2025-10-25T07:14:57.604Z",
+    "description": null,
+    "seriesTitle": null,
+    "episodeNumber": null,
+    "isLive": false,
+    "isFeatured": false
+  },
+  {
+    "title": "Enamorado Radio Vol.1 (Testing)",
+    "genre": "Radio",
+    "airDate": "2025-10-25T07:23:55.290Z",
+    "hostName": "Enamorado Radio",
+    "duration": 0,
+    "audioUrl": "",
+    "artworkUrl": "/artwork/late-night-sessions-1761377035280-w58v8ak.png",
+    "tags": [
+      "radio",
+      "test",
+      "volume-1"
+    ],
+    "status": "uploading",
+    "id": 43,
+    "viewCount": 0,
+    "createdAt": "2025-10-25T07:23:55.290Z",
+    "description": null,
+    "seriesTitle": null,
+    "episodeNumber": null,
+    "isLive": false,
+    "isFeatured": false
   }
 ]
