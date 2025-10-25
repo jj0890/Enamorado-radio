@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Users, Music, Heart, Play, Calendar, Compass } from "lucide-react";
+import { HeroOption1_Minimal, HeroOption2_SplitStatic, HeroOption3_FullWidth } from "./HomePageAlt";
 
 // Components (use your alias/paths; adjust if different)
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
@@ -31,6 +32,7 @@ interface FeaturedSubmission {
 export default function Home() {
   const [showSongSubmission, setShowSongSubmission] = useState(false);
   const [trackThumbnails, setTrackThumbnails] = useState<Record<number, string>>({});
+  const [heroVersion, setHeroVersion] = useState<'current' | 'minimal' | 'split' | 'fullwidth'>('current');
 
   // --- DATA: Featured DJ submissions (for big centered feature) ---
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
@@ -156,7 +158,44 @@ export default function Home() {
 
       {/* MAIN */}
       <main className="pt-32 pb-28 px-4 max-w-7xl mx-auto">
-        {/* HERO - Split Layout */}
+        {/* Hero Version Switcher - DEMO ONLY */}
+        <div className="mb-8 p-4 bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600">
+          <div className="font-mono text-sm mb-2 font-bold text-yellow-900 dark:text-yellow-200">👀 DEMO: Try different hero layouts</div>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => setHeroVersion('current')}
+              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'current' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
+            >
+              Current (Dynamic)
+            </button>
+            <button
+              onClick={() => setHeroVersion('minimal')}
+              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'minimal' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
+            >
+              Option 1: Minimal
+            </button>
+            <button
+              onClick={() => setHeroVersion('split')}
+              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'split' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
+            >
+              Option 2: Split Static
+            </button>
+            <button
+              onClick={() => setHeroVersion('fullwidth')}
+              className={`px-4 py-2 font-mono text-xs ${heroVersion === 'fullwidth' ? 'bg-yellow-400 text-black' : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'}`}
+            >
+              Option 3: Full Width
+            </button>
+          </div>
+        </div>
+
+        {/* Render selected hero */}
+        {heroVersion === 'minimal' && <HeroOption1_Minimal />}
+        {heroVersion === 'split' && <HeroOption2_SplitStatic />}
+        {heroVersion === 'fullwidth' && <HeroOption3_FullWidth />}
+        
+        {/* HERO - Split Layout (Current/Dynamic) */}
+        {heroVersion === 'current' && (
         <section className="mb-16">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             {/* LEFT: Text Content */}
@@ -244,7 +283,7 @@ export default function Home() {
             </div>
           </div>
         </section>
-
+        )}
 
         {/* About Blurb – centered, compact */}
         <section className="max-w-3xl mx-auto mt-6 mb-12 text-center">
