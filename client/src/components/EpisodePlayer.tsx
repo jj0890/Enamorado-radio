@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'wouter';
 import { Play, Pause, SkipBack, SkipForward, Volume2, MoreHorizontal, ExternalLink } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -17,8 +18,9 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
   const [showTracklist, setShowTracklist] = useState(true);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // Mock tracklist for now (will be replaced with real data)
-  const tracks: any[] = [];
+  // Parse tracklist from JSON string
+  const tracks: Array<{artist: string; title: string; timestamp?: number}> = 
+    episode.tracklist ? JSON.parse(episode.tracklist) : [];
   const currentTrack = null;
 
   const formatTime = (seconds: number) => {
@@ -126,9 +128,11 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
             </p>
             <div className="flex flex-wrap gap-1 mt-2">
               {episode.tags?.map((tag, index) => (
-                <Badge key={index} variant="secondary" className="text-xs bg-gray-800 text-gray-300">
-                  {tag}
-                </Badge>
+                <Link key={index} href={`/episodes?tag=${encodeURIComponent(tag)}`}>
+                  <Badge variant="secondary" className="text-xs bg-gray-800 text-gray-300 cursor-pointer hover:bg-red-500 hover:text-white transition-colors">
+                    {tag}
+                  </Badge>
+                </Link>
               ))}
             </div>
           </div>
@@ -140,11 +144,27 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
       {/* Tracklist */}
       <div className="p-4">
         <h3 className="text-lg font-semibold mb-4">TRACKLIST</h3>
-        <div className="space-y-3">
+        {tracks.length === 0 ? (
           <p className="text-gray-500 text-center py-8">
             Tracklist functionality will be available when track data is integrated.
           </p>
-        </div>
+        ) : (
+          <div className="space-y-4">
+            {tracks.map((track, index) => (
+              <div
+                key={index}
+                className="border-l-2 border-gray-800 pl-3 hover:border-gray-600 transition-colors"
+              >
+                <div className="text-sm font-bold text-white uppercase tracking-wide">
+                  {track.artist}
+                </div>
+                <div className="text-sm text-gray-400 mt-1">
+                  {track.title}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Audio Controls - Fixed Bottom */}
