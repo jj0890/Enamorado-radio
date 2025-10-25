@@ -35,6 +35,7 @@ export const episodes = pgTable("episodes", {
   artworkUrl: text("artwork_url"),
   genre: text("genre").notNull(),
   tags: text("tags").array(), // ["RAP", "HIP HOP", "RNB"]
+  tracklist: text("tracklist"), // JSON string of track array: [{"artist": "...", "title": "...", "timestamp": 0}]
   status: text("status").notNull().default("published"), // draft, published, featured
   isLive: boolean("is_live").default(false),
   isFeatured: boolean("is_featured").default(false),
