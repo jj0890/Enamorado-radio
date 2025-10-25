@@ -12,6 +12,12 @@ Data integrity: Clean slate storage with only essential admin account - all cont
 Metadata handling: Prioritize original submission names over enhanced metadata from external APIs (e.g., use submitted artist names over SoundCloud metadata)
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
+## Recent Changes
+- **Featured Episode Visual Design** (Oct 25, 2025): Featured episodes now display with 4px red borders, prominent "FEATURED" badge in top-left, and red glow shadow on hover for clear visual distinction from regular episodes.
+- **Episode Tracklist System** (Oct 25, 2025): Episodes now support tracklists stored as JSON, displayed in NTS.live-style format with artist names in bold uppercase and track titles below. Episode #45 "Enamorado Radio Vol. 1" features a complete 12-track tracklist.
+- **Clickable Episode Tags** (Oct 25, 2025): Episode tags are now interactive, linking to filtered episode browse pages with red hover effects.
+- **Episode Playback Fixes** (Oct 25, 2025): Fixed episode duration display (now showing correct 36 minutes for Vol. 1), cleaned up duplicate test episodes, and verified audio playback functionality via end-to-end testing.
+
 ## System Architecture
 
 ### Frontend Architecture
