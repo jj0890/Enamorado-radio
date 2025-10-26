@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import StickyRadioPlayer from '@/components/StickyRadioPlayer';
+import Navigation from '@/components/Navigation';
 import type { Episode } from '@shared/schema-clean';
 
 export default function EpisodesBrowser() {
@@ -49,14 +51,20 @@ export default function EpisodesBrowser() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-black">
-        <LoadingSpinner />
+      <div className="min-h-screen bg-white">
+        <StickyRadioPlayer />
+        <Navigation />
+        <div className="flex items-center justify-center py-12">
+          <LoadingSpinner />
+        </div>
       </div>
     );
   }
 
   return (
     <div className="bg-white text-black min-h-screen">
+      <StickyRadioPlayer />
+      <Navigation />
       <div className="container mx-auto px-4 py-8">
         {/* Back to Home */}
         <div className="mb-6">

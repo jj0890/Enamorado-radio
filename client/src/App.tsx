@@ -36,6 +36,7 @@ import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
 import GenreDiscovery from "./pages/GenreDiscovery";
+import AboutPage from "./pages/AboutPage";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -67,6 +68,7 @@ function Router() {
       <Route path="/genre/:slug" component={GenrePage} />
       <Route path="/mixes" component={MixesLanding} />
       <Route path="/submit-mix" component={SubmitMix} />
+      <Route path="/about" component={AboutPage} />
       <Route path="/residents" component={() => (
         <div className="min-h-screen bg-white text-black flex items-center justify-center">
           <div className="text-center">

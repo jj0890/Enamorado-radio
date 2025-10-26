@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Music, Upload, Clock, User, Star } from "lucide-react";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
+import Navigation from "@/components/Navigation";
 import PublicMixCard from "@/components/PublicMixCard";
 import { filterByTags, type Mix } from "@/lib/filters";
 
@@ -41,11 +42,12 @@ export default function MixesPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
         <StickyRadioPlayer />
+        <Navigation />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
-            <div className="text-gray-600 font-mono">Loading community mixes...</div>
+            <div className="text-gray-600 dark:text-gray-400 font-mono">Loading community mixes...</div>
           </div>
         </div>
       </div>
@@ -55,38 +57,7 @@ export default function MixesPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
       <StickyRadioPlayer />
-
-      {/* Header */}
-      <header className="border-b border-black dark:border-gray-800 bg-white dark:bg-black">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
-                ENAMORADO
-              </Link>
-              <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  LATEST
-                </Link>
-                <Link href="/explore" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  EXPLORE
-                </Link>
-                <Link href="/episodes" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  EPISODES
-                </Link>
-                <Link href="/schedule" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  SCHEDULE
-                </Link>
-                <Link href="/mixes" className="text-red-500 font-medium">
-                  MIXES
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+      <Navigation />
       <main className="max-w-7xl mx-auto px-4 py-8">
         {/* Back Navigation */}
         <div className="mb-8">

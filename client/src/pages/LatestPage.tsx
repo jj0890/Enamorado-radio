@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Calendar, User, Music, Clock } from "lucide-react";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
+import Navigation from "@/components/Navigation";
 import PublicMixCard from "@/components/PublicMixCard";
 
 // Episode Card Component for consistent styling with mixes
@@ -90,11 +91,12 @@ export default function LatestPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white">
+      <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
         <StickyRadioPlayer />
+        <Navigation />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
-            <div className="text-gray-600 font-mono">Loading latest content...</div>
+            <div className="text-gray-600 dark:text-gray-400 font-mono">Loading latest content...</div>
           </div>
         </div>
       </div>
@@ -104,38 +106,7 @@ export default function LatestPage() {
   return (
     <div className="min-h-screen bg-white text-black">
       <StickyRadioPlayer />
-
-      {/* Header */}
-      <header className="border-b border-black bg-white">
-        <div className="max-w-7xl mx-auto px-4 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
-                ENAMORADO
-              </Link>
-              <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-red-500 font-medium">
-                  LATEST
-                </Link>
-                <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
-                  EXPLORE
-                </Link>
-                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
-                  EPISODES
-                </Link>
-                <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
-                  SCHEDULE
-                </Link>
-                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
-                  MIXES
-                </Link>
-              </nav>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content */}
+      <Navigation />
       <main className="max-w-7xl mx-auto px-4">
         {/* Back Navigation */}
         <div className="pt-16 pb-8 mb-8">

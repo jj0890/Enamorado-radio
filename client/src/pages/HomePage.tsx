@@ -10,7 +10,7 @@ import HeroStation from "@/components/HeroStation";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
 import ContentCard from "@/components/ContentCard";
-import ThemeToggle from "@/components/ThemeToggle";
+import Navigation from "@/components/Navigation";
 
 // Optional util (only needed if your FeaturedMixCard wants it)
 import { getTrackThumbnail } from "@/utils/soundcloud";
@@ -167,57 +167,8 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors">
-
-      {/* Top utility/info bar (optional, small) */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
-        <div className="flex items-center justify-between px-4 py-2 text-sm font-mono">
-          <div className="flex items-center space-x-2">
-            <span className="text-gray-600 dark:text-gray-400">ENAMORADO RADIO</span>
-          </div>
-          <div className="flex items-center">
-            <span className="text-gray-600 dark:text-gray-400">SAN ANTONIO</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Main header / nav */}
-      <header className="fixed top-10 left-0 right-0 z-40 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
-                ENAMORADO
-              </Link>
-              <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  LATEST
-                </Link>
-                <Link href="/explore" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  EXPLORE
-                </Link>
-                <Link href="/episodes" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  EPISODES
-                </Link>
-                <Link href="/schedule" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  SCHEDULE
-                </Link>
-                <Link href="/mixes" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  MIXES
-                </Link>
-                <Link href="/submit-mix" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
-                  SUBMIT
-                </Link>
-              </nav>
-            </div>
-            <div className="flex items-center gap-2">
-              <ThemeToggle />
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* MAIN */}
-      <main className="pt-32 pb-28 px-4 max-w-7xl mx-auto">
+      <Navigation />
+      <main className="pt-8 pb-28 px-4 max-w-7xl mx-auto">
         {/* HERO - Live Player Hero */}
         <HeroStation />
 
