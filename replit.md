@@ -12,6 +12,13 @@ Data integrity: Clean slate storage with only essential admin account - all cont
 Metadata handling: Prioritize original submission names over enhanced metadata from external APIs (e.g., use submitted artist names over SoundCloud metadata)
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
+## Recent Changes (Station Mode Implementation)
+- **Design Token System** (Oct 26, 2025): Created unified design token system in `client/src/tokens.css` with single accent color (red #FF0000). Removed legacy CSS variables from index.css. All shadcn components now use centralized tokens for both light/dark modes. Includes radiored/slate palette, button tokens (solid primary, text-only secondary), focus rings, and complete semantic token coverage.
+- **Lightweight Featured Integration** (Oct 26, 2025): Removed dedicated Featured Episodes section. Featured items now integrated into Latest feed with max 2 featured cards in first row (red border + FEATURED badge). Extra featured items demoted to regular styling but remain in feed (no data loss).
+- **Blended Community Feed** (Oct 26, 2025): "Latest from the Community" section displays unified feed of both mixes and episodes, sorted by recency. Features type chips (MIX in red, EPISODE in blue) and interactive filter tabs (All/Mixes/Episodes).
+- **About Section Redesign** (Oct 26, 2025): Moved long description out of hero into concise 2-sentence About section positioned below Latest feed with prominent "Submit a Mix" CTA.
+- **Live Player Hero** (Oct 26, 2025): Replaced complex hero with simplified Live Player Hero featuring large play button, now playing ticker, one-line tagline, and sticky mini-player on scroll. Unified audio controller ensures single audio element across entire site.
+
 ## System Architecture
 
 ### Frontend Architecture
