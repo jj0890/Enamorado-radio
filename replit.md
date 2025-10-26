@@ -13,6 +13,15 @@ Metadata handling: Prioritize original submission names over enhanced metadata f
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
 ## Recent Changes (Station Mode Implementation)
+- **NTS-Inspired Homepage Redesign** (Oct 26, 2025): Complete visual overhaul for editorial aesthetic:
+  - New LiveShowCard hero with show art background, gradient overlay, minimal typography
+  - Removed big red gradient banner (HeroOption3_FullWidth)
+  - Translucent sticky player with backdrop blur (NTS-style)
+  - Playfair Display serif font for section headings
+  - Off-white background (#FAFAFA) instead of pure white
+  - Section headings changed from red to gray-900/white for magazine feel
+  - Removed duplicate "ENAMORADO RADIO" branding from hero and sticky player
+  - Single "Enamorado" branding in navigation only
 - **Production Polish - Tasks 8-11** (Oct 26, 2025): Completed final production readiness tasks:
   - Feature flags system (`config/features.ts`) to conditionally hide incomplete features
   - Graceful empty states for Schedule and Residents pages with discovery CTAs

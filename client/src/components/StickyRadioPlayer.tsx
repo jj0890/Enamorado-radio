@@ -145,14 +145,10 @@ export default function StickyRadioPlayer() {
         style={{ backdropFilter: 'blur(10px)' }}
       >
         <div className="flex items-center h-16 px-4">
-          {/* Station Logo/Brand */}
+          {/* Minimal Logo/Brand - Just Icon */}
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-bold text-lg">
               E
-            </div>
-            <div className="font-mono text-sm">
-              <div className="text-red-500 font-bold">ENAMORADO</div>
-              <div className="text-gray-400 text-xs">RADIO</div>
             </div>
           </div>
 
