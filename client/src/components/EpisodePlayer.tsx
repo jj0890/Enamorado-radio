@@ -78,6 +78,14 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
       setIsPlaying(false);
     } else {
       console.log('▶️ Playing episode audio...');
+      
+      // Pause the live radio player first
+      const liveRadioAudio = document.querySelector('audio[src*="/stream.mp3"]') as HTMLAudioElement;
+      if (liveRadioAudio && !liveRadioAudio.paused) {
+        console.log('⏸ Pausing live radio player to play episode');
+        liveRadioAudio.pause();
+      }
+      
       try {
         await audioRef.current.play();
         setIsPlaying(true);
@@ -155,10 +163,11 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
         </div>
       </div>
 
-      {/* Episode Info */}
+      {/* Episode Info with Prominent Play Button */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex space-x-4">
-          <div className="w-24 h-24 bg-gray-800 rounded overflow-hidden">
+          {/* Artwork with Overlay Play Button */}
+          <div className="relative w-32 h-32 bg-gray-800 rounded overflow-hidden flex-shrink-0 group">
             {episode.artworkUrl && (
               <img 
                 src={episode.artworkUrl} 
@@ -166,7 +175,23 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
                 className="w-full h-full object-cover"
               />
             )}
+            {/* Large Play/Pause Button Overlay */}
+            <button
+              onClick={handlePlayPause}
+              data-testid="button-play-episode"
+              className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition-all group"
+            >
+              <div className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all transform hover:scale-110">
+                {isPlaying ? (
+                  <Pause className="h-8 w-8 text-white" />
+                ) : (
+                  <Play className="h-8 w-8 text-white ml-1" />
+                )}
+              </div>
+            </button>
           </div>
+          
+          {/* Episode Details */}
           <div className="flex-1">
             <h2 className="text-lg font-semibold">{episode.title}</h2>
             <p className="text-gray-400 text-sm">{episode.hostName}</p>
