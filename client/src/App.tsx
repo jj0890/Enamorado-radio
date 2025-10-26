@@ -99,7 +99,6 @@ function App() {
         <div className="min-h-screen bg-[#FEFCF9]">
           <Router />
           <StickyRadioPlayer />
-          <Toaster />
         </div>
       </AudioProvider>
     </QueryClientProvider>

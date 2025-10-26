@@ -11,9 +11,18 @@ class AudioController {
 
   constructor() {
     this.audio.preload = "none";
+    
+    // Set up event listeners
     ["play", "pause", "timeupdate", "ended", "error", "loadedmetadata"].forEach(ev =>
       this.audio.addEventListener(ev, () => this.emit(ev))
     );
+    
+    // Guard against SSR/Node environments
+    if (typeof document !== 'undefined') {
+      // Append audio element to DOM for accessibility and debugging
+      this.audio.style.display = "none";
+      document.body.appendChild(this.audio);
+    }
     
     console.log('🎵 AudioController singleton initialized');
   }

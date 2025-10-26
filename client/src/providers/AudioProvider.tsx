@@ -25,8 +25,6 @@ type Actions = {
 const Ctx = createContext<{ state: State; actions: Actions } | null>(null);
 
 export function AudioProvider({ children }: { children: React.ReactNode }) {
-  console.log('🎵 AudioProvider initializing...');
-  
   const [state, dispatch] = useReducer(
     (s: State, a: Partial<State>) => ({ ...s, ...a }),
     {
@@ -37,8 +35,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       muted: false,
     }
   );
-  
-  console.log('🎵 AudioProvider state initialized:', state);
 
   useEffect(() => {
     const off1 = audioController.on("play", () => dispatch({ status: "playing" }));
@@ -53,6 +49,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     const off5 = audioController.on("loadedmetadata", () =>
       dispatch({ duration: audioController.el.duration || 0 })
     );
+    const off6 = audioController.on("ended", () => dispatch({ status: "idle" }));
 
     return () => {
       off1();
@@ -60,6 +57,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
       off3();
       off4();
       off5();
+      off6();
     };
   }, []);
 
@@ -92,7 +90,6 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
-  console.log('🎵 AudioProvider rendering with state:', state.status);
   return <Ctx.Provider value={{ state, actions }}>{children}</Ctx.Provider>;
 }
 
