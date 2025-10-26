@@ -1,6 +1,7 @@
 import { Switch, Route, Link } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { AudioProvider } from "@/providers/AudioProvider";
 import HomePage from "./pages/HomePage";
 import MobileRadio from "./pages/MobileRadio";
 import RadioLanding from "./pages/RadioLanding";
@@ -94,11 +95,13 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <div className="min-h-screen bg-[#FEFCF9]">
-        <Router />
-        <StickyRadioPlayer />
-        <Toaster />
-      </div>
+      <AudioProvider>
+        <div className="min-h-screen bg-[#FEFCF9]">
+          <Router />
+          <StickyRadioPlayer />
+          <Toaster />
+        </div>
+      </AudioProvider>
     </QueryClientProvider>
   );
 }

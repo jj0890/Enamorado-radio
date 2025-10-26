@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { useRadioPlayback } from '@/lib/radioPlayback';
+import { useAudio } from '@/providers/AudioProvider';
 
 interface HeroStationProps {
   streamUrlPrimary?: string;
@@ -31,8 +31,9 @@ export default function HeroStation({
   const [streamUrl, setStreamUrl] = useState(streamUrlPrimary);
   const [isMinimized, setIsMinimized] = useState(false);
   
-  // Use shared radio playback state
-  const { isPlaying, togglePlayPause, init, updateNowPlaying } = useRadioPlayback();
+  // Use shared audio context
+  const { state, actions } = useAudio();
+  const isPlaying = state.status === 'playing';
 
   // Fetch now playing data
   const { data: nowPlaying } = useQuery<NowPlayingData>({
@@ -40,7 +41,7 @@ export default function HeroStation({
     refetchInterval: 10000, // Poll every 10 seconds
   });
 
-  // Initialize audio on mount and check stream health
+  // Initialize stream URL on mount and check health
   useEffect(() => {
     const checkStream = async () => {
       try {
@@ -48,19 +49,15 @@ export default function HeroStation({
         if (!response.ok) {
           console.log('Primary stream not available, using fallback');
           setStreamUrl(streamUrlFallback);
-          init(streamUrlFallback);
-        } else {
-          init(streamUrlPrimary);
         }
       } catch (error) {
         console.log('Primary stream check failed, using fallback');
         setStreamUrl(streamUrlFallback);
-        init(streamUrlFallback);
       }
     };
 
     checkStream();
-  }, [streamUrlPrimary, streamUrlFallback, init]);
+  }, [streamUrlPrimary, streamUrlFallback]);
 
   // Scroll listener for sticky/minimize behavior
   useEffect(() => {
@@ -76,12 +73,23 @@ export default function HeroStation({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Update now playing data when it changes
-  useEffect(() => {
-    if (nowPlaying) {
-      updateNowPlaying(nowPlaying);
+  // Handle play/pause
+  const handlePlayPause = async () => {
+    if (isPlaying) {
+      actions.pause();
+    } else {
+      const isLive = nowPlaying?.live?.is_live || false;
+      const streamerName = nowPlaying?.live?.streamer_name || '';
+      const artist = nowPlaying?.now_playing?.song?.artist || '';
+      const title = nowPlaying?.now_playing?.song?.title || 'Enamorado Radio';
+
+      await actions.play(streamUrl, {
+        title: isLive && streamerName ? streamerName : title,
+        artist: isLive ? '' : artist,
+        isLive,
+      });
     }
-  }, [nowPlaying, updateNowPlaying]);
+  };
 
   // Extract now playing text
   const getNowPlayingText = () => {
@@ -99,7 +107,7 @@ export default function HeroStation({
       }
     }
     
-    return 'Enamorado Radio';
+    return state.title || 'Enamorado Radio';
   };
 
   const nowPlayingText = getNowPlayingText();
@@ -118,7 +126,7 @@ export default function HeroStation({
             {/* Large Play Button */}
             <div className="flex justify-center mb-8">
               <button
-                onClick={togglePlayPause}
+                onClick={handlePlayPause}
                 data-testid="button-hero-play"
                 className="w-24 h-24 rounded-full bg-white text-red-500 hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center justify-center shadow-2xl"
                 aria-label={isPlaying ? 'Pause radio' : 'Play radio'}
@@ -152,7 +160,7 @@ export default function HeroStation({
           <div className="flex items-center justify-center gap-4 text-white">
             {/* Mini play button */}
             <button
-              onClick={togglePlayPause}
+              onClick={handlePlayPause}
               data-testid="button-hero-play-mini"
               className="w-10 h-10 rounded-full bg-white text-red-500 hover:bg-gray-100 transition-all flex items-center justify-center flex-shrink-0"
               aria-label={isPlaying ? 'Pause radio' : 'Play radio'}

@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAudio } from '@/providers/AudioProvider';
 
 // HTTPS-safe proxy URLs (routes through our server)
 const STREAM_URL = '/stream.mp3'; // Proxied stream
@@ -19,69 +20,50 @@ interface NowPlayingData {
 }
 
 export default function StickyRadioPlayer() {
-  const audioRef = useRef<HTMLAudioElement>(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  // Use shared audio context
+  const { state, actions } = useAudio();
+  const isPlaying = state.status === 'playing';
+  const volume = state.volume;
+
   const [isExpanded, setIsExpanded] = useState(false);
-  const [volume, setVolume] = useState(0.9);
   const [nowPlaying, setNowPlaying] = useState({
     title: 'Enamorado Radio',
     subtitle: 'Click to tune in'
   });
   const [artwork, setArtwork] = useState<string | null>(null);
-  const [sourceSet, setSourceSet] = useState(false);
-
-  // Ensure audio source is set only when user plays (saves bandwidth)
-  const ensureSource = () => {
-    console.log('🎵 ensureSource called, sourceSet:', sourceSet);
-    if (!sourceSet && audioRef.current) {
-      const streamUrl = `${STREAM_URL}?t=${Date.now()}`;
-      audioRef.current.src = streamUrl;
-      setSourceSet(true);
-      console.log('🎵 Audio source set to:', streamUrl);
-    }
-  };
 
   // Play/Pause toggle
   const handleToggle = async () => {
-    console.log('🎵 handleToggle called, isPlaying:', isPlaying);
-    if (!audioRef.current) {
-      console.error('❌ audioRef.current is null');
-      return;
-    }
+    console.log('🎵 StickyPlayer handleToggle called, isPlaying:', isPlaying);
     
-    ensureSource();
-    
-    if (!isPlaying) {
+    if (isPlaying) {
+      actions.pause();
+    } else {
       try {
-        console.log('🎵 Attempting to play audio...');
-        await audioRef.current.play();
-        setIsPlaying(true);
-        console.log('✅ Audio playing successfully');
+        console.log('🎵 StickyPlayer attempting to play audio...');
+        await actions.play(STREAM_URL, {
+          title: nowPlaying.title,
+          isLive: nowPlaying.subtitle.includes('LIVE'),
+        });
+        console.log('✅ StickyPlayer audio playing successfully');
       } catch (error) {
-        console.error('❌ Audio play failed:', error);
+        console.error('❌ StickyPlayer audio play failed:', error);
         alert('Failed to start audio: ' + (error as Error).message);
       }
-    } else {
-      console.log('⏸ Pausing audio...');
-      audioRef.current.pause();
-      setIsPlaying(false);
     }
   };
 
   // Volume control
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume;
-    }
-    console.log('🔊 Volume set to:', newVolume);
+    actions.setVolume(newVolume);
+    console.log('🔊 StickyPlayer volume set to:', newVolume);
   };
 
   // Poll AzuraCast for now playing info
   const pollNowPlaying = async () => {
     try {
-      console.log('📡 Polling now playing...');
+      console.log('📡 StickyPlayer polling now playing...');
       const response = await fetch(NOWPLAYING_URL, { cache: 'no-store' });
       
       if (!response.ok) {
@@ -89,7 +71,7 @@ export default function StickyRadioPlayer() {
       }
       
       const data: NowPlayingData = await response.json();
-      console.log('📡 Now playing response:', data);
+      console.log('📡 StickyPlayer now playing response:', data);
 
       const song = data.now_playing?.song || {};
       const artist = song.artist || '';
@@ -109,7 +91,7 @@ export default function StickyRadioPlayer() {
         : track === 'Station Offline' ? 'Station Offline' : 'AutoDJ';
 
       setNowPlaying({ title: displayTitle, subtitle });
-      console.log('✅ Metadata updated:', { title: displayTitle, subtitle });
+      console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
       
       // Fetch artwork if we have artist and title
       if (artist && track && track !== 'Station Offline' && track !== 'Live Stream') {
@@ -123,20 +105,20 @@ export default function StickyRadioPlayer() {
             const artworkData = await artworkResponse.json();
             if (artworkData.artwork) {
               setArtwork(artworkData.artwork);
-              console.log('🎨 Artwork updated:', artworkData.artwork);
+              console.log('🎨 StickyPlayer artwork updated:', artworkData.artwork);
             } else {
               setArtwork(null);
             }
           }
         } catch (artworkError) {
-          console.error('❌ Artwork fetch error:', artworkError);
+          console.error('❌ StickyPlayer artwork fetch error:', artworkError);
           setArtwork(null);
         }
       } else {
         setArtwork(null);
       }
     } catch (error) {
-      console.error('❌ NowPlaying fetch error:', error);
+      console.error('❌ StickyPlayer NowPlaying fetch error:', error);
       setNowPlaying({ 
         title: 'Enamorado Radio', 
         subtitle: 'Connection Error' 
@@ -144,47 +126,21 @@ export default function StickyRadioPlayer() {
     }
   };
 
-  // Initialize audio volume and polling
+  // Initialize polling
   useEffect(() => {
-    if (audioRef.current) {
-      audioRef.current.volume = volume;
-      
-      // Add event listeners for debugging
-      const audio = audioRef.current;
-      
-      const onLoadStart = () => console.log('🎵 Audio loadstart');
-      const onCanPlay = () => console.log('🎵 Audio canplay');
-      const onPlaying = () => console.log('🎵 Audio playing event');
-      const onPause = () => console.log('🎵 Audio pause event');
-      const onError = (e: Event) => console.error('🎵 Audio error:', e);
-      
-      audio.addEventListener('loadstart', onLoadStart);
-      audio.addEventListener('canplay', onCanPlay);
-      audio.addEventListener('playing', onPlaying);
-      audio.addEventListener('pause', onPause);
-      audio.addEventListener('error', onError);
-      
-      return () => {
-        audio.removeEventListener('loadstart', onLoadStart);
-        audio.removeEventListener('canplay', onCanPlay);
-        audio.removeEventListener('playing', onPlaying);
-        audio.removeEventListener('pause', onPause);
-        audio.removeEventListener('error', onError);
-      };
-    }
-    
     // Initial poll and set up interval
     pollNowPlaying();
     const interval = setInterval(pollNowPlaying, 10000); // Poll every 10 seconds
     
     return () => clearInterval(interval);
-  }, [volume]);
+  }, []);
 
   return (
     <>
       {/* Bottom sticky player */}
       <div 
         data-sticky-player
+        data-testid="sticky-radio-player"
         className="fixed bottom-0 left-0 right-0 z-50 bg-black text-white border-t border-gray-800"
       >
         <div className="flex items-center h-16 px-4">
@@ -203,6 +159,7 @@ export default function StickyRadioPlayer() {
           <div className="flex items-center gap-2 ml-6">
             <button
               onClick={handleToggle}
+              data-testid="button-sticky-play-pause"
               className="w-8 h-8 bg-white text-black flex items-center justify-center text-sm hover:bg-gray-200 transition-colors"
               title={isPlaying ? 'Pause' : 'Play'}
             >
@@ -248,6 +205,7 @@ export default function StickyRadioPlayer() {
               step="0.01"
               value={volume}
               onChange={handleVolumeChange}
+              data-testid="volume-slider"
               className="w-20 accent-red-600"
             />
           </div>
@@ -256,13 +214,6 @@ export default function StickyRadioPlayer() {
 
       {/* Spacer for fixed bottom bar */}
       <div className="h-16" />
-
-      {/* Audio Element */}
-      <audio
-        ref={audioRef}
-        preload="none"
-        crossOrigin="anonymous"
-      />
     </>
   );
 }

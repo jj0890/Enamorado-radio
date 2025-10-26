@@ -5,7 +5,6 @@ import { Star, Users, Music, Heart, Play, Calendar, Compass } from "lucide-react
 import { HeroOption3_FullWidth } from "./HomePageAlt";
 
 // Components (use your alias/paths; adjust if different)
-import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import RadioStreamPlayer from "@/components/RadioStreamPlayer";
 import HeroStation from "@/components/HeroStation";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
@@ -117,8 +116,6 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors">
-      {/* Bottom sticky player (keep if you’ve been using it) */}
-      <StickyRadioPlayer />
 
       {/* Top utility/info bar (optional, small) */}
       <div className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
