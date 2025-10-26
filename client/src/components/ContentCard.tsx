@@ -17,6 +17,7 @@ interface ContentCardProps {
     date?: string;
     submittedAt?: string;
     airDate?: string;
+    isFeatured?: boolean;
     metadata?: {
       imageUrl?: string;
       title?: string;
@@ -53,7 +54,16 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
   const displayName = content.artist || content.name || content.hostName || '';
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg group">
+    <div className={`bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg group relative ${
+      content.isFeatured ? 'border-4 border-red-500' : ''
+    }`}>
+      {/* Featured Badge */}
+      {content.isFeatured && (
+        <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
+          FEATURED
+        </div>
+      )}
+
       {/* Artwork - Fixed 16:9 aspect ratio */}
       <div className="relative w-full overflow-hidden aspect-[16/9] bg-gray-200 dark:bg-gray-800">
         {artwork ? (

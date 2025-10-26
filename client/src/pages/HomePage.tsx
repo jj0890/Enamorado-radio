@@ -40,17 +40,6 @@ export default function Home() {
     queryKey: ["/api/public/mixes/featured"],
   });
 
-  // --- DATA: Featured Episodes ---
-  const { data: featuredEpisodes = [] } = useQuery({
-    queryKey: ["/api/episodes", { featured: true }],
-    queryFn: async () => {
-      const r = await fetch("/api/episodes");
-      if (!r.ok) throw new Error("Failed to fetch episodes");
-      const episodes = await r.json();
-      return episodes.filter((e: any) => e.isFeatured && e.status === 'published');
-    },
-    refetchOnWindowFocus: false,
-  });
 
   // --- DATA: Fresh mixes ---
   const { data: freshMixes = [] } = useQuery({
@@ -81,27 +70,48 @@ export default function Home() {
       ...mix,
       type: 'mix' as const,
       dateForSorting: new Date(mix.submittedAt || mix.date || 0).getTime(),
+      isFeatured: mix.featureOnSite || false,
     }));
 
     const episodesWithType = allEpisodes.map((episode: any) => ({
       ...episode,
       type: 'episode' as const,
       dateForSorting: new Date(episode.airDate || 0).getTime(),
+      isFeatured: episode.isFeatured || false,
     }));
 
-    // Combine and sort by date (most recent first)
-    const combined = [...mixesWithType, ...episodesWithType].sort(
-      (a, b) => b.dateForSorting - a.dateForSorting
-    );
+    // Combine all items
+    const combined = [...mixesWithType, ...episodesWithType];
+
+    // Separate and sort featured items
+    const allFeatured = combined
+      .filter(item => item.isFeatured)
+      .sort((a, b) => b.dateForSorting - a.dateForSorting);
+
+    // Keep first 2 featured with styling, demote rest to regular cards
+    const topFeaturedItems = allFeatured.slice(0, 2);
+    const demotedFeaturedItems = allFeatured.slice(2).map(item => ({
+      ...item,
+      isFeatured: false, // Remove featured styling but keep in feed
+    }));
+
+    // Sort non-featured items
+    const nonFeaturedItems = combined
+      .filter(item => !item.isFeatured)
+      .sort((a, b) => b.dateForSorting - a.dateForSorting);
+
+    // Combine: top 2 featured first, then demoted featured, then non-featured
+    const sorted = [...topFeaturedItems, ...demotedFeaturedItems, ...nonFeaturedItems];
 
     // Apply filter
     if (contentFilter === 'mixes') {
-      return combined.filter(item => item.type === 'mix').slice(0, 12);
+      return sorted.filter(item => item.type === 'mix').slice(0, 12);
     } else if (contentFilter === 'episodes') {
-      return combined.filter(item => item.type === 'episode').slice(0, 12);
+      return sorted.filter(item => item.type === 'episode').slice(0, 12);
+    } else {
+      // Show all content
+      return sorted.slice(0, 12);
     }
-
-    return combined.slice(0, 12);
   }, [freshMixes, allEpisodes, contentFilter]);
 
   // --- DATA: Current month's album pick for featured section ---
@@ -226,10 +236,10 @@ export default function Home() {
             <div className="flex items-center gap-2 mb-6">
               <button
                 onClick={() => setContentFilter('all')}
-                className={`px-4 py-2 font-mono text-sm transition-colors ${
+                className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'all'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-red-500 dark:bg-red-500 text-white dark:text-white border-red-500'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 data-testid="filter-all"
               >
@@ -237,10 +247,10 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setContentFilter('mixes')}
-                className={`px-4 py-2 font-mono text-sm transition-colors ${
+                className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'mixes'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-red-500 dark:bg-red-500 text-white dark:text-white border-red-500'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 data-testid="filter-mixes"
               >
@@ -248,10 +258,10 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setContentFilter('episodes')}
-                className={`px-4 py-2 font-mono text-sm transition-colors ${
+                className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'episodes'
-                    ? 'bg-red-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-red-500 dark:bg-red-500 text-white dark:text-white border-red-500'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 data-testid="filter-episodes"
               >
@@ -286,58 +296,6 @@ export default function Home() {
           </Link>
         </section>
 
-        {/* Featured Episodes */}
-        {featuredEpisodes.length > 0 && (
-          <section className="mb-16">
-            <div className="text-center pt-16 pb-8 mb-8">
-              <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">FEATURED EPISODES</h2>
-              <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
-                Handpicked episodes and special broadcasts
-              </p>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {featuredEpisodes.slice(0, 3).map((episode: any) => (
-                <div key={episode.id} className="bg-white dark:bg-gray-900 border-4 border-red-500 rounded-lg overflow-hidden hover:shadow-2xl hover:shadow-red-500/50 transition-all duration-300 group relative">
-                  {/* FEATURED badge */}
-                  <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
-                    FEATURED
-                  </div>
-                  
-                  <div className="aspect-square bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
-                    <img 
-                      src={episode.artworkUrl || "/assets/default-episode-artwork.jpg"} 
-                      alt={episode.title}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                    />
-                  </div>
-                  <div className="p-4 bg-gradient-to-b from-transparent to-red-500/10">
-                    <div className="flex items-center justify-between mb-3">
-                      <span className="text-xs font-mono text-white bg-black dark:bg-white dark:text-black px-2 py-1 uppercase">
-                        RADIO
-                      </span>
-                      <div className="text-xs font-mono text-gray-500 dark:text-gray-400">
-                        {Math.floor(episode.duration / 60)} MIN
-                      </div>
-                    </div>
-                    <h4 className="text-lg font-bold font-mono text-gray-900 dark:text-white group-hover:text-red-500 transition-colors mb-2">
-                      {episode.title}
-                    </h4>
-                    <p className="text-sm font-mono text-gray-600 dark:text-gray-400 mb-4">
-                      {episode.hostName}
-                    </p>
-                    <Link
-                      href={`/episode/${episode.id}`}
-                      className="inline-flex items-center gap-2 text-sm font-mono text-red-500 hover:text-red-600 transition-colors font-bold"
-                    >
-                      <Play className="w-4 h-4" />
-                      Listen Now
-                    </Link>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
           <div className="text-center pt-16 pb-8 mb-8">

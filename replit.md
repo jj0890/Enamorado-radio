@@ -13,6 +13,7 @@ Metadata handling: Prioritize original submission names over enhanced metadata f
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
 ## Recent Changes
+- **Blended Community Feed** (Oct 26, 2025): "Latest from the Community" section now displays unified feed of both mixes and episodes, sorted by recency. Features type chips (MIX in red, EPISODE in blue) and interactive filter tabs (All/Mixes/Episodes). Implemented with useMemo for efficient filtering and ContentCard component for consistent styling. E2E tested with full filter functionality.
 - **Unified Audio Controller Architecture** (Oct 26, 2025): Refactored dual-audio system into single shared controller. Created singleton `audioController.ts` and `AudioProvider.tsx` context provider. Both HeroStation and StickyRadioPlayer now consume same audio state via `useAudio()` hook. Only ONE audio element exists in DOM across entire site, eliminating duplicate streams and synchronization issues. E2E tested with perfect state synchronization.
 - **Featured Episode Visual Design** (Oct 25, 2025): Featured episodes now display with 4px red borders, prominent "FEATURED" badge in top-left, and red glow shadow on hover for clear visual distinction from regular episodes.
 - **Episode Tracklist System** (Oct 25, 2025): Episodes now support tracklists stored as JSON, displayed in NTS.live-style format with artist names in bold uppercase and track titles below. Episode #45 "Enamorado Radio Vol. 1" features a complete 12-track tracklist.
