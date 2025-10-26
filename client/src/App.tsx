@@ -71,6 +71,7 @@ function Router() {
       <Route path="/submit-mix" component={SubmitMix} />
       <Route path="/about" component={AboutPage} />
       <Route path="/residents" component={ResidentsPage} />
+      <Route path="/residency" component={ResidentsPage} />
       <Route>
         <div className="min-h-screen bg-black text-white flex items-center justify-center">
           <div className="text-center">

@@ -13,9 +13,15 @@ Metadata handling: Prioritize original submission names over enhanced metadata f
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
 ## Recent Changes (Station Mode Implementation)
+- **Production Polish - Tasks 8-11** (Oct 26, 2025): Completed final production readiness tasks:
+  - Feature flags system (`config/features.ts`) to conditionally hide incomplete features
+  - Graceful empty states for Schedule and Residents pages with discovery CTAs
+  - Typography shift from ALL CAPS to Mixed Case for magazine-style rhythm
+  - Card style parity (12px radius, 1px borders, hover elevation) across all card types
+  - Route aliases added (`/residency` and `/residents` both work)
 - **Design Token System** (Oct 26, 2025): Created unified design token system in `client/src/tokens.css` with single accent color (red #FF0000). Removed legacy CSS variables from index.css. All shadcn components now use centralized tokens for both light/dark modes. Includes radiored/slate palette, button tokens (solid primary, text-only secondary), focus rings, and complete semantic token coverage.
-- **Lightweight Featured Integration** (Oct 26, 2025): Removed dedicated Featured Episodes section. Featured items now integrated into Latest feed with max 2 featured cards in first row (red border + FEATURED badge). Extra featured items demoted to regular styling but remain in feed (no data loss).
-- **Blended Community Feed** (Oct 26, 2025): "Latest from the Community" section displays unified feed of both mixes and episodes, sorted by recency. Features type chips (MIX in red, EPISODE in blue) and interactive filter tabs (All/Mixes/Episodes).
+- **Lightweight Featured Integration** (Oct 26, 2025): Removed dedicated Featured Episodes section. Featured items now integrated into Latest feed with max 2 featured cards in first row (red border + Featured badge). Extra featured items demoted to regular styling but remain in feed (no data loss).
+- **Blended Community Feed** (Oct 26, 2025): "Latest from the Community" section displays unified feed of both mixes and episodes, sorted by recency. Features type chips (Mix in red, Episode in blue) and interactive filter tabs (All/Mixes/Episodes).
 - **About Section Redesign** (Oct 26, 2025): Moved long description out of hero into concise 2-sentence About section positioned below Latest feed with prominent "Submit a Mix" CTA.
 - **Live Player Hero** (Oct 26, 2025): Replaced complex hero with simplified Live Player Hero featuring large play button, now playing ticker, one-line tagline, and sticky mini-player on scroll. Unified audio controller ensures single audio element across entire site.
 
