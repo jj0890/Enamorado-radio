@@ -170,15 +170,40 @@ export default function Home() {
         {/* HERO - Live Player Hero */}
         <HeroStation />
 
-        {/* About Blurb – centered, compact */}
-        <section className="max-w-3xl mx-auto mt-6 mb-12 text-center">
-          <h3 className="font-mono text-2xl text-red-500 mb-2">About Enamorado Radio</h3>
-          <p className="text-gray-700 dark:text-gray-300 font-mono">
-            Listener-driven internet radio from San Antonio. Dedicated to the music we are enamored with, we feature community mixes,
-            resident shows, and themed programming. Submit a mix, suggest a track, or just tune in.
-          </p>
-        </section>
+        {/* Fresh From the Community — uses the SAME card as /mixes */}
+        {freshMixes.length > 0 && (
+          <section className="py-12 mt-8">
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-3xl font-bold font-mono text-red-500">
+                LATEST FROM THE COMMUNITY
+              </h2>
+              <Link href="/mixes" className="text-red-500 hover:text-red-600 font-mono">
+                View All →
+              </Link>
+            </div>
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+              {freshMixes.map((mix: any) => (
+                <PublicMixCard key={mix.id} mix={mix} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* About Section with CTA */}
+        <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-gray-200 dark:border-gray-800 py-12">
+          <h3 className="font-mono text-2xl text-red-500 mb-4">About Enamorado Radio</h3>
+          <p className="text-gray-700 dark:text-gray-300 font-mono text-lg mb-6 leading-relaxed">
+            Listener-driven internet radio from San Antonio. We feature community mixes, resident shows, and themed programming—all dedicated to the music we are enamored with.
+          </p>
+          <Link 
+            href="/submit-mix" 
+            className="inline-block bg-red-500 text-white px-6 py-3 font-mono hover:bg-red-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            data-testid="button-submit-mix-cta"
+          >
+            Submit a Mix →
+          </Link>
+        </section>
 
         {/* Featured Episodes */}
         {featuredEpisodes.length > 0 && (
@@ -388,25 +413,6 @@ export default function Home() {
           </section>
         )}
 
-        {/* Fresh From the Community — uses the SAME card as /mixes */}
-        {freshMixes.length > 0 && (
-          <section className="py-12">
-            <div className="flex items-center justify-between pt-16 pb-8 mb-8">
-              <h2 className="text-3xl font-bold font-mono text-red-500">
-                FRESH FROM THE COMMUNITY
-              </h2>
-              <Link href="/mixes" className="text-red-500 hover:text-red-600 font-mono">
-                View All →
-              </Link>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {freshMixes.map((mix: any) => (
-                <PublicMixCard key={mix.id} mix={mix} />
-              ))}
-            </div>
-          </section>
-        )}
       </main>
 
       {/* Modals */}
