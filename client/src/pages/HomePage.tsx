@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Music } from "lucide-react";
-import { HeroOption3_FullWidth } from "./HomePageAlt";
+import LiveShowCard from "@/components/LiveShowCard";
 
 // Components (use your alias/paths; adjust if different)
 import RadioStreamPlayer from "@/components/RadioStreamPlayer";
@@ -166,17 +166,18 @@ export default function Home() {
   const featuredAlbum = getFeaturedAlbum();
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white transition-colors">
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-black text-black dark:text-white transition-colors">
       <Navigation />
-      <main className="pt-8 pb-28 px-4 max-w-7xl mx-auto">
-        {/* HERO - Live Player Hero */}
-        <HeroStation />
+      <main className="pb-28">
+        {/* HERO - Live Show Card */}
+        <LiveShowCard />
 
+        <div className="px-4 max-w-7xl mx-auto">
         {/* Latest From the Community - Blended Feed */}
         {blendedContent.length > 0 && (
           <section className="py-12 mt-8">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-3xl font-bold font-mono text-red-500">
+              <h2 className="text-4xl font-bold font-serif text-gray-900 dark:text-white">
                 Latest from the Community
               </h2>
             </div>
@@ -232,7 +233,7 @@ export default function Home() {
 
         {/* About Section with CTA */}
         <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-gray-200 dark:border-gray-800 py-12">
-          <h3 className="font-mono text-2xl text-red-500 mb-4">About Enamorado Radio</h3>
+          <h3 className="font-serif text-3xl text-gray-900 dark:text-white mb-4">About Enamorado Radio</h3>
           <p className="text-gray-700 dark:text-gray-300 font-mono text-lg mb-6 leading-relaxed">
             Listener-driven internet radio from San Antonio. We feature community mixes, resident shows, and themed programming—all dedicated to the music we are enamored with.
           </p>
@@ -248,7 +249,7 @@ export default function Home() {
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
           <div className="text-center pt-16 pb-8 mb-8">
-            <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">Explore</h2>
+            <h2 className="text-4xl font-bold mb-4 font-serif text-gray-900 dark:text-white">Explore</h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
               Discover curated content, join our community, and contribute to the station
             </p>
@@ -373,6 +374,7 @@ export default function Home() {
             </Link>
           </section>
         )}
+        </div>
 
       </main>
     </div>

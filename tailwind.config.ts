@@ -7,6 +7,7 @@ export default {
     extend: {
       fontFamily: {
         mono: ["IBM Plex Mono", "monospace"],
+        serif: ["Playfair Display", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",
