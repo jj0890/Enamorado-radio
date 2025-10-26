@@ -7,6 +7,7 @@ import { HeroOption3_FullWidth } from "./HomePageAlt";
 // Components (use your alias/paths; adjust if different)
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import RadioStreamPlayer from "@/components/RadioStreamPlayer";
+import HeroStation from "@/components/HeroStation";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
 import SimpleSongForm from "@/components/SimpleSongForm";
@@ -169,8 +170,8 @@ export default function Home() {
 
       {/* MAIN */}
       <main className="pt-32 pb-28 px-4 max-w-7xl mx-auto">
-        {/* HERO - Full Width Banner */}
-        <HeroOption3_FullWidth />
+        {/* HERO - Live Player Hero */}
+        <HeroStation />
 
         {/* About Blurb – centered, compact */}
         <section className="max-w-3xl mx-auto mt-6 mb-12 text-center">
