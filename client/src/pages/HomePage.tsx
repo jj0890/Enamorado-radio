@@ -177,7 +177,7 @@ export default function Home() {
           <section className="py-12 mt-8">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold font-mono text-red-500">
-                LATEST FROM THE COMMUNITY
+                Latest from the Community
               </h2>
             </div>
 
@@ -248,7 +248,7 @@ export default function Home() {
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
           <div className="text-center pt-16 pb-8 mb-8">
-            <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">EXPLORE</h2>
+            <h2 className="text-3xl font-bold mb-4 font-mono text-red-500">Explore</h2>
             <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
               Discover curated content, join our community, and contribute to the station
             </p>
@@ -260,12 +260,12 @@ export default function Home() {
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">EDITORIAL/STAFF PICKS</h3>
-                <p className="text-gray-600 font-mono text-sm mb-4">
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Editorial/Staff Picks</h3>
+                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Hand-selected favorites from our editorial team.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
-                  EXPLORE PICKS →
+                  Explore Picks →
                 </div>
               </div>
             </Link>
@@ -277,12 +277,12 @@ export default function Home() {
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">RESIDENT APPLICATIONS</h3>
-                <p className="text-gray-600 font-mono text-sm mb-4">
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Resident Applications</h3>
+                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Apply for a regular slot and become part of our programming lineup.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
-                  APPLY FOR SEASON 1 →
+                  Apply for Season 1 →
                 </div>
               </div>
             </a>
@@ -292,12 +292,12 @@ export default function Home() {
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SUBMIT A MIX</h3>
-                <p className="text-gray-600 font-mono text-sm mb-4">
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Submit a Mix</h3>
+                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Share your DJ mixes with our community.
                 </p>
                 <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
-                  SUBMIT MIX →
+                  Submit Mix →
                 </div>
               </div>
             </Link>
@@ -333,7 +333,7 @@ export default function Home() {
                   {/* Album Info */}
                   <div className="flex-1 text-center md:text-left">
                     <div className="inline-block bg-red-500 text-white px-3 py-1 text-xs font-mono mb-4">
-                      FROM ALBUMS OF THE MONTH
+                      From Albums of the Month
                     </div>
                     <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-red-500 transition-colors" data-testid="text-featured-album-title">
                       {featuredAlbum.album.title}

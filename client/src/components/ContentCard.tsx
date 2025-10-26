@@ -54,13 +54,13 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
   const displayName = content.artist || content.name || content.hostName || '';
 
   return (
-    <div className={`bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg group relative ${
-      content.isFeatured ? 'border-4 border-red-500' : ''
+    <div className={`bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative ${
+      content.isFeatured ? 'border-4 border-red-500' : 'border border-gray-200 dark:border-gray-800'
     }`}>
       {/* Featured Badge */}
       {content.isFeatured && (
         <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
-          FEATURED
+          Featured
         </div>
       )}
 

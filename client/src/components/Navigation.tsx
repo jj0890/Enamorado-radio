@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ThemeToggle from "./ThemeToggle";
+import { FEATURES } from "@/config/features";
 
 export default function Navigation() {
   const [location] = useLocation();
@@ -33,7 +34,7 @@ export default function Navigation() {
             className="text-2xl font-bold tracking-tight font-mono text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             data-testid="link-nav-logo"
           >
-            ENAMORADO
+            Enamorado
           </Link>
 
           <nav className="flex items-center space-x-6">
@@ -42,7 +43,7 @@ export default function Navigation() {
               className={navLinkClass("/")}
               data-testid="link-nav-home"
             >
-              HOME
+              Home
             </Link>
 
             <Link 
@@ -50,7 +51,7 @@ export default function Navigation() {
               className={navLinkClass("/latest")}
               data-testid="link-nav-latest"
             >
-              LATEST
+              Latest
             </Link>
 
             <DropdownMenu>
@@ -58,7 +59,7 @@ export default function Navigation() {
                 className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 data-testid="dropdown-nav-explore"
               >
-                EXPLORE
+                Explore
                 <ChevronDown className="w-4 h-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent 
@@ -92,15 +93,17 @@ export default function Navigation() {
                     Albums of the Month
                   </Link>
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/schedule" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500"
-                    data-testid="dropdown-item-schedule"
-                  >
-                    Schedule
-                  </Link>
-                </DropdownMenuItem>
+                {FEATURES.SCHEDULE && (
+                  <DropdownMenuItem asChild>
+                    <Link 
+                      href="/schedule" 
+                      className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500"
+                      data-testid="dropdown-item-schedule"
+                    >
+                      Schedule
+                    </Link>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
 
@@ -109,7 +112,7 @@ export default function Navigation() {
               className={navLinkClass("/submit-mix")}
               data-testid="link-nav-submit"
             >
-              SUBMIT
+              Submit
             </Link>
 
             <Link 
@@ -117,7 +120,7 @@ export default function Navigation() {
               className={navLinkClass("/about")}
               data-testid="link-nav-about"
             >
-              ABOUT
+              About
             </Link>
 
             <ThemeToggle />

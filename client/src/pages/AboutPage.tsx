@@ -13,7 +13,7 @@ export default function AboutPage() {
           {/* Header */}
           <section className="border-b border-gray-200 dark:border-gray-800 pb-8">
             <h1 className="text-5xl font-bold font-mono text-red-500 mb-4">
-              ABOUT ENAMORADO RADIO
+              About Enamorado Radio
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 font-mono">
               Listener-driven internet radio from San Antonio

@@ -1,10 +1,10 @@
 import { Link } from 'wouter';
-import { Calendar, Radio } from 'lucide-react';
+import { Users, Radio } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StickyRadioPlayer from '@/components/StickyRadioPlayer';
 import Navigation from '@/components/Navigation';
 
-export default function Schedule() {
+export default function ResidentsPage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
       <StickyRadioPlayer />
@@ -15,17 +15,17 @@ export default function Schedule() {
           {/* Icon */}
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-              <Calendar className="w-10 h-10 text-red-500" />
+              <Users className="w-10 h-10 text-red-500" />
             </div>
           </div>
 
           {/* Heading */}
           <div className="space-y-4">
             <h1 className="text-4xl font-bold font-mono text-gray-900 dark:text-white">
-              Schedule Coming Soon
+              Meet Our Residents
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 font-mono max-w-xl mx-auto">
-              We're working on a comprehensive programming schedule. In the meantime, tune in to our live stream or browse recent episodes.
+              Our resident profiles are on the way. Hear their latest episodes or explore community mixes in the meantime.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function Schedule() {
           {/* Additional Info */}
           <div className="pt-8 border-t border-gray-200 dark:border-gray-800 mt-12">
             <p className="text-sm text-gray-500 dark:text-gray-500 font-mono">
-              Want to become a resident and get your own show?{' '}
+              Interested in becoming a resident?{' '}
               <a 
                 href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
                 target="_blank"

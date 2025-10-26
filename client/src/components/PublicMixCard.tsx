@@ -43,7 +43,7 @@ export default function PublicMixCard({ mix, onGenreSelect }: PublicMixCardProps
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 hover:shadow-lg group">
+    <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group">
       {/* Artwork - Fixed 16:9 aspect ratio */}
       <div className="relative w-full overflow-hidden aspect-[16/9] bg-gray-200 dark:bg-gray-800">
         {artwork ? (
