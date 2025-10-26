@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Star, Users, Music, Heart, Play, Calendar, Compass } from "lucide-react";
@@ -9,6 +9,7 @@ import RadioStreamPlayer from "@/components/RadioStreamPlayer";
 import HeroStation from "@/components/HeroStation";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
+import ContentCard from "@/components/ContentCard";
 import SimpleSongForm from "@/components/SimpleSongForm";
 import ThemeToggle from "@/components/ThemeToggle";
 
@@ -32,6 +33,7 @@ interface FeaturedSubmission {
 export default function Home() {
   const [showSongSubmission, setShowSongSubmission] = useState(false);
   const [trackThumbnails, setTrackThumbnails] = useState<Record<number, string>>({});
+  const [contentFilter, setContentFilter] = useState<'all' | 'mixes' | 'episodes'>('all');
 
   // --- DATA: Featured DJ submissions (for big centered feature) ---
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
@@ -50,16 +52,57 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // --- DATA: Fresh mixes (same cards as /mixes) ---
+  // --- DATA: Fresh mixes ---
   const { data: freshMixes = [] } = useQuery({
-    queryKey: ["/api/public/mixes", { limit: 6 }],
+    queryKey: ["/api/public/mixes", { limit: 12 }],
     queryFn: async () => {
-      const r = await fetch("/api/public/mixes?limit=6", { cache: "no-store" });
+      const r = await fetch("/api/public/mixes", { cache: "no-store" });
       if (!r.ok) throw new Error("Failed to fetch mixes");
       return r.json();
     },
     refetchOnWindowFocus: false,
   });
+
+  // --- DATA: All published episodes ---
+  const { data: allEpisodes = [] } = useQuery({
+    queryKey: ["/api/episodes"],
+    queryFn: async () => {
+      const r = await fetch("/api/episodes");
+      if (!r.ok) throw new Error("Failed to fetch episodes");
+      const episodes = await r.json();
+      return episodes.filter((e: any) => e.status === 'published');
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  // --- BLENDED FEED: Combine mixes and episodes ---
+  const blendedContent = useMemo(() => {
+    const mixesWithType = freshMixes.map((mix: any) => ({
+      ...mix,
+      type: 'mix' as const,
+      dateForSorting: new Date(mix.submittedAt || mix.date || 0).getTime(),
+    }));
+
+    const episodesWithType = allEpisodes.map((episode: any) => ({
+      ...episode,
+      type: 'episode' as const,
+      dateForSorting: new Date(episode.airDate || 0).getTime(),
+    }));
+
+    // Combine and sort by date (most recent first)
+    const combined = [...mixesWithType, ...episodesWithType].sort(
+      (a, b) => b.dateForSorting - a.dateForSorting
+    );
+
+    // Apply filter
+    if (contentFilter === 'mixes') {
+      return combined.filter(item => item.type === 'mix').slice(0, 12);
+    } else if (contentFilter === 'episodes') {
+      return combined.filter(item => item.type === 'episode').slice(0, 12);
+    }
+
+    return combined.slice(0, 12);
+  }, [freshMixes, allEpisodes, contentFilter]);
 
   // --- DATA: Current month's album pick for featured section ---
   const getCurrentMonth = () => {
@@ -170,21 +213,59 @@ export default function Home() {
         {/* HERO - Live Player Hero */}
         <HeroStation />
 
-        {/* Fresh From the Community — uses the SAME card as /mixes */}
-        {freshMixes.length > 0 && (
+        {/* Latest From the Community - Blended Feed */}
+        {blendedContent.length > 0 && (
           <section className="py-12 mt-8">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-4">
               <h2 className="text-3xl font-bold font-mono text-red-500">
                 LATEST FROM THE COMMUNITY
               </h2>
-              <Link href="/mixes" className="text-red-500 hover:text-red-600 font-mono">
-                View All →
-              </Link>
+            </div>
+
+            {/* Filter Tabs */}
+            <div className="flex items-center gap-2 mb-6">
+              <button
+                onClick={() => setContentFilter('all')}
+                className={`px-4 py-2 font-mono text-sm transition-colors ${
+                  contentFilter === 'all'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+                data-testid="filter-all"
+              >
+                All
+              </button>
+              <button
+                onClick={() => setContentFilter('mixes')}
+                className={`px-4 py-2 font-mono text-sm transition-colors ${
+                  contentFilter === 'mixes'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+                data-testid="filter-mixes"
+              >
+                Mixes
+              </button>
+              <button
+                onClick={() => setContentFilter('episodes')}
+                className={`px-4 py-2 font-mono text-sm transition-colors ${
+                  contentFilter === 'episodes'
+                    ? 'bg-red-500 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+                data-testid="filter-episodes"
+              >
+                Episodes
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
-              {freshMixes.map((mix: any) => (
-                <PublicMixCard key={mix.id} mix={mix} />
+              {blendedContent.map((item: any) => (
+                <ContentCard 
+                  key={`${item.type}-${item.id}`} 
+                  content={item} 
+                  type={item.type} 
+                />
               ))}
             </div>
           </section>
