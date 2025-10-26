@@ -4,7 +4,6 @@ import {
   Guide, 
   MixSubmission, 
   Schedule, 
-  SongSubmission,
   ResidentApplication,
   Resident,
   Admin,
@@ -15,7 +14,6 @@ import {
   InsertGuide, 
   InsertMixSubmission,
   InsertSchedule,
-  InsertSongSubmission,
   InsertResidentApplication,
   InsertResident,
   InsertAdmin,
@@ -66,11 +64,6 @@ export interface IStorage {
   updateScheduleItem(id: number, schedule: Partial<Schedule>): Promise<Schedule>;
   deleteScheduleItem(id: number): Promise<void>;
 
-  // Song Submissions - Community suggestions
-  getSongSubmissions(filters?: { status?: string; limit?: number }): Promise<SongSubmission[]>;
-  createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission>;
-  updateSongSubmissionStatus(id: number, status: string): Promise<SongSubmission>;
-
   // Resident Applications - DJ/Host applications
   getResidentApplications(filters?: { status?: string; priority?: string; limit?: number }): Promise<ResidentApplication[]>;
   getResidentApplicationById(id: number): Promise<ResidentApplication | undefined>;
@@ -106,7 +99,6 @@ class MemStorage implements IStorage {
   private guides: Guide[] = [];
   private mixSubmissions: MixSubmission[] = [];
   private scheduleItems: Schedule[] = [];
-  private songSubmissions: SongSubmission[] = [];
   private residentApplications: ResidentApplication[] = [];
   private admins: Admin[] = [];
   private currentPlayback: CurrentPlayback | null = null;
@@ -435,55 +427,6 @@ class MemStorage implements IStorage {
     if (index !== -1) {
       this.scheduleItems.splice(index, 1);
     }
-  }
-
-  // Song Submissions
-  async getSongSubmissions(filters?: { status?: string; limit?: number }): Promise<SongSubmission[]> {
-    let filtered = [...this.songSubmissions];
-    
-    if (filters?.status) {
-      filtered = filtered.filter(s => s.approvalStatus === filters.status);
-    }
-    
-    // Sort by submitted date descending
-    filtered.sort((a, b) => new Date(b.submittedAt || 0).getTime() - new Date(a.submittedAt || 0).getTime());
-    
-    if (filters?.limit) {
-      filtered = filtered.slice(0, filters.limit);
-    }
-    
-    return filtered;
-  }
-
-  async getSongSubmissionById(id: number): Promise<SongSubmission | undefined> {
-    return this.songSubmissions.find(s => s.id === id);
-  }
-
-  async createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission> {
-    const newSubmission: SongSubmission = {
-      ...submission,
-      id: this.nextId++,
-      approvalStatus: 'pending',
-      submittedAt: new Date(),
-      reviewedAt: null,
-      notes: submission.notes || null,
-      spotifyUrl: submission.spotifyUrl || null,
-      youtubeUrl: submission.youtubeUrl || null,
-    };
-    this.songSubmissions.push(newSubmission);
-    return newSubmission;
-  }
-
-  async updateSongSubmissionStatus(id: number, status: string): Promise<SongSubmission> {
-    const index = this.songSubmissions.findIndex(s => s.id === id);
-    if (index === -1) throw new Error('Song submission not found');
-    
-    this.songSubmissions[index] = {
-      ...this.songSubmissions[index],
-      approvalStatus: status,
-      reviewedAt: new Date()
-    };
-    return this.songSubmissions[index];
   }
 
   // Resident Applications

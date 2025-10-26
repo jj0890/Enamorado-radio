@@ -7,7 +7,6 @@ import AdminMixSubmissions from "@/pages/AdminMixSubmissions";
 import AdminStats from "@/pages/AdminStats";
 import AdminDangerZone from "@/pages/AdminDangerZone";
 import ScheduleAdmin from "@/pages/ScheduleAdmin";
-import AdminSongSubmissions from "@/pages/AdminSongSubmissions";
 import AdminQueue from "@/pages/AdminQueue";
 import AzuraCastAdmin from "@/pages/AzuraCastAdmin";
 import AdminMixRouting from "@/pages/AdminMixRouting";
@@ -163,8 +162,6 @@ export default function AdminAuthWrapper() {
         return <AdminMixSubmissions />; // Use dedicated mix submissions component
       case '/admin/submissions':
         return <ScheduleAdmin />;
-      case '/admin/song-submissions':
-        return <AdminSongSubmissions />;
       case '/admin/queue':
         return <AdminQueue />;
       case '/admin/azuracast':

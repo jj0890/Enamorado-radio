@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Star, Users, Music, Heart, Play, Calendar, Compass } from "lucide-react";
+import { Music } from "lucide-react";
 import { HeroOption3_FullWidth } from "./HomePageAlt";
 
 // Components (use your alias/paths; adjust if different)
@@ -10,7 +10,6 @@ import HeroStation from "@/components/HeroStation";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
 import ContentCard from "@/components/ContentCard";
-import SimpleSongForm from "@/components/SimpleSongForm";
 import ThemeToggle from "@/components/ThemeToggle";
 
 // Optional util (only needed if your FeaturedMixCard wants it)
@@ -31,7 +30,6 @@ interface FeaturedSubmission {
 }
 
 export default function Home() {
-  const [showSongSubmission, setShowSongSubmission] = useState(false);
   const [trackThumbnails, setTrackThumbnails] = useState<Record<number, string>>({});
   const [contentFilter, setContentFilter] = useState<'all' | 'mixes' | 'episodes'>('all');
 
@@ -308,12 +306,9 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
               href="/albums"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Star className="w-8 h-8 text-white" />
-                </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">EDITORIAL/STAFF PICKS</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
                   Hand-selected favorites from our editorial team.
@@ -328,12 +323,9 @@ export default function Home() {
               href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Users className="w-8 h-8 text-white" />
-                </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">RESIDENT APPLICATIONS</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
                   Apply for a regular slot and become part of our programming lineup.
@@ -346,12 +338,9 @@ export default function Home() {
 
             <Link
               href="/submit-mix"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block"
+              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Music className="w-8 h-8 text-white" />
-                </div>
                 <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SUBMIT A MIX</h3>
                 <p className="text-gray-600 font-mono text-sm mb-4">
                   Share your DJ mixes with our community.
@@ -361,24 +350,6 @@ export default function Home() {
                 </div>
               </div>
             </Link>
-
-            <button
-              onClick={() => setShowSongSubmission(true)}
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer text-left w-full"
-            >
-              <div className="text-center">
-                <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Heart className="w-8 h-8 text-white" />
-                </div>
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900">SONG SUGGESTIONS</h3>
-                <p className="text-gray-600 font-mono text-sm mb-4">
-                  Suggest tracks for rotation. Community picks may be featured.
-                </p>
-                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
-                  SUGGEST SONGS →
-                </div>
-              </div>
-            </button>
           </div>
         </section>
 
@@ -453,11 +424,6 @@ export default function Home() {
         )}
 
       </main>
-
-      {/* Modals */}
-      {showSongSubmission && (
-        <SimpleSongForm isOpen={showSongSubmission} onClose={() => setShowSongSubmission(false)} />
-      )}
     </div>
   );
 }

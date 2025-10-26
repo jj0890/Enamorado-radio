@@ -27,7 +27,6 @@ import {
   insertGuideSchema,
   insertMixSubmissionSchema,
   insertScheduleSchema,
-  insertSongSubmissionSchema,
   insertResidentApplicationSchema,
   insertCurrentPlaybackSchema,
   insertAlbumSuggestionSchema,
@@ -2015,36 +2014,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
-  // SONG SUBMISSIONS API
-  // =================
-
-  app.get("/api/song-submissions", async (req, res) => {
-    try {
-      const { status, limit } = req.query;
-      const submissions = await storage.getSongSubmissions({
-        status: status as string || 'pending',
-        limit: limit ? parseInt(limit as string) : undefined
-      });
-      res.json(submissions);
-    } catch (error) {
-      console.error('Error fetching song submissions:', error);
-      res.status(500).json({ error: 'Failed to fetch song submissions' });
-    }
-  });
-
-  // Legacy endpoint - kept for backwards compatibility but unused
-  app.post("/api/song-submissions-old", async (req, res) => {
-    try {
-      const validatedData = insertSongSubmissionSchema.parse(req.body);
-      const submission = await storage.createSongSubmission(validatedData);
-      res.status(201).json(submission);
-    } catch (error) {
-      console.error('Error creating song submission:', error);
-      res.status(400).json({ error: 'Invalid song submission data' });
-    }
-  });
-
-  // =================
   // SCHEDULE API - Programming grid
   // =================
 
@@ -2265,116 +2234,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error uploading to AzuraCast:', error);
       res.status(500).json({ error: 'Failed to upload to AzuraCast' });
-    }
-  });
-
-  // =================
-  // SONG SUBMISSIONS API
-  // =================
-
-  app.get("/api/song-submissions", async (req, res) => {
-    try {
-      const { status, limit } = req.query;
-      const submissions = await storage.getSongSubmissions({
-        status: status as string,
-        limit: limit ? parseInt(limit as string) : undefined
-      });
-      res.json(submissions);
-    } catch (error) {
-      console.error('Error fetching song submissions:', error);
-      res.status(500).json({ error: 'Failed to fetch song submissions' });
-    }
-  });
-
-  app.post("/api/song-submissions", async (req, res) => {
-    try {
-      console.log('Song submission received:', req.body);
-      const validatedData = insertSongSubmissionSchema.parse(req.body);
-      
-      // Normalize platform + artwork
-      const href = validatedData.spotifyUrl || validatedData.youtubeUrl || '';
-      let platform = 'link';
-      if (href && href.includes('open.spotify.com')) platform = 'spotify';
-      else if (href && href.includes('soundcloud.com')) platform = 'soundcloud';
-      else if (href && href.includes('mixcloud.com')) platform = 'mixcloud';
-      (validatedData as any).platform = platform;
-
-      // Try oEmbed for art/title/artist
-      try {
-        const oe = await fetch(
-          `${req.protocol}://${req.get('host')}/api/oembed?url=${encodeURIComponent(href)}`
-        );
-        if (oe.ok) {
-          const j = await oe.json();
-          if (j?.thumbnail_url) {
-            (validatedData as any).artwork = j.thumbnail_url;
-            (validatedData as any).artUrl = j.thumbnail_url;
-          }
-          if (!validatedData.songTitle && j?.title) validatedData.songTitle = j.title;
-          if (!validatedData.artistName && j?.artist) validatedData.artistName = j.artist;
-        }
-      } catch (e) {
-        console.log('oEmbed (song) failed:', e);
-      }
-
-      const submission = await storage.createSongSubmission(validatedData);
-      console.log('Song submission created:', submission.id);
-      res.status(201).json(submission);
-    } catch (error) {
-      console.error('Song submission failed:', error, req.body);
-      res.status(400).json({ error: 'Invalid song submission data', details: error instanceof Error ? error.message : 'Unknown error' });
-    }
-  });
-
-  // Update song submission status (approve/reject)
-  app.patch('/api/song-submissions/:id/status', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const { status, approvedBy, notes } = req.body;
-      
-      if (!['pending', 'approved', 'rejected'].includes(status)) {
-        return res.status(400).json({ error: 'Invalid status' });
-      }
-      
-      const updated = await storage.updateSongSubmissionStatus(id, status);
-      
-      if (!updated) {
-        return res.status(404).json({ error: 'Song submission not found' });
-      }
-      
-      res.json({ success: true, submission: updated });
-    } catch (error) {
-      console.error('Error updating song submission status:', error);
-      res.status(500).json({ error: 'Failed to update submission status' });
-    }
-  });
-
-  // Convert song submission to mix submission
-  app.post('/api/admin/song-submissions/:id/convert-to-mix', requireAdmin, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const song = await storage.getSongSubmissionById(id);
-      if (!song) return res.status(404).json({ error: 'Song not found' });
-
-      const mix = await storage.createMixSubmission({
-        name: song.artistName || song.submitterName || 'Unknown',
-        title: song.songTitle || 'Untitled',
-        genre: (song as any).genre || 'Electronic',
-        about: song.notes || null,
-        url: song.spotifyUrl || song.youtubeUrl || '',
-        artUrl: (song as any).artUrl || (song as any).artwork || null,
-        platform: (song as any).platform || 'spotify',
-        featureOnSite: false,
-        pushToAzura: false
-      });
-
-      // Mark song as converted/approved to remove from pending
-      await storage.updateSongSubmissionStatus(id, 'approved');
-
-      res.json({ ok: true, mix });
-    } catch (e) {
-      console.error('Convert to mix failed:', e);
-      res.status(500).json({ error: 'convert-failed' });
     }
   });
 

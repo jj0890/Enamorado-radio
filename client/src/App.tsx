@@ -26,7 +26,6 @@ import SubmitAlbum from "./pages/SubmitAlbum";
 import GenrePage from "./pages/GenrePage";
 import MixesLanding from "./pages/MixesLanding";
 import SubmitMix from "./pages/SubmitMix-clean";
-import AdminSongSubmissions from "./pages/AdminSongSubmissions";
 import AdminQueue from "./pages/AdminQueue";
 import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";

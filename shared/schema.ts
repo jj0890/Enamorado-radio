@@ -187,20 +187,6 @@ export const schedule = pgTable("schedule", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
-// Song Submissions - Community song suggestions
-export const songSubmissions = pgTable("song_submissions", {
-  id: serial("id").primaryKey(),
-  submitterName: text("submitter_name").notNull(),
-  songTitle: text("song_title").notNull(),
-  artistName: text("artist_name").notNull(),
-  spotifyUrl: text("spotify_url"),
-  youtubeUrl: text("youtube_url"),
-  notes: text("notes"), // Why they love this song
-  approvalStatus: text("approval_status").notNull().default("pending"),
-  submittedAt: timestamp("submitted_at").defaultNow(),
-  reviewedAt: timestamp("reviewed_at"),
-});
-
 // Resident Applications - DJ/Host applications from Google Forms
 export const residentApplications = pgTable("resident_applications", {
   id: serial("id").primaryKey(),
@@ -431,13 +417,6 @@ export const insertScheduleSchema = createInsertSchema(schedule).omit({
   createdAt: true,
 });
 
-export const insertSongSubmissionSchema = createInsertSchema(songSubmissions).omit({
-  id: true,
-  submittedAt: true,
-  reviewedAt: true,
-  approvalStatus: true,
-});
-
 export const insertResidentApplicationSchema = createInsertSchema(residentApplications).omit({
   id: true,
   submittedAt: true,
@@ -511,7 +490,6 @@ export type Guide = typeof guides.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
 export type EpisodeSubmission = typeof episodeSubmissions.$inferSelect;
 export type Schedule = typeof schedule.$inferSelect;
-export type SongSubmission = typeof songSubmissions.$inferSelect;
 export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
 export type Settings = typeof settings.$inferSelect;
@@ -530,7 +508,6 @@ export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;
 export type InsertEpisodeSubmission = z.infer<typeof insertEpisodeSubmissionSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
-export type InsertSongSubmission = z.infer<typeof insertSongSubmissionSchema>;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
 export type InsertSettings = z.infer<typeof insertSettingsSchema>;
