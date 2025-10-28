@@ -13,6 +13,12 @@ Metadata handling: Prioritize original submission names over enhanced metadata f
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
 ## Recent Changes (Station Mode Implementation)
+- **P0 MVP Production Polish** (Oct 28, 2025): Final production-ready improvements:
+  - Sticky player hidden exclusively on homepage (/) for clean NTS-style hero experience, visible on all other routes
+  - Route consolidation: /latest and /explore now redirect to /mixes, navigation updated accordingly
+  - Unified ContentCard component enhanced with platform badges (SoundCloud, Spotify, MP3 ♫, Mixcloud) for visual clarity
+  - Design tokens refined: off-white background (#FAFAFA), typography scale (h1: 40px/1.1, h2: 28px/1.2, h3: 20px/1.25), consistent red accent
+  - Zero 404 errors from navigation, all routes working correctly
 - **NTS-Inspired Homepage Redesign** (Oct 26, 2025): Complete visual overhaul for editorial aesthetic:
   - New LiveShowCard hero with show art background, gradient overlay, minimal typography
   - Removed big red gradient banner (HeroOption3_FullWidth)
