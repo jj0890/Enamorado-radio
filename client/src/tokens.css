@@ -24,7 +24,7 @@
   --slate-950: hsl(229, 84%, 5%);
   
   /* --- SEMANTIC TOKENS (LIGHT MODE) --- */
-  --background: hsl(0, 0%, 100%);
+  --background: #FAFAFA; /* Off-white background (was pure white) */
   --foreground: hsl(222, 47%, 11%);
   
   --card: hsl(0, 0%, 100%);
@@ -69,6 +69,14 @@
   
   /* --- BORDERS & RADIUS --- */
   --radius: 0.875rem;
+  
+  /* --- TYPOGRAPHY SCALE --- */
+  --heading-h1-size: 40px;
+  --heading-h1-lh: 1.1;
+  --heading-h2-size: 28px;
+  --heading-h2-lh: 1.2;
+  --heading-h3-size: 20px;
+  --heading-h3-lh: 1.25;
   
   /* --- FOCUS RINGS --- */
   --ring: var(--accent-red);

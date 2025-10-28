@@ -1,4 +1,4 @@
-import { Switch, Route, Link } from "wouter";
+import { Switch, Route, Link, Redirect, useLocation } from "wouter";
 import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AudioProvider } from "@/providers/AudioProvider";
@@ -47,6 +47,10 @@ function Router() {
       <Route path="/" component={HomePage} />
       <Route path="/mobile" component={MobileRadio} />
       <Route path="/radio" component={RadioLanding} />
+      
+      {/* Redirects for sidelined/incomplete pages */}
+      <Route path="/latest">{() => <Redirect to="/mixes" />}</Route>
+      <Route path="/explore">{() => <Redirect to="/mixes" />}</Route>
       <Route path="/discover" component={Discover} />
 
       {/* /resident-application handled by Express redirect to Google Form */}
@@ -87,14 +91,23 @@ function Router() {
   );
 }
 
+function AppContent() {
+  const [location] = useLocation();
+  const isHomePage = location === '/';
+
+  return (
+    <div className="min-h-screen bg-[#FAFAFA] dark:bg-slate-900">
+      <Router />
+      {!isHomePage && <StickyRadioPlayer />}
+    </div>
+  );
+}
+
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AudioProvider>
-        <div className="min-h-screen bg-[#FEFCF9]">
-          <Router />
-          <StickyRadioPlayer />
-        </div>
+        <AppContent />
       </AudioProvider>
     </QueryClientProvider>
   );

@@ -1,6 +1,8 @@
 import { Play, Music } from 'lucide-react';
+import { SiSoundcloud, SiSpotify } from 'react-icons/si';
 
 type ContentType = 'mix' | 'episode';
+type Platform = 'soundcloud' | 'spotify' | 'mixcloud' | 'mp3' | 'other';
 
 interface ContentCardProps {
   content: {
@@ -32,6 +34,19 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
   // Robust artwork fallback chain
   const artwork = content.artwork || content.artUrl || content.artworkUrl || content.metadata?.imageUrl || null;
 
+  // Detect platform from URL (check fileUrl/streamUrl first for MP3s)
+  const detectPlatform = (): Platform => {
+    const url = (content as any).fileUrl || (content as any).streamUrl || content.url;
+    if (!url) return 'other';
+    if (url.includes('soundcloud.com')) return 'soundcloud';
+    if (url.includes('spotify.com')) return 'spotify';
+    if (url.includes('mixcloud.com')) return 'mixcloud';
+    if (/\.(mp3|m4a|aac|ogg|wav)($|\?)/i.test(url)) return 'mp3';
+    return 'other';
+  };
+
+  const platform = detectPlatform();
+
   const handlePlay = () => {
     if (type === 'episode') {
       window.location.href = `/episode/${content.id}`;
@@ -55,8 +70,8 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
 
   return (
     <div className={`bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative ${
-      content.isFeatured ? 'border-4 border-red-500' : 'border border-gray-200 dark:border-gray-800'
-    }`}>
+      content.isFeatured ? 'border-2 border-red-500' : 'border border-gray-200 dark:border-gray-800'
+    }`} data-testid={`card-${type}-${content.id}`}>
       {/* Featured Badge */}
       {content.isFeatured && (
         <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
@@ -82,7 +97,7 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
 
       {/* Text block */}
       <div className="pt-2 px-2 pb-2">
-        <div className="flex items-center gap-2 mb-2">
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span 
             className={`text-[10px] font-mono text-white px-2 py-0.5 rounded uppercase ${
               type === 'mix' ? 'bg-red-500' : 'bg-blue-500'
@@ -91,6 +106,18 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
           >
             {type}
           </span>
+          {platform !== 'other' && (
+            <span 
+              className="text-[10px] font-mono bg-gray-800 dark:bg-gray-700 text-white px-2 py-0.5 rounded uppercase flex items-center gap-1"
+              data-testid={`chip-platform-${platform}`}
+              title={platform}
+            >
+              {platform === 'soundcloud' && <SiSoundcloud className="w-3 h-3" />}
+              {platform === 'spotify' && <SiSpotify className="w-3 h-3" />}
+              {platform === 'mp3' && '♫'}
+              {platform === 'mixcloud' && 'MC'}
+            </span>
+          )}
           {content.genre && onGenreSelect && (
             <button
               onClick={(e) => {

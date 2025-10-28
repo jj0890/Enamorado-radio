@@ -47,8 +47,8 @@ export default function Navigation() {
             </Link>
 
             <Link 
-              href="/latest" 
-              className={navLinkClass("/latest")}
+              href="/mixes" 
+              className={navLinkClass("/mixes")}
               data-testid="link-nav-latest"
             >
               Latest
