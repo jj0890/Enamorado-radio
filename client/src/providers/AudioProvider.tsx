@@ -67,7 +67,7 @@ export function AudioProvider({ children }: { children: React.ReactNode }) {
         if (meta) dispatch(meta);
         dispatch({ status: "loading", src });
         try {
-          await audioController.play(src);
+          await audioController.play(src, meta);
         } catch (error) {
           dispatch({ status: "error" });
           throw error;

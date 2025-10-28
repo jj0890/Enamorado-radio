@@ -8,6 +8,9 @@ type Meta = {
 class AudioController {
   private audio = new Audio();
   private listeners = new Map<string, Set<(...args: any[]) => void>>();
+  private artworkCache = new Map<string, string>(); // Cache artwork URLs
+  private currentArtwork: string | null = null;
+  private currentMeta: Meta = {};
 
   constructor() {
     this.audio.preload = "none";
@@ -39,7 +42,20 @@ class AudioController {
     this.listeners.get(ev)?.forEach(f => f(payload));
   }
 
-  async play(src: string) {
+  async play(src: string, meta?: Meta) {
+    // Store metadata
+    if (meta) {
+      this.currentMeta = { ...this.currentMeta, ...meta };
+      
+      // Cache artwork if provided
+      if (meta.artwork) {
+        this.cacheArtwork(src, meta.artwork);
+        this.currentArtwork = meta.artwork;
+      }
+      
+      console.log('🎵 Audio metadata updated:', this.currentMeta);
+    }
+    
     if (this.audio.src !== src) {
       this.audio.src = src;
       console.log('🎵 Audio source set to:', src);
@@ -51,6 +67,23 @@ class AudioController {
       console.error('❌ Audio play failed:', error);
       throw error;
     }
+  }
+
+  // Artwork caching methods
+  cacheArtwork(key: string, artworkUrl: string) {
+    this.artworkCache.set(key, artworkUrl);
+    console.log('🎨 Artwork cached for:', key);
+  }
+
+  getCachedArtwork(key: string): string | null {
+    return this.artworkCache.get(key) || null;
+  }
+
+  getMetadata() {
+    return {
+      ...this.currentMeta,
+      artwork: this.currentArtwork,
+    };
   }
 
   pause() {

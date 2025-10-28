@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAudio } from '@/providers/AudioProvider';
+import AudioProgressBar from '@/components/AudioProgressBar';
+import { audioController } from '@/lib/audioController';
 
 // HTTPS-safe proxy URLs (routes through our server)
 const STREAM_URL = '/stream.mp3'; // Proxied stream
@@ -31,6 +33,7 @@ export default function StickyRadioPlayer() {
     subtitle: 'Click to tune in'
   });
   const [artwork, setArtwork] = useState<string | null>(null);
+  const [previousArtwork, setPreviousArtwork] = useState<string | null>(null); // Prevent flicker
 
   // Play/Pause toggle
   const handleToggle = async () => {
@@ -95,27 +98,45 @@ export default function StickyRadioPlayer() {
       
       // Fetch artwork if we have artist and title
       if (artist && track && track !== 'Station Offline' && track !== 'Live Stream') {
-        try {
-          const artworkResponse = await fetch(
-            `${ARTWORK_URL}?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(track)}`,
-            { cache: 'no-store' }
-          );
-          
-          if (artworkResponse.ok) {
-            const artworkData = await artworkResponse.json();
-            if (artworkData.artwork) {
-              setArtwork(artworkData.artwork);
-              console.log('🎨 StickyPlayer artwork updated:', artworkData.artwork);
-            } else {
-              setArtwork(null);
+        // Create cache key from artist + track
+        const cacheKey = `${artist}::${track}`;
+        
+        // Check cache first
+        const cachedArtwork = audioController.getCachedArtwork(cacheKey);
+        if (cachedArtwork) {
+          console.log('🎨 StickyPlayer using cached artwork:', cachedArtwork);
+          setPreviousArtwork(artwork);
+          setArtwork(cachedArtwork);
+        } else {
+          // Fetch from API
+          try {
+            const artworkResponse = await fetch(
+              `${ARTWORK_URL}?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(track)}`,
+              { cache: 'no-store' }
+            );
+            
+            if (artworkResponse.ok) {
+              const artworkData = await artworkResponse.json();
+              if (artworkData.artwork) {
+                // Cache the artwork for future use
+                audioController.cacheArtwork(cacheKey, artworkData.artwork);
+                
+                // Keep previous artwork until new one loads to prevent flicker
+                setPreviousArtwork(artwork);
+                setArtwork(artworkData.artwork);
+                console.log('🎨 StickyPlayer artwork fetched and cached:', artworkData.artwork);
+              } else if (!artwork) {
+                setArtwork(null);
+              }
             }
+          } catch (artworkError) {
+            console.error('❌ StickyPlayer artwork fetch error:', artworkError);
+            // Keep previous artwork on error to prevent flicker
           }
-        } catch (artworkError) {
-          console.error('❌ StickyPlayer artwork fetch error:', artworkError);
-          setArtwork(null);
         }
-      } else {
+      } else if (!artwork) {
         setArtwork(null);
+        setPreviousArtwork(null);
       }
     } catch (error) {
       console.error('❌ StickyPlayer NowPlaying fetch error:', error);
@@ -169,15 +190,25 @@ export default function StickyRadioPlayer() {
 
           {/* Now Playing Info with Artwork */}
           <div className="flex-1 mx-6 flex items-center justify-center gap-3">
-            {/* Album Artwork */}
-            {artwork && (
-              <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0">
-                <img 
-                  src={artwork} 
-                  alt="Album artwork" 
-                  className="w-full h-full object-cover"
-                  onError={() => setArtwork(null)}
-                />
+            {/* Album Artwork - with smooth transitions */}
+            {(artwork || previousArtwork) && (
+              <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative">
+                {previousArtwork && previousArtwork !== artwork && (
+                  <img 
+                    src={previousArtwork} 
+                    alt="Previous artwork" 
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
+                {artwork && (
+                  <img 
+                    src={artwork} 
+                    alt="Album artwork" 
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                    onError={() => setArtwork(null)}
+                    onLoad={() => setPreviousArtwork(null)}
+                  />
+                )}
               </div>
             )}
             
@@ -207,6 +238,13 @@ export default function StickyRadioPlayer() {
             />
           </div>
         </div>
+
+        {/* Progress Bar Row - Only show when playing */}
+        {isPlaying && (
+          <div className="px-4 pb-2">
+            <AudioProgressBar seekable={!state.isLive} />
+          </div>
+        )}
       </div>
 
       {/* Spacer for fixed bottom bar */}
