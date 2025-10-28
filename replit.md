@@ -11,6 +11,7 @@ Streaming approach: Self-hosted solution preferred over third-party services lik
 Data integrity: Clean slate storage with only essential admin account - all content must come from authentic user submissions
 Metadata handling: Prioritize original submission names over enhanced metadata from external APIs (e.g., use submitted artist names over SoundCloud metadata)
 External forms: Prefer Google Forms for complex applications over custom form implementations
+UI terminology: Use "community programming" instead of "residents" in all user-facing copy
 
 ## Recent Changes (Station Mode Implementation)
 - **P1 Audio Enhancement** (Oct 28, 2025): Enhanced global audio controller with professional features:

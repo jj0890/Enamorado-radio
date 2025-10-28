@@ -22,10 +22,10 @@ export default function ResidentsPage() {
           {/* Heading */}
           <div className="space-y-4">
             <h1 className="text-4xl font-bold font-mono text-gray-900 dark:text-white">
-              Meet Our Residents
+              Community Programming
             </h1>
             <p className="text-lg text-gray-600 dark:text-gray-400 font-mono max-w-xl mx-auto">
-              Our resident profiles are on the way. Hear their latest episodes or explore community mixes in the meantime.
+              Community programming profiles are on the way. Hear their latest episodes or explore community mixes in the meantime.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export default function ResidentsPage() {
           {/* Additional Info */}
           <div className="pt-8 border-t border-gray-200 dark:border-gray-800 mt-12">
             <p className="text-sm text-gray-500 dark:text-gray-500 font-mono">
-              Interested in becoming a resident?{' '}
+              Interested in joining community programming?{' '}
               <a 
                 href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
                 target="_blank"

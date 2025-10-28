@@ -235,7 +235,7 @@ export default function Home() {
         <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-gray-200 dark:border-gray-800 py-12">
           <h3 className="font-serif text-3xl text-gray-900 dark:text-white mb-4">About Enamorado Radio</h3>
           <p className="text-gray-700 dark:text-gray-300 font-mono text-lg mb-6 leading-relaxed">
-            Listener-driven internet radio from San Antonio. We feature community mixes, resident shows, and themed programming—all dedicated to the music we are enamored with.
+            Listener-driven internet radio from San Antonio. We feature community mixes, community programming, and themed shows—all dedicated to the music we are enamored with.
           </p>
           <Link 
             href="/submit-mix" 
@@ -278,7 +278,7 @@ export default function Home() {
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Resident Applications</h3>
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Community Programming Applications</h3>
                 <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Apply for a regular slot and become part of our programming lineup.
                 </p>

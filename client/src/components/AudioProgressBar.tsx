@@ -37,15 +37,18 @@ export default function AudioProgressBar({ seekable = false, className = '' }: A
   // Auto-detect mode: if isLive flag is set OR seekable is false, show live mode
   const showLiveMode = isLive || !seekable;
   
-  // For live streams, show elapsed time only
+  // For live streams, show elapsed time only (non-seekable)
   if (showLiveMode) {
     return (
       <div className={`flex items-center gap-3 text-xs font-mono ${className}`} data-testid="progress-bar-live">
         <span className="text-gray-600 dark:text-gray-400">{formatTime(currentTime)}</span>
-        <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+        <div 
+          className="flex-1 h-1 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden pointer-events-none cursor-default"
+          style={{ pointerEvents: 'none', cursor: 'default' }}
+        >
           <div 
-            className="h-full bg-red-500 transition-all duration-300"
-            style={{ width: `${Math.min(progress, 100)}%` }}
+            className="h-full bg-red-500 transition-all duration-300 pointer-events-none"
+            style={{ width: `${Math.min(progress, 100)}%`, pointerEvents: 'none' }}
           />
         </div>
         <span className="text-red-500 text-[10px] uppercase">LIVE</span>

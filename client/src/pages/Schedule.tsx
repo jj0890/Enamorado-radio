@@ -55,7 +55,7 @@ export default function Schedule() {
           {/* Additional Info */}
           <div className="pt-8 border-t border-gray-200 dark:border-gray-800 mt-12">
             <p className="text-sm text-gray-500 dark:text-gray-500 font-mono">
-              Want to become a resident and get your own show?{' '}
+              Want to join community programming and get your own show?{' '}
               <a 
                 href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
                 target="_blank"
