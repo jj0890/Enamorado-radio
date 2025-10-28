@@ -239,12 +239,11 @@ export default function StickyRadioPlayer() {
           </div>
         </div>
 
-        {/* Progress Bar Row - Only show when playing */}
-        {isPlaying && (
-          <div className="px-4 pb-2">
-            <AudioProgressBar seekable={!state.isLive} />
-          </div>
-        )}
+        {/* Progress Bar Row - Always visible for better UX */}
+        <div className="px-4 pb-2">
+          {/* Live streams are never seekable, regardless of AutoDJ vs Live DJ */}
+          <AudioProgressBar seekable={false} />
+        </div>
       </div>
 
       {/* Spacer for fixed bottom bar */}

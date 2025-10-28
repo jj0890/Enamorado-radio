@@ -13,6 +13,12 @@ Metadata handling: Prioritize original submission names over enhanced metadata f
 External forms: Prefer Google Forms for complex applications over custom form implementations
 
 ## Recent Changes (Station Mode Implementation)
+- **P1 Audio Enhancement** (Oct 28, 2025): Enhanced global audio controller with professional features:
+  - Artwork caching system prevents flicker during track changes with smooth 500ms crossfade transitions
+  - Metadata persistence across route changes via enhanced audioController singleton
+  - Non-seekable progress bar for live streams (always visible, shows elapsed time + LIVE indicator)
+  - AudioProgressBar component supports both VOD (seekable) and live (non-seekable) modes
+  - StickyRadioPlayer integrates artwork cache for instant retrieval and graceful fallbacks
 - **P0 MVP Production Polish** (Oct 28, 2025): Final production-ready improvements:
   - Sticky player hidden exclusively on homepage (/) for clean NTS-style hero experience, visible on all other routes
   - Route consolidation: /latest and /explore now redirect to /mixes, navigation updated accordingly
