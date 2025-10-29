@@ -93,6 +93,18 @@ export default function Navigation() {
                     Albums of the Month
                   </Link>
                 </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <a 
+                    href="https://replit.com/@jarradjones7/Magazine-Mockup"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500 flex items-center gap-2"
+                    data-testid="dropdown-item-editorial"
+                  >
+                    Editorial
+                    <span className="text-xs text-gray-400">↗</span>
+                  </a>
+                </DropdownMenuItem>
                 {FEATURES.SCHEDULE && (
                   <DropdownMenuItem asChild>
                     <Link 
