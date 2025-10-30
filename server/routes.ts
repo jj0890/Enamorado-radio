@@ -391,11 +391,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const allMixes = await storage.getMixSubmissions({ limit: 1000 });
       const allEpisodeSubmissions = await storage.getEpisodeSubmissions({ limit: 1000 });
       const allAlbumSuggestions = await storage.getAlbumSuggestions({ limit: 1000 });
+      const allPlaylists = await storage.getPlaylistSubmissions({ limit: 1000 });
       
       // Count pending items
       const pendingEpisodes = allEpisodeSubmissions.filter(e => e.status === 'pending').length;
       const pendingMixes = allMixes.filter(m => m.status === 'pending').length;
       const pendingAlbums = allAlbumSuggestions.filter(a => a.status === 'pending').length;
+      const pendingPlaylists = allPlaylists.filter(p => p.status === 'pending').length;
       
       // Gather recent activity from all sources
       const recentActivity = [
@@ -434,6 +436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         pendingEpisodes,
         pendingMixes,
         pendingAlbums,
+        pendingPlaylists,
         recentActivity
       });
     } catch (error) {

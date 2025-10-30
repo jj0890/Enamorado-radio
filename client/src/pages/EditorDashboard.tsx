@@ -10,13 +10,15 @@ import {
   LogOut,
   CheckCircle2,
   Clock,
-  ArrowRight
+  ArrowRight,
+  ListMusic
 } from "lucide-react";
 
 interface EditorStats {
   pendingEpisodes: number;
   pendingMixes: number;
   pendingAlbums: number;
+  pendingPlaylists: number;
   recentActivity: Array<{
     type: 'episode' | 'mix' | 'album';
     title: string;
@@ -76,6 +78,16 @@ export default function EditorDashboard({ onLogout, currentUser }: EditorDashboa
       color: "text-orange-500",
       bgColor: "bg-orange-50",
       dataTestId: "card-hero-banners"
+    },
+    {
+      title: "Playlist Submissions",
+      description: "Review community-curated playlists",
+      icon: ListMusic,
+      href: "/admin/playlist-submissions",
+      count: stats?.pendingPlaylists || 0,
+      color: "text-purple-500",
+      bgColor: "bg-purple-50",
+      dataTestId: "card-playlists"
     }
   ];
 
