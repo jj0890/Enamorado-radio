@@ -3605,7 +3605,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // EDITOR: Approve/Unapprove playlist
+  // EDITOR: Approve playlist
   app.patch('/api/editor/playlists/:id/approve', requireRole('editor'), async (req, res) => {
     try {
       const id = parseInt(req.params.id);
@@ -3616,6 +3616,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[Editor Playlists] Approve error:', error);
       res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to approve playlist' });
+    }
+  });
+
+  // EDITOR: Reject playlist
+  app.patch('/api/editor/playlists/:id/reject', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { reason } = req.body;
+      
+      const playlist = await storage.updatePlaylistSubmission(id, {
+        status: 'rejected',
+        rejectionReason: reason || null,
+        reviewedAt: new Date().toISOString(),
+        reviewedBy: (req as any).user || 'editor',
+      });
+      
+      broadcast({ type: 'playlist_updated', data: playlist });
+      res.json(playlist);
+    } catch (error) {
+      console.error('[Editor Playlists] Reject error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to reject playlist' });
     }
   });
 

@@ -26,5 +26,60 @@
     "rejectionReason": null,
     "createdAt": "2025-10-30T06:44:29.354Z",
     "updatedAt": "2025-10-30T06:45:56.005Z"
+  },
+  {
+    "curatorName": "Test Curator",
+    "title": "Chill Vibes Playlist",
+    "playlistUrl": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
+    "description": "Perfect playlist for relaxing and chilling out",
+    "tags": [
+      "chill",
+      "electronic",
+      "downtempo"
+    ],
+    "artworkUrl": null,
+    "curatorEmail": null,
+    "platform": "spotify",
+    "id": 47,
+    "status": "pending",
+    "submittedAt": "2025-10-30T06:58:58.214Z",
+    "approvedAt": null,
+    "featuredAt": null,
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "likes": 0,
+    "metadata": null,
+    "trackCount": null,
+    "editorNotes": null,
+    "rejectionReason": null,
+    "createdAt": "2025-10-30T06:58:58.214Z",
+    "updatedAt": "2025-10-30T06:58:58.214Z"
+  },
+  {
+    "curatorName": "Test Curator",
+    "title": "Chill Vibes Test",
+    "playlistUrl": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
+    "description": "Perfect playlist for testing",
+    "tags": [
+      "chill",
+      "electronic"
+    ],
+    "artworkUrl": null,
+    "curatorEmail": null,
+    "platform": "spotify",
+    "id": 48,
+    "status": "pending",
+    "submittedAt": "2025-10-30T07:00:23.636Z",
+    "approvedAt": null,
+    "featuredAt": null,
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "likes": 0,
+    "metadata": null,
+    "trackCount": null,
+    "editorNotes": null,
+    "rejectionReason": null,
+    "createdAt": "2025-10-30T07:00:23.637Z",
+    "updatedAt": "2025-10-30T07:00:23.637Z"
   }
 ]

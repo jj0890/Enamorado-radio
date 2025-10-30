@@ -1,76 +1,90 @@
 import { useState } from "react";
 import { Link, useLocation } from "wouter";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, CheckCircle, Music2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { insertPlaylistSubmissionSchema } from "@shared/schema";
+
+// Extend schema for form-specific validation
+const formSchema = insertPlaylistSubmissionSchema.extend({
+  tags: z.string().optional().nullable().transform((val) => {
+    if (!val || val.trim() === '') return null;
+    return val.split(',').map(t => t.trim()).filter(t => t.length > 0);
+  }),
+}).refine((data) => {
+  const url = data.playlistUrl.toLowerCase();
+  return url.includes('spotify.com') || 
+         url.includes('apple.com') || 
+         url.includes('music.apple') || 
+         url.includes('youtube.com') || 
+         url.includes('youtu.be');
+}, {
+  message: "Please use a Spotify, Apple Music, or YouTube playlist URL",
+  path: ["playlistUrl"],
+});
+
+type FormData = z.input<typeof formSchema>;
 
 export default function SubmitPlaylist() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const [formData, setFormData] = useState({
-    curatorName: "",
-    title: "",
-    playlistUrl: "",
-    description: "",
-    tags: "",
-    artworkUrl: "",
-    curatorEmail: ""
-  });
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      curatorName: "",
+      title: "",
+      playlistUrl: "",
+      description: null,
+      tags: null,
+      artworkUrl: null,
+      curatorEmail: null,
+      platform: "unknown",
+      metadata: null,
+      trackCount: null,
+      editorNotes: null,
+      rejectionReason: null,
+    },
+  });
+
   const submitMutation = useMutation({
-    mutationFn: async (data: typeof formData) => {
-      const response = await fetch('/api/public/playlists', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          curatorName: data.curatorName,
-          title: data.title,
-          playlistUrl: data.playlistUrl,
-          description: data.description || null,
-          tags: data.tags ? data.tags.split(',').map(t => t.trim()) : null,
-          artworkUrl: data.artworkUrl || null,
-          curatorEmail: data.curatorEmail || null,
-        }),
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Submission failed');
-      }
-      
-      return response.json();
+    mutationFn: async (data: z.output<typeof formSchema>) => {
+      return apiRequest('POST', '/api/public/playlists', data);
     },
     onSuccess: () => {
       setShowSuccess(true);
-      setIsSubmitting(false);
       
       toast({
         title: "Playlist Submitted Successfully!",
         description: "We'll review your submission and feature it soon.",
       });
       
-      // Invalidate community cache to show updated data
       queryClient.invalidateQueries({ queryKey: ["/api/community"] });
       
-      // Redirect to community page after a delay
       setTimeout(() => {
         setLocation('/community');
       }, 2000);
     },
     onError: (error) => {
-      setIsSubmitting(false);
       toast({
         title: "Submission Failed",
         description: error instanceof Error ? error.message : "Something went wrong",
@@ -79,40 +93,8 @@ export default function SubmitPlaylist() {
     },
   });
 
-  const handleInputChange = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // Validate form
-    if (!formData.curatorName || !formData.title || !formData.playlistUrl) {
-      toast({
-        title: "Missing Information",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate URL is from supported platform
-    const url = formData.playlistUrl.toLowerCase();
-    const isSpotify = url.includes('spotify.com');
-    const isAppleMusic = url.includes('apple.com') || url.includes('music.apple');
-    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-
-    if (!isSpotify && !isAppleMusic && !isYouTube) {
-      toast({
-        title: "Invalid URL",
-        description: "Please use a Spotify, Apple Music, or YouTube playlist URL.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    submitMutation.mutate(formData);
+  const onSubmit = (data: z.output<typeof formSchema>) => {
+    submitMutation.mutate(data);
   };
 
   if (showSuccess) {
@@ -169,146 +151,188 @@ export default function SubmitPlaylist() {
         </div>
 
         {/* Submission Form */}
-        <form onSubmit={handleSubmit} className="space-y-6 bg-card border rounded-lg p-6">
-          {/* Curator Name */}
-          <div className="space-y-2">
-            <Label htmlFor="curatorName">
-              Your Name <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="curatorName"
-              data-testid="input-curator-name"
-              placeholder="e.g., DJ Shadow, Curator Name"
-              value={formData.curatorName}
-              onChange={(e) => handleInputChange('curatorName', e.target.value)}
-              required
-            />
-            <p className="text-sm text-muted-foreground">
-              How should we credit you?
-            </p>
-          </div>
-
-          {/* Playlist Title */}
-          <div className="space-y-2">
-            <Label htmlFor="title">
-              Playlist Title <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="title"
-              data-testid="input-playlist-title"
-              placeholder="e.g., Late Night Vibes, Sunday Morning Jazz"
-              value={formData.title}
-              onChange={(e) => handleInputChange('title', e.target.value)}
-              required
-            />
-          </div>
-
-          {/* Playlist URL */}
-          <div className="space-y-2">
-            <Label htmlFor="playlistUrl">
-              Playlist URL <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="playlistUrl"
-              data-testid="input-playlist-url"
-              type="url"
-              placeholder="https://open.spotify.com/playlist/..."
-              value={formData.playlistUrl}
-              onChange={(e) => handleInputChange('playlistUrl', e.target.value)}
-              required
-            />
-            <p className="text-sm text-muted-foreground">
-              Spotify, Apple Music, or YouTube playlist link
-            </p>
-          </div>
-
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              data-testid="input-playlist-description"
-              placeholder="Tell us about your playlist - what's the vibe, when to listen, etc."
-              value={formData.description}
-              onChange={(e) => handleInputChange('description', e.target.value)}
-              rows={4}
-            />
-          </div>
-
-          {/* Tags */}
-          <div className="space-y-2">
-            <Label htmlFor="tags">Tags</Label>
-            <Input
-              id="tags"
-              data-testid="input-playlist-tags"
-              placeholder="e.g., house, techno, chill, 90s"
-              value={formData.tags}
-              onChange={(e) => handleInputChange('tags', e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Separate tags with commas
-            </p>
-          </div>
-
-          {/* Optional: Custom Artwork URL */}
-          <div className="space-y-2">
-            <Label htmlFor="artworkUrl">Custom Artwork URL (Optional)</Label>
-            <Input
-              id="artworkUrl"
-              data-testid="input-artwork-url"
-              type="url"
-              placeholder="https://..."
-              value={formData.artworkUrl}
-              onChange={(e) => handleInputChange('artworkUrl', e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">
-              Override the default playlist artwork (optional)
-            </p>
-          </div>
-
-          {/* Optional: Email */}
-          <div className="space-y-2">
-            <Label htmlFor="curatorEmail">Email (Optional)</Label>
-            <Input
-              id="curatorEmail"
-              data-testid="input-curator-email"
-              type="email"
-              placeholder="your@email.com"
-              value={formData.curatorEmail}
-              onChange={(e) => handleInputChange('curatorEmail', e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground">
-              For updates about your submission (we won't spam you)
-            </p>
-          </div>
-
-          {/* Submit Button */}
-          <div className="pt-4">
-            <Button
-              type="submit"
-              data-testid="button-submit-playlist"
-              disabled={isSubmitting}
-              className="w-full"
-              size="lg"
-            >
-              {isSubmitting ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                  Submitting...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Submit Playlist
-                </>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 bg-card border rounded-lg p-6">
+            {/* Curator Name */}
+            <FormField
+              control={form.control}
+              name="curatorName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Your Name *</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-curator-name"
+                      placeholder="e.g., DJ Shadow, Curator Name"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>How should we credit you?</FormDescription>
+                  <FormMessage />
+                </FormItem>
               )}
-            </Button>
-          </div>
+            />
 
-          <p className="text-sm text-muted-foreground text-center">
-            By submitting, you confirm this playlist is yours to share. We'll review it and feature it on the community page.
-          </p>
-        </form>
+            {/* Playlist Title */}
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Playlist Title *</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-playlist-title"
+                      placeholder="e.g., Late Night Vibes, Sunday Morning Jazz"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Playlist URL */}
+            <FormField
+              control={form.control}
+              name="playlistUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Playlist URL *</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-playlist-url"
+                      type="url"
+                      placeholder="https://open.spotify.com/playlist/..."
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Spotify, Apple Music, or YouTube playlist link
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Description */}
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      data-testid="input-playlist-description"
+                      placeholder="Tell us about your playlist - what's the vibe, when to listen, etc."
+                      {...field}
+                      value={field.value || ""}
+                      rows={4}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Tags */}
+            <FormField
+              control={form.control}
+              name="tags"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tags</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-playlist-tags"
+                      placeholder="e.g., house, techno, chill, 90s"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormDescription>Separate tags with commas</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Optional: Custom Artwork URL */}
+            <FormField
+              control={form.control}
+              name="artworkUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Custom Artwork URL (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-artwork-url"
+                      type="url"
+                      placeholder="https://..."
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Override the default playlist artwork (optional)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Optional: Email */}
+            <FormField
+              control={form.control}
+              name="curatorEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email (Optional)</FormLabel>
+                  <FormControl>
+                    <Input
+                      data-testid="input-curator-email"
+                      type="email"
+                      placeholder="your@email.com"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    For updates about your submission (we won't spam you)
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Submit Button */}
+            <div className="pt-4">
+              <Button
+                type="submit"
+                data-testid="button-submit-playlist"
+                disabled={submitMutation.isPending}
+                className="w-full"
+                size="lg"
+              >
+                {submitMutation.isPending ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-4 h-4 mr-2" />
+                    Submit Playlist
+                  </>
+                )}
+              </Button>
+            </div>
+
+            <p className="text-sm text-muted-foreground text-center">
+              By submitting, you confirm this playlist is yours to share. We'll review it and feature it on the community page.
+            </p>
+          </form>
+        </Form>
       </div>
     </div>
   );

@@ -5,6 +5,15 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { 
   Check, 
   X, 
@@ -37,6 +46,9 @@ export default function PlaylistSubmissionsAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'featured' | 'rejected'>('pending');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [playlistToReject, setPlaylistToReject] = useState<number | null>(null);
+  const [rejectionReason, setRejectionReason] = useState('');
 
   // Fetch all playlists
   const { data: allPlaylists = [], isLoading } = useQuery<PlaylistSubmission[]>({
@@ -59,22 +71,51 @@ export default function PlaylistSubmissionsAdmin() {
         description: "The playlist is now visible to the community.",
       });
     },
+    onError: (error) => {
+      toast({
+        title: "Approval Failed",
+        description: error instanceof Error ? error.message : "Failed to approve playlist",
+        variant: "destructive",
+      });
+    },
   });
 
   // Reject mutation
   const rejectMutation = useMutation({
-    mutationFn: async (id: number) => {
-      return apiRequest('PATCH', `/api/editor/playlists/${id}/reject`);
+    mutationFn: async ({ id, reason }: { id: number; reason?: string }) => {
+      return apiRequest('PATCH', `/api/editor/playlists/${id}/reject`, { reason });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/editor/playlists'] });
+      setRejectDialogOpen(false);
+      setPlaylistToReject(null);
+      setRejectionReason('');
       toast({
         title: "Playlist Rejected",
         description: "The playlist has been rejected.",
         variant: "destructive",
       });
     },
+    onError: (error) => {
+      toast({
+        title: "Rejection Failed",
+        description: error instanceof Error ? error.message : "Failed to reject playlist",
+        variant: "destructive",
+      });
+    },
   });
+
+  const handleRejectClick = (id: number) => {
+    setPlaylistToReject(id);
+    setRejectionReason(''); // Reset reason for each new rejection
+    setRejectDialogOpen(true);
+  };
+
+  const handleRejectConfirm = () => {
+    if (playlistToReject !== null) {
+      rejectMutation.mutate({ id: playlistToReject, reason: rejectionReason || undefined });
+    }
+  };
 
   // Feature/Unfeature mutation
   const toggleFeatureMutation = useMutation({
@@ -91,6 +132,13 @@ export default function PlaylistSubmissionsAdmin() {
           : "The playlist is no longer featured.",
       });
     },
+    onError: (error) => {
+      toast({
+        title: "Feature Toggle Failed",
+        description: error instanceof Error ? error.message : "Failed to update playlist feature status",
+        variant: "destructive",
+      });
+    },
   });
 
   // Delete mutation
@@ -104,6 +152,13 @@ export default function PlaylistSubmissionsAdmin() {
       toast({
         title: "Playlist Deleted",
         description: "The playlist has been permanently deleted.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete Failed",
+        description: error instanceof Error ? error.message : "Failed to delete playlist",
+        variant: "destructive",
       });
     },
   });
@@ -252,7 +307,7 @@ export default function PlaylistSubmissionsAdmin() {
                               Approve
                             </Button>
                             <Button
-                              onClick={() => rejectMutation.mutate(playlist.id)}
+                              onClick={() => handleRejectClick(playlist.id)}
                               disabled={rejectMutation.isPending}
                               variant="destructive"
                               size="sm"
@@ -289,7 +344,7 @@ export default function PlaylistSubmissionsAdmin() {
                               )}
                             </Button>
                             <Button
-                              onClick={() => rejectMutation.mutate(playlist.id)}
+                              onClick={() => handleRejectClick(playlist.id)}
                               disabled={rejectMutation.isPending}
                               variant="outline"
                               size="sm"
@@ -337,6 +392,46 @@ export default function PlaylistSubmissionsAdmin() {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Rejection Dialog */}
+        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Reject Playlist</DialogTitle>
+              <DialogDescription>
+                Optionally provide a reason for rejecting this playlist. This will be visible to the curator.
+              </DialogDescription>
+            </DialogHeader>
+            <Textarea
+              placeholder="e.g., Playlist doesn't match our community guidelines, not enough diversity, etc."
+              value={rejectionReason}
+              onChange={(e) => setRejectionReason(e.target.value)}
+              rows={4}
+              data-testid="input-rejection-reason"
+            />
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setRejectDialogOpen(false);
+                  setPlaylistToReject(null);
+                  setRejectionReason('');
+                }}
+                data-testid="button-cancel-reject"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleRejectConfirm}
+                disabled={rejectMutation.isPending}
+                data-testid="button-confirm-reject"
+              >
+                {rejectMutation.isPending ? 'Rejecting...' : 'Reject Playlist'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
