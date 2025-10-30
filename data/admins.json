@@ -5,5 +5,12 @@
     "role": "admin",
     "id": 1,
     "createdAt": "2025-10-30T06:58:23.852Z"
+  },
+  {
+    "username": "editor1",
+    "password": "editor123",
+    "role": "editor",
+    "id": 2,
+    "createdAt": "2025-10-30T07:29:16.438Z"
   }
 ]

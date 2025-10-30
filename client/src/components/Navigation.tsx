@@ -127,13 +127,38 @@ export default function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Link 
-              href="/submit-mix" 
-              className={navLinkClass("/submit-mix")}
-              data-testid="link-nav-submit"
-            >
-              Submit
-            </Link>
+            <DropdownMenu>
+              <DropdownMenuTrigger 
+                className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-navy transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                data-testid="dropdown-nav-submit"
+              >
+                Submit
+                <ChevronDown className="w-4 h-4" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent 
+                align="start" 
+                className="bg-white dark:bg-black border-black dark:border-gray-800 font-mono"
+              >
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/submit-mix" 
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
+                    data-testid="dropdown-item-submit-mix"
+                  >
+                    Submit a Mix
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/submit-playlist" 
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
+                    data-testid="dropdown-item-submit-playlist"
+                  >
+                    Submit a Playlist
+                  </Link>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
 
             <Link 
               href="/about" 

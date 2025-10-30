@@ -26,6 +26,17 @@ export async function validateAdminCredentials() {
     console.log(`✅ Admin system initialized for user: ${envUser}`);
   }
   
+  // Create default editor account if it doesn't exist
+  const existingEditor = await storage.getAdminByUsername('editor1');
+  if (!existingEditor) {
+    await storage.createAdmin({
+      username: 'editor1',
+      password: 'editor123',
+      role: 'editor',
+    });
+    console.log(`✅ Created default editor user: editor1`);
+  }
+  
   if (envUser === 'admin' && envPass === 'change-me') {
     console.warn('⚠️  WARNING: Using default admin credentials! Set ADMIN_USER and ADMIN_PASS environment variables.');
   }

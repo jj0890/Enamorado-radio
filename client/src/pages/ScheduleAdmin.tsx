@@ -236,6 +236,14 @@ export default function ScheduleAdmin() {
             <Music className="w-4 h-4 inline mr-2" />
             Mix Submissions
           </button>
+          <Link
+            href="/admin/playlist-submissions"
+            className="px-6 py-3 font-mono font-medium transition-all bg-white text-purple-600 border border-purple-600 hover:bg-purple-50"
+            data-testid="link-playlist-submissions"
+          >
+            <Music className="w-4 h-4 inline mr-2" />
+            Playlist Submissions
+          </Link>
           <button
             onClick={() => setActiveSection('song-submissions')}
             className={`px-6 py-3 font-mono font-medium transition-all ${

@@ -137,7 +137,7 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           <span 
             className={`text-[9px] font-mono text-white px-2 py-0.5 rounded uppercase font-semibold ${
-              type === 'mix' ? 'bg-navy' : 'bg-blue-500'
+              type === 'mix' ? 'bg-navy' : type === 'episode' ? 'bg-blue-500' : 'bg-purple-600'
             }`}
             data-testid={`chip-type-${type}`}
           >
