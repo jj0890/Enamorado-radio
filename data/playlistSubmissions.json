@@ -1,0 +1,30 @@
+[
+  {
+    "curatorName": "Test Curator",
+    "title": "Test Spotify Playlist",
+    "playlistUrl": "https://open.spotify.com/playlist/647V5M8N4jN5NLKtpx3QxA?si=9bc248c60be942f4",
+    "description": "Testing the playlist submission system with a real Spotify playlist",
+    "tags": [
+      "electronic",
+      "house",
+      "techno"
+    ],
+    "artworkUrl": null,
+    "curatorEmail": null,
+    "platform": "spotify",
+    "id": 46,
+    "status": "featured",
+    "submittedAt": "2025-10-30T06:44:29.354Z",
+    "approvedAt": "2025-10-30T06:45:22.978Z",
+    "featuredAt": "2025-10-30T06:45:56.005Z",
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "likes": 1,
+    "metadata": null,
+    "trackCount": null,
+    "editorNotes": null,
+    "rejectionReason": null,
+    "createdAt": "2025-10-30T06:44:29.354Z",
+    "updatedAt": "2025-10-30T06:45:56.005Z"
+  }
+]
