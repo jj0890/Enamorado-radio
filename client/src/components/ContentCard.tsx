@@ -1,10 +1,16 @@
 import { Play, Music } from 'lucide-react';
 import { SiSoundcloud, SiSpotify } from 'react-icons/si';
+import { ContentItem } from '@shared/schema';
 
-type ContentType = 'mix' | 'episode';
 type Platform = 'soundcloud' | 'spotify' | 'mixcloud' | 'mp3' | 'other';
 
 interface ContentCardProps {
+  content: ContentItem;
+  onGenreSelect?: (genre: string) => void;
+}
+
+// Legacy interface support for backward compatibility
+interface LegacyContentCardProps {
   content: {
     id: number;
     title: string;
@@ -26,13 +32,22 @@ interface ContentCardProps {
       artist?: string;
     };
   };
-  type: ContentType;
+  type: 'mix' | 'episode';
   onGenreSelect?: (genre: string) => void;
 }
 
-export default function ContentCard({ content, type, onGenreSelect }: ContentCardProps) {
+export default function ContentCard(props: ContentCardProps | LegacyContentCardProps) {
+  const { content, onGenreSelect } = props;
+  
+  // Support both unified ContentItem and legacy props
+  // Legacy: { content: {...}, type: 'mix' } (type as separate prop)
+  // New: { content: ContentItem } (type inside content)
+  const type = 
+    (props as LegacyContentCardProps).type || // Legacy prop
+    ('type' in content ? content.type : 'mix'); // ContentItem type field
+  
   // Robust artwork fallback chain
-  const artwork = content.artwork || content.artUrl || content.artworkUrl || content.metadata?.imageUrl || null;
+  const artwork = content.artworkUrl || (content as any).artwork || (content as any).artUrl || (content as any).metadata?.imageUrl || null;
 
   // Detect platform from URL (check fileUrl/streamUrl first for MP3s)
   const detectPlatform = (): Platform => {
@@ -66,7 +81,14 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
     }
   };
 
-  const displayName = content.artist || content.name || content.hostName || '';
+  // Get display name based on content type
+  const displayName = 
+    'name' in content ? content.name :
+    'hostName' in content ? content.hostName :
+    'authorName' in content ? content.authorName :
+    'artistName' in content ? content.artistName :
+    'curatorName' in content ? content.curatorName :
+    (content as any).artist || '';
 
   return (
     <div className={`bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative ${

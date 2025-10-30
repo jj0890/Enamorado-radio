@@ -3207,6 +3207,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
+  // COMMUNITY CONTENT API - Unified feed of mixes, episodes, and guides
+  // =================
+
+  app.get('/api/community', async (req, res) => {
+    try {
+      const { type, genre, search, limit, sort } = req.query;
+      
+      // Fetch all content types in parallel
+      const [allMixes, allEpisodes, allGuides] = await Promise.all([
+        storage.getMixSubmissions({}),
+        storage.getEpisodes({}),
+        storage.getGuides ? storage.getGuides({}) : Promise.resolve([])
+      ]);
+
+      // Normalize mixes to ContentItem format
+      const mixItems = allMixes
+        .filter(mix => mix.status === 'approved' || mix.status === 'featured')
+        .map(mix => ({
+          type: 'mix' as const,
+          id: mix.id,
+          title: mix.title,
+          name: mix.name,
+          artworkUrl: mix.artwork_url || mix.artUrl || mix.coverUrl || null,
+          genre: mix.genre || null,
+          about: mix.about || null,
+          url: mix.url || null,
+          platform: mix.platform || null,
+          status: mix.status || 'approved',
+          submittedAt: mix.submittedAt ? new Date(mix.submittedAt) : null,
+          createdAt: mix.createdAt ? new Date(mix.createdAt) : null,
+          isFeatured: mix.status === 'featured' || mix.featured || false,
+          approved_at: mix.approved_at ? new Date(mix.approved_at) : null,
+          featured_at: mix.featured_at ? new Date(mix.featured_at) : null,
+        }));
+
+      // Normalize episodes to ContentItem format
+      const episodeItems = allEpisodes
+        .filter(ep => ep.status === 'published')
+        .map(ep => ({
+          type: 'episode' as const,
+          id: ep.id,
+          title: ep.title,
+          hostName: ep.hostName,
+          artworkUrl: ep.artworkUrl || null,
+          genre: ep.genre || null,
+          description: ep.description || null,
+          seriesTitle: ep.seriesTitle || null,
+          episodeNumber: ep.episodeNumber || null,
+          airDate: new Date(ep.airDate),
+          duration: ep.duration,
+          audioUrl: ep.audioUrl,
+          tracklist: ep.tracklist || null,
+          tags: ep.tags || null,
+          status: ep.status,
+          isLive: ep.isLive || false,
+          isFeatured: ep.isFeatured || false,
+          viewCount: ep.viewCount || 0,
+          createdAt: ep.createdAt ? new Date(ep.createdAt) : null,
+          submittedAt: ep.airDate ? new Date(ep.airDate) : null,
+          url: ep.audioUrl,
+        }));
+
+      // Normalize guides to ContentItem format (writing)
+      const writingItems = allGuides
+        .filter((guide: any) => guide.status === 'published')
+        .map((guide: any) => ({
+          type: 'writing' as const,
+          id: guide.id,
+          title: guide.title,
+          authorName: guide.authorName,
+          artworkUrl: guide.coverImageUrl || null,
+          genre: guide.guideType || null,
+          description: guide.description,
+          guideType: guide.guideType,
+          slug: guide.slug,
+          tags: guide.tags || null,
+          intro: guide.intro,
+          coverImageUrl: guide.coverImageUrl || null,
+          status: guide.status,
+          viewCount: guide.viewCount || 0,
+          publishedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
+          createdAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
+          submittedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
+          isFeatured: guide.isFeatured || false,
+          url: `/guides/${guide.slug}`,
+        }));
+
+      // Combine all content
+      let allContent = [...mixItems, ...episodeItems, ...writingItems];
+
+      // Apply type filter
+      if (type && type !== 'all') {
+        allContent = allContent.filter(item => item.type === type);
+      }
+
+      // Apply genre filter
+      if (genre && typeof genre === 'string') {
+        const genreLower = genre.toLowerCase();
+        allContent = allContent.filter(item => 
+          item.genre && item.genre.toLowerCase().includes(genreLower)
+        );
+      }
+
+      // Apply search filter
+      if (search && typeof search === 'string') {
+        const searchLower = search.toLowerCase();
+        allContent = allContent.filter(item => {
+          const searchableText = [
+            item.title,
+            'name' in item ? item.name : '',
+            'hostName' in item ? item.hostName : '',
+            'authorName' in item ? item.authorName : '',
+            'description' in item ? item.description : '',
+            'about' in item ? item.about : '',
+          ].join(' ').toLowerCase();
+          
+          return searchableText.includes(searchLower);
+        });
+      }
+
+      // Apply sorting
+      const sortBy = (sort as string) || 'recent';
+      allContent.sort((a, b) => {
+        if (sortBy === 'recent') {
+          // Sort by submittedAt/createdAt descending (newest first)
+          const dateA = a.submittedAt || a.createdAt || new Date(0);
+          const dateB = b.submittedAt || b.createdAt || new Date(0);
+          return dateB.getTime() - dateA.getTime();
+        } else if (sortBy === 'featured') {
+          // Featured items first
+          if (a.isFeatured && !b.isFeatured) return -1;
+          if (!a.isFeatured && b.isFeatured) return 1;
+          return 0;
+        }
+        return 0;
+      });
+
+      // Apply limit
+      const limitNum = limit ? parseInt(limit as string) : 24;
+      allContent = allContent.slice(0, limitNum);
+
+      console.log(`[Community API] Returning ${allContent.length} items (${mixItems.length} mixes, ${episodeItems.length} episodes, ${writingItems.length} writing)`);
+      res.json(allContent);
+
+    } catch (error) {
+      console.error('[Community API] Error:', error);
+      res.status(500).json({ error: 'Failed to fetch community content' });
+    }
+  });
+
+  // =================
   // RESIDENT APPLICATIONS API
   // =================
 
