@@ -5,6 +5,7 @@ import {
   Guide,
   HeroBanner,
   MixSubmission,
+  PlaylistSubmission,
   EpisodeSubmission,
   Schedule, 
   ResidentApplication,
@@ -21,6 +22,7 @@ import {
   InsertGuide,
   InsertHeroBanner,
   InsertMixSubmission,
+  InsertPlaylistSubmission,
   InsertEpisodeSubmission,
   InsertSchedule,
   InsertResidentApplication,
@@ -46,6 +48,7 @@ export class FileStorage implements IStorage {
   private guides: Guide[] = [];
   private heroBanners: HeroBanner[] = [];
   private mixSubmissions: MixSubmission[] = [];
+  private playlistSubmissions: PlaylistSubmission[] = [];
   private episodeSubmissions: EpisodeSubmission[] = [];
   private scheduleItems: Schedule[] = [];
   private residentApplications: ResidentApplication[] = [];
@@ -118,6 +121,7 @@ export class FileStorage implements IStorage {
         'guides.json',
         'heroBanners.json',
         'mixSubmissions.json',
+        'playlistSubmissions.json',
         'episodeSubmissions.json',
         'scheduleItems.json',
         'residentApplications.json',
@@ -151,14 +155,14 @@ export class FileStorage implements IStorage {
             case 'mixSubmissions.json':
               this.mixSubmissions = (parsed || []).map((mix: any) => this.migrateMixData(mix));
               break;
+            case 'playlistSubmissions.json':
+              this.playlistSubmissions = parsed || [];
+              break;
             case 'episodeSubmissions.json':
               this.episodeSubmissions = parsed || [];
               break;
             case 'scheduleItems.json':
               this.scheduleItems = parsed || [];
-              break;
-            case 'songSubmissions.json':
-              this.songSubmissions = parsed || [];
               break;
             case 'residentApplications.json':
               this.residentApplications = parsed || [];
@@ -211,6 +215,7 @@ export class FileStorage implements IStorage {
         ...this.guides.map(g => g.id),
         ...this.heroBanners.map(b => b.id),
         ...this.mixSubmissions.map(m => m.id),
+        ...this.playlistSubmissions.map(p => p.id),
         ...this.episodeSubmissions.map(e => e.id),
         ...this.scheduleItems.map(s => s.id),
         ...this.residentApplications.map(r => r.id),
@@ -625,6 +630,173 @@ export class FileStorage implements IStorage {
     this.mixSubmissions.splice(index, 1);
     await this.saveData('mixSubmissions', this.mixSubmissions);
     console.log(`FileStorage: Deleted mix submission ${id}`);
+  }
+
+  // Playlist Submissions
+  async getPlaylistSubmissions(filters?: { 
+    status?: string; 
+    limit?: number; 
+    featured?: boolean; 
+    approved?: boolean;
+  }): Promise<PlaylistSubmission[]> {
+    let filtered = [...this.playlistSubmissions];
+    
+    if (filters?.status) {
+      filtered = filtered.filter(p => p.status === filters.status);
+    }
+    
+    if (filters?.approved !== undefined) {
+      filtered = filtered.filter(p => filters.approved ? p.approvedAt !== null : p.approvedAt === null);
+    }
+    
+    if (filters?.featured !== undefined) {
+      filtered = filtered.filter(p => filters.featured ? p.featuredAt !== null : p.featuredAt === null);
+    }
+    
+    // Sort by submission date (newest first)
+    filtered.sort((a, b) => {
+      const aTime = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
+      const bTime = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
+      return bTime - aTime;
+    });
+    
+    if (filters?.limit) {
+      filtered = filtered.slice(0, filters.limit);
+    }
+    
+    console.log(`FileStorage: Found ${filtered.length} playlists with status: ${filters?.status || 'all'}`);
+    return filtered;
+  }
+
+  async getPlaylistSubmissionById(id: number): Promise<PlaylistSubmission | undefined> {
+    return this.playlistSubmissions.find(p => p.id === id);
+  }
+
+  async createPlaylistSubmission(submission: InsertPlaylistSubmission): Promise<PlaylistSubmission> {
+    const newSubmission: PlaylistSubmission = {
+      ...submission,
+      id: this.nextId++,
+      status: 'pending',
+      submittedAt: new Date(),
+      approvedAt: null,
+      featuredAt: null,
+      reviewedAt: null,
+      reviewedBy: null,
+      likes: 0,
+      curatorEmail: submission.curatorEmail || null,
+      description: submission.description || null,
+      artworkUrl: submission.artworkUrl || null,
+      tags: submission.tags || null,
+      metadata: submission.metadata || null,
+      platform: submission.platform || null,
+      trackCount: submission.trackCount || null,
+      editorNotes: submission.editorNotes || null,
+      rejectionReason: submission.rejectionReason || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    };
+    this.playlistSubmissions.push(newSubmission);
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    
+    console.log(`FileStorage: Created playlist submission ${newSubmission.id}: "${newSubmission.title}" by ${newSubmission.curatorName}`);
+    return newSubmission;
+  }
+
+  async updatePlaylistSubmissionStatus(id: number, status: string, notes?: string): Promise<PlaylistSubmission> {
+    const index = this.playlistSubmissions.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Playlist submission not found');
+    
+    this.playlistSubmissions[index] = {
+      ...this.playlistSubmissions[index],
+      status,
+      editorNotes: notes || this.playlistSubmissions[index].editorNotes,
+      reviewedAt: new Date(),
+      reviewedBy: 'Admin',
+      updatedAt: new Date(),
+    };
+    
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    console.log(`FileStorage: Updated playlist ${id} status to "${status}"`);
+    return this.playlistSubmissions[index];
+  }
+
+  async updatePlaylistSubmission(id: number, updates: Partial<PlaylistSubmission>): Promise<PlaylistSubmission> {
+    const index = this.playlistSubmissions.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Playlist submission not found');
+    
+    this.playlistSubmissions[index] = { 
+      ...this.playlistSubmissions[index], 
+      ...updates,
+      updatedAt: new Date(),
+    };
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    console.log(`FileStorage: Updated playlist ${id} with:`, updates);
+    return this.playlistSubmissions[index];
+  }
+
+  async togglePlaylistFeature(id: number): Promise<PlaylistSubmission> {
+    const index = this.playlistSubmissions.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Playlist submission not found');
+    
+    // Check if playlist is approved first
+    if (!this.playlistSubmissions[index].approvedAt) {
+      throw new Error('Playlist must be approved before featuring');
+    }
+    
+    // Toggle featured status
+    if (this.playlistSubmissions[index].featuredAt) {
+      this.playlistSubmissions[index].featuredAt = null;
+      this.playlistSubmissions[index].status = 'approved';
+    } else {
+      this.playlistSubmissions[index].featuredAt = new Date();
+      this.playlistSubmissions[index].status = 'featured';
+    }
+    
+    this.playlistSubmissions[index].updatedAt = new Date();
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    return this.playlistSubmissions[index];
+  }
+
+  async togglePlaylistApproval(id: number): Promise<PlaylistSubmission> {
+    const index = this.playlistSubmissions.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Playlist submission not found');
+    
+    // Toggle approval status
+    if (this.playlistSubmissions[index].approvedAt) {
+      this.playlistSubmissions[index].approvedAt = null;
+      this.playlistSubmissions[index].featuredAt = null; // If unapproving, also unfeature
+      this.playlistSubmissions[index].status = 'pending';
+    } else {
+      this.playlistSubmissions[index].approvedAt = new Date();
+      this.playlistSubmissions[index].status = 'approved';
+    }
+    
+    this.playlistSubmissions[index].updatedAt = new Date();
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    return this.playlistSubmissions[index];
+  }
+
+  async likePlaylistSubmission(id: number): Promise<PlaylistSubmission> {
+    const index = this.playlistSubmissions.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Playlist submission not found');
+    
+    this.playlistSubmissions[index].likes = (this.playlistSubmissions[index].likes || 0) + 1;
+    this.playlistSubmissions[index].updatedAt = new Date();
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    console.log(`FileStorage: Liked playlist ${id}, new count: ${this.playlistSubmissions[index].likes}`);
+    return this.playlistSubmissions[index];
+  }
+
+  async deletePlaylistSubmission(id: number): Promise<void> {
+    const index = this.playlistSubmissions.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Playlist submission not found');
+    
+    // Create backup before destructive operation
+    await backupManager.createBackup(`Before deleting playlist submission ${id}`);
+    
+    this.playlistSubmissions.splice(index, 1);
+    await this.saveData('playlistSubmissions', this.playlistSubmissions);
+    console.log(`FileStorage: Deleted playlist submission ${id}`);
   }
 
   // Episode Submissions
