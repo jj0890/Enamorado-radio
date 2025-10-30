@@ -102,11 +102,13 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
   const detailUrl = getDetailUrl();
 
   return (
-    <Link href={detailUrl}>
-      <a className="block">
-        <div className={`bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative cursor-pointer ${
-          content.isFeatured ? 'border-2 border-navy' : 'border border-gray-200 dark:border-gray-800'
-        }`} data-testid={`card-${type}-${content.id}`}>
+    <Link 
+      href={detailUrl}
+      className={`block bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative cursor-pointer ${
+        content.isFeatured ? 'border-2 border-navy' : 'border border-gray-200 dark:border-gray-800'
+      }`}
+      data-testid={`card-${type}-${content.id}`}
+    >
       {/* Featured Badge */}
       {content.isFeatured && (
         <div className="absolute top-3 left-3 z-10 bg-navy text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
@@ -189,8 +191,6 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
           Listen
         </button>
       </div>
-        </div>
-      </a>
     </Link>
   );
 }
