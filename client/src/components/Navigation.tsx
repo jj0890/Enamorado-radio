@@ -54,6 +54,14 @@ export default function Navigation() {
               Latest
             </Link>
 
+            <Link 
+              href="/community" 
+              className={navLinkClass("/community")}
+              data-testid="link-nav-community"
+            >
+              Community
+            </Link>
+
             <DropdownMenu>
               <DropdownMenuTrigger 
                 className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-navy transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"

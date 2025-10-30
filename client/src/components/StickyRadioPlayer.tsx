@@ -165,34 +165,22 @@ export default function StickyRadioPlayer() {
         className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 dark:bg-black/90 backdrop-blur-lg text-white border-t border-white/10"
         style={{ backdropFilter: 'blur(10px)' }}
       >
-        <div className="flex items-center h-16 px-4">
-          {/* Minimal Logo/Brand - Just Icon */}
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-navy-dark rounded-full flex items-center justify-center font-bold text-lg">
-              E
-            </div>
-          </div>
-
-          {/* Play/Pause Controls */}
-          <div className="flex items-center gap-2 ml-6">
-            <button
-              onClick={handleToggle}
-              data-testid="button-sticky-play-pause"
-              className="w-8 h-8 bg-white text-black flex items-center justify-center text-sm hover:bg-gray-200 transition-colors"
-              title={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? '⏸' : '▶'}
-            </button>
-            <div className="text-sm font-medium">
-              {isPlaying ? 'On Air' : 'Off Air'}
-            </div>
-          </div>
+        <div className="flex items-center h-16 px-2 md:px-4 gap-2 md:gap-4">
+          {/* Play/Pause Button */}
+          <button
+            onClick={handleToggle}
+            data-testid="button-sticky-play-pause"
+            className="w-10 h-10 md:w-12 md:h-12 bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 rounded"
+            title={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? '⏸' : '▶'}
+          </button>
 
           {/* Now Playing Info with Artwork */}
-          <div className="flex-1 mx-6 flex items-center justify-center gap-3">
-            {/* Album Artwork - with smooth transitions */}
+          <div className="flex-1 flex items-center gap-2 min-w-0">
+            {/* Album Artwork - hidden on mobile */}
             {(artwork || previousArtwork) && (
-              <div className="w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative">
+              <div className="hidden md:block w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative">
                 {previousArtwork && previousArtwork !== artwork && (
                   <img 
                     src={previousArtwork} 
@@ -212,19 +200,19 @@ export default function StickyRadioPlayer() {
               </div>
             )}
             
-            {/* Track Info */}
-            <div className="text-center">
-              <div className="text-sm font-medium">
+            {/* Track Info - Truncated */}
+            <div className="min-w-0 flex-1">
+              <div className="text-xs md:text-sm font-medium truncate">
                 {nowPlaying.title}
               </div>
-              <div className="text-xs text-gray-400">
+              <div className="text-[10px] md:text-xs text-gray-400 truncate">
                 {nowPlaying.subtitle}
               </div>
             </div>
           </div>
 
-          {/* Volume Control */}
-          <div className="flex items-center gap-2">
+          {/* Volume Control - hidden on mobile */}
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
             <span className="text-xs">🔊</span>
             <input
               type="range"
@@ -234,7 +222,7 @@ export default function StickyRadioPlayer() {
               value={volume}
               onChange={handleVolumeChange}
               data-testid="volume-slider"
-              className="w-20 accent-red-600"
+              className="w-20 accent-navy"
             />
           </div>
         </div>

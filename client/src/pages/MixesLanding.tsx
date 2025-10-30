@@ -458,97 +458,26 @@ export default function MixesLanding() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
               {displayCommunitySubmissions.map((submission) => (
-                <div
+                <ContentCard
                   key={submission.id}
-                  className="bg-gray-50 border-2 border-black rounded-lg p-4 hover:border-navy hover:shadow-lg hover:scale-105 transition-all duration-300 group"
-                >
-                  {/* Community Submission Thumbnail */}
-                  <div className="aspect-square bg-white rounded-lg mb-3 overflow-hidden relative border-2 border-black">
-                    {(submission.artUrl || submission.metadata?.imageUrl) ? (
-                      <img 
-                        src={submission.artUrl || submission.metadata?.imageUrl || ''} 
-                        alt={`${submission.title} by ${submission.name}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.log('Thumbnail failed to load:', e.currentTarget.src);
-                          e.currentTarget.style.display = 'none';
-                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (nextElement) {
-                            nextElement.style.display = 'flex';
-                          }
-                        }}
-                      />
-                    ) : null}
-                    <div 
-                      className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
-                        (submission.artUrl || submission.metadata?.imageUrl) ? 'hidden' : 'flex'
-                      }`}
-                    >
-                      <div className="text-gray-400 text-center">
-                        <Play className="w-12 h-12 mx-auto mb-2" />
-                        <p className="text-xs font-mono">New Submission</p>
-                      </div>
-                    </div>
-
-                    {/* Community Badge - No confusing admin status chips */}
-                    <div className="absolute top-2 right-2">
-                      <span className="px-2 py-1 text-xs font-mono bg-blue-500 text-white">
-                        COMMUNITY
-                      </span>
-                    </div>
-
-                    {/* Play Button Overlay */}
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button 
-                        size="sm" 
-                        className="bg-white text-black hover:bg-gray-200 text-xs px-2 py-1"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (submission.url) {
-                            window.open(submission.url, '_blank');
-                          }
-                        }}
-                      >
-                        <Play className="h-3 w-3 mr-1" />
-                        LISTEN
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Community Submission Info */}
-                  <div className="space-y-1">
-                    <h3 className="font-bold text-sm leading-tight font-mono">
-                      {submission.title}
-                    </h3>
-                    <p className="text-gray-600 font-mono text-xs">
-                      {submission.name}
-                    </p>
-
-                    {/* Genre & Duration */}
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="bg-navy text-white px-2 py-1 font-mono">
-                        {submission.genre}
-                      </span>
-                    </div>
-
-                    {/* Platform Link */}
-                    {submission.url && (
-                      <a 
-                        href={submission.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-navy gap-1 mt-1"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                        {submission.url.includes('soundcloud') ? 'SOUNDCLOUD' : 
-                         submission.url.includes('mixcloud') ? 'MIXCLOUD' : 'LISTEN'}
-                      </a>
-                    )}
-                  </div>
-                </div>
+                  content={{
+                    ...submission,
+                    type: 'mix',
+                    artworkUrl: submission.artUrl || submission.metadata?.imageUrl || null,
+                    hostName: submission.name,
+                  }}
+                />
               ))}
             </div>
           )}
+
+          <div className="text-center">
+            <Link href="/community">
+              <Button variant="outline" className="font-mono">
+                View All Community Submissions →
+              </Button>
+            </Link>
+          </div>
         </section>
 
         {/* All Mixes Grid */}
