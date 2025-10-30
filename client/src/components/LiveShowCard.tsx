@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Play, Pause } from 'lucide-react';
 import { useAudio } from '@/providers/AudioProvider';
+import type { HeroBanner } from '@shared/schema';
 
 interface LiveShowCardProps {
   streamUrl?: string;
@@ -29,6 +30,12 @@ export default function LiveShowCard({
   const { state, actions } = useAudio();
   const isPlaying = state.status === 'playing';
 
+  // Fetch active hero banner
+  const { data: activeBanner } = useQuery<HeroBanner | null>({
+    queryKey: ['/api/hero-banners/active'],
+    refetchInterval: 60000, // Poll every minute
+  });
+
   // Fetch now playing data
   const { data: nowPlaying } = useQuery<NowPlayingData>({
     queryKey: ['/api/nowplaying'],
@@ -39,7 +46,10 @@ export default function LiveShowCard({
   const streamerName = nowPlaying?.live?.streamer_name || '';
   const artist = nowPlaying?.now_playing?.song?.artist || '';
   const title = nowPlaying?.now_playing?.song?.title || 'AutoDJ';
-  const artwork = nowPlaying?.now_playing?.song?.art || fallbackImage;
+  const songArtwork = nowPlaying?.now_playing?.song?.art || fallbackImage;
+  
+  // Use hero banner if available, otherwise use song artwork
+  const artwork = activeBanner?.imageUrl || songArtwork;
 
   const handlePlayPause = async () => {
     if (isPlaying) {

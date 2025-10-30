@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Enamorado Radio",
+    "subtitle": "testing testing",
+    "imageUrl": "https://i.pinimg.com/736x/82/1b/12/821b12515dcc3d535b99365378d7abae.jpg",
+    "overlayText": "NOW PLAYING: {artist}, {title}",
+    "isActive": true,
+    "displayOrder": 0,
+    "id": 50,
+    "createdAt": "2025-10-30T07:42:56.712Z"
+  }
+]
