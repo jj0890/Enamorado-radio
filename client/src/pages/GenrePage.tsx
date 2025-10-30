@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 function EpisodeCard({ episode }: { episode: any }) {
   return (
     <Link href={`/episode/${episode.id}`} className="block">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-navy transition-all duration-300 group shadow-sm hover:shadow-md">
         <div className="aspect-[16/9] bg-gray-200 overflow-hidden relative">
           {episode.artUrl ? (
             <img 
@@ -104,9 +104,9 @@ export default function GenrePage() {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold font-mono text-red-500">{title}</h1>
+          <h1 className="text-3xl font-bold font-mono text-navy">{title}</h1>
           <div className="flex items-center space-x-4">
-            <Link href="/mixes" className="text-gray-500 hover:text-red-500 font-mono text-sm">
+            <Link href="/mixes" className="text-gray-500 hover:text-navy font-mono text-sm">
               ← Back to Mixes
             </Link>
           </div>
@@ -122,7 +122,7 @@ export default function GenrePage() {
               No {title.toLowerCase()} content has been submitted yet
             </p>
             <Link href="/submit-mix">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                 Submit Content
               </Button>
             </Link>

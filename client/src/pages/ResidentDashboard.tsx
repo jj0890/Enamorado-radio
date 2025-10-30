@@ -151,7 +151,7 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
+              <div className="w-8 h-8 bg-navy rounded-full flex items-center justify-center">
                 <Radio className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -189,7 +189,7 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
             <CardContent className="space-y-4">
               {residentLoading ? (
                 <div className="text-center py-4">
-                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
               ) : resident ? (
                 <>
@@ -339,7 +339,7 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
             <CardContent className="space-y-4">
               {residentLoading ? (
                 <div className="text-center py-4">
-                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
               ) : resident ? (
                 <>
@@ -425,7 +425,7 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
             <CardContent>
               {episodesLoading ? (
                 <div className="text-center py-8">
-                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
               ) : episodes.length > 0 ? (
                 <div className="space-y-3">
@@ -519,7 +519,7 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
             <CardContent>
               {scheduleLoading ? (
                 <div className="text-center py-8">
-                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
               ) : upcomingShows.length > 0 ? (
                 <div className="space-y-3">

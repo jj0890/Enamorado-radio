@@ -60,7 +60,7 @@ export default function EditorPortal() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold font-mono text-red-500">EDITOR PORTAL</h1>
+              <h1 className="text-2xl font-bold font-mono text-navy">EDITOR PORTAL</h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Content management workspace</p>
             </div>
             <div className="flex items-center gap-4">
@@ -99,7 +99,7 @@ export default function EditorPortal() {
             const Icon = action.icon;
             return (
               <Link key={action.href} href={action.href}>
-                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-red-500 dark:border-gray-800 dark:hover:border-red-500">
+                <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer border-2 hover:border-navy dark:border-gray-800 dark:hover:border-navy">
                   <CardHeader>
                     <div className="flex items-start gap-4">
                       <div className={`w-12 h-12 ${action.color} rounded-lg flex items-center justify-center flex-shrink-0`}>

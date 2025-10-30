@@ -56,8 +56,8 @@ export default function ProgramIndicator() {
         {isLive && programInfo.currentShow ? (
           <div>
             <div className="flex items-center justify-center gap-2 mb-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              <span className="text-red-500 font-mono text-sm font-bold">LIVE NOW</span>
+              <div className="w-2 h-2 bg-navy rounded-full animate-pulse"></div>
+              <span className="text-navy font-mono text-sm font-bold">LIVE NOW</span>
             </div>
             <h2 className="text-2xl font-bold font-mono text-gray-800 mb-1">
               {programInfo.currentShow.name}

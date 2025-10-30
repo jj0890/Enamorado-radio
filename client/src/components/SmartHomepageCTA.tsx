@@ -80,13 +80,13 @@ export function SmartHomepageCTA() {
   // Priority 1: Live stream is active
   if (streamStatus.isLive) {
     return (
-      <div className="bg-red-50 border-2 border-red-500 rounded-lg p-8 text-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-red-500/10 to-transparent"></div>
+      <div className="bg-red-50 border-2 border-navy rounded-lg p-8 text-center relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-navy/10 to-transparent"></div>
         <div className="relative z-10">
           <div className="flex items-center justify-center mb-4">
-            <div className="w-3 h-3 bg-red-500 rounded-full animate-pulse mr-3"></div>
-            <Radio className="w-8 h-8 text-red-500 mr-2" />
-            <h2 className="text-2xl font-bold font-mono text-red-500">LIVE NOW</h2>
+            <div className="w-3 h-3 bg-navy rounded-full animate-pulse mr-3"></div>
+            <Radio className="w-8 h-8 text-navy mr-2" />
+            <h2 className="text-2xl font-bold font-mono text-navy">LIVE NOW</h2>
           </div>
           
           <p className="text-gray-800 font-mono mb-2 text-lg">
@@ -100,12 +100,12 @@ export function SmartHomepageCTA() {
           )}
 
           <div className="flex items-center justify-center gap-4">
-            <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+            <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
               <Radio className="w-4 h-4 mr-2" />
               Tune In Live
             </Button>
             <Link href="/schedule">
-              <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+              <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
                 <Calendar className="w-4 h-4 mr-2" />
                 View Schedule
               </Button>

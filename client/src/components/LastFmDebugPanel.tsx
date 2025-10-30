@@ -80,7 +80,7 @@ export default function LastFmDebugPanel({ isOpen, onClose }: LastFmDebugPanelPr
     } else if (result.displayTitle && result.displayTitle !== result.filename) {
       return <AlertCircle className="w-4 h-4 text-yellow-500" />;
     } else {
-      return <XCircle className="w-4 h-4 text-red-500" />;
+      return <XCircle className="w-4 h-4 text-navy" />;
     }
   };
 
@@ -91,7 +91,7 @@ export default function LastFmDebugPanel({ isOpen, onClose }: LastFmDebugPanelPr
       <div className="bg-white border border-gray-200 rounded-lg w-full max-w-4xl max-h-[90vh] overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-200">
-          <h2 className="text-lg font-bold font-mono text-red-500">LAST.FM API DEBUG PANEL</h2>
+          <h2 className="text-lg font-bold font-mono text-navy">LAST.FM API DEBUG PANEL</h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 text-xl"
@@ -243,7 +243,7 @@ export default function LastFmDebugPanel({ isOpen, onClose }: LastFmDebugPanelPr
                 Partial data or filename parsing
               </span>
               <span className="flex items-center gap-1">
-                <XCircle className="w-3 h-3 text-red-500" />
+                <XCircle className="w-3 h-3 text-navy" />
                 No metadata found
               </span>
             </div>

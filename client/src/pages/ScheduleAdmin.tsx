@@ -168,7 +168,7 @@ export default function ScheduleAdmin() {
     switch (status) {
       case 'pending': return 'bg-yellow-500/20 text-yellow-400';
       case 'approved': return 'bg-green-500/20 text-green-400';
-      case 'rejected': return 'bg-red-500/20 text-red-400';
+      case 'rejected': return 'bg-navy/20 text-navy-light';
       default: return 'bg-gray-500/20 text-gray-400';
     }
   };
@@ -182,10 +182,10 @@ export default function ScheduleAdmin() {
       <div className="max-w-6xl mx-auto py-8 px-4">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link href="/" className="text-red-500 hover:text-red-600 mb-4 inline-block font-mono">
+          <Link href="/" className="text-navy hover:text-red-600 mb-4 inline-block font-mono">
             ← Back to Home
           </Link>
-          <h1 className="text-4xl font-bold mb-2 font-mono text-red-500">Radio Admin Panel</h1>
+          <h1 className="text-4xl font-bold mb-2 font-mono text-navy">Radio Admin Panel</h1>
           <p className="text-gray-600 font-mono">Manage radio shows and DJ submissions</p>
         </div>
 
@@ -195,8 +195,8 @@ export default function ScheduleAdmin() {
             onClick={() => setActiveSection('add-show')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'add-show'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-navy hover:bg-red-50'
             }`}
           >
             <Plus className="w-4 h-4 inline mr-2" />
@@ -206,8 +206,8 @@ export default function ScheduleAdmin() {
             onClick={() => setActiveSection('manage-shows')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'manage-shows'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-navy hover:bg-red-50'
             }`}
           >
             <Calendar className="w-4 h-4 inline mr-2" />
@@ -218,8 +218,8 @@ export default function ScheduleAdmin() {
             onClick={() => setActiveSection('resident-applications')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'resident-applications'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-navy hover:bg-red-50'
             }`}
           >
             <Users className="w-4 h-4 inline mr-2" />
@@ -229,8 +229,8 @@ export default function ScheduleAdmin() {
             onClick={() => setActiveSection('mix-submissions')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'mix-submissions'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-navy hover:bg-red-50'
             }`}
           >
             <Music className="w-4 h-4 inline mr-2" />
@@ -240,8 +240,8 @@ export default function ScheduleAdmin() {
             onClick={() => setActiveSection('song-submissions')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'song-submissions'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-navy hover:bg-red-50'
             }`}
           >
             <Music className="w-4 h-4 inline mr-2" />
@@ -251,8 +251,8 @@ export default function ScheduleAdmin() {
             onClick={() => setActiveSection('analytics')}
             className={`px-6 py-3 font-mono font-medium transition-all ${
               activeSection === 'analytics'
-                ? 'bg-red-500 text-white'
-                : 'bg-white text-red-500 border border-red-500 hover:bg-red-50'
+                ? 'bg-navy text-white'
+                : 'bg-white text-navy border border-navy hover:bg-red-50'
             }`}
           >
             <BarChart3 className="w-4 h-4 inline mr-2" />
@@ -262,8 +262,8 @@ export default function ScheduleAdmin() {
 
         {/* Add Show Section */}
         {activeSection === 'add-show' && (
-          <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">Add New Show</h2>
+          <div className="bg-red-50 border-2 border-navy rounded-lg p-6">
+            <h2 className="text-2xl font-bold mb-6 font-mono text-navy">Add New Show</h2>
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
@@ -409,7 +409,7 @@ export default function ScheduleAdmin() {
                             </span>
                           ))}
                           {show.isLive && (
-                            <span className="bg-red-500/20 text-red-400 px-2 py-1 rounded text-xs">LIVE</span>
+                            <span className="bg-navy/20 text-navy-light px-2 py-1 rounded text-xs">LIVE</span>
                           )}
                         </div>
                       </div>
@@ -418,7 +418,7 @@ export default function ScheduleAdmin() {
                       <button className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
-                      <button className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded transition-colors">
+                      <button className="bg-navy hover:bg-navy-dark text-white px-4 py-2 rounded transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -492,7 +492,7 @@ export default function ScheduleAdmin() {
                         </button>
                         <button 
                           onClick={() => updateResidentApplicationStatus.mutate({ id: application.id, status: 'rejected' })}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                          className="bg-navy hover:bg-navy-dark text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
                           disabled={updateResidentApplicationStatus.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
@@ -514,12 +514,12 @@ export default function ScheduleAdmin() {
         {/* Mix Submissions Section */}
         {activeSection === 'mix-submissions' && (
           <div className="space-y-6">
-            <div className="bg-red-50 border-2 border-red-500 rounded-lg p-6">
-              <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">Mix Submissions</h2>
+            <div className="bg-red-50 border-2 border-navy rounded-lg p-6">
+              <h2 className="text-2xl font-bold mb-6 font-mono text-navy">Mix Submissions</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {mixSubmissionsLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-500"></div>
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-navy"></div>
                   </div>
                 ) : !Array.isArray(mixSubmissions) || mixSubmissions.length === 0 ? (
                   <div className="text-center py-8 text-gray-600">
@@ -597,7 +597,7 @@ export default function ScheduleAdmin() {
                           </button>
                           <button 
                             onClick={() => approveMixSubmission.mutate({ submissionId: submission.id, status: 'featured' })}
-                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
+                            className="bg-navy hover:bg-navy-dark text-white px-3 py-1 rounded text-sm transition-colors flex items-center font-mono"
                             disabled={approveMixSubmission.isPending}
                           >
                             <AlertCircle className="w-4 h-4 mr-1" />
@@ -726,7 +726,7 @@ export default function ScheduleAdmin() {
                         </button>
                         <button 
                           onClick={() => updateZineSubmissionStatus.mutate({ id: submission.id, status: 'rejected' })}
-                          className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
+                          className="bg-navy hover:bg-navy-dark text-white px-3 py-1 rounded text-sm transition-colors flex items-center"
                           disabled={updateZineSubmissionStatus.isPending}
                         >
                           <XCircle className="w-4 h-4 mr-1" />
@@ -942,7 +942,7 @@ function InlineSongSubmissions() {
                   </button>
                   <button 
                     onClick={() => updateStatus(s.id, 'rejected')}
-                    className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm font-mono transition-colors"
+                    className="bg-navy hover:bg-navy-dark text-white px-3 py-1 rounded text-sm font-mono transition-colors"
                   >
                     Reject
                   </button>

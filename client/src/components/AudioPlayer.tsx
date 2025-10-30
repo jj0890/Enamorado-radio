@@ -170,8 +170,8 @@ export function AudioPlayer({ className = '' }: AudioPlayerProps) {
             </p>
           )}
           {currentPlayback.isLive && (
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-navy dark:text-navy-light">
+              <div className="w-2 h-2 bg-navy rounded-full animate-pulse" />
               LIVE
             </span>
           )}
@@ -183,7 +183,7 @@ export function AudioPlayer({ className = '' }: AudioPlayerProps) {
         <div className="mb-3">
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-red-600 h-2 rounded-full" 
+              className="bg-navy-dark h-2 rounded-full" 
               style={{ width: `${progress[0]}%` }}
             ></div>
           </div>

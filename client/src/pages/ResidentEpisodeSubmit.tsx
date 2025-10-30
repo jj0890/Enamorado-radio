@@ -225,7 +225,7 @@ export default function ResidentEpisodeSubmit() {
                     Submit Another
                   </Button>
                   <Link href="/resident">
-                    <Button className="bg-red-600 hover:bg-red-700" data-testid="link-dashboard">
+                    <Button className="bg-navy-dark hover:bg-red-700" data-testid="link-dashboard">
                       Go to Dashboard
                     </Button>
                   </Link>
@@ -272,12 +272,12 @@ export default function ResidentEpisodeSubmit() {
                 {/* Audio File Upload */}
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-white">
-                    Audio File <span className="text-red-500">*</span>
+                    Audio File <span className="text-navy">*</span>
                   </label>
                   <div
                     className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                       isDragging
-                        ? 'border-red-500 bg-red-500/10'
+                        ? 'border-navy bg-navy/10'
                         : 'border-zinc-700 hover:border-zinc-600'
                     } ${audioFile ? 'bg-zinc-800/50' : ''}`}
                     onDragOver={handleDragOver}
@@ -341,7 +341,7 @@ export default function ResidentEpisodeSubmit() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">
-                        Your Name <span className="text-red-500">*</span>
+                        Your Name <span className="text-navy">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -363,7 +363,7 @@ export default function ResidentEpisodeSubmit() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">
-                        Episode Title <span className="text-red-500">*</span>
+                        Episode Title <span className="text-navy">*</span>
                       </FormLabel>
                       <FormControl>
                         <Input
@@ -385,7 +385,7 @@ export default function ResidentEpisodeSubmit() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-white">
-                        Genre <span className="text-red-500">*</span>
+                        Genre <span className="text-navy">*</span>
                       </FormLabel>
                       <Select onValueChange={field.onChange} defaultValue={field.value}>
                         <FormControl>
@@ -563,7 +563,7 @@ export default function ResidentEpisodeSubmit() {
                   <Button
                     type="submit"
                     disabled={isUploading || !audioFile}
-                    className="flex-1 bg-red-600 hover:bg-red-700 disabled:opacity-50"
+                    className="flex-1 bg-navy-dark hover:bg-red-700 disabled:opacity-50"
                     data-testid="button-submit"
                   >
                     {isUploading ? (

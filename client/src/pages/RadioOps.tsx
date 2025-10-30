@@ -46,7 +46,7 @@ export default function RadioOps() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold font-mono text-red-500" data-testid="heading-radio-ops">
+          <h1 className="text-3xl font-bold font-mono text-navy" data-testid="heading-radio-ops">
             RADIO OPS PANEL
           </h1>
           <p className="text-gray-600 mt-2">Real-time broadcast monitoring dashboard</p>
@@ -66,7 +66,7 @@ export default function RadioOps() {
               <div className="flex items-center gap-3">
                 <Badge
                   variant={isLive ? 'default' : 'secondary'}
-                  className={isLive ? 'bg-red-500 hover:bg-red-600' : ''}
+                  className={isLive ? 'bg-navy hover:bg-navy-dark' : ''}
                   data-testid="badge-broadcast-status"
                 >
                   {isLive ? '🔴 LIVE' : '🤖 AUTO'}

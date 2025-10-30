@@ -72,7 +72,7 @@ export default function MixUploadToAzuraCast() {
     <Card className="w-full max-w-2xl">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Radio className="w-5 h-5 text-red-500" />
+          <Radio className="w-5 h-5 text-navy" />
           Upload Mix to AzuraCast
         </CardTitle>
         <CardDescription>

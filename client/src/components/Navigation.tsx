@@ -21,8 +21,8 @@ export default function Navigation() {
   const navLinkClass = (path: string) => {
     const base = "font-mono text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2";
     return isActive(path)
-      ? `${base} text-red-500 font-bold`
-      : `${base} text-gray-600 dark:text-gray-400 hover:text-red-500`;
+      ? `${base} text-navy font-bold`
+      : `${base} text-gray-600 dark:text-gray-400 hover:text-navy`;
   };
 
   return (
@@ -31,7 +31,7 @@ export default function Navigation() {
         <div className="flex items-center justify-between">
           <Link 
             href="/" 
-            className="text-2xl font-bold tracking-tight font-mono text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            className="text-2xl font-bold tracking-tight font-mono text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             data-testid="link-nav-logo"
           >
             Enamorado
@@ -56,7 +56,7 @@ export default function Navigation() {
 
             <DropdownMenu>
               <DropdownMenuTrigger 
-                className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-navy transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                 data-testid="dropdown-nav-explore"
               >
                 Explore
@@ -69,7 +69,7 @@ export default function Navigation() {
                 <DropdownMenuItem asChild>
                   <Link 
                     href="/episodes" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500"
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
                     data-testid="dropdown-item-episodes"
                   >
                     Episodes
@@ -78,7 +78,7 @@ export default function Navigation() {
                 <DropdownMenuItem asChild>
                   <Link 
                     href="/mixes" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500"
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
                     data-testid="dropdown-item-mixes"
                   >
                     Mixes
@@ -87,7 +87,7 @@ export default function Navigation() {
                 <DropdownMenuItem asChild>
                   <Link 
                     href="/albums" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500"
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
                     data-testid="dropdown-item-albums"
                   >
                     Albums of the Month
@@ -98,7 +98,7 @@ export default function Navigation() {
                     href="https://replit.com/@jarradjones7/Magazine-Mockup"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500 flex items-center gap-2"
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy flex items-center gap-2"
                     data-testid="dropdown-item-editorial"
                   >
                     Editorial
@@ -109,7 +109,7 @@ export default function Navigation() {
                   <DropdownMenuItem asChild>
                     <Link 
                       href="/schedule" 
-                      className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-red-500"
+                      className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
                       data-testid="dropdown-item-schedule"
                     >
                       Schedule

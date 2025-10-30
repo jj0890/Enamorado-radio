@@ -482,7 +482,7 @@ export default function AdminAlbums() {
 
             <Button 
               onClick={() => setIsSubmitDialogOpen(true)}
-              className="bg-red-500 hover:bg-red-600 text-white"
+              className="bg-navy hover:bg-navy-dark text-white"
               data-testid="button-submit-pick"
             >
               <Disc className="w-4 h-4 mr-2" />
@@ -858,7 +858,7 @@ export default function AdminAlbums() {
                           disabled={deletePublishedPickMutation.isPending}
                           data-testid={`button-delete-pick-${pick.id}`}
                         >
-                          <Trash2 className="w-4 h-4 text-red-500" />
+                          <Trash2 className="w-4 h-4 text-navy" />
                         </Button>
                       </div>
                     </CardTitle>
@@ -1048,7 +1048,7 @@ export default function AdminAlbums() {
                   });
                 }}
                 disabled={submitSuggestionMutation.isPending || !submitFormData.artist || !submitFormData.title}
-                className="bg-red-500 hover:bg-red-600 text-white"
+                className="bg-navy hover:bg-navy-dark text-white"
                 data-testid="button-submit-suggestion"
               >
                 {submitSuggestionMutation.isPending ? 'Submitting...' : 'Submit Suggestion'}

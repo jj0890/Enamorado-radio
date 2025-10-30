@@ -128,7 +128,7 @@ export default function HeroStation({
               <button
                 onClick={handlePlayPause}
                 data-testid="button-hero-play"
-                className="w-24 h-24 rounded-full bg-white text-red-500 hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center justify-center shadow-2xl"
+                className="w-24 h-24 rounded-full bg-white text-navy hover:bg-gray-100 transition-all transform hover:scale-105 flex items-center justify-center shadow-2xl"
                 aria-label={isPlaying ? 'Pause radio' : 'Play radio'}
               >
                 {isPlaying ? (
@@ -162,7 +162,7 @@ export default function HeroStation({
             <button
               onClick={handlePlayPause}
               data-testid="button-hero-play-mini"
-              className="w-10 h-10 rounded-full bg-white text-red-500 hover:bg-gray-100 transition-all flex items-center justify-center flex-shrink-0"
+              className="w-10 h-10 rounded-full bg-white text-navy hover:bg-gray-100 transition-all flex items-center justify-center flex-shrink-0"
               aria-label={isPlaying ? 'Pause radio' : 'Play radio'}
             >
               {isPlaying ? (

@@ -208,7 +208,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-mono text-red-500 flex items-center gap-2">
+          <DialogTitle className="text-2xl font-mono text-navy flex items-center gap-2">
             <Music className="w-6 h-6" />
             SUBMIT MIX TO ENAMORADO RADIO
           </DialogTitle>
@@ -218,7 +218,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
           {/* Step 1: Basic Info */}
           {currentStep === 1 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-mono font-bold text-red-500">Step 1: Basic Information</h3>
+              <h3 className="text-lg font-mono font-bold text-navy">Step 1: Basic Information</h3>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -230,7 +230,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.djName && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.djName.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.djName.message}</p>
                   )}
                 </div>
 
@@ -243,7 +243,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.realName && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.realName.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.realName.message}</p>
                   )}
                 </div>
 
@@ -257,7 +257,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.email.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.email.message}</p>
                   )}
                 </div>
 
@@ -270,13 +270,13 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.location && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.location.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.location.message}</p>
                   )}
                 </div>
               </div>
 
               <div className="flex justify-end">
-                <Button type="button" onClick={nextStep} className="bg-red-500 hover:bg-red-600 font-mono">
+                <Button type="button" onClick={nextStep} className="bg-navy hover:bg-navy-dark font-mono">
                   Next Step →
                 </Button>
               </div>
@@ -286,7 +286,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
           {/* Step 2: Mix Details */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-mono font-bold text-red-500">Step 2: Mix Details</h3>
+              <h3 className="text-lg font-mono font-bold text-navy">Step 2: Mix Details</h3>
               
               <div>
                 <Label htmlFor="demoMixTitle" className="font-mono">Mix Title *</Label>
@@ -297,7 +297,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                   className="font-mono"
                 />
                 {errors.demoMixTitle && (
-                  <p className="text-red-500 text-xs mt-1 font-mono">{errors.demoMixTitle.message}</p>
+                  <p className="text-navy text-xs mt-1 font-mono">{errors.demoMixTitle.message}</p>
                 )}
               </div>
 
@@ -310,7 +310,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                   className="font-mono min-h-[100px]"
                 />
                 {errors.demoMixDescription && (
-                  <p className="text-red-500 text-xs mt-1 font-mono">{errors.demoMixDescription.message}</p>
+                  <p className="text-navy text-xs mt-1 font-mono">{errors.demoMixDescription.message}</p>
                 )}
               </div>
 
@@ -336,7 +336,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     </SelectContent>
                   </Select>
                   {errors.primaryGenre && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.primaryGenre.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.primaryGenre.message}</p>
                   )}
                 </div>
 
@@ -351,7 +351,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.showLength && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.showLength.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.showLength.message}</p>
                   )}
                 </div>
               </div>
@@ -360,7 +360,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                 <Button type="button" onClick={prevStep} variant="outline" className="font-mono">
                   ← Previous
                 </Button>
-                <Button type="button" onClick={nextStep} className="bg-red-500 hover:bg-red-600 font-mono">
+                <Button type="button" onClick={nextStep} className="bg-navy hover:bg-navy-dark font-mono">
                   Next Step →
                 </Button>
               </div>
@@ -370,7 +370,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
           {/* Step 3: Mix Upload & Links */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-mono font-bold text-red-500">Step 3: Upload Mix or Provide Links</h3>
+              <h3 className="text-lg font-mono font-bold text-navy">Step 3: Upload Mix or Provide Links</h3>
               <p className="text-sm text-gray-600 font-mono">Upload your mix file directly or provide streaming platform links</p>
               
               {/* File Upload Section */}
@@ -382,7 +382,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                   allowedFileTypes={['.mp3', '.wav', '.m4a']}
                   onGetUploadParameters={handleGetUploadParameters}
                   onComplete={handleUploadComplete}
-                  buttonClassName="w-full bg-red-500 hover:bg-red-600 text-white font-mono py-3 px-4 rounded-lg"
+                  buttonClassName="w-full bg-navy hover:bg-navy-dark text-white font-mono py-3 px-4 rounded-lg"
                 >
                   {fileUrl ? '✓ File Uploaded - Upload Another' : '📁 Upload Mix File (MP3, WAV, M4A)'}
                 </ObjectUploader>
@@ -413,7 +413,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.soundcloudUrl && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.soundcloudUrl.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.soundcloudUrl.message}</p>
                   )}
                 </div>
 
@@ -429,7 +429,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                     className="font-mono"
                   />
                   {errors.mixcloudUrl && (
-                    <p className="text-red-500 text-xs mt-1 font-mono">{errors.mixcloudUrl.message}</p>
+                    <p className="text-navy text-xs mt-1 font-mono">{errors.mixcloudUrl.message}</p>
                   )}
                 </div>
 
@@ -477,7 +477,7 @@ export default function MixSubmissionModal({ isOpen, onClose }: MixSubmissionMod
                 <Button 
                   type="submit" 
                   disabled={mutation.isPending}
-                  className="bg-red-500 hover:bg-red-600 font-mono"
+                  className="bg-navy hover:bg-navy-dark font-mono"
                 >
                   {mutation.isPending ? 'Submitting...' : 'Submit Mix'}
                 </Button>

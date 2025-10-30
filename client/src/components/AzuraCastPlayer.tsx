@@ -102,8 +102,8 @@ export function AzuraCastPlayer({ className = '' }: AzuraCastPlayerProps) {
             </p>
           )}
           <div className="flex items-center gap-2 mt-1">
-            <span className="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+            <span className="inline-flex items-center gap-1 text-xs font-medium text-navy dark:text-navy-light">
+              <div className="w-2 h-2 bg-navy rounded-full animate-pulse" />
               LIVE
             </span>
             <span className="text-xs text-gray-500 dark:text-gray-400">

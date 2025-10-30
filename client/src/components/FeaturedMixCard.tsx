@@ -59,8 +59,8 @@ export function FeaturedMixCard({ mix }: FeaturedMixCardProps) {
   return (
     <div className={`bg-white border-2 rounded-lg p-6 transition-all duration-200 ${
       isCurrentlyPlaying 
-        ? 'border-red-500 shadow-lg scale-105' 
-        : 'border-gray-200 hover:border-red-300 hover:shadow-md'
+        ? 'border-navy shadow-lg scale-105' 
+        : 'border-gray-200 hover:border-navy-light hover:shadow-md'
     }`}>
       {/* Mix Image */}
       <div className="relative mb-4">
@@ -70,8 +70,8 @@ export function FeaturedMixCard({ mix }: FeaturedMixCardProps) {
           className="w-full h-48 object-cover rounded-lg"
         />
         {isCurrentlyPlaying && (
-          <div className="absolute inset-0 bg-red-500/20 rounded-lg flex items-center justify-center">
-            <div className="bg-red-500 text-white px-3 py-1 rounded-full text-sm font-mono">
+          <div className="absolute inset-0 bg-navy/20 rounded-lg flex items-center justify-center">
+            <div className="bg-navy text-white px-3 py-1 rounded-full text-sm font-mono">
               NOW PLAYING
             </div>
           </div>
@@ -101,8 +101,8 @@ export function FeaturedMixCard({ mix }: FeaturedMixCardProps) {
           onClick={handlePlayClick}
           className={`flex-1 font-mono ${
             isCurrentlyPlaying
-              ? 'bg-red-600 hover:bg-red-700'
-              : 'bg-red-500 hover:bg-red-600'
+              ? 'bg-navy-dark hover:bg-navy-dark'
+              : 'bg-navy hover:bg-navy-dark'
           } text-white`}
           disabled={isCurrentlyPlaying}
         >
@@ -113,7 +113,7 @@ export function FeaturedMixCard({ mix }: FeaturedMixCardProps) {
         <Button
           variant="outline"
           size="sm"
-          className="border-gray-300 text-gray-700 hover:border-red-500 hover:text-red-500"
+          className="border-gray-300 text-gray-700 hover:border-navy hover:text-navy"
           onClick={() => window.open(mix.url, '_blank')}
         >
           <ExternalLink className="w-4 h-4" />

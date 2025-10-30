@@ -63,7 +63,7 @@ export default function MixesPage() {
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -74,7 +74,7 @@ export default function MixesPage() {
         <div className="mb-12">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">COMMUNITY MIXES</h1>
+              <h1 className="text-6xl font-bold mb-4 font-mono text-navy">COMMUNITY MIXES</h1>
               <p className="text-xl text-gray-600 max-w-2xl font-mono">
                 Discover fresh sounds from our community of DJs, producers, and music lovers
               </p>
@@ -83,13 +83,13 @@ export default function MixesPage() {
               <Button 
                 onClick={() => document.getElementById('all-mixes')?.scrollIntoView({ behavior: 'smooth' })}
                 variant="outline"
-                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                className="border-navy text-navy hover:bg-navy hover:text-white font-mono"
               >
                 <Music className="w-4 h-4 mr-2" />
                 View All Mixes
               </Button>
               <Link href="/submit-mix">
-                <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+                <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                   <Upload className="w-4 h-4 mr-2" />
                   Submit Your Mix
                 </Button>
@@ -106,8 +106,8 @@ export default function MixesPage() {
               variant={statusFilter === 'all' && activeTags.length === 0 ? 'default' : 'outline'}
               onClick={clearAllFilters}
               className={statusFilter === 'all' && activeTags.length === 0
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono text-xs" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono text-xs"
               }
               data-testid="filter-all"
             >
@@ -118,8 +118,8 @@ export default function MixesPage() {
               variant={statusFilter === 'featured' ? 'default' : 'outline'}
               onClick={() => { setStatusFilter('featured'); setActiveTags([]); }}
               className={statusFilter === 'featured' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono text-xs" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono text-xs"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono text-xs" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono text-xs"
               }
               data-testid="filter-featured"
             >
@@ -136,7 +136,7 @@ export default function MixesPage() {
                     size="sm"
                     variant="default"
                     onClick={() => toggleTag(tag)}
-                    className="bg-red-500 hover:bg-red-600 text-white font-mono text-xs"
+                    className="bg-navy hover:bg-navy-dark text-white font-mono text-xs"
                     data-testid={`filter-tag-active-${tag.toLowerCase()}`}
                   >
                     {tag} ✕
@@ -180,7 +180,7 @@ export default function MixesPage() {
               Be the first to share your work with our community!
             </p>
             <Link href="/submit-mix">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                 <Music className="w-4 h-4 mr-2" />
                 Submit a Mix
               </Button>
@@ -190,7 +190,7 @@ export default function MixesPage() {
 
         {/* Community Guidelines */}
         <div className="mt-16 pt-8 border-t border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">COMMUNITY GUIDELINES</h2>
+          <h2 className="text-2xl font-bold mb-6 font-mono text-navy">COMMUNITY GUIDELINES</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-6">
               <Music className="w-8 h-8 text-blue-600 mb-3" />
@@ -225,19 +225,19 @@ export default function MixesPage() {
 
         {/* Call to Action */}
         <div className="mt-12 text-center bg-red-50 border-2 border-red-200 rounded-lg p-8">
-          <h3 className="text-2xl font-bold mb-4 font-mono text-red-500">Ready to Share Your Sound?</h3>
+          <h3 className="text-2xl font-bold mb-4 font-mono text-navy">Ready to Share Your Sound?</h3>
           <p className="text-gray-600 font-mono mb-6">
             Join our community of music creators and help shape the future of Enamorado Radio
           </p>
           <div className="flex items-center justify-center gap-4">
             <Link href="/submit-mix">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                 <Upload className="w-4 h-4 mr-2" />
                 Submit a Mix
               </Button>
             </Link>
             <a href="/resident-application" data-testid="link-resident-application">
-              <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+              <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
                 <User className="w-4 h-4 mr-2" />
                 Become a Resident
               </Button>

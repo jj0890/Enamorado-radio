@@ -70,11 +70,11 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
 
   return (
     <div className={`bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative ${
-      content.isFeatured ? 'border-2 border-red-500' : 'border border-gray-200 dark:border-gray-800'
+      content.isFeatured ? 'border-2 border-navy' : 'border border-gray-200 dark:border-gray-800'
     }`} data-testid={`card-${type}-${content.id}`}>
       {/* Featured Badge */}
       {content.isFeatured && (
-        <div className="absolute top-3 left-3 z-10 bg-red-500 text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
+        <div className="absolute top-3 left-3 z-10 bg-navy text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
           Featured
         </div>
       )}
@@ -100,7 +100,7 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
         <div className="flex items-center gap-2 mb-2 flex-wrap">
           <span 
             className={`text-[10px] font-mono text-white px-2 py-0.5 rounded uppercase ${
-              type === 'mix' ? 'bg-red-500' : 'bg-blue-500'
+              type === 'mix' ? 'bg-navy' : 'bg-blue-500'
             }`}
             data-testid={`chip-type-${type}`}
           >
@@ -125,7 +125,7 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
                 onGenreSelect(content.genre!);
               }}
               data-testid={`tag-genre-${content.genre.toLowerCase()}`}
-              className="text-[10px] font-mono bg-gray-100 dark:bg-gray-800 hover:bg-red-500 hover:text-white px-2 py-0.5 rounded uppercase dark:text-gray-300 transition-colors"
+              className="text-[10px] font-mono bg-gray-100 dark:bg-gray-800 hover:bg-navy hover:text-white px-2 py-0.5 rounded uppercase dark:text-gray-300 transition-colors"
             >
               {content.genre}
             </button>
@@ -144,7 +144,7 @@ export default function ContentCard({ content, type, onGenreSelect }: ContentCar
       <div className="px-2 pb-2">
         <button 
           onClick={handlePlay}
-          className="w-full h-8 rounded-md bg-red-500 hover:bg-red-600 text-white text-sm font-mono flex items-center justify-center gap-2 transition-colors"
+          className="w-full h-8 rounded-md bg-navy hover:bg-navy-dark text-white text-sm font-mono flex items-center justify-center gap-2 transition-colors"
           data-testid={`button-listen-${content.id}`}
         >
           <Play className="w-4 h-4" />

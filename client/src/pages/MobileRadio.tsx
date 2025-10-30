@@ -210,7 +210,7 @@ export default function MobileRadio() {
               
               {show.isLive && (
                 <div className="absolute top-4 left-4 flex items-center space-x-2">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <div className="w-2 h-2 bg-navy rounded-full animate-pulse" />
                   <span className="text-xs font-medium">LIVE</span>
                 </div>
               )}

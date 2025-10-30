@@ -15,7 +15,7 @@ export default function Schedule() {
           {/* Icon */}
           <div className="flex justify-center">
             <div className="w-20 h-20 rounded-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center">
-              <Calendar className="w-10 h-10 text-red-500" />
+              <Calendar className="w-10 h-10 text-navy" />
             </div>
           </div>
 
@@ -33,7 +33,7 @@ export default function Schedule() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
             <Link href="/episodes">
               <Button 
-                className="bg-red-500 hover:bg-red-600 text-white font-mono"
+                className="bg-navy hover:bg-navy-dark text-white font-mono"
                 data-testid="button-browse-episodes"
               >
                 <Radio className="w-4 h-4 mr-2" />
@@ -44,7 +44,7 @@ export default function Schedule() {
             <Link href="/mixes">
               <Button 
                 variant="outline" 
-                className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                className="border-navy text-navy hover:bg-navy hover:text-white font-mono"
                 data-testid="button-browse-mixes"
               >
                 Browse Mixes
@@ -60,7 +60,7 @@ export default function Schedule() {
                 href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="text-red-500 hover:underline"
+                className="text-navy hover:underline"
               >
                 Apply here
               </a>

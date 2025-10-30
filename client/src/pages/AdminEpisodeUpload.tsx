@@ -187,7 +187,7 @@ export default function AdminEpisodeUpload() {
 
   const getStatusIcon = () => {
     if (uploadMutation.isPending) return <Clock className="w-4 h-4 animate-spin" />;
-    if (uploadMutation.isError) return <AlertCircle className="w-4 h-4 text-red-500" />;
+    if (uploadMutation.isError) return <AlertCircle className="w-4 h-4 text-navy" />;
     if (uploadMutation.isSuccess) return <CheckCircle className="w-4 h-4 text-green-500" />;
     return <Upload className="w-4 h-4" />;
   };
@@ -195,7 +195,7 @@ export default function AdminEpisodeUpload() {
   return (
     <div className="min-h-screen bg-[#FEFCF9] p-6">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+        <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
           EPISODE UPLOAD & SCHEDULING
         </h1>
 
@@ -418,7 +418,7 @@ export default function AdminEpisodeUpload() {
                 <Button 
                   type="submit" 
                   disabled={uploadMutation.isPending || !formData.audioFile}
-                  className="w-full bg-red-600 hover:bg-red-700"
+                  className="w-full bg-navy-dark hover:bg-red-700"
                   data-testid="button-upload"
                 >
                   {getStatusIcon()}
@@ -429,7 +429,7 @@ export default function AdminEpisodeUpload() {
                 {uploadError && (
                   <div className="p-4 border-2 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 rounded space-y-3">
                     <div className="flex items-start gap-2">
-                      <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="w-5 h-5 text-red-600 dark:text-navy-light flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
                         <p className="font-semibold text-red-900 dark:text-red-100">Upload Failed</p>
                         <p className="text-sm text-red-700 dark:text-red-300 mt-1">{uploadError.message}</p>
@@ -479,7 +479,7 @@ export default function AdminEpisodeUpload() {
                         }}
                         variant="outline"
                         size="sm"
-                        className="w-full border-red-300 text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900"
+                        className="w-full border-navy-light text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900"
                         data-testid="button-retry"
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
@@ -487,7 +487,7 @@ export default function AdminEpisodeUpload() {
                       </Button>
                     )}
                     {!uploadError.retryable && (
-                      <p className="text-xs text-red-600 dark:text-red-400 italic">
+                      <p className="text-xs text-red-600 dark:text-navy-light italic">
                         ⚠️ This error requires manual intervention. Please check settings and try uploading a new episode.
                       </p>
                     )}

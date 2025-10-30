@@ -146,7 +146,7 @@ export default function CustomRadioPlayer({ onPlayingStateChange }: CustomRadioP
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
-          <div className="bg-red-500 p-2 rounded-lg">
+          <div className="bg-navy p-2 rounded-lg">
             <Radio className="w-5 h-5 text-white" />
           </div>
           <div>
@@ -178,7 +178,7 @@ export default function CustomRadioPlayer({ onPlayingStateChange }: CustomRadioP
             onClick={handleProgressClick}
           >
             <div 
-              className="h-full bg-red-500 rounded-full transition-all duration-300"
+              className="h-full bg-navy rounded-full transition-all duration-300"
               style={{ width: `${progressPercentage}%` }}
             />
           </div>
@@ -194,7 +194,7 @@ export default function CustomRadioPlayer({ onPlayingStateChange }: CustomRadioP
         <div className="flex items-center gap-4">
           <button
             onClick={togglePlayPause}
-            className="bg-red-500 hover:bg-red-600 p-3 rounded-full transition-colors"
+            className="bg-navy hover:bg-navy-dark p-3 rounded-full transition-colors"
           >
             {isPlaying ? (
               <Pause className="w-6 h-6 text-white" />

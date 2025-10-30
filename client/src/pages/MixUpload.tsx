@@ -542,7 +542,7 @@ export default function MixUpload() {
                         </div>
                         <button
                           onClick={() => removeTrack(index)}
-                          className="text-red-400 hover:text-red-300 transition-colors"
+                          className="text-navy-light hover:text-red-300 transition-colors"
                         >
                           <X className="w-4 h-4" />
                         </button>

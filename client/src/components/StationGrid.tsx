@@ -14,7 +14,7 @@ const genreColors = {
   Country: 'from-orange-500 to-yellow-500',
   Jazz: 'from-indigo-500 to-purple-500',
   Chill: 'from-teal-500 to-green-500',
-  Rock: 'from-red-500 to-pink-500',
+  Rock: 'from-navy to-blue-500',
 };
 
 const genreLabels = {
@@ -57,7 +57,7 @@ export function StationGrid({ stations, onStationSelect, currentStationId }: Sta
               </div>
             </div>
             {station.isLive && (
-              <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <div className="absolute top-2 right-2 w-2 h-2 bg-navy rounded-full animate-pulse"></div>
             )}
           </div>
           
@@ -71,7 +71,7 @@ export function StationGrid({ stations, onStationSelect, currentStationId }: Sta
             <div className="flex items-center justify-between pt-1">
               <span className={cn(
                 "text-xs px-2 py-1 rounded-full",
-                station.isLive ? "bg-red-500/20 text-red-400" : "bg-gray-500/20 text-gray-400"
+                station.isLive ? "bg-navy/20 text-navy-light" : "bg-gray-500/20 text-gray-400"
               )}>
                 {station.isLive ? 'LIVE' : 'OFFLINE'}
               </span>

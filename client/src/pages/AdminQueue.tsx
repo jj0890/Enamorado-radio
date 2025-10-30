@@ -137,7 +137,7 @@ export default function AdminQueue() {
 
         {/* Currently Playing Section */}
         {currentlyPlaying && (
-          <Card className="mb-8 border-red-500 border-2">
+          <Card className="mb-8 border-navy border-2">
             <CardHeader className="bg-red-50">
               <CardTitle className="flex items-center gap-2 text-red-600 font-mono">
                 <Radio className="w-5 h-5" />
@@ -294,7 +294,7 @@ export default function AdminQueue() {
                         <div className="flex flex-col gap-2">
                           <Button
                             onClick={() => handlePlaybackAction(song.id, 'play')}
-                            className="bg-red-500 hover:bg-red-600 font-mono"
+                            className="bg-navy hover:bg-navy-dark font-mono"
                           >
                             <Play className="w-4 h-4 mr-2" />
                             Play Now

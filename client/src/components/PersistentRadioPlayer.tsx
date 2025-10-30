@@ -261,7 +261,7 @@ export default function PersistentRadioPlayer({ isActive, onToggle }: Persistent
           onClick={onToggle}
           className="bg-gray-900 hover:bg-gray-800 text-white p-3 rounded-lg shadow-lg transition-all duration-300 flex items-center gap-2 border border-gray-700"
         >
-          <Radio className="w-5 h-5 text-red-500" />
+          <Radio className="w-5 h-5 text-navy" />
           <span className="font-mono text-sm">Listen Live</span>
         </button>
       </div>
@@ -277,7 +277,7 @@ export default function PersistentRadioPlayer({ isActive, onToggle }: Persistent
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="bg-red-500 p-1.5 rounded">
+              <div className="bg-navy p-1.5 rounded">
                 <Radio className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -344,7 +344,7 @@ export default function PersistentRadioPlayer({ isActive, onToggle }: Persistent
             <div className="flex items-center gap-3">
               <button
                 onClick={togglePlayPause}
-                className="bg-red-500 hover:bg-red-600 p-2 rounded-full transition-colors"
+                className="bg-navy hover:bg-navy-dark p-2 rounded-full transition-colors"
               >
                 {isPlaying ? (
                   <Pause className="w-4 h-4 text-white" />
@@ -365,7 +365,7 @@ export default function PersistentRadioPlayer({ isActive, onToggle }: Persistent
                   <button
                     onClick={() => setIsLiked(!isLiked)}
                     className={`p-1.5 rounded transition-colors ${
-                      isLiked ? 'text-red-500 hover:text-red-400' : 'text-gray-400 hover:text-white'
+                      isLiked ? 'text-navy hover:text-navy-light' : 'text-gray-400 hover:text-white'
                     }`}
                   >
                     <Heart className="w-3 h-3" fill={isLiked ? 'currentColor' : 'none'} />

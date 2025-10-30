@@ -204,7 +204,7 @@ INSTRUCTIONS:
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold font-mono text-red-500">RESIDENTS MANAGEMENT</h1>
+            <h1 className="text-3xl font-bold font-mono text-navy">RESIDENTS MANAGEMENT</h1>
             <p className="text-gray-600 mt-2">Manage resident DJs and their streaming credentials</p>
             <a
               href="http://24.199.109.18/admin#/station/1/streamers"
@@ -454,7 +454,7 @@ INSTRUCTIONS:
           <CardContent>
             {isLoading ? (
               <div className="text-center py-8">
-                <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
               </div>
             ) : residents.length === 0 ? (
               <p className="text-center text-gray-500 py-8">No residents yet. Click "Add Resident" to create one.</p>
@@ -468,7 +468,7 @@ INSTRUCTIONS:
                   >
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                        <User className="w-5 h-5 text-red-500" />
+                        <User className="w-5 h-5 text-navy" />
                       </div>
                       <div>
                         <div className="flex items-center gap-2">
@@ -520,7 +520,7 @@ INSTRUCTIONS:
                         }}
                         data-testid={`button-delete-${resident.id}`}
                       >
-                        <Trash2 className="w-4 h-4 text-red-500" />
+                        <Trash2 className="w-4 h-4 text-navy" />
                       </Button>
                     </div>
                   </div>

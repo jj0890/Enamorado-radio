@@ -47,11 +47,11 @@ export default function AudioProgressBar({ seekable = false, className = '' }: A
           style={{ pointerEvents: 'none', cursor: 'default' }}
         >
           <div 
-            className="h-full bg-red-500 transition-all duration-300 pointer-events-none"
+            className="h-full bg-navy transition-all duration-300 pointer-events-none"
             style={{ width: `${Math.min(progress, 100)}%`, pointerEvents: 'none' }}
           />
         </div>
-        <span className="text-red-500 text-[10px] uppercase">LIVE</span>
+        <span className="text-navy text-[10px] uppercase">LIVE</span>
       </div>
     );
   }
@@ -66,7 +66,7 @@ export default function AudioProgressBar({ seekable = false, className = '' }: A
         data-testid="progress-bar-seekable"
       >
         <div 
-          className="h-full bg-red-500 transition-all"
+          className="h-full bg-navy transition-all"
           style={{ width: `${Math.min(progress, 100)}%` }}
         />
         {/* Hover indicator */}

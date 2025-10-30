@@ -106,7 +106,7 @@ export default function AdminMixRouting() {
   return (
     <div className="min-h-screen bg-[#FEFCF9] p-6">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+        <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
           MIX ROUTING CONTROL
         </h1>
 
@@ -149,7 +149,7 @@ export default function AdminMixRouting() {
                         <Button 
                           onClick={() => setSelectedMix(mix)}
                           size="sm"
-                          className="bg-red-600 hover:bg-red-700"
+                          className="bg-navy-dark hover:bg-red-700"
                         >
                           <Settings className="w-4 h-4 mr-1" />
                           Approve & Route

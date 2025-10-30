@@ -104,7 +104,7 @@ export default function DJSubmit() {
           </p>
           <Link
             href="/"
-            className="inline-flex items-center bg-red-500 hover:bg-red-600 text-white px-6 py-3 font-mono font-medium transition-colors"
+            className="inline-flex items-center bg-navy hover:bg-navy-dark text-white px-6 py-3 font-mono font-medium transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -125,10 +125,10 @@ export default function DJSubmit() {
       <header className="fixed top-0 left-0 right-0 z-40 bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl border-b border-gray-200 dark:border-gray-700">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+            <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-navy">
               ENAMORADO
             </Link>
-            <Link href="/" className="text-gray-600 dark:text-gray-300 hover:text-red-500 transition-colors text-sm font-mono">
+            <Link href="/" className="text-gray-600 dark:text-gray-300 hover:text-navy transition-colors text-sm font-mono">
               ← Back to Home
             </Link>
           </div>
@@ -138,7 +138,7 @@ export default function DJSubmit() {
       <main className="pt-24 pb-32 px-4 max-w-4xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">
+          <h1 className="text-4xl font-bold mb-4 font-mono text-navy">
             Submit a Mix
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-300 max-w-2xl mx-auto mb-8 font-mono">
@@ -168,7 +168,7 @@ export default function DJSubmit() {
                 onChange={handleInputChange}
                 required
                 placeholder="Your stage name"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
             <div>
@@ -182,7 +182,7 @@ export default function DJSubmit() {
                 onChange={handleInputChange}
                 required
                 placeholder="Your legal name"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
             <div>
@@ -196,7 +196,7 @@ export default function DJSubmit() {
                 onChange={handleInputChange}
                 required
                 placeholder="your@email.com"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
             <div>
@@ -209,7 +209,7 @@ export default function DJSubmit() {
                 value={formData.location}
                 onChange={handleInputChange}
                 placeholder="City, State/Country"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
           </div>
@@ -227,7 +227,7 @@ export default function DJSubmit() {
                 onChange={handleInputChange}
                 required
                 placeholder="What's your mix called?"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
               />
             </div>
 
@@ -240,7 +240,7 @@ export default function DJSubmit() {
                 value={formData.primaryGenre}
                 onChange={handleInputChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white"
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white"
               >
                 <option value="">Select genre...</option>
                 <option value="electronic">Electronic</option>
@@ -262,7 +262,7 @@ export default function DJSubmit() {
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2 font-mono">
               Mix Artwork (Optional)
             </label>
-            <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-red-500 transition-colors">
+            <div className="relative border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-navy transition-colors">
               {artworkPreview ? (
                 <div className="space-y-4">
                   <img src={artworkPreview} alt="Preview" className="w-32 h-32 object-cover mx-auto rounded-lg" />
@@ -272,7 +272,7 @@ export default function DJSubmit() {
                       setArtworkFile(null);
                       setArtworkPreview(null);
                     }}
-                    className="text-red-500 hover:text-red-700 font-mono"
+                    className="text-navy hover:text-red-700 font-mono"
                   >
                     Remove
                   </button>
@@ -309,7 +309,7 @@ export default function DJSubmit() {
                   value={formData.soundcloudUrl}
                   onChange={handleInputChange}
                   placeholder="https://soundcloud.com/your-mix"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -322,7 +322,7 @@ export default function DJSubmit() {
                   value={formData.mixcloudUrl}
                   onChange={handleInputChange}
                   placeholder="https://mixcloud.com/your-mix"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -335,7 +335,7 @@ export default function DJSubmit() {
                   value={formData.audiocomUrl}
                   onChange={handleInputChange}
                   placeholder="https://audio.com/your-mix"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
               <div>
@@ -348,7 +348,7 @@ export default function DJSubmit() {
                   value={formData.otherUrl}
                   onChange={handleInputChange}
                   placeholder="https://your-platform.com/your-mix"
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
                 />
               </div>
             </div>
@@ -365,7 +365,7 @@ export default function DJSubmit() {
               onChange={handleInputChange}
               placeholder="Share your story, your sound, what drives your music..."
               rows={4}
-              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent font-mono resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
+              className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-navy focus:border-transparent font-mono resize-none bg-white dark:bg-gray-700 text-black dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500"
             />
           </div>
 
@@ -376,7 +376,7 @@ export default function DJSubmit() {
               id="wantInterview"
               checked={formData.wantInterview}
               onChange={handleInputChange}
-              className="w-4 h-4 text-red-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500 focus:ring-2"
+              className="w-4 h-4 text-navy bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-navy focus:ring-2"
             />
             <label htmlFor="wantInterview" className="text-sm text-gray-700 dark:text-gray-300 font-mono">
               Would you like to be interviewed later?
@@ -391,7 +391,7 @@ export default function DJSubmit() {
               checked={formData.agreeTerms}
               onChange={handleInputChange}
               required
-              className="w-4 h-4 text-red-500 bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-red-500 focus:ring-2 mt-1"
+              className="w-4 h-4 text-navy bg-gray-100 dark:bg-gray-700 border-gray-300 dark:border-gray-600 rounded focus:ring-navy focus:ring-2 mt-1"
             />
             <label htmlFor="agreeTerms" className="text-sm text-gray-700 dark:text-gray-300 font-mono">
               I agree that I own all rights to this content and consent to its potential use for 
@@ -404,7 +404,7 @@ export default function DJSubmit() {
             <button
               type="submit"
               disabled={isSubmitting || !formData.agreeTerms}
-              className="w-full bg-red-500 hover:bg-red-600 disabled:bg-gray-400 text-white px-6 py-4 font-mono font-medium transition-colors disabled:cursor-not-allowed"
+              className="w-full bg-navy hover:bg-navy-dark disabled:bg-gray-400 text-white px-6 py-4 font-mono font-medium transition-colors disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Submitting..." : "Submit Mix"}
             </button>

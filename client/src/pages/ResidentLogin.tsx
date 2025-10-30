@@ -60,7 +60,7 @@ export default function ResidentLogin({ onLogin }: ResidentLoginProps) {
     <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="mx-auto w-12 h-12 bg-red-500 rounded-full flex items-center justify-center mb-4">
+          <div className="mx-auto w-12 h-12 bg-navy rounded-full flex items-center justify-center mb-4">
             <Headphones className="w-6 h-6 text-white" />
           </div>
           <CardTitle className="text-2xl font-mono">Resident Portal</CardTitle>

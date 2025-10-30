@@ -105,29 +105,29 @@ export default function ResidentApplication() {
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-navy">
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/" className="text-gray-600 hover:text-navy transition-colors">
                   LATEST
                 </Link>
-                <Link href="/guides" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/guides" className="text-gray-600 hover:text-navy transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/submit-mix" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/submit-mix" className="text-gray-600 hover:text-navy transition-colors">
                   SUBMIT
                 </Link>
-                <Link href="/albums" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/albums" className="text-gray-600 hover:text-navy transition-colors">
                   ALBUMS
                 </Link>
-                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/mixes" className="text-gray-600 hover:text-navy transition-colors">
                   MIXES
                 </Link>
-                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/episodes" className="text-gray-600 hover:text-navy transition-colors">
                   RADIO
                 </Link>
-                <Link href="/schedule" className="text-red-500 hover:text-red-600 transition-colors font-medium">
+                <Link href="/schedule" className="text-navy hover:text-red-600 transition-colors font-medium">
                   SCHEDULE
                 </Link>
               </nav>
@@ -142,7 +142,7 @@ export default function ResidentApplication() {
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono text-sm"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono text-sm"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -151,10 +151,10 @@ export default function ResidentApplication() {
 
         {/* Header Section */}
         <div className="text-center mb-12">
-          <div className="w-20 h-20 bg-red-500 rounded-full mx-auto mb-6 flex items-center justify-center">
+          <div className="w-20 h-20 bg-navy rounded-full mx-auto mb-6 flex items-center justify-center">
             <Users className="w-10 h-10 text-white" />
           </div>
-          <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">RESIDENT DJ APPLICATION</h1>
+          <h1 className="text-4xl font-bold mb-4 font-mono text-navy">RESIDENT DJ APPLICATION</h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto mb-8 font-mono leading-relaxed">
             Join Season 1 as a resident DJ at Enamorado Radio. We're looking for passionate DJs to host regular shows and become part of our programming lineup.
           </p>
@@ -176,7 +176,7 @@ export default function ResidentApplication() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
               {/* Personal Information */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-red-500 pb-2">
+                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-navy pb-2">
                   Personal Information
                 </h2>
                 
@@ -257,7 +257,7 @@ export default function ResidentApplication() {
 
               {/* DJ Background */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-red-500 pb-2">
+                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-navy pb-2">
                   DJ Background
                 </h2>
 
@@ -322,7 +322,7 @@ export default function ResidentApplication() {
 
               {/* Show Concept */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-red-500 pb-2">
+                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-navy pb-2">
                   Show Concept
                 </h2>
 
@@ -412,7 +412,7 @@ export default function ResidentApplication() {
 
               {/* Technical & Experience */}
               <div className="space-y-6">
-                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-red-500 pb-2">
+                <h2 className="text-2xl font-bold font-mono text-gray-900 border-b border-navy pb-2">
                   Technical Setup & Experience
                 </h2>
 
@@ -508,7 +508,7 @@ export default function ResidentApplication() {
                 <Button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full md:w-auto px-8 py-3 bg-red-500 hover:bg-red-600 text-white font-mono font-medium"
+                  className="w-full md:w-auto px-8 py-3 bg-navy hover:bg-navy-dark text-white font-mono font-medium"
                 >
                   {isSubmitting ? "SUBMITTING..." : "SUBMIT APPLICATION"}
                 </Button>

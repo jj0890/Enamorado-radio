@@ -131,7 +131,7 @@ export default function EditorialWorkflow() {
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'urgent': return 'bg-red-500/20 text-red-400';
+      case 'urgent': return 'bg-navy/20 text-navy-light';
       case 'high': return 'bg-orange-500/20 text-orange-400';
       case 'normal': return 'bg-blue-500/20 text-blue-400';
       case 'low': return 'bg-gray-500/20 text-gray-400';

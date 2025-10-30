@@ -119,7 +119,7 @@ export default function AlbumsOfTheMonth() {
         <div className="mb-6">
           <Link 
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             ← Back to Home
           </Link>
@@ -276,13 +276,13 @@ export default function AlbumsOfTheMonth() {
             
             {/* Error UI */}
             {enrichmentFailed && (
-              <div className="text-red-500 font-mono text-sm mt-4 p-4 border-2 border-red-200 bg-red-50">
+              <div className="text-navy font-mono text-sm mt-4 p-4 border-2 border-red-200 bg-red-50">
                 ⚠️ Some album artwork couldn't be loaded from MusicBrainz.
               </div>
             )}
             
             {albumsError && (
-              <div className="text-red-500 font-mono text-sm mt-4 p-4 border-2 border-red-200 bg-red-50">
+              <div className="text-navy font-mono text-sm mt-4 p-4 border-2 border-red-200 bg-red-50">
                 ⚠️ Failed to load albums. Please try again later.
               </div>
             )}
@@ -291,7 +291,7 @@ export default function AlbumsOfTheMonth() {
 
         {/* Selected Album Detail - Clean Style */}
         {selectedAlbum && (
-          <div className="bg-red-50 border-2 border-red-500 p-8 mb-8">
+          <div className="bg-red-50 border-2 border-navy p-8 mb-8">
             <div className="flex flex-col md:flex-row gap-6">
               <div className="md:w-1/3">
                 <img 
@@ -301,13 +301,13 @@ export default function AlbumsOfTheMonth() {
                 />
               </div>
               <div className="md:w-2/3">
-                <h3 className="text-3xl font-bold mb-2 font-mono text-red-500">{selectedAlbum.title}</h3>
+                <h3 className="text-3xl font-bold mb-2 font-mono text-navy">{selectedAlbum.title}</h3>
                 <p className="text-xl text-gray-600 mb-4 font-mono">{selectedAlbum.artist}</p>
                 <p className="text-gray-600 mb-4 text-lg leading-relaxed font-mono">{selectedAlbum.description}</p>
                 
                 <div className="flex gap-2 mb-6">
                   {selectedAlbum.genre.map((genre, index) => (
-                    <span key={index} className="bg-red-500 text-white px-3 py-1 text-sm font-mono">
+                    <span key={index} className="bg-navy text-white px-3 py-1 text-sm font-mono">
                       {genre}
                     </span>
                   ))}
@@ -323,7 +323,7 @@ export default function AlbumsOfTheMonth() {
                       href={selectedAlbum.spotifyUrl} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="bg-red-500 hover:bg-red-600 text-white px-6 py-2 font-mono transition-colors flex items-center"
+                      className="bg-navy hover:bg-navy-dark text-white px-6 py-2 font-mono transition-colors flex items-center"
                     >
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Spotify
@@ -337,13 +337,13 @@ export default function AlbumsOfTheMonth() {
 
         {/* Archive Section */}
         <div className="border-t-2 border-gray-300 pt-8">
-          <h2 className="text-2xl font-semibold mb-4 font-mono text-red-500">Previous Months</h2>
+          <h2 className="text-2xl font-semibold mb-4 font-mono text-navy">Previous Months</h2>
           <p className="text-gray-600 mb-6 font-mono">
             albums for your listening pleasure. Explore our curated picks below or dive into our archive to discover past selections.
           </p>
           <a 
             href="/editorial-picks"
-            className="inline-flex items-center bg-red-500 hover:bg-red-600 text-white px-6 py-3 font-mono transition-colors"
+            className="inline-flex items-center bg-navy hover:bg-navy-dark text-white px-6 py-3 font-mono transition-colors"
           >
             <ExternalLink className="h-4 w-4 mr-2" />
             View Editorial Picks Archive

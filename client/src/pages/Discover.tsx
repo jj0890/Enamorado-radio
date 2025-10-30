@@ -138,7 +138,7 @@ export default function Discover() {
 
   const getCategoryColor = (category: string) => {
     switch (category) {
-      case 'Live Show': return 'bg-red-500/20 text-red-400';
+      case 'Live Show': return 'bg-navy/20 text-navy-light';
       case 'Residency': return 'bg-blue-500/20 text-blue-400';
       case 'Guest Mix': return 'bg-green-500/20 text-green-400';
       case 'Experimental': return 'bg-purple-500/20 text-purple-400';
@@ -300,7 +300,7 @@ export default function Discover() {
                       <div className="w-20 h-20 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg flex-shrink-0 flex items-center justify-center relative">
                         <Music className="w-8 h-8 text-gray-400" />
                         {show.isLive && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-navy rounded-full animate-pulse"></div>
                         )}
                       </div>
 
@@ -318,7 +318,7 @@ export default function Discover() {
                               {show.category}
                             </span>
                             {show.isLive && (
-                              <span className="bg-red-500 text-white px-2 py-1 rounded text-xs font-medium">
+                              <span className="bg-navy text-white px-2 py-1 rounded text-xs font-medium">
                                 LIVE
                               </span>
                             )}

@@ -60,10 +60,10 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
     <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-red-500 rounded-full mx-auto mb-4 flex items-center justify-center">
+          <div className="w-16 h-16 bg-navy rounded-full mx-auto mb-4 flex items-center justify-center">
             <Shield className="w-8 h-8 text-white" />
           </div>
-          <CardTitle className="text-2xl font-mono text-red-500">ADMIN LOGIN</CardTitle>
+          <CardTitle className="text-2xl font-mono text-navy">ADMIN LOGIN</CardTitle>
           <CardDescription>
             Enter your credentials to access the admin panel
           </CardDescription>
@@ -105,7 +105,7 @@ export default function AdminLogin({ onLogin }: AdminLoginProps) {
             
             <Button 
               type="submit" 
-              className="w-full bg-red-500 hover:bg-red-600 text-white font-mono"
+              className="w-full bg-navy hover:bg-navy-dark text-white font-mono"
               disabled={loginMutation.isPending}
               data-testid="button-login"
             >

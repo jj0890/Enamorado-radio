@@ -95,7 +95,7 @@ export default function LiveShowCard({
               San Antonio
             </span>
             {isLive && (
-              <span className="bg-red-500 text-white px-2 py-1 text-xs font-mono font-bold">
+              <span className="bg-navy text-white px-2 py-1 text-xs font-mono font-bold">
                 ON AIR
               </span>
             )}

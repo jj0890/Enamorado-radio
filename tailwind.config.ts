@@ -17,6 +17,11 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
+        navy: {
+          DEFAULT: "var(--accent-navy)",
+          dark: "var(--accent-navy-dark)",
+          light: "var(--accent-navy-light)",
+        },
         card: {
           DEFAULT: "var(--card)",
           foreground: "var(--card-foreground)",

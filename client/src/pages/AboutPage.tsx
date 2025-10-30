@@ -12,7 +12,7 @@ export default function AboutPage() {
         <div className="space-y-12">
           {/* Header */}
           <section className="border-b border-gray-200 dark:border-gray-800 pb-8">
-            <h1 className="text-5xl font-bold font-mono text-red-500 mb-4">
+            <h1 className="text-5xl font-bold font-mono text-navy mb-4">
               About Enamorado Radio
             </h1>
             <p className="text-xl text-gray-600 dark:text-gray-400 font-mono">
@@ -43,7 +43,7 @@ export default function AboutPage() {
               What We Do
             </h2>
             <div className="grid gap-6">
-              <div className="border-l-4 border-red-500 pl-6">
+              <div className="border-l-4 border-navy pl-6">
                 <h3 className="text-xl font-bold font-mono mb-2 text-gray-900 dark:text-white">
                   Community Mixes
                 </h3>
@@ -53,7 +53,7 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              <div className="border-l-4 border-red-500 pl-6">
+              <div className="border-l-4 border-navy pl-6">
                 <h3 className="text-xl font-bold font-mono mb-2 text-gray-900 dark:text-white">
                   Resident Programming
                 </h3>
@@ -63,7 +63,7 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              <div className="border-l-4 border-red-500 pl-6">
+              <div className="border-l-4 border-navy pl-6">
                 <h3 className="text-xl font-bold font-mono mb-2 text-gray-900 dark:text-white">
                   Albums of the Month
                 </h3>
@@ -87,9 +87,9 @@ export default function AboutPage() {
             <div className="grid md:grid-cols-2 gap-4">
               <Link 
                 href="/submit-mix"
-                className="block bg-white dark:bg-black border-2 border-black dark:border-gray-700 p-6 hover:border-red-500 transition-colors"
+                className="block bg-white dark:bg-black border-2 border-black dark:border-gray-700 p-6 hover:border-navy transition-colors"
               >
-                <h3 className="text-xl font-bold font-mono mb-2 text-red-500">
+                <h3 className="text-xl font-bold font-mono mb-2 text-navy">
                   Submit a Mix
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">
@@ -101,9 +101,9 @@ export default function AboutPage() {
                 href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block bg-white dark:bg-black border-2 border-black dark:border-gray-700 p-6 hover:border-red-500 transition-colors"
+                className="block bg-white dark:bg-black border-2 border-black dark:border-gray-700 p-6 hover:border-navy transition-colors"
               >
-                <h3 className="text-xl font-bold font-mono mb-2 text-red-500">
+                <h3 className="text-xl font-bold font-mono mb-2 text-navy">
                   Become a Resident
                 </h3>
                 <p className="text-gray-700 dark:text-gray-300 font-mono text-sm">

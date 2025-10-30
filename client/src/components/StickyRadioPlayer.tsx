@@ -168,7 +168,7 @@ export default function StickyRadioPlayer() {
         <div className="flex items-center h-16 px-4">
           {/* Minimal Logo/Brand - Just Icon */}
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-red-600 rounded-full flex items-center justify-center font-bold text-lg">
+            <div className="w-10 h-10 bg-navy-dark rounded-full flex items-center justify-center font-bold text-lg">
               E
             </div>
           </div>

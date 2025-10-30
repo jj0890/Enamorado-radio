@@ -29,7 +29,7 @@ function GenreCard({ genre }: { genre: Genre }) {
   
   return (
     <Link href={`/genre/${genre.slug}`} className="block group">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 shadow-sm hover:shadow-md group-hover:scale-[1.02]">
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-navy transition-all duration-300 shadow-sm hover:shadow-md group-hover:scale-[1.02]">
         {/* Genre Header with Gradient */}
         <div className={`h-32 bg-gradient-to-br ${colorClass} relative overflow-hidden`}>
           <div className="absolute inset-0 bg-black/20"></div>
@@ -102,7 +102,7 @@ export default function GenreDiscovery() {
   if (error) {
     return (
       <div className="max-w-7xl mx-auto px-4 py-10">
-        <div className="text-center font-mono text-red-500">Failed to load genres</div>
+        <div className="text-center font-mono text-navy">Failed to load genres</div>
       </div>
     );
   }
@@ -115,7 +115,7 @@ export default function GenreDiscovery() {
       <div className="mb-8">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-3xl font-bold font-mono text-red-500 mb-2">
+            <h1 className="text-3xl font-bold font-mono text-navy mb-2">
               Explore Genres
             </h1>
             <p className="font-mono text-gray-600">
@@ -157,7 +157,7 @@ export default function GenreDiscovery() {
             Submit some content to start building your genre collection
           </p>
           <Link href="/submit-mix">
-            <button className="bg-red-500 hover:bg-red-600 text-white font-mono px-6 py-2 rounded">
+            <button className="bg-navy hover:bg-navy-dark text-white font-mono px-6 py-2 rounded">
               Submit Content
             </button>
           </Link>
@@ -175,7 +175,7 @@ export default function GenreDiscovery() {
         <div className="mt-12 text-center">
           <p className="font-mono text-xs text-gray-500">
             Genres are automatically detected from submitted content. 
-            <Link href="/submit-mix" className="text-red-500 hover:underline ml-1">
+            <Link href="/submit-mix" className="text-navy hover:underline ml-1">
               Add more content →
             </Link>
           </p>

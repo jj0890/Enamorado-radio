@@ -73,7 +73,7 @@ export default function Guides() {
         <div className="mb-6">
           <Link 
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             ← Back to Home
           </Link>
@@ -81,7 +81,7 @@ export default function Guides() {
         
         {/* NTS-Style Header */}
         <div className="mb-8 border-b-2 border-black pb-6">
-          <h1 className="text-4xl font-bold uppercase tracking-wide mb-4 font-mono text-red-500">
+          <h1 className="text-4xl font-bold uppercase tracking-wide mb-4 font-mono text-navy">
             CURATED GENRES
           </h1>
           <p className="text-lg max-w-2xl">

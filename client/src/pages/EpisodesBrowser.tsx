@@ -70,7 +70,7 @@ export default function EpisodesBrowser() {
         <div className="mb-6">
           <Link 
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             ← Back to Home
           </Link>
@@ -78,7 +78,7 @@ export default function EpisodesBrowser() {
         
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4 font-mono text-red-500">Episodes</h1>
+          <h1 className="text-3xl font-bold mb-4 font-mono text-navy">Episodes</h1>
           <p className="text-gray-400 mb-6">
             Discover radio shows and mixes from our community of DJs and artists
           </p>

@@ -12,7 +12,7 @@ interface FeaturedShowsProps {
 const genreColors = {
   'Deep House': 'from-purple-500 to-pink-500',
   'Techno': 'from-blue-500 to-cyan-500',
-  'Hip-Hop': 'from-orange-500 to-red-500',
+  'Hip-Hop': 'from-orange-500 to-navy',
   'Jazz': 'from-indigo-500 to-purple-500',
   'Indie': 'from-green-500 to-blue-500',
   'Electronic': 'from-cyan-500 to-blue-500',
@@ -81,7 +81,7 @@ export function FeaturedShows({ shows, onShowSelect, currentShowId }: FeaturedSh
             </div>
             {show.isLive && (
               <div className="absolute top-2 right-2 flex items-center space-x-1">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-navy rounded-full animate-pulse"></div>
                 <span className="text-xs text-white/90 font-medium">LIVE</span>
               </div>
             )}

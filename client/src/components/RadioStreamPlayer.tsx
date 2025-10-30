@@ -149,7 +149,7 @@ export default function RadioStreamPlayer({ className = "" }: RadioStreamPlayerP
   };
 
   return (
-    <div className={`bg-gradient-to-br from-red-500 to-red-600 border border-gray-200 rounded-lg p-6 text-white ${className}`}>
+    <div className={`bg-gradient-to-br from-navy to-navy-dark border border-gray-200 rounded-lg p-6 text-white ${className}`}>
       <audio
         ref={audioRef}
         onPlay={() => setIsPlaying(true)}
@@ -179,7 +179,7 @@ export default function RadioStreamPlayer({ className = "" }: RadioStreamPlayerP
             onClick={switchToRecorded}
             className={`px-4 py-2 rounded-full font-mono text-sm transition-all ${
               !isLive 
-                ? 'bg-white text-red-500 font-bold' 
+                ? 'bg-white text-navy font-bold' 
                 : 'bg-white/20 text-white hover:bg-white/30'
             }`}
           >
@@ -190,7 +190,7 @@ export default function RadioStreamPlayer({ className = "" }: RadioStreamPlayerP
             disabled={streamStatus !== 'live'}
             className={`px-4 py-2 rounded-full font-mono text-sm transition-all ${
               isLive && streamStatus === 'live'
-                ? 'bg-white text-red-500 font-bold' 
+                ? 'bg-white text-navy font-bold' 
                 : streamStatus === 'live'
                   ? 'bg-white/20 text-white hover:bg-white/30'
                   : 'bg-white/10 text-white/50 cursor-not-allowed'

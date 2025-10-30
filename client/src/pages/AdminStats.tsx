@@ -56,7 +56,7 @@ export default function AdminStats() {
       <div className="min-h-screen bg-[#FEFCF9] p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-center justify-center h-64">
-            <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-8 h-8 border-2 border-navy border-t-transparent rounded-full animate-spin"></div>
           </div>
         </div>
       </div>
@@ -72,7 +72,7 @@ export default function AdminStats() {
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-3xl font-bold font-mono text-red-500">
+            <h1 className="text-3xl font-bold font-mono text-navy">
               📊 STATS DASHBOARD
             </h1>
             <p className="text-gray-600 mt-2 font-mono">
@@ -89,7 +89,7 @@ export default function AdminStats() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="border-red-200">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 font-mono text-red-500">
+              <CardTitle className="flex items-center gap-2 font-mono text-navy">
                 <Radio className="w-5 h-5" />
                 Live Stream Status
               </CardTitle>
@@ -124,7 +124,7 @@ export default function AdminStats() {
 
           <Card className="border-red-200">
             <CardHeader className="pb-3">
-              <CardTitle className="flex items-center gap-2 font-mono text-red-500">
+              <CardTitle className="flex items-center gap-2 font-mono text-navy">
                 <Users className="w-5 h-5" />
                 Listener Stats
               </CardTitle>
@@ -137,7 +137,7 @@ export default function AdminStats() {
                 </div>
               ) : nowPlaying?.listeners ? (
                 <div className="space-y-3">
-                  <div className="text-3xl font-bold font-mono text-red-500">
+                  <div className="text-3xl font-bold font-mono text-navy">
                     {nowPlaying.listeners.current}
                   </div>
                   <div className="text-sm text-gray-600 font-mono">
@@ -161,7 +161,7 @@ export default function AdminStats() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-red-500 mb-1">
+              <div className="text-2xl font-bold font-mono text-navy mb-1">
                 {stats?.totalMixes || 0}
               </div>
               <div className="text-xs text-gray-600 font-mono">
@@ -178,7 +178,7 @@ export default function AdminStats() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-red-500 mb-2">
+              <div className="text-2xl font-bold font-mono text-navy mb-2">
                 {approvalRate}%
               </div>
               <Progress value={approvalRate} className="h-2" />
@@ -193,7 +193,7 @@ export default function AdminStats() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-red-500 mb-1">
+              <div className="text-2xl font-bold font-mono text-navy mb-1">
                 {stats?.totalShows || 0}
               </div>
               <div className="text-xs text-gray-600 font-mono">
@@ -210,7 +210,7 @@ export default function AdminStats() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-mono text-red-500 mb-1">
+              <div className="text-2xl font-bold font-mono text-navy mb-1">
                 {stats?.totalEpisodes || 0}
               </div>
               <div className="text-xs text-gray-600 font-mono">
@@ -224,7 +224,7 @@ export default function AdminStats() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
           <Card className="border-red-200">
             <CardHeader>
-              <CardTitle className="font-mono text-red-500">Content Performance</CardTitle>
+              <CardTitle className="font-mono text-navy">Content Performance</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -257,7 +257,7 @@ export default function AdminStats() {
 
           <Card className="border-red-200">
             <CardHeader>
-              <CardTitle className="font-mono text-red-500">Recent Activity</CardTitle>
+              <CardTitle className="font-mono text-navy">Recent Activity</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-64 overflow-y-auto">
@@ -299,7 +299,7 @@ export default function AdminStats() {
         {/* Quick Actions */}
         <Card className="border-red-200">
           <CardHeader>
-            <CardTitle className="font-mono text-red-500">Quick Actions</CardTitle>
+            <CardTitle className="font-mono text-navy">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">

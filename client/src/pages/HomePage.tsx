@@ -188,7 +188,7 @@ export default function Home() {
                 onClick={() => setContentFilter('all')}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'all'
-                    ? 'bg-red-500 dark:bg-red-500 text-white dark:text-white border-red-500'
+                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 data-testid="filter-all"
@@ -199,7 +199,7 @@ export default function Home() {
                 onClick={() => setContentFilter('mixes')}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'mixes'
-                    ? 'bg-red-500 dark:bg-red-500 text-white dark:text-white border-red-500'
+                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 data-testid="filter-mixes"
@@ -210,7 +210,7 @@ export default function Home() {
                 onClick={() => setContentFilter('episodes')}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'episodes'
-                    ? 'bg-red-500 dark:bg-red-500 text-white dark:text-white border-red-500'
+                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
                     : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 data-testid="filter-episodes"
@@ -239,7 +239,7 @@ export default function Home() {
           </p>
           <Link 
             href="/submit-mix" 
-            className="inline-block bg-red-500 text-white px-6 py-3 font-mono hover:bg-red-600 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            className="inline-block bg-navy text-white px-6 py-3 font-mono hover:bg-navy-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             data-testid="button-submit-mix-cta"
           >
             Submit a Mix →
@@ -265,7 +265,7 @@ export default function Home() {
                 <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Hand-selected favorites from our editorial team.
                 </p>
-                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
                   Explore Picks →
                 </div>
               </div>
@@ -282,7 +282,7 @@ export default function Home() {
                 <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Apply for a regular slot and become part of our programming lineup.
                 </p>
-                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
                   Apply for Season 1 →
                 </div>
               </div>
@@ -297,7 +297,7 @@ export default function Home() {
                 <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Share your DJ mixes with our community.
                 </p>
-                <div className="text-red-500 font-mono text-sm group-hover:text-red-600 transition-colors">
+                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
                   Submit Mix →
                 </div>
               </div>
@@ -313,7 +313,7 @@ export default function Home() {
               className="block group"
               data-testid="link-featured-album"
             >
-              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-black p-8 md:p-12 hover:border-red-500 transition-all duration-300">
+              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-black p-8 md:p-12 hover:border-navy transition-all duration-300">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   {/* Album Artwork */}
                   <div className="w-full md:w-64 h-64 flex-shrink-0">
@@ -333,10 +333,10 @@ export default function Home() {
 
                   {/* Album Info */}
                   <div className="flex-1 text-center md:text-left">
-                    <div className="inline-block bg-red-500 text-white px-3 py-1 text-xs font-mono mb-4">
+                    <div className="inline-block bg-navy text-white px-3 py-1 text-xs font-mono mb-4">
                       From Albums of the Month
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-red-500 transition-colors" data-testid="text-featured-album-title">
+                    <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-navy transition-colors" data-testid="text-featured-album-title">
                       {featuredAlbum.album.title}
                     </h3>
                     <p className="text-xl text-gray-600 mb-4 font-mono" data-testid="text-featured-album-artist">
@@ -364,7 +364,7 @@ export default function Home() {
                           🎵 Listen on Spotify
                         </a>
                       )}
-                      <span className="text-red-500 font-mono text-sm group-hover:underline">
+                      <span className="text-navy font-mono text-sm group-hover:underline">
                         View All Picks →
                       </span>
                     </div>

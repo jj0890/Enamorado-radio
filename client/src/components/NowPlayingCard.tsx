@@ -71,7 +71,7 @@ export function NowPlayingCard() {
               }}
             />
           ) : (
-            <div className="w-12 h-12 bg-red-500 rounded flex items-center justify-center">
+            <div className="w-12 h-12 bg-navy rounded flex items-center justify-center">
               <Music className="w-6 h-6 text-white" />
             </div>
           )}

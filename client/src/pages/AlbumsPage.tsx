@@ -59,7 +59,7 @@ export default function AlbumsPage() {
     return (
       <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center">
         <div className="text-center">
-          <Disc className="w-12 h-12 animate-spin mx-auto mb-4 text-red-500" />
+          <Disc className="w-12 h-12 animate-spin mx-auto mb-4 text-navy" />
           <p className="font-mono text-gray-600">Loading Albums of the Month...</p>
         </div>
       </div>
@@ -71,7 +71,7 @@ export default function AlbumsPage() {
       <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center">
         <div className="text-center">
           <p className="font-mono text-red-600">Failed to load album picks</p>
-          <Link href="/" className="text-red-500 hover:underline font-mono mt-4 inline-block">
+          <Link href="/" className="text-navy hover:underline font-mono mt-4 inline-block">
             ← Back home
           </Link>
         </div>
@@ -99,14 +99,14 @@ export default function AlbumsPage() {
               </p>
               <Link 
                 href="/submit-album" 
-                className="inline-block bg-red-500 text-white px-6 py-3 rounded font-mono hover:bg-red-600 transition-colors"
+                className="inline-block bg-navy text-white px-6 py-3 rounded font-mono hover:bg-navy-dark transition-colors"
                 data-testid="button-suggest-album"
               >
                 Submit Album Suggestion
               </Link>
             </div>
 
-            <Link href="/" className="text-red-500 hover:underline font-mono mt-8 inline-block">
+            <Link href="/" className="text-navy hover:underline font-mono mt-8 inline-block">
               ← Back home
             </Link>
           </div>
@@ -121,19 +121,19 @@ export default function AlbumsPage() {
         {/* Header */}
         <div className="pt-16 pb-8 mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Disc className="w-8 h-8 text-red-500" />
-            <h1 className="text-4xl font-bold font-mono text-red-500">Albums of the Month</h1>
+            <Disc className="w-8 h-8 text-navy" />
+            <h1 className="text-4xl font-bold font-mono text-navy">Albums of the Month</h1>
           </div>
           <p className="font-mono text-gray-600">Curated monthly album picks from our community</p>
         </div>
 
         {/* Latest Pick Featured */}
         {latestPickDetails && (
-          <Card className="mb-10 border-2 border-red-500" data-testid="featured-pick">
+          <Card className="mb-10 border-2 border-navy" data-testid="featured-pick">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle className="text-2xl font-mono">{latestPickDetails.title}</CardTitle>
-                <Badge className="bg-red-500 text-white">
+                <Badge className="bg-navy text-white">
                   <Calendar className="w-3 h-3 mr-1" />
                   {latestPickDetails.month}
                 </Badge>
@@ -150,7 +150,7 @@ export default function AlbumsPage() {
                     className="group relative"
                     data-testid={`album-item-${item.album.id}`}
                   >
-                    <div className="absolute -top-2 -left-2 z-10 bg-red-500 text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-mono">
+                    <div className="absolute -top-2 -left-2 z-10 bg-navy text-white w-8 h-8 rounded-full flex items-center justify-center font-bold font-mono">
                       {item.rank}
                     </div>
                     {item.album.spotifyUrl ? (
@@ -189,7 +189,7 @@ export default function AlbumsPage() {
                               {item.blurb}
                             </p>
                           )}
-                          <div className="text-xs text-red-500 font-mono mt-2 flex items-center gap-1">
+                          <div className="text-xs text-navy font-mono mt-2 flex items-center gap-1">
                             🎵 Listen on Spotify
                           </div>
                         </div>
@@ -274,7 +274,7 @@ export default function AlbumsPage() {
           </p>
           <Link 
             href="/submit-album" 
-            className="inline-block bg-red-500 text-white px-6 py-3 rounded font-mono hover:bg-red-600 transition-colors"
+            className="inline-block bg-navy text-white px-6 py-3 rounded font-mono hover:bg-navy-dark transition-colors"
           >
             Submit Album Suggestion
           </Link>
@@ -282,7 +282,7 @@ export default function AlbumsPage() {
 
         {/* Back Link */}
         <div className="mt-8 text-center">
-          <Link href="/" className="text-red-500 hover:underline font-mono">
+          <Link href="/" className="text-navy hover:underline font-mono">
             ← Back home
           </Link>
         </div>

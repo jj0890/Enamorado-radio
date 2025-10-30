@@ -17,7 +17,7 @@ function EpisodeCard({ episode }: { episode: any }) {
   const artwork = episode.artworkUrl || episode.artwork || episode.artUrl || `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop`;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group shadow-sm hover:shadow-md">
+    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-navy transition-all duration-300 group shadow-sm hover:shadow-md">
       {/* Artwork */}
       <div className="aspect-square bg-gray-200 overflow-hidden relative">
         <img 
@@ -30,7 +30,7 @@ function EpisodeCard({ episode }: { episode: any }) {
       <div className="p-4">
         {/* Episode Badge and Date */}
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono text-white bg-red-500 px-2 py-1 rounded uppercase">
+          <span className="text-xs font-mono text-white bg-navy px-2 py-1 rounded uppercase">
             Episode
           </span>
           <div className="text-xs font-mono text-gray-500 flex items-center">
@@ -41,7 +41,7 @@ function EpisodeCard({ episode }: { episode: any }) {
 
         {/* Title */}
         <div className="mb-2">
-          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-red-500 transition-colors">
+          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-navy transition-colors">
             {episode.title}
           </h4>
           <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
@@ -62,7 +62,7 @@ function EpisodeCard({ episode }: { episode: any }) {
         {/* Listen Button */}
         <Button 
           size="sm" 
-          className="bg-red-500 hover:bg-red-600 text-white font-mono w-full text-sm"
+          className="bg-navy hover:bg-navy-dark text-white font-mono w-full text-sm"
           onClick={handlePlay}
         >
           <Play className="w-4 h-4 mr-2" />
@@ -112,7 +112,7 @@ export default function LatestPage() {
         <div className="pt-16 pb-8 mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -121,7 +121,7 @@ export default function LatestPage() {
 
         {/* Page Header */}
         <div className="pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">LATEST</h1>
+          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">LATEST</h1>
           <p className="text-xl text-gray-600 max-w-2xl font-mono">
             The most recent episodes, shows, and mixes from our community
           </p>
@@ -134,8 +134,8 @@ export default function LatestPage() {
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
               className={filter === 'all' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               All Content
@@ -144,8 +144,8 @@ export default function LatestPage() {
               variant={filter === 'episodes' ? 'default' : 'outline'}
               onClick={() => setFilter('episodes')}
               className={filter === 'episodes' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               Episodes
@@ -154,8 +154,8 @@ export default function LatestPage() {
               variant={filter === 'mixes' ? 'default' : 'outline'}
               onClick={() => setFilter('mixes')}
               className={filter === 'mixes' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               Community Mixes
@@ -180,7 +180,7 @@ export default function LatestPage() {
               No {filter === 'all' ? 'content' : filter} available yet.
             </div>
             <Link href="/submit-mix" className="mt-4 inline-block">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                 Submit Your Mix
               </Button>
             </Link>
@@ -190,7 +190,7 @@ export default function LatestPage() {
         {/* Load More (Future Enhancement) */}
         {filteredContent.length >= 20 && (
           <div className="text-center mt-12">
-            <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+            <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
               Load More Content
             </Button>
           </div>

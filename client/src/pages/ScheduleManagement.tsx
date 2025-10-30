@@ -195,7 +195,7 @@ export default function ScheduleManagement() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold font-mono mb-2 flex items-center gap-2">
-            <Calendar className="w-8 h-8 text-red-500" />
+            <Calendar className="w-8 h-8 text-navy" />
             Schedule Management
           </h1>
           <p className="text-gray-600">
@@ -238,7 +238,7 @@ export default function ScheduleManagement() {
             <CardContent>
               {approvedLoading ? (
                 <div className="text-center py-8">
-                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
               ) : approvedEpisodes.length > 0 ? (
                 <div className="space-y-3">
@@ -305,7 +305,7 @@ export default function ScheduleManagement() {
             <CardContent>
               {scheduledLoading ? (
                 <div className="text-center py-8">
-                  <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                  <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
                 </div>
               ) : scheduledEpisodes.length > 0 ? (
                 <div className="space-y-3">

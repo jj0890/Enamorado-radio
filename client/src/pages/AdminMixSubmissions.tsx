@@ -218,7 +218,7 @@ export default function AdminMixSubmissions() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold font-mono text-red-500">MIX SUBMISSIONS</h1>
+                <h1 className="text-2xl font-bold font-mono text-navy">MIX SUBMISSIONS</h1>
                 <p className="text-gray-600 font-mono">Review and manage community mix submissions</p>
               </div>
             </div>

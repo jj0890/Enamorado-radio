@@ -163,7 +163,7 @@ export default function SubmitMix() {
         <StickyRadioPlayer />
         <div className="text-center">
           <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-4" />
-          <h1 className="text-3xl font-mono font-bold text-red-500 mb-4">Mix Submitted!</h1>
+          <h1 className="text-3xl font-mono font-bold text-navy mb-4">Mix Submitted!</h1>
           <p className="text-gray-600 dark:text-gray-400 font-mono mb-4">Your mix has been submitted for review.</p>
           <p className="text-gray-500 dark:text-gray-400 font-mono text-sm">Redirecting to mixes page...</p>
         </div>
@@ -180,20 +180,20 @@ export default function SubmitMix() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-navy">
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/latest" className="text-gray-600 dark:text-gray-400 hover:text-navy transition-colors">
                   LATEST
                 </Link>
-                <Link href="/explore" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/explore" className="text-gray-600 dark:text-gray-400 hover:text-navy transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/schedule" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/schedule" className="text-gray-600 dark:text-gray-400 hover:text-navy transition-colors">
                   SCHEDULE
                 </Link>
-                <Link href="/mixes" className="text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors">
+                <Link href="/mixes" className="text-gray-600 dark:text-gray-400 hover:text-navy transition-colors">
                   MIXES
                 </Link>
               </nav>
@@ -208,7 +208,7 @@ export default function SubmitMix() {
         <div className="mb-8">
           <Link
             href="/mixes"
-            className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 dark:text-gray-400 hover:text-navy transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Mixes
@@ -217,7 +217,7 @@ export default function SubmitMix() {
 
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold mb-4 font-mono text-red-500">
+          <h1 className="text-4xl font-bold mb-4 font-mono text-navy">
             Submit a Mix
           </h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8 font-mono">
@@ -230,7 +230,7 @@ export default function SubmitMix() {
         <form onSubmit={handleSubmit} className="space-y-8">
           <div className="bg-gray-50 dark:bg-gray-900 border-2 border-black dark:border-white rounded-lg p-8">
             <h2 className="text-2xl font-bold mb-6 font-mono text-gray-900 dark:text-white flex items-center">
-              <Music className="w-6 h-6 mr-3 text-red-500" />
+              <Music className="w-6 h-6 mr-3 text-navy" />
               Mix Information
             </h2>
 
@@ -245,7 +245,7 @@ export default function SubmitMix() {
                   onClick={() => setUploadMode('url')}
                   className={`flex-1 p-3 border-2 rounded-lg font-mono text-sm transition-colors ${
                     uploadMode === 'url' 
-                      ? 'border-red-500 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400' 
+                      ? 'border-navy bg-red-50 dark:bg-red-950 text-red-600 dark:text-navy-light' 
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
@@ -258,7 +258,7 @@ export default function SubmitMix() {
                   onClick={() => setUploadMode('file')}
                   className={`flex-1 p-3 border-2 rounded-lg font-mono text-sm transition-colors ${
                     uploadMode === 'file' 
-                      ? 'border-red-500 bg-red-50 dark:bg-red-950 text-red-600 dark:text-red-400' 
+                      ? 'border-navy bg-red-50 dark:bg-red-950 text-red-600 dark:text-navy-light' 
                       : 'border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500'
                   }`}
                 >
@@ -281,7 +281,7 @@ export default function SubmitMix() {
                   value={formData.name}
                   onChange={(e) => handleInputChange('name', e.target.value)}
                   placeholder="e.g. DJ Shadow"
-                  className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
+                  className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy"
                   required
                 />
               </div>
@@ -297,7 +297,7 @@ export default function SubmitMix() {
                   value={formData.title}
                   onChange={(e) => handleInputChange('title', e.target.value)}
                   placeholder="e.g. Late Night Vibes Vol. 1"
-                  className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
+                  className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy"
                   required
                 />
               </div>
@@ -308,7 +308,7 @@ export default function SubmitMix() {
                   Genre *
                 </Label>
                 <Select value={formData.genre} onValueChange={(value) => handleInputChange('genre', value)}>
-                  <SelectTrigger className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500">
+                  <SelectTrigger className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy">
                     <SelectValue placeholder="Select a genre" />
                   </SelectTrigger>
                   <SelectContent>
@@ -342,7 +342,7 @@ export default function SubmitMix() {
                       value={formData.url}
                       onChange={(e) => handleInputChange('url', e.target.value)}
                       placeholder="https://soundcloud.com/your-mix or https://example.com/mix.mp3"
-                      className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
+                      className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy"
                       required
                     />
                     <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
@@ -394,7 +394,7 @@ export default function SubmitMix() {
                 value={formData.artUrl}
                 onChange={(e) => handleInputChange('artUrl', e.target.value)}
                 placeholder="https://example.com/cover.jpg"
-                className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500"
+                className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy"
               />
               <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                 For direct .mp3 links without embedded artwork. SoundCloud/Mixcloud artwork is auto-fetched.
@@ -412,7 +412,7 @@ export default function SubmitMix() {
                 onChange={(e) => handleInputChange('about', e.target.value)}
                 placeholder="Tell us about your mix - what inspired it, the mood, key tracks, or anything you'd like listeners to know..."
                 rows={4}
-                className="font-mono border-gray-300 dark:border-gray-600 focus:border-red-500 dark:focus:border-red-500 resize-none"
+                className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy resize-none"
               />
               <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                 Optional — share anything you want listeners to know.
@@ -452,7 +452,7 @@ export default function SubmitMix() {
               <Button 
                 type="submit" 
                 disabled={isSubmitting}
-                className="bg-red-500 hover:bg-red-600 text-white font-mono px-8 py-2 flex items-center"
+                className="bg-navy hover:bg-navy-dark text-white font-mono px-8 py-2 flex items-center"
               >
                 {isSubmitting ? (
                   <>
@@ -488,7 +488,7 @@ export default function SubmitMix() {
                 Want to become a resident DJ?
               </p>
               <a href="/resident-application" data-testid="link-resident-application">
-                <Button size="sm" variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+                <Button size="sm" variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
                   <ExternalLink className="w-3 h-3 mr-1" />
                   Apply as Resident
                 </Button>

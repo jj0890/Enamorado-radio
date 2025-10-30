@@ -144,8 +144,8 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
       {/* Header */}
       <div className="flex items-center justify-between p-3 border-b border-gray-200">
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-          <span className="text-sm font-bold text-red-500">LIVE</span>
+          <div className="w-2 h-2 bg-navy rounded-full animate-pulse"></div>
+          <span className="text-sm font-bold text-navy">LIVE</span>
         </div>
         <button
           onClick={onClose}
@@ -205,7 +205,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
             onClick={handleSeek}
           >
             <div 
-              className="h-full bg-red-500 rounded-full transition-all duration-150"
+              className="h-full bg-navy rounded-full transition-all duration-150"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -220,7 +220,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
           {/* Play/Pause */}
           <button
             onClick={togglePlay}
-            className="w-10 h-10 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors"
+            className="w-10 h-10 bg-navy hover:bg-navy-dark text-white rounded-full flex items-center justify-center transition-colors"
           >
             {isPlaying ? <Pause className="w-5 h-5" /> : <Play className="w-5 h-5 ml-0.5" />}
           </button>
@@ -250,7 +250,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
             <button
               onClick={() => setIsLiked(!isLiked)}
               className={`p-2 rounded-full transition-colors ${
-                isLiked ? 'text-red-500 bg-red-50' : 'text-gray-400 hover:text-red-500'
+                isLiked ? 'text-navy bg-navy/10' : 'text-gray-400 hover:text-navy'
               }`}
             >
               <Heart className={`w-4 h-4 ${isLiked ? 'fill-current' : ''}`} />
@@ -285,7 +285,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
       {/* Station Branding */}
       <div className="px-4 pb-4">
         <div className="text-center text-xs text-gray-500 bg-gray-50 rounded-lg py-2">
-          <span className="font-bold text-red-500">ENAMORADO RADIO</span>
+          <span className="font-bold text-navy">ENAMORADO RADIO</span>
         </div>
       </div>
 
@@ -295,7 +295,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: #ef4444;
+          background: #003F87;
           cursor: pointer;
           border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);
@@ -305,7 +305,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
           width: 16px;
           height: 16px;
           border-radius: 50%;
-          background: #ef4444;
+          background: #003F87;
           cursor: pointer;
           border: 2px solid white;
           box-shadow: 0 2px 4px rgba(0,0,0,0.2);

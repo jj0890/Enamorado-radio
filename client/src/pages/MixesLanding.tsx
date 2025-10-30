@@ -19,7 +19,7 @@ function GenreQuickNav() {
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
       {genres.slice(0, 6).map((genre) => (
         <Link key={genre.slug} href={`/mixes?genre=${genre.slug}`} className="block">
-          <div className="bg-gray-100 hover:bg-red-500 hover:text-white border-2 border-black p-3 transition-all duration-300 group text-center">
+          <div className="bg-gray-100 hover:bg-navy hover:text-white border-2 border-black p-3 transition-all duration-300 group text-center">
             <Hash className="w-4 h-4 mx-auto mb-1" />
             <div className="font-mono font-bold text-xs uppercase tracking-wide mb-1">
               {genre.name}
@@ -264,7 +264,7 @@ export default function MixesLanding() {
       <div className="max-w-7xl mx-auto px-4 pt-8 pb-4">
         <Link 
           href="/"
-          className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+          className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
         >
           ← Back to Home
         </Link>
@@ -273,7 +273,7 @@ export default function MixesLanding() {
       {/* Header */}
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="text-center pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">MIXES</h1>
+          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">MIXES</h1>
           <p className="text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto font-mono">
             Curated collection of mixes from our community
           </p>
@@ -281,21 +281,21 @@ export default function MixesLanding() {
           {/* Action Buttons */}
           <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link href="/submit-mix">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
+              <Button className="bg-navy hover:bg-navy-dark text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
                 <Plus className="w-6 h-6" />
                 SUBMIT YOUR MIX
               </Button>
             </Link>
 
             <a href="/resident-application" data-testid="link-resident-application">
-              <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
+              <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
                 <Users className="w-6 h-6" />
                 JOIN COMMUNITY PROGRAMMING
               </Button>
             </a>
 
             <Link href="/residents">
-              <Button variant="ghost" className="text-red-500 hover:bg-red-50 font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
+              <Button variant="ghost" className="text-navy hover:bg-red-50 font-mono font-bold px-8 py-4 text-lg transition-colors inline-flex items-center gap-3">
                 <Users className="w-6 h-6" />
                 COMMUNITY PROGRAMMING
               </Button>
@@ -306,7 +306,7 @@ export default function MixesLanding() {
         {/* Featured Mix Carousel */}
         <section className="mb-16">
           <div className="pt-16 pb-8 mb-8">
-            <h2 className="text-3xl font-bold font-mono text-red-500">FEATURED MIXES</h2>
+            <h2 className="text-3xl font-bold font-mono text-navy">FEATURED MIXES</h2>
           </div>
 
           {/* SoundCloud Featured Carousel */}
@@ -314,14 +314,14 @@ export default function MixesLanding() {
             {/* Carousel Navigation */}
             <button
               onClick={prevMix}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute left-4 top-1/2 -translate-y-1/2 z-10 bg-navy hover:bg-navy-dark text-white p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={displayFeaturedMixes.length <= 1}
             >
               <ChevronLeft className="w-6 h-6" />
             </button>
             <button
               onClick={nextMix}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-red-500 hover:bg-red-600 text-white p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="absolute right-4 top-1/2 -translate-y-1/2 z-10 bg-navy hover:bg-navy-dark text-white p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={displayFeaturedMixes.length <= 1}
             >
               <ChevronRight className="w-6 h-6" />
@@ -337,7 +337,7 @@ export default function MixesLanding() {
                   key={mix.id}
                   className="w-full flex-shrink-0 px-4"
                 >
-                  <div className="bg-gray-50 border-2 border-black rounded-lg p-8 hover:border-red-500 hover:shadow-lg transition-all duration-300">
+                  <div className="bg-gray-50 border-2 border-black rounded-lg p-8 hover:border-navy hover:shadow-lg transition-all duration-300">
                     <div className="flex flex-col lg:flex-row gap-8">
                       {/* SoundCloud Embed */}
                       <div className="lg:w-1/2">
@@ -362,7 +362,7 @@ export default function MixesLanding() {
 
                       {/* Mix Info */}
                       <div className="lg:w-1/2 flex flex-col justify-center">
-                        <h3 className="text-3xl font-bold mb-2 font-mono text-red-500">
+                        <h3 className="text-3xl font-bold mb-2 font-mono text-navy">
                           {mix.title}
                         </h3>
                         <p className="text-xl text-gray-600 mb-4 font-mono">{mix.artist}</p>
@@ -378,7 +378,7 @@ export default function MixesLanding() {
                               key={i}
                               href={`/mixes?genre=${g.toLowerCase().replace(/\s+/g, '-')}`}
                             >
-                              <span className="bg-red-500 text-white px-3 py-1 text-sm font-mono cursor-pointer hover:bg-red-600 transition-colors">
+                              <span className="bg-navy text-white px-3 py-1 text-sm font-mono cursor-pointer hover:bg-navy-dark transition-colors">
                                 {g}
                               </span>
                             </Link>
@@ -391,7 +391,7 @@ export default function MixesLanding() {
                             href={mix.url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="flex items-center justify-center w-full bg-red-500 hover:bg-red-600 text-white font-mono font-semibold py-3 px-6 transition-colors"
+                            className="flex items-center justify-center w-full bg-navy hover:bg-navy-dark text-white font-mono font-semibold py-3 px-6 transition-colors"
                           >
                             <ExternalLink className="h-5 w-5 mr-2" />
                             Listen on SoundCloud
@@ -411,7 +411,7 @@ export default function MixesLanding() {
                   key={index}
                   onClick={() => scrollToMix(index)}
                   className={`w-3 h-3 transition-colors rounded-full ${
-                    index === currentMixIndex ? 'bg-red-500' : 'bg-gray-300'
+                    index === currentMixIndex ? 'bg-navy' : 'bg-gray-300'
                   }`}
                 />
               ))}
@@ -422,8 +422,8 @@ export default function MixesLanding() {
         {/* Browse by Genre */}
         <section className="mb-16">
           <div className="flex items-center justify-between pt-16 pb-8 mb-8">
-            <h2 className="text-2xl font-bold font-mono text-red-500">BROWSE BY GENRE</h2>
-            <Link href="/genres" className="text-red-500 hover:underline font-mono text-sm flex items-center">
+            <h2 className="text-2xl font-bold font-mono text-navy">BROWSE BY GENRE</h2>
+            <Link href="/genres" className="text-navy hover:underline font-mono text-sm flex items-center">
               View All →
             </Link>
           </div>
@@ -434,7 +434,7 @@ export default function MixesLanding() {
         {/* Fresh Community Submissions */}
         <section className="mb-16">
           <div className="pt-16 pb-8 mb-8">
-            <h2 className="text-3xl font-bold font-mono text-red-500">FRESH FROM THE COMMUNITY</h2>
+            <h2 className="text-3xl font-bold font-mono text-navy">FRESH FROM THE COMMUNITY</h2>
           </div>
 
           {communitySubmissions.length === 0 ? (
@@ -448,7 +448,7 @@ export default function MixesLanding() {
                   Share your mixes, playlists, or discoveries with our community. Every submission adds to our growing archive of music and creativity - no gatekeeping, just good vibes.
                 </p>
                 <Link href="/submit-mix">
-                  <Button className="bg-red-500 hover:bg-red-600 text-white font-mono font-bold px-8 py-3">
+                  <Button className="bg-navy hover:bg-navy-dark text-white font-mono font-bold px-8 py-3">
                     <Plus className="w-5 h-5 mr-2" />
                     Be the first to submit!
                   </Button>
@@ -460,7 +460,7 @@ export default function MixesLanding() {
               {displayCommunitySubmissions.map((submission) => (
                 <div
                   key={submission.id}
-                  className="bg-gray-50 border-2 border-black rounded-lg p-4 hover:border-red-500 hover:shadow-lg hover:scale-105 transition-all duration-300 group"
+                  className="bg-gray-50 border-2 border-black rounded-lg p-4 hover:border-navy hover:shadow-lg hover:scale-105 transition-all duration-300 group"
                 >
                   {/* Community Submission Thumbnail */}
                   <div className="aspect-square bg-white rounded-lg mb-3 overflow-hidden relative border-2 border-black">
@@ -526,7 +526,7 @@ export default function MixesLanding() {
 
                     {/* Genre & Duration */}
                     <div className="flex items-center justify-between text-xs">
-                      <span className="bg-red-500 text-white px-2 py-1 font-mono">
+                      <span className="bg-navy text-white px-2 py-1 font-mono">
                         {submission.genre}
                       </span>
                     </div>
@@ -537,7 +537,7 @@ export default function MixesLanding() {
                         href={submission.url} 
                         target="_blank" 
                         rel="noopener noreferrer"
-                        className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-red-500 gap-1 mt-1"
+                        className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-navy gap-1 mt-1"
                       >
                         <ExternalLink className="h-3 w-3" />
                         {submission.url.includes('soundcloud') ? 'SOUNDCLOUD' : 
@@ -554,12 +554,12 @@ export default function MixesLanding() {
         {/* All Mixes Grid */}
         <section>
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-3xl font-bold font-mono text-red-500">
+            <h2 className="text-3xl font-bold font-mono text-navy">
               {genreFilter ? `${genreFilter.toUpperCase().replace(/-/g, ' ')} MIXES` : 'ALL MIXES'}
             </h2>
             {genreFilter && (
               <Link href="/mixes">
-                <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+                <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
                   Clear Filter
                 </Button>
               </Link>
@@ -570,7 +570,7 @@ export default function MixesLanding() {
             {displayCommunityMixes.map((mix) => (
               <div
                 key={mix.id}
-                className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-red-500 hover:shadow-lg transition-all duration-300 group"
+                className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-navy hover:shadow-lg transition-all duration-300 group"
               >
                 <div className="flex flex-col md:flex-row">
                   {/* Mix Thumbnail - Square on mobile, fixed width on desktop */}
@@ -633,7 +633,7 @@ export default function MixesLanding() {
                           key={index}
                           href={`/mixes?genre=${genre.toLowerCase().replace(/\s+/g, '-')}`}
                         >
-                          <span className="bg-red-500 text-white px-2 py-1 text-xs font-mono cursor-pointer hover:bg-red-600 transition-colors">
+                          <span className="bg-navy text-white px-2 py-1 text-xs font-mono cursor-pointer hover:bg-navy-dark transition-colors">
                             {genre}
                           </span>
                         </Link>
@@ -645,7 +645,7 @@ export default function MixesLanding() {
                       href={mix.url} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-red-500 gap-1"
+                      className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-navy gap-1"
                     >
                       <ExternalLink className="h-3 w-3" />
                       {mix.platform.toUpperCase()}

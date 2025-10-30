@@ -181,7 +181,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
               data-testid="button-play-episode"
               className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition-all group"
             >
-              <div className="w-16 h-16 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all transform hover:scale-110">
+              <div className="w-16 h-16 rounded-full bg-navy-dark hover:bg-navy flex items-center justify-center transition-all transform hover:scale-110">
                 {isPlaying ? (
                   <Pause className="h-8 w-8 text-white" />
                 ) : (
@@ -201,7 +201,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
             <div className="flex flex-wrap gap-1 mt-2">
               {episode.tags?.map((tag: string, index: number) => (
                 <Link key={index} href={`/episodes?tag=${encodeURIComponent(tag)}`}>
-                  <Badge variant="secondary" className="text-xs bg-gray-800 text-gray-300 cursor-pointer hover:bg-red-500 hover:text-white transition-colors">
+                  <Badge variant="secondary" className="text-xs bg-gray-800 text-gray-300 cursor-pointer hover:bg-navy hover:text-white transition-colors">
                     {tag}
                   </Badge>
                 </Link>

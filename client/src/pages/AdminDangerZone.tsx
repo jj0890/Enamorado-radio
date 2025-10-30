@@ -149,7 +149,7 @@ export default function AdminDangerZone() {
           </Link>
           
           <div>
-            <h1 className="text-3xl font-bold font-mono text-red-500 flex items-center gap-3">
+            <h1 className="text-3xl font-bold font-mono text-navy flex items-center gap-3">
               <AlertTriangle className="w-8 h-8" />
               DANGER ZONE
             </h1>
@@ -325,7 +325,7 @@ export default function AdminDangerZone() {
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="border-red-300 text-red-600 hover:bg-red-50"
+                    className="border-navy-light text-red-600 hover:bg-red-50"
                     data-testid="button-clear-sessions"
                   >
                     <Users className="w-4 h-4 mr-2" />
@@ -356,7 +356,7 @@ export default function AdminDangerZone() {
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleConfirmedAction(() => clearSessionsMutation.mutate(), "CLEAR SESSIONS")}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-navy-dark hover:bg-red-700"
                       disabled={isProcessing || clearSessionsMutation.isPending}
                       data-testid="button-confirm-clear-sessions"
                     >
@@ -374,7 +374,7 @@ export default function AdminDangerZone() {
           </Card>
 
           {/* Emergency System Reset */}
-          <Card className="border-red-300 bg-red-50">
+          <Card className="border-navy-light bg-red-50">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 font-mono text-red-700">
                 <Database className="w-5 h-5" />
@@ -393,7 +393,7 @@ export default function AdminDangerZone() {
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive"
-                    className="bg-red-600 hover:bg-red-700"
+                    className="bg-navy-dark hover:bg-red-700"
                     data-testid="button-emergency-reset"
                   >
                     <AlertTriangle className="w-4 h-4 mr-2" />
@@ -414,7 +414,7 @@ export default function AdminDangerZone() {
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
                         placeholder="NUCLEAR RESET"
-                        className="mt-2 font-mono border-red-300"
+                        className="mt-2 font-mono border-navy-light"
                         data-testid="input-confirm-emergency-reset"
                       />
                     </AlertDialogDescription>
@@ -426,7 +426,7 @@ export default function AdminDangerZone() {
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleConfirmedAction(() => emergencyResetMutation.mutate(), "NUCLEAR RESET")}
-                      className="bg-red-600 hover:bg-red-700"
+                      className="bg-navy-dark hover:bg-red-700"
                       disabled={isProcessing || emergencyResetMutation.isPending}
                       data-testid="button-confirm-emergency-reset"
                     >

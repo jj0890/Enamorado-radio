@@ -154,12 +154,12 @@ export default function AzuraCastMixManager() {
         {[1, 2, 3].map((stepNum) => (
           <div key={stepNum} className="flex items-center">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-              step >= stepNum ? 'bg-red-500 text-white' : 'bg-gray-200 text-gray-600'
+              step >= stepNum ? 'bg-navy text-white' : 'bg-gray-200 text-gray-600'
             }`}>
               {stepNum}
             </div>
             <span className={`ml-2 text-sm ${
-              step >= stepNum ? 'text-red-500 font-medium' : 'text-gray-600'
+              step >= stepNum ? 'text-navy font-medium' : 'text-gray-600'
             }`}>
               {stepNum === 1 ? 'Upload' : stepNum === 2 ? 'Publish' : 'Schedule'}
             </span>
@@ -173,7 +173,7 @@ export default function AzuraCastMixManager() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Upload className="w-5 h-5 text-red-500" />
+              <Upload className="w-5 h-5 text-navy" />
               Upload Mix to AzuraCast
             </CardTitle>
             <CardDescription>
@@ -227,7 +227,7 @@ export default function AzuraCastMixManager() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <List className="w-5 h-5 text-red-500" />
+              <List className="w-5 h-5 text-navy" />
               Publish to Playlist
             </CardTitle>
             <CardDescription>
@@ -279,7 +279,7 @@ export default function AzuraCastMixManager() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-red-500" />
+              <Calendar className="w-5 h-5 text-navy" />
               Schedule Playlist
             </CardTitle>
             <CardDescription>

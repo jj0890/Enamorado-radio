@@ -161,7 +161,7 @@ export default function AdminEpisodeQueue() {
       case "approved":
         return "bg-green-500/20 text-green-500 border-green-500/50";
       case "rejected":
-        return "bg-red-500/20 text-red-500 border-red-500/50";
+        return "bg-navy/20 text-navy border-navy/50";
       case "scheduled":
         return "bg-blue-500/20 text-blue-500 border-blue-500/50";
       default:
@@ -174,7 +174,7 @@ export default function AdminEpisodeQueue() {
       <div className="min-h-screen bg-black pt-16 pb-8 px-4">
         <div className="max-w-7xl mx-auto">
           <div className="text-center py-12">
-            <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <div className="w-8 h-8 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
             <p className="text-zinc-400">Loading submissions...</p>
           </div>
         </div>
@@ -230,7 +230,7 @@ export default function AdminEpisodeQueue() {
                     <div className="flex-1 space-y-3">
                       {/* Title and Status */}
                       <div className="flex items-start gap-3">
-                        <FileAudio className="w-5 h-5 text-red-500 mt-1 flex-shrink-0" />
+                        <FileAudio className="w-5 h-5 text-navy mt-1 flex-shrink-0" />
                         <div className="flex-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <h3 className="text-lg font-semibold text-white">{episode.title}</h3>
@@ -298,8 +298,8 @@ export default function AdminEpisodeQueue() {
 
                       {/* Rejection Reason */}
                       {episode.rejectionReason && (
-                        <div className="bg-red-500/10 p-3 rounded border border-red-500/50">
-                          <p className="text-xs text-red-400 mb-1">Rejection Reason:</p>
+                        <div className="bg-navy/10 p-3 rounded border border-navy/50">
+                          <p className="text-xs text-navy-light mb-1">Rejection Reason:</p>
                           <p className="text-sm text-red-300">{episode.rejectionReason}</p>
                         </div>
                       )}
@@ -332,7 +332,7 @@ export default function AdminEpisodeQueue() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="border-red-500 text-red-500 hover:bg-red-500/10"
+                            className="border-navy text-navy hover:bg-navy/10"
                             onClick={() => handleReview(episode, "reject")}
                             data-testid={`button-reject-${episode.id}`}
                           >
@@ -354,7 +354,7 @@ export default function AdminEpisodeQueue() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="bg-zinc-900 border-zinc-700">
                           <DropdownMenuItem
-                            className="text-red-400 hover:bg-red-500/10"
+                            className="text-navy-light hover:bg-navy/10"
                             onClick={() => handleDelete(episode)}
                             data-testid={`button-delete-${episode.id}`}
                           >
@@ -404,7 +404,7 @@ export default function AdminEpisodeQueue() {
               {reviewAction === "reject" && (
                 <div>
                   <Label className="text-white mb-2">
-                    Rejection Reason <span className="text-red-500">*</span>
+                    Rejection Reason <span className="text-navy">*</span>
                   </Label>
                   <Textarea
                     value={rejectionReason}
@@ -446,7 +446,7 @@ export default function AdminEpisodeQueue() {
                   className={
                     reviewAction === "approve"
                       ? "bg-green-600 hover:bg-green-700"
-                      : "bg-red-600 hover:bg-red-700"
+                      : "bg-navy-dark hover:bg-red-700"
                   }
                   data-testid="button-submit-review"
                 >

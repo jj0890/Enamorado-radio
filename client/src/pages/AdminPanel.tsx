@@ -178,7 +178,7 @@ export default function AdminPanel() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-navy">
                 ENAMORADO ADMIN
               </Link>
             </div>
@@ -192,7 +192,7 @@ export default function AdminPanel() {
         <div className="mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -201,7 +201,7 @@ export default function AdminPanel() {
 
         {/* Page Header */}
         <div className="mb-12">
-          <h1 className="text-4xl font-bold mb-4 font-mono text-red-500 flex items-center">
+          <h1 className="text-4xl font-bold mb-4 font-mono text-navy flex items-center">
             <Settings className="w-10 h-10 mr-4" />
             ADMIN PANEL
           </h1>
@@ -217,8 +217,8 @@ export default function AdminPanel() {
               onClick={() => setActiveTab('pending')}
               className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
                 activeTab === 'pending'
-                  ? 'bg-red-500 text-white'
-                  : 'text-gray-600 hover:text-red-500'
+                  ? 'bg-navy text-white'
+                  : 'text-gray-600 hover:text-navy'
               }`}
             >
               <Music className="w-4 h-4 mr-2 inline" />
@@ -228,8 +228,8 @@ export default function AdminPanel() {
               onClick={() => setActiveTab('approved')}
               className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
                 activeTab === 'approved'
-                  ? 'bg-red-500 text-white'
-                  : 'text-gray-600 hover:text-red-500'
+                  ? 'bg-navy text-white'
+                  : 'text-gray-600 hover:text-navy'
               }`}
             >
               <Check className="w-4 h-4 mr-2 inline" />
@@ -239,8 +239,8 @@ export default function AdminPanel() {
               onClick={() => setActiveTab('featured')}
               className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
                 activeTab === 'featured'
-                  ? 'bg-red-500 text-white'
-                  : 'text-gray-600 hover:text-red-500'
+                  ? 'bg-navy text-white'
+                  : 'text-gray-600 hover:text-navy'
               }`}
             >
               <Star className="w-4 h-4 mr-2 inline" />
@@ -250,8 +250,8 @@ export default function AdminPanel() {
               onClick={() => setActiveTab('schedule')}
               className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
                 activeTab === 'schedule'
-                  ? 'bg-red-500 text-white'
-                  : 'text-gray-600 hover:text-red-500'
+                  ? 'bg-navy text-white'
+                  : 'text-gray-600 hover:text-navy'
               }`}
             >
               <Calendar className="w-4 h-4 mr-2 inline" />
@@ -263,8 +263,8 @@ export default function AdminPanel() {
               onClick={() => setActiveTab('songs')}
               className={`px-4 py-2 rounded-md transition-colors font-mono text-sm ${
                 activeTab === 'songs'
-                  ? 'bg-red-500 text-white'
-                  : 'text-gray-600 hover:text-red-500'
+                  ? 'bg-navy text-white'
+                  : 'text-gray-600 hover:text-navy'
               }`}
             >
               <ListMusic className="w-4 h-4 mr-2 inline" />
@@ -276,14 +276,14 @@ export default function AdminPanel() {
         {/* Content Sections */}
         {activeTab === 'pending' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-8">
-            <h2 className="text-2xl font-bold mb-6 text-red-500 font-mono flex items-center">
+            <h2 className="text-2xl font-bold mb-6 text-navy font-mono flex items-center">
               <Music className="w-6 h-6 mr-3" />
               PENDING REVIEW ({pendingMixes.length})
             </h2>
 
             {mixesLoading && (
               <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-4 border-red-500 border-t-transparent rounded-full mx-auto mb-4"></div>
+                <div className="animate-spin w-8 h-8 border-4 border-navy border-t-transparent rounded-full mx-auto mb-4"></div>
                 <p className="text-gray-600 font-mono">Loading submissions...</p>
               </div>
             )}

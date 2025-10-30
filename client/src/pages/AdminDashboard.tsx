@@ -114,7 +114,7 @@ export default function AdminDashboard({ onLogout, currentUser }: AdminDashboard
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold font-mono text-red-500">ADMIN PANEL</h1>
+              <h1 className="text-xl font-bold font-mono text-navy">ADMIN PANEL</h1>
               
               <div className="hidden lg:flex space-x-1">
                 {navItems.filter(item => item.category === 'core' || item.category === 'content').map((item) => {

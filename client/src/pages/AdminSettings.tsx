@@ -86,7 +86,7 @@ export default function AdminSettings() {
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold font-mono text-red-500 flex items-center gap-3">
+          <h1 className="text-3xl font-bold font-mono text-navy flex items-center gap-3">
             <Settings className="w-8 h-8" />
             AZURACAST SETTINGS
           </h1>
@@ -105,7 +105,7 @@ export default function AdminSettings() {
           <CardContent className="space-y-6">
             {isLoading ? (
               <div className="text-center py-8">
-                <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
               </div>
             ) : (
               <>
@@ -203,7 +203,7 @@ export default function AdminSettings() {
           <CardContent>
             {isLoading ? (
               <div className="text-center py-4">
-                <div className="w-6 h-6 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                <div className="w-6 h-6 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto"></div>
               </div>
             ) : (
               <div className="space-y-2">

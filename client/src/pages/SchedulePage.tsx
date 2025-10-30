@@ -36,23 +36,23 @@ export default function SchedulePage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-navy">
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/latest" className="text-gray-600 hover:text-navy transition-colors">
                   LATEST
                 </Link>
-                <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/explore" className="text-gray-600 hover:text-navy transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/episodes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/episodes" className="text-gray-600 hover:text-navy transition-colors">
                   EPISODES
                 </Link>
-                <Link href="/schedule" className="text-red-500 font-medium">
+                <Link href="/schedule" className="text-navy font-medium">
                   SCHEDULE
                 </Link>
-                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/mixes" className="text-gray-600 hover:text-navy transition-colors">
                   MIXES
                 </Link>
               </nav>
@@ -67,7 +67,7 @@ export default function SchedulePage() {
         <div className="pt-16 pb-8 mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -76,7 +76,7 @@ export default function SchedulePage() {
 
         {/* Page Header */}
         <div className="pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">SCHEDULE</h1>
+          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">SCHEDULE</h1>
           <p className="text-xl text-gray-600 max-w-3xl font-mono">
             Weekly programming grid showing upcoming shows, live broadcasts, and past episodes
           </p>
@@ -89,8 +89,8 @@ export default function SchedulePage() {
               variant={viewMode === 'upcoming' ? 'default' : 'outline'}
               onClick={() => setViewMode('upcoming')}
               className={viewMode === 'upcoming' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Calendar className="w-4 h-4 mr-2" />
@@ -100,8 +100,8 @@ export default function SchedulePage() {
               variant={viewMode === 'past' ? 'default' : 'outline'}
               onClick={() => setViewMode('past')}
               className={viewMode === 'past' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Clock className="w-4 h-4 mr-2" />
@@ -111,8 +111,8 @@ export default function SchedulePage() {
               variant={viewMode === 'all' ? 'default' : 'outline'}
               onClick={() => setViewMode('all')}
               className={viewMode === 'all' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Music className="w-4 h-4 mr-2" />
@@ -134,9 +134,9 @@ export default function SchedulePage() {
                   key={item.id} 
                   className={`bg-gray-50 border-2 rounded-lg p-6 transition-all duration-300 ${
                     isLive 
-                      ? 'border-red-500 bg-red-50' 
+                      ? 'border-navy bg-red-50' 
                       : isUpcoming 
-                      ? 'border-gray-300 hover:border-red-500' 
+                      ? 'border-gray-300 hover:border-navy' 
                       : 'border-gray-200'
                   }`}
                 >
@@ -145,7 +145,7 @@ export default function SchedulePage() {
                       {/* Status Badge */}
                       <div className="flex items-center gap-3 mb-3">
                         {isLive && (
-                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-mono bg-red-500 text-white">
+                          <span className="inline-flex items-center px-2 py-1 rounded text-xs font-mono bg-navy text-white">
                             <Radio className="w-3 h-3 mr-1" />
                             LIVE NOW
                           </span>
@@ -227,13 +227,13 @@ export default function SchedulePage() {
                       <div className="flex items-center gap-4">
                         {item.episodeId && (
                           <Link href={`/episode/${item.episodeId}`}>
-                            <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white font-mono">
+                            <Button size="sm" className="bg-navy hover:bg-navy-dark text-white font-mono">
                               Listen to Episode
                             </Button>
                           </Link>
                         )}
                         {isLive && (
-                          <div className="text-red-500 font-mono text-sm animate-pulse">
+                          <div className="text-navy font-mono text-sm animate-pulse">
                             Broadcasting now on Enamorado Radio
                           </div>
                         )}
@@ -263,7 +263,7 @@ export default function SchedulePage() {
               Check back soon for our latest programming updates, or submit a mix to get involved.
             </p>
             <Link href="/submit-mix" className="inline-block">
-              <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                 Submit Your Mix
               </Button>
             </Link>
@@ -272,7 +272,7 @@ export default function SchedulePage() {
 
         {/* Programming Notes */}
         <div className="mt-16 pt-8 border-t border-gray-200">
-          <h2 className="text-2xl font-bold mb-6 font-mono text-red-500">PROGRAMMING NOTES</h2>
+          <h2 className="text-2xl font-bold mb-6 font-mono text-navy">PROGRAMMING NOTES</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="bg-gray-50 border-2 border-gray-300 rounded-lg p-6">
               <Radio className="w-8 h-8 text-gray-600 mb-3" />

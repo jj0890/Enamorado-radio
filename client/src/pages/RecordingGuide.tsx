@@ -26,7 +26,7 @@ export default function RecordingGuide() {
       <main className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Title */}
         <div className="mb-8">
-          <h1 className="text-4xl font-bold font-mono mb-3 text-red-500">
+          <h1 className="text-4xl font-bold font-mono mb-3 text-navy">
             RECORDING GUIDE
           </h1>
           <p className="text-lg text-gray-600">
@@ -84,7 +84,7 @@ export default function RecordingGuide() {
         {/* Section 1: Initial Setup */}
         <div id="setup" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">1</div>
+            <div className="w-8 h-8 bg-navy text-white rounded-full flex items-center justify-center font-bold">1</div>
             <h2 className="text-2xl font-bold font-mono">Initial Setup</h2>
           </div>
           
@@ -154,7 +154,7 @@ export default function RecordingGuide() {
         {/* Section 2: Recording Audio */}
         <div id="recording" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">2</div>
+            <div className="w-8 h-8 bg-navy text-white rounded-full flex items-center justify-center font-bold">2</div>
             <h2 className="text-2xl font-bold font-mono">Recording Audio</h2>
           </div>
           
@@ -208,7 +208,7 @@ export default function RecordingGuide() {
         {/* Section 3: Editing & Mixing */}
         <div id="editing" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">3</div>
+            <div className="w-8 h-8 bg-navy text-white rounded-full flex items-center justify-center font-bold">3</div>
             <h2 className="text-2xl font-bold font-mono">Editing & Mixing</h2>
           </div>
           
@@ -272,7 +272,7 @@ export default function RecordingGuide() {
         {/* Section 4: Export Settings */}
         <div id="export" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">4</div>
+            <div className="w-8 h-8 bg-navy text-white rounded-full flex items-center justify-center font-bold">4</div>
             <h2 className="text-2xl font-bold font-mono">Export Settings (IMPORTANT)</h2>
           </div>
           
@@ -362,7 +362,7 @@ export default function RecordingGuide() {
         {/* Section 5: Best Practices */}
         <div id="tips" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">5</div>
+            <div className="w-8 h-8 bg-navy text-white rounded-full flex items-center justify-center font-bold">5</div>
             <h2 className="text-2xl font-bold font-mono">Best Practices</h2>
           </div>
           
@@ -418,7 +418,7 @@ export default function RecordingGuide() {
         {/* Section 6: Troubleshooting */}
         <div id="troubleshooting" className="mb-8">
           <div className="flex items-center gap-2 mb-4">
-            <div className="w-8 h-8 bg-red-500 text-white rounded-full flex items-center justify-center font-bold">6</div>
+            <div className="w-8 h-8 bg-navy text-white rounded-full flex items-center justify-center font-bold">6</div>
             <h2 className="text-2xl font-bold font-mono">Troubleshooting</h2>
           </div>
           

@@ -142,7 +142,7 @@ export default function AdminBackups() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-2xl font-bold font-mono text-red-500">BACKUP SYSTEM</h1>
+              <h1 className="text-2xl font-bold font-mono text-navy">BACKUP SYSTEM</h1>
               <p className="text-gray-600 font-mono">Manage system backups and restore points</p>
             </div>
           </div>
@@ -219,7 +219,7 @@ export default function AdminBackups() {
                 ) : (
                   <div className="space-y-3">
                     {backups.map((backup) => (
-                      <div key={backup.id} className="border border-gray-200 rounded-lg p-4 hover:border-red-300 transition-colors">
+                      <div key={backup.id} className="border border-gray-200 rounded-lg p-4 hover:border-navy-light transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-2 mb-2">
@@ -251,7 +251,7 @@ export default function AdminBackups() {
                               disabled={restoreBackupMutation.isPending}
                               className={`font-mono ${
                                 restoreConfirm === backup.id 
-                                  ? 'bg-red-50 border-red-300 text-red-700' 
+                                  ? 'bg-red-50 border-navy-light text-red-700' 
                                   : ''
                               }`}
                               data-testid={`button-restore-${backup.id.split('-').pop()}`}
@@ -275,7 +275,7 @@ export default function AdminBackups() {
                         
                         {restoreConfirm === backup.id && (
                           <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded text-sm font-mono">
-                            <AlertCircle className="w-4 h-4 inline mr-2 text-red-500" />
+                            <AlertCircle className="w-4 h-4 inline mr-2 text-navy" />
                             <strong>Warning:</strong> This will replace all current data with this backup. 
                             Current data will be backed up automatically before restore.
                           </div>

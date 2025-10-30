@@ -158,7 +158,7 @@ export default function RadioLanding() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                <div className="w-2 h-2 bg-navy rounded-full animate-pulse"></div>
                 <span className="text-xs font-medium text-white/80">LIVE NOW</span>
               </div>
             </div>
@@ -258,7 +258,7 @@ export default function RadioLanding() {
                         </div>
                         <div className="flex items-center space-x-2">
                           {item.type === 'live' && (
-                            <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                            <div className="w-2 h-2 bg-navy rounded-full animate-pulse"></div>
                           )}
                           <div>
                             <div className="font-semibold text-white">{item.show}</div>

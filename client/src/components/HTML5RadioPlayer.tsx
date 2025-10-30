@@ -185,7 +185,7 @@ export default function HTML5RadioPlayer({ isActive, onToggle }: HTML5RadioPlaye
       <div className="fixed top-4 right-4 z-50">
         <div className="bg-gray-900 text-white p-3 rounded-lg shadow-lg border border-gray-700">
           <div className="flex items-center gap-2">
-            <Radio className="w-5 h-5 text-red-500 animate-pulse" />
+            <Radio className="w-5 h-5 text-navy animate-pulse" />
             <span className="font-mono text-sm">Loading...</span>
           </div>
         </div>
@@ -215,7 +215,7 @@ export default function HTML5RadioPlayer({ isActive, onToggle }: HTML5RadioPlaye
           onClick={onToggle}
           className="bg-gray-900 hover:bg-gray-800 text-white p-3 rounded-lg shadow-lg transition-all duration-300 flex items-center gap-2 border border-gray-700"
         >
-          <Radio className="w-5 h-5 text-red-500" />
+          <Radio className="w-5 h-5 text-navy" />
           <span className="font-mono text-sm">Listen Live</span>
         </button>
       </div>
@@ -231,7 +231,7 @@ export default function HTML5RadioPlayer({ isActive, onToggle }: HTML5RadioPlaye
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-3">
-              <div className="bg-red-500 p-1.5 rounded">
+              <div className="bg-navy p-1.5 rounded">
                 <Radio className="w-4 h-4 text-white" />
               </div>
               <div>
@@ -279,7 +279,7 @@ export default function HTML5RadioPlayer({ isActive, onToggle }: HTML5RadioPlaye
           <div className="mb-4">
             <div className="w-full bg-gray-700 rounded-full h-1">
               <div 
-                className="bg-red-500 h-1 rounded-full transition-all duration-300"
+                className="bg-navy h-1 rounded-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}
               ></div>
             </div>
@@ -295,7 +295,7 @@ export default function HTML5RadioPlayer({ isActive, onToggle }: HTML5RadioPlaye
               <button
                 onClick={togglePlayPause}
                 disabled={!currentTrack}
-                className="bg-red-500 hover:bg-red-600 disabled:bg-gray-600 p-2 rounded-full transition-colors"
+                className="bg-navy hover:bg-navy-dark disabled:bg-gray-600 p-2 rounded-full transition-colors"
               >
                 {isPlaying ? (
                   <Pause className="w-4 h-4 text-white" />

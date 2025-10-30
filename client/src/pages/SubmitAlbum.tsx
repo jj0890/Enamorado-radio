@@ -95,7 +95,7 @@ export default function SubmitAlbum() {
               </a>
             </Link>
             <Link href="/">
-              <a className="text-red-500 hover:underline font-mono inline-block mt-2">
+              <a className="text-navy hover:underline font-mono inline-block mt-2">
                 ← Back home
               </a>
             </Link>
@@ -110,8 +110,8 @@ export default function SubmitAlbum() {
       <div className="max-w-2xl mx-auto px-4 py-10">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
-            <Disc className="w-8 h-8 text-red-500" />
-            <h1 className="text-4xl font-bold font-mono text-red-500">
+            <Disc className="w-8 h-8 text-navy" />
+            <h1 className="text-4xl font-bold font-mono text-navy">
               Suggest an Album
             </h1>
           </div>
@@ -230,7 +230,7 @@ export default function SubmitAlbum() {
 
         <div className="mt-8 text-center">
           <Link href="/">
-            <a className="text-red-500 hover:underline font-mono">← Back home</a>
+            <a className="text-navy hover:underline font-mono">← Back home</a>
           </Link>
         </div>
       </div>

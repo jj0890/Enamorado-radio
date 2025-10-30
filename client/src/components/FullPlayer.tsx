@@ -101,7 +101,7 @@ export function FullPlayer({
         <div className="px-6 pb-4">
           {currentTrack.isLive && (
             <div className="flex items-center space-x-2 mb-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-navy rounded-full animate-pulse"></div>
               <span className="text-xs font-medium text-white/80">LIVE</span>
             </div>
           )}

@@ -136,7 +136,7 @@ export default function GuideDetail() {
     switch (type) {
       case 'episode': return 'bg-green-600';
       case 'article': return 'bg-blue-600';
-      case 'video': return 'bg-red-600';
+      case 'video': return 'bg-navy-dark';
       default: return 'bg-gray-600';
     }
   };

@@ -137,7 +137,7 @@ export default function AdminStreamControl() {
                   </div>
                   <div className="w-full bg-gray-200 rounded-full h-2">
                     <div 
-                      className="bg-red-500 h-2 rounded-full transition-all"
+                      className="bg-navy h-2 rounded-full transition-all"
                       style={{ 
                         width: `${(streamState.currentTime / streamState.currentTrack.duration) * 100}%` 
                       }}
@@ -164,7 +164,7 @@ export default function AdminStreamControl() {
             <button
               onClick={() => streamState?.isPlaying ? pauseMutation.mutate() : playMutation.mutate()}
               disabled={playMutation.isPending || pauseMutation.isPending}
-              className="flex items-center justify-center w-12 h-12 bg-red-500 text-white rounded-full hover:bg-red-600 disabled:opacity-50"
+              className="flex items-center justify-center w-12 h-12 bg-navy text-white rounded-full hover:bg-navy-dark disabled:opacity-50"
             >
               {streamState?.isPlaying ? (
                 <Pause className="w-5 h-5" />
@@ -229,7 +229,7 @@ export default function AdminStreamControl() {
                 <button
                   onClick={handleManualUpdate}
                   disabled={setNowPlayingMutation.isPending}
-                  className="px-4 py-2 bg-red-500 text-white rounded font-mono text-sm hover:bg-red-600 disabled:opacity-50"
+                  className="px-4 py-2 bg-navy text-white rounded font-mono text-sm hover:bg-navy-dark disabled:opacity-50"
                 >
                   Update Now Playing
                 </button>

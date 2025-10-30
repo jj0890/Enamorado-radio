@@ -118,7 +118,7 @@ export default function AdminAuthWrapper() {
     return (
       <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-8 h-8 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-gray-600 font-mono">Checking authentication...</p>
         </div>
       </div>
@@ -178,7 +178,7 @@ export default function AdminAuthWrapper() {
         return (
           <div className="min-h-screen bg-[#FEFCF9] p-6">
             <div className="max-w-4xl mx-auto">
-              <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+              <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
                 AZURACAST UPLOAD
               </h1>
               <MixUploadToAzuraCast />
@@ -189,7 +189,7 @@ export default function AdminAuthWrapper() {
         return (
           <div className="min-h-screen bg-[#FEFCF9] p-6">
             <div className="max-w-6xl mx-auto">
-              <h1 className="text-3xl font-bold mb-8 font-mono text-red-500">
+              <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
                 MIX MANAGER - Upload, Publish & Schedule
               </h1>
               <AzuraCastMixManager />

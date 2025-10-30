@@ -112,7 +112,7 @@ function ThemePreview({ theme, isPlaying, onThemeSelect }: PlayerThemeDemoProps)
       
       <button
         onClick={() => onThemeSelect(theme.id)}
-        className="w-full mt-3 px-3 py-2 bg-red-500 text-white rounded font-mono text-xs hover:bg-red-600 transition-colors"
+        className="w-full mt-3 px-3 py-2 bg-navy text-white rounded font-mono text-xs hover:bg-navy-dark transition-colors"
       >
         Apply Theme
       </button>

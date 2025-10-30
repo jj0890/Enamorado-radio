@@ -75,7 +75,7 @@ export default function EditorDashboard({ onLogout, currentUser }: EditorDashboa
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold font-mono text-red-500" data-testid="heading-editor">EDITOR PANEL</h1>
+              <h1 className="text-xl font-bold font-mono text-navy" data-testid="heading-editor">EDITOR PANEL</h1>
               {currentUser && (
                 <Badge variant="outline" className="font-mono" data-testid="badge-user">
                   {currentUser}

@@ -48,23 +48,23 @@ export default function EpisodesPage() {
         <div className="max-w-7xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-8">
-              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-red-500">
+              <Link href="/" className="text-2xl font-bold tracking-tight font-mono text-navy">
                 ENAMORADO
               </Link>
               <nav className="hidden md:flex items-center space-x-6 text-sm font-mono">
-                <Link href="/latest" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/latest" className="text-gray-600 hover:text-navy transition-colors">
                   LATEST
                 </Link>
-                <Link href="/explore" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/explore" className="text-gray-600 hover:text-navy transition-colors">
                   EXPLORE
                 </Link>
-                <Link href="/episodes" className="text-red-500 font-medium">
+                <Link href="/episodes" className="text-navy font-medium">
                   EPISODES
                 </Link>
-                <Link href="/schedule" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/schedule" className="text-gray-600 hover:text-navy transition-colors">
                   SCHEDULE
                 </Link>
-                <Link href="/mixes" className="text-gray-600 hover:text-red-500 transition-colors">
+                <Link href="/mixes" className="text-gray-600 hover:text-navy transition-colors">
                   MIXES
                 </Link>
               </nav>
@@ -79,7 +79,7 @@ export default function EpisodesPage() {
         <div className="pt-16 pb-8 mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-red-500 transition-colors font-mono"
+            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -88,7 +88,7 @@ export default function EpisodesPage() {
 
         {/* Page Header */}
         <div className="pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-red-500">ALL EPISODES</h1>
+          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">ALL EPISODES</h1>
           <p className="text-xl text-gray-600 max-w-3xl font-mono">
             Complete archive of radio episodes, shows, and special broadcasts
           </p>
@@ -101,8 +101,8 @@ export default function EpisodesPage() {
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
               className={filter === 'all' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Music className="w-4 h-4 mr-2" />
@@ -112,8 +112,8 @@ export default function EpisodesPage() {
               variant={filter === 'recent' ? 'default' : 'outline'}
               onClick={() => setFilter('recent')}
               className={filter === 'recent' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Calendar className="w-4 h-4 mr-2" />
@@ -123,8 +123,8 @@ export default function EpisodesPage() {
               variant={filter === 'featured' ? 'default' : 'outline'}
               onClick={() => setFilter('featured')}
               className={filter === 'featured' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Radio className="w-4 h-4 mr-2" />
@@ -134,8 +134,8 @@ export default function EpisodesPage() {
               variant={filter === 'genre' ? 'default' : 'outline'}
               onClick={() => setFilter('genre')}
               className={filter === 'genre' 
-                ? "bg-red-500 hover:bg-red-600 text-white font-mono" 
-                : "border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
+                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
               <Music className="w-4 h-4 mr-2" />
@@ -150,8 +150,8 @@ export default function EpisodesPage() {
                 onClick={() => setSelectedGenre('')}
                 className={`px-3 py-1 text-xs font-mono rounded border-2 transition-colors ${
                   !selectedGenre 
-                    ? 'bg-red-500 text-white border-red-500' 
-                    : 'bg-white text-red-500 border-red-500 hover:bg-red-500 hover:text-white'
+                    ? 'bg-navy text-white border-navy' 
+                    : 'bg-white text-navy border-navy hover:bg-navy hover:text-white'
                 }`}
               >
                 All Genres
@@ -162,8 +162,8 @@ export default function EpisodesPage() {
                   onClick={() => setSelectedGenre(genre)}
                   className={`px-3 py-1 text-xs font-mono rounded border-2 transition-colors ${
                     selectedGenre === genre 
-                      ? 'bg-red-500 text-white border-red-500' 
-                      : 'bg-white text-red-500 border-red-500 hover:bg-red-500 hover:text-white'
+                      ? 'bg-navy text-white border-navy' 
+                      : 'bg-white text-navy border-navy hover:bg-navy hover:text-white'
                   }`}
                 >
                   {genre}
@@ -179,7 +179,7 @@ export default function EpisodesPage() {
             {filteredEpisodes.map((episode: any) => (
               <div 
                 key={episode.id}
-                className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-red-500 transition-all duration-300 group"
+                className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-navy transition-all duration-300 group"
               >
                 {/* Episode Artwork */}
                 <div className="aspect-square bg-gray-200 overflow-hidden relative">
@@ -203,7 +203,7 @@ export default function EpisodesPage() {
                       </div>
                     )}
                     {episode.isLive && (
-                      <div className="bg-red-500 text-white px-2 py-1 rounded text-xs font-mono font-bold animate-pulse">
+                      <div className="bg-navy text-white px-2 py-1 rounded text-xs font-mono font-bold animate-pulse">
                         LIVE
                       </div>
                     )}
@@ -213,7 +213,7 @@ export default function EpisodesPage() {
                 <div className="p-6">
                   {/* Episode Meta */}
                   <div className="flex items-center justify-between mb-3">
-                    <span className="text-xs font-mono text-red-500 uppercase bg-red-50 px-2 py-1 rounded">
+                    <span className="text-xs font-mono text-navy uppercase bg-red-50 px-2 py-1 rounded">
                       {episode.genre || 'Radio'}
                     </span>
                     <div className="flex items-center text-xs font-mono text-gray-500">
@@ -224,7 +224,7 @@ export default function EpisodesPage() {
 
                   {/* Title and Host */}
                   <div className="mb-4">
-                    <h3 className="text-xl font-bold font-mono text-gray-900 mb-1 group-hover:text-red-500 transition-colors line-clamp-2">
+                    <h3 className="text-xl font-bold font-mono text-gray-900 mb-1 group-hover:text-navy transition-colors line-clamp-2">
                       {episode.title}
                     </h3>
                     <div className="flex items-center text-gray-600 font-mono text-sm mb-2">
@@ -256,7 +256,7 @@ export default function EpisodesPage() {
                   <Link href={`/episode/${episode.id}`}>
                     <Button 
                       size="sm" 
-                      className="bg-red-500 hover:bg-red-600 text-white font-mono w-full"
+                      className="bg-navy hover:bg-navy-dark text-white font-mono w-full"
                     >
                       <Play className="w-4 h-4 mr-2" />
                       Listen to Episode
@@ -277,12 +277,12 @@ export default function EpisodesPage() {
             </p>
             <div className="flex justify-center gap-4">
               <Link href="/latest">
-                <Button className="bg-red-500 hover:bg-red-600 text-white font-mono">
+                <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
                   Browse Latest
                 </Button>
               </Link>
               <Link href="/mixes">
-                <Button variant="outline" className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono">
+                <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
                   Community Mixes
                 </Button>
               </Link>
@@ -295,7 +295,7 @@ export default function EpisodesPage() {
           <div className="text-center mt-12">
             <Button 
               variant="outline" 
-              className="border-red-500 text-red-500 hover:bg-red-500 hover:text-white font-mono"
+              className="border-navy text-navy hover:bg-navy hover:text-white font-mono"
             >
               Load More Episodes
             </Button>

@@ -99,7 +99,7 @@ export default function ProgressTracker({ mixId, mixTitle, onComplete, onError }
       case 'complete':
         return <Check className="w-4 h-4 text-green-500" />;
       case 'error':
-        return <AlertCircle className="w-4 h-4 text-red-500" />;
+        return <AlertCircle className="w-4 h-4 text-navy" />;
       default:
         return <Loader2 className="w-4 h-4 animate-spin" />;
     }
@@ -121,7 +121,7 @@ export default function ProgressTracker({ mixId, mixTitle, onComplete, onError }
       case 'complete':
         return 'bg-green-500';
       case 'error':
-        return 'bg-red-500';
+        return 'bg-navy';
       default:
         return 'bg-blue-500';
     }
