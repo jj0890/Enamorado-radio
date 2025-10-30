@@ -3,7 +3,8 @@ import {
   Episode, 
   Guide,
   HeroBanner,
-  MixSubmission, 
+  MixSubmission,
+  PlaylistSubmission, 
   Schedule, 
   ResidentApplication,
   Resident,
@@ -15,6 +16,7 @@ import {
   InsertGuide,
   InsertHeroBanner,
   InsertMixSubmission,
+  InsertPlaylistSubmission,
   InsertSchedule,
   InsertResidentApplication,
   InsertResident,
@@ -67,6 +69,17 @@ export interface IStorage {
   toggleMixFeature(id: number): Promise<MixSubmission>;
   toggleMixApproval(id: number): Promise<MixSubmission>;
   deleteMixSubmission(id: number): Promise<void>;
+
+  // Playlist Submissions - Community curated playlists
+  getPlaylistSubmissions(filters?: { status?: string; limit?: number; featured?: boolean; approved?: boolean }): Promise<PlaylistSubmission[]>;
+  getPlaylistSubmissionById(id: number): Promise<PlaylistSubmission | undefined>;
+  createPlaylistSubmission(submission: InsertPlaylistSubmission): Promise<PlaylistSubmission>;
+  updatePlaylistSubmissionStatus(id: number, status: string, notes?: string): Promise<PlaylistSubmission>;
+  updatePlaylistSubmission(id: number, updates: Partial<PlaylistSubmission>): Promise<PlaylistSubmission>;
+  togglePlaylistFeature(id: number): Promise<PlaylistSubmission>;
+  togglePlaylistApproval(id: number): Promise<PlaylistSubmission>;
+  likePlaylistSubmission(id: number): Promise<PlaylistSubmission>;
+  deletePlaylistSubmission(id: number): Promise<void>;
 
   // Schedule - Programming grid
   getSchedule(filters?: { upcoming?: boolean; date?: Date; limit?: number }): Promise<Schedule[]>;
