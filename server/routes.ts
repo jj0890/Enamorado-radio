@@ -3089,6 +3089,124 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
+  // ENHANCED OEMBED - Complete metadata for rich embeds
+  // =================
+
+  app.get('/api/oembed/enhanced', async (req, res) => {
+    try {
+      const { url } = req.query;
+
+      if (!url) {
+        return res.status(400).json({ error: 'Missing url parameter' });
+      }
+
+      const href = String(url);
+      console.log('[oEmbed Enhanced] Fetching metadata for:', href);
+
+      let platform: string;
+      let endpoint: string;
+      let data: any;
+
+      // Determine platform and fetch oEmbed data
+      if (href.includes('soundcloud.com')) {
+        platform = 'soundcloud';
+        endpoint = `https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(href)}`;
+        
+        const response = await fetch(endpoint, {
+          headers: {
+            'User-Agent': 'EnamoradoRadio/1.0',
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('[oEmbed Enhanced] SoundCloud fetch failed:', response.status);
+          return res.status(502).json({ error: 'Failed to fetch SoundCloud oEmbed data' });
+        }
+
+        data = await response.json();
+
+      } else if (href.includes('open.spotify.com')) {
+        platform = 'spotify';
+        endpoint = `https://open.spotify.com/oembed?url=${encodeURIComponent(href)}`;
+        
+        const response = await fetch(endpoint, {
+          headers: {
+            'User-Agent': 'EnamoradoRadio/1.0',
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('[oEmbed Enhanced] Spotify fetch failed:', response.status);
+          return res.status(502).json({ error: 'Failed to fetch Spotify oEmbed data' });
+        }
+
+        data = await response.json();
+
+      } else if (href.includes('mixcloud.com')) {
+        platform = 'mixcloud';
+        endpoint = `https://www.mixcloud.com/oembed/?format=json&url=${encodeURIComponent(href)}`;
+        
+        const response = await fetch(endpoint, {
+          headers: {
+            'User-Agent': 'EnamoradoRadio/1.0',
+            'Accept': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          console.error('[oEmbed Enhanced] Mixcloud fetch failed:', response.status);
+          return res.status(502).json({ error: 'Failed to fetch Mixcloud oEmbed data' });
+        }
+
+        data = await response.json();
+
+      } else {
+        return res.status(400).json({ error: 'Unsupported platform. Supported: SoundCloud, Spotify, Mixcloud' });
+      }
+
+      // Upgrade thumbnail to higher quality
+      let thumbnail = data.thumbnail_url || data.thumbnail_url_https || null;
+      if (thumbnail) {
+        thumbnail = thumbnail
+          .replace(/^http:/, 'https:')
+          .replace('large.jpg', 't500x500.jpg')
+          .replace('t67x67.jpg', 't500x500.jpg')
+          .replace('badge.jpg', 't500x500.jpg')
+          .replace('crop.jpg', 't500x500.jpg');
+      }
+
+      // Normalize response structure across platforms
+      const result = {
+        platform,
+        url: href,
+        title: data.title || null,
+        artist: data.author_name || null,
+        thumbnail_url: thumbnail,
+        artUrl: thumbnail,
+        description: data.description || null,
+        html: data.html || null,
+        width: data.width || null,
+        height: data.height || null,
+        provider_name: data.provider_name || platform,
+        provider_url: data.provider_url || null,
+        duration: data.duration || null,
+      };
+
+      console.log('[oEmbed Enhanced] Returning normalized data for', platform);
+      res.json(result);
+
+    } catch (error) {
+      console.error('[oEmbed Enhanced] Error:', error);
+      res.status(500).json({ 
+        error: 'Internal server error', 
+        detail: error instanceof Error ? error.message : String(error) 
+      });
+    }
+  });
+
+  // =================
   // RESIDENT APPLICATIONS API
   // =================
 
