@@ -114,8 +114,8 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
         </div>
       )}
 
-      {/* Artwork - Fixed 16:9 aspect ratio */}
-      <div className="relative w-full overflow-hidden aspect-[16/9] bg-gray-200 dark:bg-gray-800">
+      {/* Artwork - Square aspect ratio for prominent display like SoundCloud */}
+      <div className="relative w-full overflow-hidden aspect-square bg-gray-200 dark:bg-gray-800">
         {artwork ? (
           <img 
             src={artwork} 
@@ -125,16 +125,16 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
           />
         ) : (
           <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-gray-200 dark:from-gray-800 to-gray-300 dark:to-gray-700">
-            <Music className="w-12 h-12 text-gray-400" />
+            <Music className="w-16 h-16 text-gray-400" />
           </div>
         )}
       </div>
 
-      {/* Text block */}
-      <div className="pt-2 px-2 pb-2">
-        <div className="flex items-center gap-2 mb-2 flex-wrap">
+      {/* Text block - Compact to emphasize artwork */}
+      <div className="pt-3 px-3 pb-3">
+        <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           <span 
-            className={`text-[10px] font-mono text-white px-2 py-0.5 rounded uppercase ${
+            className={`text-[9px] font-mono text-white px-2 py-0.5 rounded uppercase font-semibold ${
               type === 'mix' ? 'bg-navy' : 'bg-blue-500'
             }`}
             data-testid={`chip-type-${type}`}
@@ -143,7 +143,7 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
           </span>
           {platform !== 'other' && (
             <span 
-              className="text-[10px] font-mono bg-gray-800 dark:bg-gray-700 text-white px-2 py-0.5 rounded uppercase flex items-center gap-1"
+              className="text-[9px] font-mono bg-gray-800 dark:bg-gray-700 text-white px-1.5 py-0.5 rounded uppercase flex items-center gap-1"
               data-testid={`chip-platform-${platform}`}
               title={platform}
             >
@@ -160,17 +160,17 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
                 onGenreSelect(content.genre!);
               }}
               data-testid={`tag-genre-${content.genre.toLowerCase()}`}
-              className="text-[10px] font-mono bg-gray-100 dark:bg-gray-800 hover:bg-navy hover:text-white px-2 py-0.5 rounded uppercase dark:text-gray-300 transition-colors"
+              className="text-[9px] font-mono bg-gray-100 dark:bg-gray-800 hover:bg-navy hover:text-white px-2 py-0.5 rounded uppercase dark:text-gray-300 transition-colors"
             >
               {content.genre}
             </button>
           )}
         </div>
         
-        <h3 className="text-sm font-semibold truncate text-gray-900 dark:text-white font-mono">
+        <h3 className="text-base font-bold text-gray-900 dark:text-white font-mono leading-tight mb-1">
           {content.title}
         </h3>
-        <p className="text-xs text-gray-600 dark:text-gray-400 truncate font-mono">
+        <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
           {displayName}
         </p>
       </div>
