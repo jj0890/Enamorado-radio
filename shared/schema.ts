@@ -519,6 +519,116 @@ export type InsertAlbumPick = z.infer<typeof insertAlbumPickSchema>;
 export type InsertAlbumPickItem = z.infer<typeof insertAlbumPickItemSchema>;
 export type InsertAlbumSuggestionNote = z.infer<typeof insertAlbumSuggestionNoteSchema>;
 
+// =================
+// UNIFIED CONTENT ITEM TYPES - For /community unified gallery
+// =================
+
+// Base fields common to all content types
+export interface ContentItemBase {
+  id: number;
+  title: string;
+  artworkUrl?: string | null;
+  genre?: string | null;
+  submittedAt?: Date | null;
+  createdAt?: Date | null;
+  isFeatured?: boolean;
+  url?: string | null;
+}
+
+// Mix content type (from mixSubmissions)
+export interface MixContentItem extends ContentItemBase {
+  type: 'mix';
+  name: string; // Artist/submitter name
+  about?: string | null;
+  platform?: string | null;
+  status?: string;
+  approved_at?: Date | null;
+  featured_at?: Date | null;
+}
+
+// Episode content type (from episodes)
+export interface EpisodeContentItem extends ContentItemBase {
+  type: 'episode';
+  hostName: string;
+  description?: string | null;
+  seriesTitle?: string | null;
+  episodeNumber?: number | null;
+  airDate: Date;
+  duration: number;
+  audioUrl: string;
+  tracklist?: string | null;
+  tags?: string[] | null;
+  status: string;
+  isLive?: boolean;
+  viewCount?: number;
+}
+
+// Writing content type (from guides - editorial content)
+export interface WritingContentItem extends ContentItemBase {
+  type: 'writing';
+  authorName: string;
+  description: string;
+  guideType: string;
+  slug: string;
+  tags?: string[] | null;
+  intro: string;
+  coverImageUrl?: string | null;
+  status: string;
+  viewCount?: number;
+  publishedAt?: Date | null;
+}
+
+// Art content type (future: visual art, photography, etc.)
+export interface ArtContentItem extends ContentItemBase {
+  type: 'art';
+  artistName: string;
+  description?: string | null;
+  medium?: string | null;
+  tags?: string[] | null;
+  imageUrl: string;
+  status?: string;
+}
+
+// Playlist content type (future: curated playlists)
+export interface PlaylistContentItem extends ContentItemBase {
+  type: 'playlist';
+  curatorName: string;
+  description?: string | null;
+  trackCount?: number;
+  tags?: string[] | null;
+  status?: string;
+  playlistUrl: string;
+}
+
+// Union type for all content items
+export type ContentItem =
+  | MixContentItem
+  | EpisodeContentItem
+  | WritingContentItem
+  | ArtContentItem
+  | PlaylistContentItem;
+
+// Type guard functions for discriminating content types
+export function isMixContent(item: ContentItem): item is MixContentItem {
+  return item.type === 'mix';
+}
+
+export function isEpisodeContent(item: ContentItem): item is EpisodeContentItem {
+  return item.type === 'episode';
+}
+
+export function isWritingContent(item: ContentItem): item is WritingContentItem {
+  return item.type === 'writing';
+}
+
+export function isArtContent(item: ContentItem): item is ArtContentItem {
+  return item.type === 'art';
+}
+
+export function isPlaylistContent(item: ContentItem): item is PlaylistContentItem {
+  return item.type === 'playlist';
+}
+
 // API Response Types
 // ==================
 export type ApiOk<T = void> = { ok: true; data: T };
