@@ -6,7 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Upload, CheckCircle, Music, ExternalLink } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ArrowLeft, Upload, CheckCircle, Music, ExternalLink, ChevronDown, ChevronUp, BookOpen } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
@@ -28,6 +29,7 @@ export default function SubmitMix() {
   const [uploadMode, setUploadMode] = useState<'url' | 'file'>('url');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   const submitMutation = useMutation({
     mutationFn: async (data: typeof formData) => {
@@ -225,6 +227,170 @@ export default function SubmitMix() {
             airplay, or collaboration opportunities.
           </p>
         </div>
+
+        {/* How to Make a Mix Guide */}
+        <Collapsible open={guideOpen} onOpenChange={setGuideOpen} className="mb-8">
+          <CollapsibleTrigger asChild>
+            <button
+              type="button"
+              className="w-full bg-navy-light dark:bg-navy text-white p-6 rounded-lg flex items-center justify-between hover:bg-navy dark:hover:bg-navy-light transition-colors"
+              data-testid="button-toggle-guide"
+            >
+              <div className="flex items-center gap-3">
+                <BookOpen className="w-6 h-6" />
+                <div className="text-left">
+                  <h2 className="text-xl font-mono font-bold">
+                    How to Make a Mix
+                  </h2>
+                  <p className="text-sm text-white/80 font-mono">
+                    New to mixing? Learn how to turn your Spotify playlist into a seamless mix
+                  </p>
+                </div>
+              </div>
+              {guideOpen ? (
+                <ChevronUp className="w-5 h-5" />
+              ) : (
+                <ChevronDown className="w-5 h-5" />
+              )}
+            </button>
+          </CollapsibleTrigger>
+          
+          <CollapsibleContent className="mt-4">
+            <div className="bg-cream dark:bg-gray-900 border-2 border-navy dark:border-navy-light rounded-lg p-8 space-y-6">
+              {/* Introduction */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Introduction
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm leading-relaxed">
+                  You don't need to be a professional DJ to create a great mix! If you have a curated Spotify playlist, 
+                  you can turn it into a continuous mix using free software like Audacity. This guide will walk you through 
+                  the entire process.
+                </p>
+              </div>
+
+              {/* Step 1: Export Your Spotify Playlist */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 1: Export Your Spotify Playlist
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li>Open Spotify and navigate to your playlist</li>
+                  <li>Play the first track and let it run</li>
+                  <li>Use a screen recording tool or Spotify Recorder to capture the audio</li>
+                  <li>Alternatively, download individual tracks from legal sources and import into Audacity</li>
+                </ol>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-2 italic">
+                  Note: Make sure you have legal rights to use the music you're recording
+                </p>
+              </div>
+
+              {/* Step 2: Download and Install Audacity */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 2: Download and Install Audacity (Free)
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mb-2">
+                  Audacity is a free, open-source audio editor available for Windows, Mac, and Linux.
+                </p>
+                <a
+                  href="https://www.audacityteam.org/download/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 text-navy dark:text-navy-light hover:underline font-mono text-sm"
+                >
+                  <ExternalLink className="w-4 h-4" />
+                  Download Audacity
+                </a>
+              </div>
+
+              {/* Step 3: Import and Arrange Tracks */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 3: Import and Arrange Your Tracks
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li>Open Audacity and drag your audio files into the workspace</li>
+                  <li>Arrange tracks in your desired order on the timeline</li>
+                  <li>Use the Time Shift Tool (F5) to move tracks around</li>
+                  <li>Overlap tracks slightly (2-4 seconds) where you want transitions</li>
+                </ol>
+              </div>
+
+              {/* Step 4: Create Smooth Transitions */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 4: Create Smooth Transitions
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li>Select the end of the first track (last 4-8 seconds)</li>
+                  <li>Apply <strong>Fade Out</strong> (Effect → Fade Out)</li>
+                  <li>Select the beginning of the next track (first 4-8 seconds)</li>
+                  <li>Apply <strong>Fade In</strong> (Effect → Fade In)</li>
+                  <li>Repeat for each transition to create a seamless flow</li>
+                </ol>
+              </div>
+
+              {/* Step 5: Fine-Tune Volume Levels */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 5: Fine-Tune Volume Levels
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li>Listen to your mix and identify volume inconsistencies</li>
+                  <li>Select quieter tracks and use Effect → Amplify to boost them</li>
+                  <li>Use Effect → Normalize to ensure consistent loudness</li>
+                  <li>Avoid clipping (red bars in the waveform)</li>
+                </ol>
+              </div>
+
+              {/* Step 6: Export as MP3 */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 6: Export Your Mix as MP3
+                </h3>
+                <ol className="list-decimal list-inside space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li>Click File → Export → Export as MP3</li>
+                  <li>Set quality to 192-320 kbps for best results</li>
+                  <li>Name your file (e.g., "YourName - MixTitle.mp3")</li>
+                  <li>Click Save</li>
+                </ol>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono mt-2 italic">
+                  Note: If MP3 export isn't available, you may need to install the LAME encoder (free)
+                </p>
+              </div>
+
+              {/* Step 7: Upload Your Mix */}
+              <div>
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-2">
+                  Step 7: Upload Your Mix
+                </h3>
+                <p className="text-gray-700 dark:text-gray-300 font-mono text-sm mb-2">
+                  You have two options for submitting your mix:
+                </p>
+                <ul className="list-disc list-inside space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li><strong>Upload to a platform</strong> (SoundCloud, Mixcloud) and share the URL below</li>
+                  <li><strong>Upload the file directly</strong> using the file upload option below</li>
+                </ul>
+              </div>
+
+              {/* Tips and Best Practices */}
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg border-2 border-gray-200 dark:border-gray-700">
+                <h3 className="text-lg font-mono font-bold text-navy dark:text-navy-light mb-3">
+                  💡 Tips for a Great Mix
+                </h3>
+                <ul className="space-y-2 text-gray-700 dark:text-gray-300 font-mono text-sm">
+                  <li>• Keep a consistent mood or energy level throughout</li>
+                  <li>• Pay attention to BPM (beats per minute) for smoother transitions</li>
+                  <li>• Consider harmonic mixing (matching musical keys)</li>
+                  <li>• Don't rush - spend time getting transitions just right</li>
+                  <li>• Listen to the full mix before uploading to catch any issues</li>
+                  <li>• Add your own creative touches (effects, samples, voiceovers)</li>
+                </ul>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-8">
