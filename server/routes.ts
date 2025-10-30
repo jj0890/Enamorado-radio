@@ -3300,10 +3300,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { type, genre, search, limit, sort } = req.query;
       
       // Fetch all content types in parallel
-      const [allMixes, allEpisodes, allGuides] = await Promise.all([
+      const [allMixes, allEpisodes, allGuides, allPlaylists] = await Promise.all([
         storage.getMixSubmissions({}),
         storage.getEpisodes({}),
-        storage.getGuides ? storage.getGuides({}) : Promise.resolve([])
+        storage.getGuides ? storage.getGuides({}) : Promise.resolve([]),
+        storage.getPlaylistSubmissions({})
       ]);
 
       // Normalize mixes to ContentItem format
@@ -3354,8 +3355,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
           url: ep.audioUrl,
         }));
 
-      // Combine all content (playlists to be added in future)
-      let allContent = [...mixItems, ...episodeItems];
+      // Normalize playlists to ContentItem format
+      const playlistItems = allPlaylists
+        .filter(playlist => playlist.approvedAt !== null)
+        .map(playlist => ({
+          type: 'playlist' as const,
+          id: playlist.id,
+          title: playlist.title,
+          curatorName: playlist.curatorName,
+          artworkUrl: playlist.artworkUrl || null,
+          genre: null, // Playlists don't have genre
+          description: playlist.description || null,
+          playlistUrl: playlist.playlistUrl,
+          trackCount: playlist.trackCount || null,
+          tags: playlist.tags || null,
+          status: playlist.status || 'approved',
+          submittedAt: playlist.submittedAt ? new Date(playlist.submittedAt) : null,
+          createdAt: playlist.createdAt ? new Date(playlist.createdAt) : null,
+          isFeatured: playlist.featuredAt !== null,
+          url: playlist.playlistUrl,
+        }));
+
+      // Combine all content
+      let allContent = [...mixItems, ...episodeItems, ...playlistItems];
 
       // Apply type filter
       if (type && type !== 'all') {
@@ -3408,7 +3430,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limitNum = limit ? parseInt(limit as string) : 24;
       allContent = allContent.slice(0, limitNum);
 
-      console.log(`[Community API] Returning ${allContent.length} items (${mixItems.length} mixes, ${episodeItems.length} episodes)`);
+      console.log(`[Community API] Returning ${allContent.length} items (${mixItems.length} mixes, ${episodeItems.length} episodes, ${playlistItems.length} playlists)`);
       res.json(allContent);
 
     } catch (error) {
@@ -3484,6 +3506,153 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[Community API] Error fetching item:', error);
       res.status(500).json({ error: 'Failed to fetch content item' });
+    }
+  });
+
+  // =================
+  // PLAYLIST SUBMISSIONS API
+  // =================
+
+  // PUBLIC: Submit a playlist
+  app.post('/api/public/playlists', async (req, res) => {
+    try {
+      const { curatorName, title, playlistUrl, description, tags, artworkUrl, curatorEmail } = req.body;
+      
+      // Basic validation
+      if (!curatorName || !title || !playlistUrl) {
+        return res.status(400).json({ error: 'curatorName, title, and playlistUrl are required' });
+      }
+
+      // Detect platform from URL
+      let platform = 'unknown';
+      if (playlistUrl.includes('spotify.com')) {
+        platform = 'spotify';
+      } else if (playlistUrl.includes('apple.com') || playlistUrl.includes('music.apple')) {
+        platform = 'apple_music';
+      } else if (playlistUrl.includes('youtube.com') || playlistUrl.includes('youtu.be')) {
+        platform = 'youtube';
+      }
+
+      const submission = await storage.createPlaylistSubmission({
+        curatorName,
+        title,
+        playlistUrl,
+        description: description || null,
+        tags: tags || null,
+        artworkUrl: artworkUrl || null,
+        curatorEmail: curatorEmail || null,
+        platform,
+      });
+
+      console.log(`[Playlist Submission] Created submission ${submission.id}: "${submission.title}" by ${submission.curatorName}`);
+      res.status(201).json({ success: true, id: submission.id, submission });
+    } catch (error) {
+      console.error('[Playlist Submission] Error:', error);
+      res.status(500).json({ error: 'Failed to submit playlist' });
+    }
+  });
+
+  // PUBLIC: Get approved playlists
+  app.get('/api/public/playlists', async (req, res) => {
+    try {
+      const { limit, featured } = req.query;
+      const playlists = await storage.getPlaylistSubmissions({
+        approved: true,
+        featured: featured === 'true' ? true : undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+      
+      res.json(playlists);
+    } catch (error) {
+      console.error('[Playlist API] Error:', error);
+      res.status(500).json({ error: 'Failed to fetch playlists' });
+    }
+  });
+
+  // EDITOR: Get all playlist submissions (requires editor role)
+  app.get('/api/editor/playlists', requireRole('editor'), async (req, res) => {
+    try {
+      const { status, limit } = req.query;
+      const playlists = await storage.getPlaylistSubmissions({
+        status: status as string,
+        limit: limit ? parseInt(limit as string) : undefined,
+      });
+      
+      res.json(playlists);
+    } catch (error) {
+      console.error('[Editor Playlists] Error:', error);
+      res.status(500).json({ error: 'Failed to fetch playlist submissions' });
+    }
+  });
+
+  // EDITOR: Approve/Unapprove playlist
+  app.patch('/api/editor/playlists/:id/approve', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const playlist = await storage.togglePlaylistApproval(id);
+      
+      broadcast({ type: 'playlist_updated', data: playlist });
+      res.json(playlist);
+    } catch (error) {
+      console.error('[Editor Playlists] Approve error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to approve playlist' });
+    }
+  });
+
+  // EDITOR: Feature/Unfeature playlist
+  app.patch('/api/editor/playlists/:id/feature', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const playlist = await storage.togglePlaylistFeature(id);
+      
+      broadcast({ type: 'playlist_updated', data: playlist });
+      res.json(playlist);
+    } catch (error) {
+      console.error('[Editor Playlists] Feature error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to feature playlist' });
+    }
+  });
+
+  // EDITOR: Update playlist submission
+  app.patch('/api/editor/playlists/:id', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      const playlist = await storage.updatePlaylistSubmission(id, updates);
+      
+      broadcast({ type: 'playlist_updated', data: playlist });
+      res.json(playlist);
+    } catch (error) {
+      console.error('[Editor Playlists] Update error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to update playlist' });
+    }
+  });
+
+  // EDITOR: Delete playlist submission
+  app.delete('/api/editor/playlists/:id', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deletePlaylistSubmission(id);
+      
+      broadcast({ type: 'playlist_deleted', data: { id } });
+      res.json({ success: true });
+    } catch (error) {
+      console.error('[Editor Playlists] Delete error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to delete playlist' });
+    }
+  });
+
+  // PUBLIC: Like a playlist
+  app.post('/api/playlists/:id/like', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const playlist = await storage.likePlaylistSubmission(id);
+      
+      res.json({ success: true, likes: playlist.likes });
+    } catch (error) {
+      console.error('[Playlist Like] Error:', error);
+      res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to like playlist' });
     }
   });
 
