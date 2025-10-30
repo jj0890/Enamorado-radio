@@ -39,6 +39,7 @@ import GenreDiscovery from "./pages/GenreDiscovery";
 import AboutPage from "./pages/AboutPage";
 import ResidentsPage from "./pages/ResidentsPage";
 import CommunityPage from "./pages/CommunityPage";
+import CommunityDetailPage from "./pages/CommunityDetailPage";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/mixes" component={MixesLanding} />
       <Route path="/submit-mix" component={SubmitMix} />
       <Route path="/community" component={CommunityPage} />
+      <Route path="/community/:id" component={CommunityDetailPage} />
       <Route path="/about" component={AboutPage} />
       <Route path="/residents" component={ResidentsPage} />
       <Route path="/residency" component={ResidentsPage} />

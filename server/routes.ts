@@ -3357,6 +3357,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // GET individual content item by ID or slug
+  app.get('/api/community/:id', async (req, res) => {
+    try {
+      const itemId = req.params.id;
+      const numericId = parseInt(itemId);
+      const isNumeric = !isNaN(numericId);
+      
+      // Try mixes (by ID or slug)
+      const allMixes = await storage.getAllMixSubmissions();
+      const mix = allMixes.find((m: any) => 
+        (isNumeric && m.id === numericId) || 
+        (m.slug && m.slug === itemId)
+      );
+      
+      if (mix) {
+        const mixItem = {
+          type: 'mix' as const,
+          id: mix.id,
+          title: mix.title,
+          name: mix.name,
+          slug: (mix as any).slug || null,
+          artworkUrl: (mix as any).artwork || (mix as any).artUrl || (mix as any).artworkUrl || null,
+          genre: mix.genre || null,
+          description: (mix as any).description || (mix as any).about || null,
+          url: mix.url,
+          submittedAt: mix.submittedAt,
+          createdAt: mix.submittedAt,
+          isFeatured: mix.isFeatured || false,
+        };
+        return res.json(mixItem);
+      }
+
+      // Try episodes (by ID or slug)
+      const episodes = await storage.getEpisodes();
+      const episode = episodes.find((e: any) => 
+        (isNumeric && e.id === numericId) || 
+        (e.slug && e.slug === itemId)
+      );
+      
+      if (episode) {
+        const episodeItem = {
+          type: 'episode' as const,
+          id: episode.id,
+          title: episode.title,
+          hostName: episode.hostName,
+          slug: episode.slug || null,
+          artworkUrl: episode.artUrl || episode.artworkUrl || null,
+          genre: episode.genre || null,
+          description: episode.about || null,
+          tracklist: episode.tracklist || null,
+          airDate: episode.airDate,
+          url: (episode as any).streamUrl || (episode as any).fileUrl || null,
+          submittedAt: episode.airDate,
+          createdAt: episode.airDate,
+          isFeatured: episode.isFeatured || false,
+        };
+        return res.json(episodeItem);
+      }
+
+      // Try guides (by ID or slug)
+      const guides = await storage.getGuides();
+      const guide = guides.find((g: any) => 
+        (isNumeric && g.id === numericId) || 
+        (g.slug && g.slug === itemId)
+      );
+      
+      if (guide) {
+        const writingItem = {
+          type: 'writing' as const,
+          id: guide.id,
+          title: guide.title,
+          authorName: guide.authorName,
+          artworkUrl: guide.coverImageUrl || null,
+          genre: guide.guideType || null,
+          description: guide.description,
+          guideType: guide.guideType,
+          slug: guide.slug,
+          tags: guide.tags || null,
+          intro: guide.intro,
+          coverImageUrl: guide.coverImageUrl || null,
+          status: guide.status,
+          viewCount: guide.viewCount || 0,
+          publishedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
+          createdAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
+          submittedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
+          isFeatured: guide.isFeatured || false,
+          url: `/guides/${guide.slug}`,
+        };
+        return res.json(writingItem);
+      }
+
+      // Not found
+      res.status(404).json({ error: 'Content not found' });
+
+    } catch (error) {
+      console.error('[Community API] Error fetching item:', error);
+      res.status(500).json({ error: 'Failed to fetch content item' });
+    }
+  });
+
   // =================
   // RESIDENT APPLICATIONS API
   // =================
