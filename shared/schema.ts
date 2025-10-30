@@ -62,6 +62,18 @@ export const guides = pgTable("guides", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Hero Banners - Seasonal homepage banners
+export const heroBanners = pgTable("hero_banners", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  seasonLabel: text("season_label").notNull(), // e.g., "Winter 2025"
+  imagePath: text("image_path").notNull(),
+  ctaUrl: text("cta_url"), // Optional call-to-action link
+  isActive: boolean("is_active").default(false),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Mix Submissions - Community submissions with timestamp-based approval system
 export const mixSubmissions = pgTable("mix_submissions", {
   id: serial("id").primaryKey(),
@@ -394,6 +406,11 @@ export const insertGuideSchema = createInsertSchema(guides).omit({
   viewCount: true,
 });
 
+export const insertHeroBannerSchema = createInsertSchema(heroBanners).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertMixSubmissionSchema = createInsertSchema(mixSubmissions).omit({
   id: true,
   submittedAt: true,
@@ -487,6 +504,7 @@ export const insertAlbumSuggestionNoteSchema = createInsertSchema(albumSuggestio
 export type Show = typeof shows.$inferSelect;
 export type Episode = typeof episodes.$inferSelect;
 export type Guide = typeof guides.$inferSelect;
+export type HeroBanner = typeof heroBanners.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
 export type EpisodeSubmission = typeof episodeSubmissions.$inferSelect;
 export type Schedule = typeof schedule.$inferSelect;
@@ -505,6 +523,7 @@ export type AlbumSuggestionNote = typeof albumSuggestionNotes.$inferSelect;
 export type InsertShow = z.infer<typeof insertShowSchema>;
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
 export type InsertGuide = z.infer<typeof insertGuideSchema>;
+export type InsertHeroBanner = z.infer<typeof insertHeroBannerSchema>;
 export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;
 export type InsertEpisodeSubmission = z.infer<typeof insertEpisodeSubmissionSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
