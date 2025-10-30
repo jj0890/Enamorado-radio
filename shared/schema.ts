@@ -179,6 +179,46 @@ export const episodeSubmissions = pgTable("episode_submissions", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Playlist Submissions - Community curated playlists (Spotify, Apple Music, etc.)
+export const playlistSubmissions = pgTable("playlist_submissions", {
+  id: serial("id").primaryKey(),
+  
+  // Curator information
+  curatorName: text("curator_name").notNull(), // Person who curated the playlist
+  curatorEmail: text("curator_email"), // Optional contact
+  
+  // Playlist metadata
+  title: text("title").notNull(), // Playlist title
+  description: text("description"), // Description of the playlist
+  playlistUrl: text("playlist_url").notNull(), // Spotify/Apple Music/YouTube playlist URL
+  artworkUrl: text("artwork_url"), // Optional custom artwork override
+  tags: text("tags").array(), // ["chill", "house", "90s"]
+  
+  // oEmbed metadata cache (fetched from platform)
+  metadata: jsonb("metadata"), // Cached oEmbed response: {provider, thumbnail, trackCount, duration, etc}
+  platform: text("platform"), // "spotify" | "apple_music" | "youtube"
+  trackCount: integer("track_count"), // Number of tracks (from oEmbed if available)
+  
+  // Status management (timestamp-based like mixes)
+  status: text("status").notNull().default("pending"), // pending, approved, featured, rejected
+  approvedAt: timestamp("approved_at"), // null = not approved, timestamp = approved
+  featuredAt: timestamp("featured_at"), // null = not featured, timestamp = featured
+  
+  // Like system
+  likes: integer("likes").default(0), // Like count
+  
+  // Editor notes and moderation
+  editorNotes: text("editor_notes"), // Internal notes for editors
+  reviewedBy: text("reviewed_by"), // Admin username who reviewed
+  reviewedAt: timestamp("reviewed_at"),
+  rejectionReason: text("rejection_reason"), // Feedback if rejected
+  
+  // Audit trail
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Schedule - Upcoming and past shows
 export const schedule = pgTable("schedule", {
   id: serial("id").primaryKey(),
@@ -429,6 +469,19 @@ export const insertEpisodeSubmissionSchema = createInsertSchema(episodeSubmissio
   updatedAt: true,
 });
 
+export const insertPlaylistSubmissionSchema = createInsertSchema(playlistSubmissions).omit({
+  id: true,
+  submittedAt: true,
+  reviewedAt: true,
+  reviewedBy: true,
+  status: true,
+  createdAt: true,
+  updatedAt: true,
+  approvedAt: true,
+  featuredAt: true,
+  likes: true,
+});
+
 export const insertScheduleSchema = createInsertSchema(schedule).omit({
   id: true,
   createdAt: true,
@@ -507,6 +560,7 @@ export type Guide = typeof guides.$inferSelect;
 export type HeroBanner = typeof heroBanners.$inferSelect;
 export type MixSubmission = typeof mixSubmissions.$inferSelect;
 export type EpisodeSubmission = typeof episodeSubmissions.$inferSelect;
+export type PlaylistSubmission = typeof playlistSubmissions.$inferSelect;
 export type Schedule = typeof schedule.$inferSelect;
 export type ResidentApplication = typeof residentApplications.$inferSelect;
 export type Admin = typeof admins.$inferSelect;
@@ -526,6 +580,7 @@ export type InsertGuide = z.infer<typeof insertGuideSchema>;
 export type InsertHeroBanner = z.infer<typeof insertHeroBannerSchema>;
 export type InsertMixSubmission = z.infer<typeof insertMixSubmissionSchema>;
 export type InsertEpisodeSubmission = z.infer<typeof insertEpisodeSubmissionSchema>;
+export type InsertPlaylistSubmission = z.infer<typeof insertPlaylistSubmissionSchema>;
 export type InsertSchedule = z.infer<typeof insertScheduleSchema>;
 export type InsertResidentApplication = z.infer<typeof insertResidentApplicationSchema>;
 export type InsertAdmin = z.infer<typeof insertAdminSchema>;
