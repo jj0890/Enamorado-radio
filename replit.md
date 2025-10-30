@@ -14,6 +14,15 @@ External forms: Prefer Google Forms for complex applications over custom form im
 UI terminology: Use "community programming" instead of "residents" in all user-facing copy
 
 ## Recent Changes (Station Mode Implementation)
+- **Content Type Migration** (Oct 30, 2025): Replaced "writing" with "playlists" content type:
+  - Removed WritingContentItem interface from schema, updated ContentItem union type
+  - Updated CommunityPage and CommunityDetailPage to use "playlist" type instead of "writing"
+  - Purple badge styling (bg-purple-600) for playlist content type
+  - Server routes.ts cleaned up to remove guides/writing integration from community API
+  - Playlist infrastructure ready for future implementation (PlaylistContentItem already defined in schema)
+- **Bug Fixes** (Oct 30, 2025): Fixed critical rendering issues:
+  - Fixed blank /mixes page by adding missing ContentCard import to MixesLanding.tsx
+  - Removed invalid hostName property from ContentCard content prop
 - **UI/UX Improvements** (Oct 30, 2025): Enhanced visual consistency and mobile experience:
   - ContentCard redesigned with square aspect ratio (1:1) for prominent artwork display like SoundCloud embeds
   - Typography enhancements: larger bold titles (text-base), readable artist names (text-sm), compact badges (9px)

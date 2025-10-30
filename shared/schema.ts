@@ -582,21 +582,6 @@ export interface EpisodeContentItem extends ContentItemBase {
   viewCount?: number;
 }
 
-// Writing content type (from guides - editorial content)
-export interface WritingContentItem extends ContentItemBase {
-  type: 'writing';
-  authorName: string;
-  description: string;
-  guideType: string;
-  slug: string;
-  tags?: string[] | null;
-  intro: string;
-  coverImageUrl?: string | null;
-  status: string;
-  viewCount?: number;
-  publishedAt?: Date | null;
-}
-
 // Art content type (future: visual art, photography, etc.)
 export interface ArtContentItem extends ContentItemBase {
   type: 'art';
@@ -623,7 +608,6 @@ export interface PlaylistContentItem extends ContentItemBase {
 export type ContentItem =
   | MixContentItem
   | EpisodeContentItem
-  | WritingContentItem
   | ArtContentItem
   | PlaylistContentItem;
 
@@ -634,10 +618,6 @@ export function isMixContent(item: ContentItem): item is MixContentItem {
 
 export function isEpisodeContent(item: ContentItem): item is EpisodeContentItem {
   return item.type === 'episode';
-}
-
-export function isWritingContent(item: ContentItem): item is WritingContentItem {
-  return item.type === 'writing';
 }
 
 export function isArtContent(item: ContentItem): item is ArtContentItem {

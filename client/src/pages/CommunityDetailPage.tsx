@@ -80,7 +80,6 @@ export default function CommunityDetailPage() {
     switch (item.type) {
       case 'mix': return 'Mix';
       case 'episode': return 'Episode';
-      case 'writing': return 'Writing';
       case 'art': return 'Art';
       case 'playlist': return 'Playlist';
       default: return 'Content';
@@ -172,7 +171,7 @@ export default function CommunityDetailPage() {
               <span className={`inline-block px-3 py-1 text-xs font-mono uppercase tracking-wider ${
                 item.type === 'mix' ? 'bg-navy text-white' :
                 item.type === 'episode' ? 'bg-blue-600 text-white' :
-                item.type === 'writing' ? 'bg-green-600 text-white' :
+                item.type === 'playlist' ? 'bg-purple-600 text-white' :
                 'bg-gray-600 text-white'
               }`} data-testid={`badge-${item.type}`}>
                 {getTypeLabel()}

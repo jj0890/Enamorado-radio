@@ -3,6 +3,7 @@ import { Link, useLocation, useSearch } from 'wouter';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Play, ExternalLink, Plus, Radio, Users, Hash, Music } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import ContentCard from '@/components/ContentCard';
 
 // Genre Quick Navigation Component
 function GenreQuickNav() {
@@ -464,7 +465,6 @@ export default function MixesLanding() {
                     ...submission,
                     type: 'mix',
                     artworkUrl: submission.artUrl || submission.metadata?.imageUrl || null,
-                    hostName: submission.name,
                   }}
                 />
               ))}

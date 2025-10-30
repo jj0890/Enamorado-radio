@@ -3354,33 +3354,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           url: ep.audioUrl,
         }));
 
-      // Normalize guides to ContentItem format (writing)
-      const writingItems = allGuides
-        .filter((guide: any) => guide.status === 'published')
-        .map((guide: any) => ({
-          type: 'writing' as const,
-          id: guide.id,
-          title: guide.title,
-          authorName: guide.authorName,
-          artworkUrl: guide.coverImageUrl || null,
-          genre: guide.guideType || null,
-          description: guide.description,
-          guideType: guide.guideType,
-          slug: guide.slug,
-          tags: guide.tags || null,
-          intro: guide.intro,
-          coverImageUrl: guide.coverImageUrl || null,
-          status: guide.status,
-          viewCount: guide.viewCount || 0,
-          publishedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
-          createdAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
-          submittedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
-          isFeatured: guide.isFeatured || false,
-          url: `/guides/${guide.slug}`,
-        }));
-
-      // Combine all content
-      let allContent = [...mixItems, ...episodeItems, ...writingItems];
+      // Combine all content (playlists to be added in future)
+      let allContent = [...mixItems, ...episodeItems];
 
       // Apply type filter
       if (type && type !== 'all') {
@@ -3433,7 +3408,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const limitNum = limit ? parseInt(limit as string) : 24;
       allContent = allContent.slice(0, limitNum);
 
-      console.log(`[Community API] Returning ${allContent.length} items (${mixItems.length} mixes, ${episodeItems.length} episodes, ${writingItems.length} writing)`);
+      console.log(`[Community API] Returning ${allContent.length} items (${mixItems.length} mixes, ${episodeItems.length} episodes)`);
       res.json(allContent);
 
     } catch (error) {
@@ -3501,38 +3476,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(episodeItem);
       }
 
-      // Try guides (by ID or slug)
-      const guides = await storage.getGuides();
-      const guide = guides.find((g: any) => 
-        (isNumeric && g.id === numericId) || 
-        (g.slug && g.slug === itemId)
-      );
+      // Playlist support to be added in future
       
-      if (guide) {
-        const writingItem = {
-          type: 'writing' as const,
-          id: guide.id,
-          title: guide.title,
-          authorName: guide.authorName,
-          artworkUrl: guide.coverImageUrl || null,
-          genre: guide.guideType || null,
-          description: guide.description,
-          guideType: guide.guideType,
-          slug: guide.slug,
-          tags: guide.tags || null,
-          intro: guide.intro,
-          coverImageUrl: guide.coverImageUrl || null,
-          status: guide.status,
-          viewCount: guide.viewCount || 0,
-          publishedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
-          createdAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
-          submittedAt: guide.publishedAt ? new Date(guide.publishedAt) : null,
-          isFeatured: guide.isFeatured || false,
-          url: `/guides/${guide.slug}`,
-        };
-        return res.json(writingItem);
-      }
-
       // Not found
       res.status(404).json({ error: 'Content not found' });
 

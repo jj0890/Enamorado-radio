@@ -5,13 +5,13 @@ import Navigation from '@/components/Navigation';
 import ContentCard from '@/components/ContentCard';
 import { ContentItem } from '@shared/schema';
 
-type ContentType = 'all' | 'mix' | 'episode' | 'writing';
+type ContentType = 'all' | 'mix' | 'episode' | 'playlist';
 
 const filterOptions: { value: ContentType; label: string }[] = [
   { value: 'all', label: 'All' },
   { value: 'mix', label: 'Mixes' },
   { value: 'episode', label: 'Episodes' },
-  { value: 'writing', label: 'Writing' },
+  { value: 'playlist', label: 'Playlists' },
 ];
 
 export default function CommunityPage() {
