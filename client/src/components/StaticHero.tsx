@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { Play, Pause } from 'lucide-react';
 import { useAudio } from '@/providers/AudioProvider';
+import type { HeroBanner } from '@shared/schema';
 
 interface StaticHeroProps {
   backgroundImage?: string;
@@ -29,11 +30,20 @@ export default function StaticHero({
   const { state, actions } = useAudio();
   const isPlaying = state.status === 'playing';
 
+  // Fetch active hero banner
+  const { data: activeBanner } = useQuery<HeroBanner | null>({
+    queryKey: ['/api/hero-banners/active'],
+    refetchInterval: 60000, // Poll every minute
+  });
+
   // Fetch now playing data for live metadata overlay
   const { data: nowPlaying } = useQuery<NowPlayingData>({
     queryKey: ['/api/nowplaying'],
     refetchInterval: 10000, // Poll every 10 seconds
   });
+
+  // Use active banner image if available, otherwise fallback to prop
+  const displayImage = activeBanner?.imageUrl || backgroundImage;
 
   const isLive = nowPlaying?.live?.is_live || false;
   const streamerName = nowPlaying?.live?.streamer_name || 'Live DJ';
@@ -62,7 +72,7 @@ export default function StaticHero({
       {/* Static Background Image */}
       <div 
         className="absolute inset-0 bg-cover bg-center"
-        style={{ backgroundImage: `url(${backgroundImage})` }}
+        style={{ backgroundImage: `url(${displayImage})` }}
       />
       
       {/* Navy Gradient Overlay */}

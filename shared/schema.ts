@@ -66,9 +66,9 @@ export const guides = pgTable("guides", {
 export const heroBanners = pgTable("hero_banners", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
-  seasonLabel: text("season_label").notNull(), // e.g., "Winter 2025"
-  imagePath: text("image_path").notNull(),
-  ctaUrl: text("cta_url"), // Optional call-to-action link
+  subtitle: text("subtitle"), // Optional subtitle
+  imageUrl: text("image_url").notNull(), // Banner image URL
+  overlayText: text("overlay_text"), // Live metadata template
   isActive: boolean("is_active").default(false),
   displayOrder: integer("display_order").default(0),
   createdAt: timestamp("created_at").defaultNow(),

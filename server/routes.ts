@@ -25,6 +25,7 @@ import { Readable } from "stream";
 import { 
   insertEpisodeSchema,
   insertGuideSchema,
+  insertHeroBannerSchema,
   insertMixSubmissionSchema,
   insertScheduleSchema,
   insertResidentApplicationSchema,
@@ -1499,6 +1500,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating guide:', error);
       res.status(400).json({ error: 'Invalid guide data' });
+    }
+  });
+
+  // =================
+  // HERO BANNERS API
+  // =================
+
+  // Public: Get active hero banner
+  app.get('/api/hero-banners/active', async (req, res) => {
+    try {
+      const banner = await storage.getActiveBanner();
+      res.json(banner || null);
+    } catch (error) {
+      console.error('Error fetching active banner:', error);
+      res.status(500).json({ error: 'Failed to fetch active banner' });
+    }
+  });
+
+  // Editor: Get all hero banners
+  app.get('/api/editor/hero-banners', requireRole('editor'), async (req, res) => {
+    try {
+      const banners = await storage.getHeroBanners();
+      res.json(banners);
+    } catch (error) {
+      console.error('Error fetching hero banners:', error);
+      res.status(500).json({ error: 'Failed to fetch hero banners' });
+    }
+  });
+
+  // Editor: Create hero banner
+  app.post('/api/editor/hero-banners', requireRole('editor'), async (req, res) => {
+    try {
+      const validated = insertHeroBannerSchema.parse(req.body);
+      const banner = await storage.createHeroBanner(validated);
+      res.status(201).json(banner);
+    } catch (error) {
+      console.error('Error creating hero banner:', error);
+      res.status(400).json({ error: 'Invalid hero banner data' });
+    }
+  });
+
+  // Editor: Update hero banner
+  app.patch('/api/editor/hero-banners/:id', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      // Validate partial update, excluding isActive (only activation endpoint can change it)
+      const validated = insertHeroBannerSchema.omit({ isActive: true }).partial().parse(req.body);
+      const banner = await storage.updateHeroBanner(id, validated);
+      res.json(banner);
+    } catch (error) {
+      console.error('Error updating hero banner:', error);
+      res.status(400).json({ error: 'Invalid hero banner update data' });
+    }
+  });
+
+  // Editor: Set active banner
+  app.post('/api/editor/hero-banners/:id/activate', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const banner = await storage.setActiveBanner(id);
+      
+      // Broadcast banner change
+      broadcast({
+        type: 'bannerActivated',
+        banner,
+        timestamp: new Date()
+      });
+      
+      res.json(banner);
+    } catch (error) {
+      console.error('Error activating banner:', error);
+      res.status(500).json({ error: 'Failed to activate banner' });
+    }
+  });
+
+  // Editor: Delete hero banner
+  app.delete('/api/editor/hero-banners/:id', requireRole('editor'), async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      await storage.deleteHeroBanner(id);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting hero banner:', error);
+      res.status(500).json({ error: 'Failed to delete hero banner' });
     }
   });
 

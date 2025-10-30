@@ -14,6 +14,15 @@ External forms: Prefer Google Forms for complex applications over custom form im
 UI terminology: Use "community programming" instead of "residents" in all user-facing copy
 
 ## Recent Changes (Station Mode Implementation)
+- **Hero Banner System** (Oct 30, 2025): Completed full-stack seasonal banner management:
+  - HeroBanner schema with title, subtitle, imageUrl, overlayText fields in shared/schema.ts
+  - Complete CRUD operations in IStorage and FileStorage (server/storage.ts, server/persistentStorage.ts)
+  - Editor-only API routes: GET/POST/PATCH/DELETE /api/editor/hero-banners, POST /api/editor/hero-banners/:id/activate
+  - Public endpoint GET /api/hero-banners/active for homepage consumption
+  - HeroBannersAdmin page at /admin/hero-banners with upload form, preview, and banner list
+  - EditorDashboard card for quick access to banner management
+  - StaticHero component now consumes active banner from API (polls every 60s)
+  - WebSocket broadcast on banner activation for real-time updates
 - **P1 Audio Enhancement** (Oct 28, 2025): Enhanced global audio controller with professional features:
   - Artwork caching system prevents flicker during track changes with smooth 500ms crossfade transitions
   - Metadata persistence across route changes via enhanced audioController singleton

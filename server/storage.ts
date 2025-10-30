@@ -1,7 +1,8 @@
 import { 
   Show,
   Episode, 
-  Guide, 
+  Guide,
+  HeroBanner,
   MixSubmission, 
   Schedule, 
   ResidentApplication,
@@ -11,7 +12,8 @@ import {
   CurrentPlayback,
   InsertShow,
   InsertEpisode,
-  InsertGuide, 
+  InsertGuide,
+  InsertHeroBanner,
   InsertMixSubmission,
   InsertSchedule,
   InsertResidentApplication,
@@ -45,6 +47,15 @@ export interface IStorage {
   createGuide(guide: InsertGuide): Promise<Guide>;
   updateGuide(id: number, guide: Partial<Guide>): Promise<Guide>;
   deleteGuide(id: number): Promise<void>;
+
+  // Hero Banners - Seasonal homepage banners
+  getHeroBanners(): Promise<HeroBanner[]>;
+  getActiveBanner(): Promise<HeroBanner | undefined>;
+  getHeroBannerById(id: number): Promise<HeroBanner | undefined>;
+  createHeroBanner(banner: InsertHeroBanner): Promise<HeroBanner>;
+  updateHeroBanner(id: number, banner: Partial<HeroBanner>): Promise<HeroBanner>;
+  deleteHeroBanner(id: number): Promise<void>;
+  setActiveBanner(id: number): Promise<HeroBanner>;
 
   // Mix Submissions - Community content
   getMixSubmissions(filters?: { status?: string; genre?: string; limit?: number; featured?: boolean; approved?: boolean }): Promise<MixSubmission[]>;

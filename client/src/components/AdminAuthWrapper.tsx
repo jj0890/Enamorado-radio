@@ -15,6 +15,7 @@ import AdminEpisodeQueue from "@/pages/AdminEpisodeQueue";
 import AdminResidentApplications from "@/pages/AdminResidentApplications";
 import AdminResidents from "@/pages/AdminResidents";
 import AdminAlbums from "@/pages/AdminAlbums";
+import HeroBannersAdmin from "@/pages/HeroBannersAdmin";
 import AdminSettings from "@/pages/AdminSettings";
 import RadioOps from "@/pages/RadioOps";
 import EditorPortal from "@/pages/EditorPortal";
@@ -210,6 +211,8 @@ export default function AdminAuthWrapper() {
         return <AdminResidents />;
       case '/admin/albums':
         return <AdminAlbums />;
+      case '/admin/hero-banners':
+        return <HeroBannersAdmin />;
       case '/admin/settings':
         return <AdminSettings />;
       case '/admin/radio-ops':

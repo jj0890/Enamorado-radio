@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
   Music, 
-  Disc, 
+  Disc,
+  Image,
   LogOut,
   CheckCircle2,
   Clock,
@@ -65,6 +66,16 @@ export default function EditorDashboard({ onLogout, currentUser }: EditorDashboa
       color: "text-green-500",
       bgColor: "bg-green-50",
       dataTestId: "card-albums"
+    },
+    {
+      title: "Hero Banners",
+      description: "Upload and manage seasonal homepage banners",
+      icon: Image,
+      href: "/admin/hero-banners",
+      count: 0, // No pending count needed for banners
+      color: "text-orange-500",
+      bgColor: "bg-orange-50",
+      dataTestId: "card-hero-banners"
     }
   ];
 

@@ -2,11 +2,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import {
   Episode, 
-  Guide, 
+  Guide,
+  HeroBanner,
   MixSubmission,
   EpisodeSubmission,
   Schedule, 
-  SongSubmission,
   ResidentApplication,
   Resident,
   Admin,
@@ -18,11 +18,11 @@ import {
   AlbumPickItem,
   AlbumSuggestionNote,
   InsertEpisode,
-  InsertGuide, 
+  InsertGuide,
+  InsertHeroBanner,
   InsertMixSubmission,
   InsertEpisodeSubmission,
   InsertSchedule,
-  InsertSongSubmission,
   InsertResidentApplication,
   InsertResident,
   InsertAdmin,
@@ -44,10 +44,10 @@ export class FileStorage implements IStorage {
   
   private episodes: Episode[] = [];
   private guides: Guide[] = [];
+  private heroBanners: HeroBanner[] = [];
   private mixSubmissions: MixSubmission[] = [];
   private episodeSubmissions: EpisodeSubmission[] = [];
   private scheduleItems: Schedule[] = [];
-  private songSubmissions: SongSubmission[] = [];
   private residentApplications: ResidentApplication[] = [];
   private residents: Resident[] = [];
   private admins: Admin[] = [];
@@ -115,11 +115,11 @@ export class FileStorage implements IStorage {
       // Load all data files
       const files = [
         'episodes.json',
-        'guides.json', 
+        'guides.json',
+        'heroBanners.json',
         'mixSubmissions.json',
         'episodeSubmissions.json',
         'scheduleItems.json',
-        'songSubmissions.json',
         'residentApplications.json',
         'residents.json',
         'admins.json',
@@ -144,6 +144,9 @@ export class FileStorage implements IStorage {
               break;
             case 'guides.json':
               this.guides = parsed || [];
+              break;
+            case 'heroBanners.json':
+              this.heroBanners = parsed || [];
               break;
             case 'mixSubmissions.json':
               this.mixSubmissions = (parsed || []).map((mix: any) => this.migrateMixData(mix));
@@ -206,10 +209,10 @@ export class FileStorage implements IStorage {
       const allIds: number[] = [
         ...this.episodes.map(e => e.id),
         ...this.guides.map(g => g.id),
+        ...this.heroBanners.map(b => b.id),
         ...this.mixSubmissions.map(m => m.id),
         ...this.episodeSubmissions.map(e => e.id),
         ...this.scheduleItems.map(s => s.id),
-        ...this.songSubmissions.map(s => s.id),
         ...this.residentApplications.map(r => r.id),
         ...this.residents.map(r => r.id),
         ...this.admins.map(a => a.id),
@@ -384,6 +387,64 @@ export class FileStorage implements IStorage {
       this.guides.splice(index, 1);
       await this.saveData('guides', this.guides);
     }
+  }
+
+  // Hero Banners
+  async getHeroBanners(): Promise<HeroBanner[]> {
+    return this.heroBanners.sort((a, b) => b.displayOrder - a.displayOrder);
+  }
+
+  async getActiveBanner(): Promise<HeroBanner | undefined> {
+    return this.heroBanners.find(b => b.isActive);
+  }
+
+  async getHeroBannerById(id: number): Promise<HeroBanner | undefined> {
+    return this.heroBanners.find(b => b.id === id);
+  }
+
+  async createHeroBanner(banner: InsertHeroBanner): Promise<HeroBanner> {
+    const newBanner: HeroBanner = {
+      ...banner,
+      id: this.nextId++,
+      createdAt: new Date(),
+    };
+    this.heroBanners.push(newBanner);
+    await this.saveData('heroBanners', this.heroBanners);
+    console.log(`FileStorage: Created hero banner ${newBanner.id}: "${newBanner.title}"`);
+    return newBanner;
+  }
+
+  async updateHeroBanner(id: number, updates: Partial<HeroBanner>): Promise<HeroBanner> {
+    const index = this.heroBanners.findIndex(b => b.id === id);
+    if (index === -1) throw new Error('Hero banner not found');
+    
+    this.heroBanners[index] = { ...this.heroBanners[index], ...updates };
+    await this.saveData('heroBanners', this.heroBanners);
+    console.log(`FileStorage: Updated hero banner ${id}`);
+    return this.heroBanners[index];
+  }
+
+  async deleteHeroBanner(id: number): Promise<void> {
+    const index = this.heroBanners.findIndex(b => b.id === id);
+    if (index !== -1) {
+      await backupManager.createBackup(`Before deleting hero banner ${id}`);
+      this.heroBanners.splice(index, 1);
+      await this.saveData('heroBanners', this.heroBanners);
+    }
+  }
+
+  async setActiveBanner(id: number): Promise<HeroBanner> {
+    // Deactivate all banners first
+    this.heroBanners = this.heroBanners.map(b => ({ ...b, isActive: false }));
+    
+    // Activate the selected banner
+    const index = this.heroBanners.findIndex(b => b.id === id);
+    if (index === -1) throw new Error('Hero banner not found');
+    
+    this.heroBanners[index] = { ...this.heroBanners[index], isActive: true };
+    await this.saveData('heroBanners', this.heroBanners);
+    console.log(`FileStorage: Set hero banner ${id} as active`);
+    return this.heroBanners[index];
   }
 
   // Mix Submissions - PERSISTENT STORAGE FOR YOUR MIX!
