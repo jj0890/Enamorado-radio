@@ -27,6 +27,7 @@ import {
   insertGuideSchema,
   insertHeroBannerSchema,
   insertMixSubmissionSchema,
+  insertPlaylistSubmissionSchema,
   insertScheduleSchema,
   insertResidentApplicationSchema,
   insertCurrentPlaybackSchema,
@@ -3516,31 +3517,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // PUBLIC: Submit a playlist
   app.post('/api/public/playlists', async (req, res) => {
     try {
-      const { curatorName, title, playlistUrl, description, tags, artworkUrl, curatorEmail } = req.body;
+      // Validate ONLY user-editable fields - NEVER accept privileged fields from public
+      const publicSchema = z.object({
+        curatorName: z.string().min(1, 'Curator name is required'),
+        title: z.string().min(1, 'Title is required'),
+        playlistUrl: z.string().url('Must be a valid URL'),
+        description: z.string().optional().nullable(),
+        tags: z.array(z.string()).optional().nullable(),
+        artworkUrl: z.string().url().optional().nullable(),
+        curatorEmail: z.string().email().optional().nullable(),
+      });
       
-      // Basic validation
-      if (!curatorName || !title || !playlistUrl) {
-        return res.status(400).json({ error: 'curatorName, title, and playlistUrl are required' });
+      const validated = publicSchema.safeParse(req.body);
+      
+      if (!validated.success) {
+        return res.status(400).json({ 
+          error: 'Invalid playlist data', 
+          details: validated.error.issues 
+        });
       }
+
+      const data = validated.data;
 
       // Detect platform from URL
       let platform = 'unknown';
-      if (playlistUrl.includes('spotify.com')) {
+      if (data.playlistUrl.includes('spotify.com')) {
         platform = 'spotify';
-      } else if (playlistUrl.includes('apple.com') || playlistUrl.includes('music.apple')) {
+      } else if (data.playlistUrl.includes('apple.com') || data.playlistUrl.includes('music.apple')) {
         platform = 'apple_music';
-      } else if (playlistUrl.includes('youtube.com') || playlistUrl.includes('youtu.be')) {
+      } else if (data.playlistUrl.includes('youtube.com') || data.playlistUrl.includes('youtu.be')) {
         platform = 'youtube';
       }
 
+      // Create submission with ONLY validated user fields - storage layer enforces secure defaults
       const submission = await storage.createPlaylistSubmission({
-        curatorName,
-        title,
-        playlistUrl,
-        description: description || null,
-        tags: tags || null,
-        artworkUrl: artworkUrl || null,
-        curatorEmail: curatorEmail || null,
+        curatorName: data.curatorName,
+        title: data.title,
+        playlistUrl: data.playlistUrl,
+        description: data.description || null,
+        tags: data.tags || null,
+        artworkUrl: data.artworkUrl || null,
+        curatorEmail: data.curatorEmail || null,
         platform,
       });
 
