@@ -26,6 +26,7 @@ import SubmitAlbum from "./pages/SubmitAlbum";
 import GenrePage from "./pages/GenrePage";
 import MixesLanding from "./pages/MixesLanding";
 import SubmitMix from "./pages/SubmitMix";
+import SubmitPlaylist from "./pages/SubmitPlaylist";
 import AdminQueue from "./pages/AdminQueue";
 import AzuraCastAdmin from "./pages/AzuraCastAdmin";
 import AdminMixRouting from "./pages/AdminMixRouting";
@@ -75,6 +76,7 @@ function Router() {
       <Route path="/genre/:slug" component={GenrePage} />
       <Route path="/mixes" component={MixesLanding} />
       <Route path="/submit-mix" component={SubmitMix} />
+      <Route path="/submit-playlist" component={SubmitPlaylist} />
       <Route path="/community" component={CommunityPage} />
       <Route path="/community/:id" component={CommunityDetailPage} />
       <Route path="/about" component={AboutPage} />
