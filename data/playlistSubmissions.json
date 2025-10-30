@@ -81,5 +81,33 @@
     "rejectionReason": null,
     "createdAt": "2025-10-30T07:00:23.637Z",
     "updatedAt": "2025-10-30T07:00:23.637Z"
+  },
+  {
+    "curatorName": "Test User wrKl",
+    "title": "Test Submission Playlist",
+    "playlistUrl": "https://open.spotify.com/playlist/647V5M8N4jN5NLKtpx3QxA?si=4d90252a0cbb4b3a",
+    "description": "A curated selection of amazing tracks for testing the submission system",
+    "tags": [
+      "electronic",
+      "chill",
+      "ambient"
+    ],
+    "artworkUrl": null,
+    "curatorEmail": null,
+    "platform": "spotify",
+    "id": 49,
+    "status": "approved",
+    "submittedAt": "2025-10-30T07:15:32.962Z",
+    "approvedAt": "2025-10-30T07:18:43.684Z",
+    "featuredAt": null,
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "likes": 0,
+    "metadata": null,
+    "trackCount": null,
+    "editorNotes": null,
+    "rejectionReason": null,
+    "createdAt": "2025-10-30T07:15:32.962Z",
+    "updatedAt": "2025-10-30T07:18:43.684Z"
   }
 ]
