@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useAudio } from '@/providers/AudioProvider';
 import AudioProgressBar from '@/components/AudioProgressBar';
 import { audioController } from '@/lib/audioController';
+import { Volume2, VolumeX } from 'lucide-react';
 
 // HTTPS-safe proxy URLs (routes through our server)
 const STREAM_URL = '/stream.mp3'; // Proxied stream
@@ -34,6 +35,8 @@ export default function StickyRadioPlayer() {
   });
   const [artwork, setArtwork] = useState<string | null>(null);
   const [previousArtwork, setPreviousArtwork] = useState<string | null>(null); // Prevent flicker
+  const [showVolumePopover, setShowVolumePopover] = useState(false);
+  const volumePopoverRef = useRef<HTMLDivElement>(null);
 
   // Play/Pause toggle
   const handleToggle = async () => {
@@ -91,7 +94,7 @@ export default function StickyRadioPlayer() {
       const isLive = data.live?.is_live;
       const subtitle = isLive
         ? `LIVE • ${data.live?.streamer_name || 'On Air'}`
-        : track === 'Station Offline' ? 'Station Offline' : 'AutoDJ';
+        : track === 'Station Offline' ? 'Station Offline' : '';
 
       setNowPlaying({ title: displayTitle, subtitle });
       console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
@@ -156,6 +159,20 @@ export default function StickyRadioPlayer() {
     return () => clearInterval(interval);
   }, []);
 
+  // Close volume popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (volumePopoverRef.current && !volumePopoverRef.current.contains(event.target as Node)) {
+        setShowVolumePopover(false);
+      }
+    };
+
+    if (showVolumePopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showVolumePopover]);
+
   return (
     <>
       {/* Bottom sticky player - Translucent NTS-style */}
@@ -205,25 +222,55 @@ export default function StickyRadioPlayer() {
               <div className="text-xs md:text-sm font-medium truncate">
                 {nowPlaying.title}
               </div>
-              <div className="text-[10px] md:text-xs text-gray-400 truncate">
-                {nowPlaying.subtitle}
-              </div>
+              {nowPlaying.subtitle && (
+                <div className="text-[10px] md:text-xs text-gray-400 truncate">
+                  {nowPlaying.subtitle}
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Volume Control - hidden on mobile */}
-          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-            <span className="text-xs">🔊</span>
-            <input
-              type="range"
-              min="0"
-              max="1"
-              step="0.01"
-              value={volume}
-              onChange={handleVolumeChange}
-              data-testid="volume-slider"
-              className="w-20 accent-navy"
-            />
+          {/* Volume Control Popover - hidden on mobile */}
+          <div className="hidden md:block relative flex-shrink-0" ref={volumePopoverRef}>
+            <button
+              onClick={() => setShowVolumePopover(!showVolumePopover)}
+              data-testid="button-volume-toggle"
+              className="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors rounded"
+              title="Volume"
+            >
+              {volume === 0 ? (
+                <VolumeX className="w-5 h-5" />
+              ) : (
+                <Volume2 className="w-5 h-5" />
+              )}
+            </button>
+            
+            {showVolumePopover && (
+              <div 
+                className="absolute bottom-12 right-0 bg-neutral-900 rounded-xl p-3 w-32 shadow-lg border border-white/10"
+                data-testid="volume-popover"
+              >
+                <div className="flex flex-col gap-2">
+                  <div className="text-xs text-gray-400 font-mono">Volume</div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    data-testid="volume-slider"
+                    className="w-full accent-white"
+                    style={{
+                      background: `linear-gradient(to right, white ${volume * 100}%, #4b5563 ${volume * 100}%)`
+                    }}
+                  />
+                  <div className="text-xs text-gray-400 font-mono text-center">
+                    {Math.round(volume * 100)}%
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
