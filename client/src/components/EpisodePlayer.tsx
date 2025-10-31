@@ -170,7 +170,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
       <div className="p-6 bg-gradient-to-b from-gray-900 to-black">
         <div className="max-w-4xl mx-auto">
           <div className="flex flex-col md:flex-row gap-6">
-            {/* Artwork with Overlay Play Button */}
+            {/* Artwork with Hover Play Button */}
             <div className="relative w-full md:w-64 h-64 bg-gray-800 rounded-xl overflow-hidden flex-shrink-0 group shadow-2xl">
               {episode.artworkUrl ? (
                 <img 
@@ -183,11 +183,11 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
                   <Music className="w-24 h-24 text-gray-600" />
                 </div>
               )}
-              {/* Large Play/Pause Button Overlay */}
+              {/* Play/Pause Button Overlay - Only on Hover */}
               <button
                 onClick={handlePlayPause}
                 data-testid="button-play-episode"
-                className="absolute inset-0 flex items-center justify-center bg-black/40 hover:bg-black/60 transition-all group"
+                className="absolute inset-0 hidden group-hover:flex items-center justify-center bg-black/0 hover:bg-black/60 transition-all"
               >
                 <div className="w-20 h-20 rounded-full bg-navy hover:bg-navy-dark flex items-center justify-center transition-all transform hover:scale-110 shadow-lg">
                   {isPlaying ? (
@@ -243,14 +243,14 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
               {tracks.map((track, index) => (
                 <div
                   key={index}
-                  className="bg-gray-900/50 border border-gray-800 hover:border-navy p-4 rounded-lg transition-all hover:bg-gray-900 group"
+                  className="bg-gray-900/50 border border-gray-700 hover:border-sky-500 p-4 rounded-lg transition-all hover:bg-gray-900 group"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="text-navy font-mono font-bold text-sm pt-0.5 min-w-[2rem]">
+                    <div className="text-sky-400 font-mono font-bold text-sm pt-0.5 min-w-[2rem]">
                       #{String(index + 1).padStart(2, '0')}
                     </div>
                     <div className="flex-1">
-                      <div className="text-base font-bold text-white font-mono group-hover:text-navy transition-colors">
+                      <div className="text-base font-bold text-white font-mono group-hover:text-sky-400 transition-colors">
                         {track.artist}
                       </div>
                       <div className="text-sm text-gray-400 mt-1">
@@ -310,7 +310,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-gray-400 hover:text-white transition-colors"
+                  className="text-white hover:text-sky-400 transition-colors"
                   data-testid="button-volume-episode"
                   aria-label={`Volume ${volume}%`}
                 >
