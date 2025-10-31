@@ -14,6 +14,16 @@ External forms: Prefer Google Forms for complex applications over custom form im
 UI terminology: Use "community programming" instead of "residents" in all user-facing copy
 
 ## Recent Changes (Station Mode Implementation)
+- **Episode Player Enhancement** (Oct 31, 2025): Comprehensive redesign with vertical volume control and improved UX:
+  - Replaced horizontal volume slider with vertical SoundCloud-style popover (100px height, matching StickyRadioPlayer)
+  - Visual design overhaul: navy theme, gradient hero section (gray-900 to black), larger artwork (256px square)
+  - Improved header with back button and EPISODE badge
+  - Better artwork handling with Music icon fallback for missing images
+  - Enhanced tracklist styling: numbered tracks (#01, #02), navy accent colors, hover effects
+  - Improved mobile responsiveness: stacked layout on mobile, row layout on desktop
+  - Progress bar moved to top of fixed controls for better UX
+  - Accessibility improvements: aria-labels on all interactive elements, proper data-testid attributes
+  - Better typography: font-mono consistency, responsive text sizing (text-3xl → md:text-4xl)
 - **Content Unification** (Oct 31, 2025): Fixed inconsistent content display across pages:
   - Unified all community content sections to use `/api/community` endpoint for consistency
   - MixesLanding "Fresh from Community" now fetches `/api/community?type=mix&limit=4` (was `/api/public/mixes`)
