@@ -14,6 +14,16 @@ External forms: Prefer Google Forms for complex applications over custom form im
 UI terminology: Use "community programming" instead of "residents" in all user-facing copy
 
 ## Recent Changes (Station Mode Implementation)
+- **Content Unification** (Oct 31, 2025): Fixed inconsistent content display across pages:
+  - Unified all community content sections to use `/api/community` endpoint for consistency
+  - MixesLanding "Fresh from Community" now fetches `/api/community?type=mix&limit=4` (was `/api/public/mixes`)
+  - MixesLanding "All Mixes" section now fetches `/api/community?type=mix` (was `/api/public/mixes`)
+  - HomePage fresh mixes now fetches `/api/community?type=mix&limit=12` (was `/api/public/mixes`)
+  - Removed unused displayCommunitySubmissions adapter, ContentItem used directly with ContentCard
+  - Same mix items now appear consistently on homepage, /mixes, and /community pages
+  - StickyRadioPlayer volume control updated to vertical SoundCloud-style popover (8px×100px slider)
+  - ContentCard artwork handling improved to filter null/empty strings and show Music icon fallback
+  - AutoDJ subtitle text hidden (only shows "LIVE • DJ name" when broadcasting, "Station Offline" when offline)
 - **Content Type Migration** (Oct 30, 2025): Replaced "writing" with "playlists" content type:
   - Removed WritingContentItem interface from schema, updated ContentItem union type
   - Updated CommunityPage and CommunityDetailPage to use "playlist" type instead of "writing"
