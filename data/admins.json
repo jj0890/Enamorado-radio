@@ -4,13 +4,13 @@
     "password": "5I6[D9!jEehJ",
     "role": "admin",
     "id": 1,
-    "createdAt": "2025-10-30T07:46:43.114Z"
+    "createdAt": "2025-10-31T01:23:46.767Z"
   },
   {
     "username": "editor1",
     "password": "editor123",
     "role": "editor",
-    "id": 51,
-    "createdAt": "2025-10-30T07:47:27.277Z"
+    "id": 2,
+    "createdAt": "2025-10-31T01:23:46.773Z"
   }
 ]
