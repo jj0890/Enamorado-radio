@@ -247,28 +247,31 @@ export default function StickyRadioPlayer() {
             
             {showVolumePopover && (
               <div 
-                className="absolute bottom-12 right-0 bg-neutral-900 rounded-xl p-3 w-32 shadow-lg border border-white/10"
+                className="absolute bottom-12 right-0 bg-neutral-900 rounded-xl p-3 shadow-lg border border-white/10 flex flex-col items-center"
                 data-testid="volume-popover"
+                style={{ width: '48px' }}
               >
-                <div className="flex flex-col gap-2">
-                  <div className="text-xs text-gray-400 font-mono">Volume</div>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={volume}
-                    onChange={handleVolumeChange}
-                    data-testid="volume-slider"
-                    className="w-full accent-white"
-                    style={{
-                      background: `linear-gradient(to right, white ${volume * 100}%, #4b5563 ${volume * 100}%)`
-                    }}
-                  />
-                  <div className="text-xs text-gray-400 font-mono text-center">
-                    {Math.round(volume * 100)}%
-                  </div>
+                <div className="text-xs text-gray-400 font-mono mb-2">
+                  {Math.round(volume * 100)}%
                 </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  data-testid="volume-slider"
+                  className="accent-white"
+                  orient="vertical"
+                  style={{
+                    writingMode: 'bt-lr',
+                    WebkitAppearance: 'slider-vertical',
+                    width: '8px',
+                    height: '100px',
+                    background: `linear-gradient(to top, white ${volume * 100}%, #4b5563 ${volume * 100}%)`
+                  }}
+                />
               </div>
             )}
           </div>

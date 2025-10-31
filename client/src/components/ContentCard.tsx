@@ -47,8 +47,9 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
     (props as LegacyContentCardProps).type || // Legacy prop
     ('type' in content ? content.type : 'mix'); // ContentItem type field
   
-  // Robust artwork fallback chain
-  const artwork = content.artworkUrl || (content as any).artwork || (content as any).artUrl || (content as any).metadata?.imageUrl || null;
+  // Robust artwork fallback chain - ensure truly valid URLs only
+  const rawArtwork = content.artworkUrl || (content as any).artwork || (content as any).artUrl || (content as any).metadata?.imageUrl;
+  const artwork = rawArtwork && rawArtwork.trim() !== '' ? rawArtwork : null;
 
   // Detect platform from URL (check fileUrl/streamUrl first for MP3s)
   const detectPlatform = (): Platform => {
