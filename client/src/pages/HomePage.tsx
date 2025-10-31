@@ -39,11 +39,11 @@ export default function Home() {
   });
 
 
-  // --- DATA: Fresh mixes ---
+  // --- DATA: Fresh mixes (unified endpoint for consistency) ---
   const { data: freshMixes = [] } = useQuery({
-    queryKey: ["/api/public/mixes", { limit: 12 }],
+    queryKey: ["/api/community", { type: 'mix', limit: 12 }],
     queryFn: async () => {
-      const r = await fetch("/api/public/mixes", { cache: "no-store" });
+      const r = await fetch("/api/community?type=mix&limit=12&sort=recent", { cache: "no-store" });
       if (!r.ok) throw new Error("Failed to fetch mixes");
       return r.json();
     },

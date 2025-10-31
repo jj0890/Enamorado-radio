@@ -82,10 +82,11 @@ export default function MixesLanding() {
   });
 
   // Fetch recent community submissions (limited for "Fresh from Community" section)
-  const { data: communitySubmissions = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/public/mixes', { limit: 4 }],
+  // Use unified /api/community endpoint for consistency with Community page
+  const { data: communitySubmissions = [] } = useQuery<any[]>({
+    queryKey: ['/api/community', { type: 'mix', limit: 4 }],
     queryFn: async () => {
-      const response = await fetch('/api/public/mixes?limit=4');
+      const response = await fetch('/api/community?type=mix&limit=4&sort=recent');
       if (!response.ok) throw new Error('Failed to fetch community submissions');
       return response.json();
     },
@@ -93,8 +94,14 @@ export default function MixesLanding() {
   });
 
   // Fetch all approved mixes for "All Mixes" section
-  const { data: allApprovedMixes = [] } = useQuery<DjSubmission[]>({
-    queryKey: ['/api/public/mixes'],
+  // Use unified /api/community endpoint for consistency
+  const { data: allApprovedMixes = [] } = useQuery<any[]>({
+    queryKey: ['/api/community', { type: 'mix' }],
+    queryFn: async () => {
+      const response = await fetch('/api/community?type=mix&sort=recent');
+      if (!response.ok) throw new Error('Failed to fetch all mixes');
+      return response.json();
+    },
     refetchInterval: 30000,
   });
 
@@ -152,10 +159,21 @@ export default function MixesLanding() {
 
   // Convert admin-approved content to display format (REAL content controlled by admin!)
   const displayFeaturedMixes = featuredMixes.map(convertSubmissionToMix);
-  const displayCommunitySubmissions = communitySubmissions.map(convertSubmissionToMix);
   
-  // Filter mixes by genre if genre filter is active
-  const allMixes = allApprovedMixes.map(convertSubmissionToMix);
+  // Map ContentItem to Mix format for custom "All Mixes" layout (not ContentCard)
+  const allMixes = allApprovedMixes.map(item => ({
+    id: item.id,
+    title: item.title,
+    artist: item.name || 'Unknown Artist',
+    description: item.about || '',
+    thumbnailUrl: item.artworkUrl || '',
+    platform: (item.platform || 'audio') as 'soundcloud' | 'mixcloud' | 'audio' | 'mp3' | 'wav',
+    url: item.url || '',
+    duration: undefined,
+    genre: item.genre ? [item.genre] : [],
+    featured: item.isFeatured || false
+  }));
+  
   const displayCommunityMixes = genreFilter 
     ? allMixes.filter(mix => 
         mix.genre.some(g => g.toLowerCase().replace(/\s+/g, '-') === genreFilter.toLowerCase())
@@ -458,14 +476,10 @@ export default function MixesLanding() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              {displayCommunitySubmissions.map((submission) => (
+              {communitySubmissions.map((item) => (
                 <ContentCard
-                  key={submission.id}
-                  content={{
-                    ...submission,
-                    type: 'mix',
-                    artworkUrl: submission.artUrl || submission.metadata?.imageUrl || null,
-                  }}
+                  key={item.id}
+                  content={item}
                 />
               ))}
             </div>
