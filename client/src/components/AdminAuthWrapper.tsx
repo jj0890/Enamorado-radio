@@ -109,10 +109,24 @@ export default function AdminAuthWrapper() {
   };
 
   const handleLogout = async () => {
-    // Set auth state to false and clear cache
-    queryClient.setQueryData(['/api/admin/auth'], { authenticated: false });
-    queryClient.invalidateQueries({ queryKey: ['/api/admin/auth'] });
-    await refetch();
+    try {
+      // Call logout API to destroy server session
+      await fetch('/api/admin/logout', { 
+        method: 'POST',
+        credentials: 'include' 
+      });
+      
+      // Clear cache and refetch
+      queryClient.setQueryData(['/api/admin/auth'], { authenticated: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auth'] });
+      await refetch();
+    } catch (error) {
+      console.error('Logout error:', error);
+      // Still clear local state even if API call fails
+      queryClient.setQueryData(['/api/admin/auth'], { authenticated: false });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/auth'] });
+      await refetch();
+    }
   };
 
   // Loading state - show spinner while checking auth
