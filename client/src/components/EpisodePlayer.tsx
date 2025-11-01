@@ -243,7 +243,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
               {tracks.map((track, index) => (
                 <div
                   key={index}
-                  className="bg-gray-900/50 border border-gray-700 hover:border-sky-500 p-4 rounded-lg transition-all hover:bg-gray-900 group"
+                  className="bg-gray-900/50 border border-gray-700 hover:border-sky-500 p-4 rounded-lg transition-all duration-150 hover:bg-gray-900 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/20 group cursor-default"
                 >
                   <div className="flex items-start gap-3">
                     <div className="text-sky-400 font-mono font-bold text-sm pt-0.5 min-w-[2rem]">

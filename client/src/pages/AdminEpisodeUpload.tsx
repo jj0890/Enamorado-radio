@@ -213,104 +213,120 @@ export default function AdminEpisodeUpload() {
             </CardHeader>
             
             <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                {/* Audio File */}
-                <div>
-                  <Label htmlFor="audioFile">Audio File *</Label>
-                  <Input
-                    id="audioFile"
-                    type="file"
-                    accept="audio/*,.mp3"
-                    onChange={handleFileChange}
-                    className="mt-1"
-                    required
-                  />
-                  {formData.audioFile && (
-                    <p className="text-sm text-gray-600 mt-1">
-                      Selected: {formData.audioFile.name} ({(formData.audioFile.size / 1024 / 1024).toFixed(1)} MB)
+              <form onSubmit={handleSubmit} className="space-y-6">
+                {/* SECTION: Core Episode Details */}
+                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                    Core Episode Details
+                  </h3>
+                  
+                  {/* Audio File */}
+                  <div>
+                    <Label htmlFor="audioFile">Audio File *</Label>
+                    <Input
+                      id="audioFile"
+                      type="file"
+                      accept="audio/*,.mp3"
+                      onChange={handleFileChange}
+                      className="mt-1"
+                      required
+                    />
+                    {formData.audioFile && (
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Selected: {formData.audioFile.name} ({(formData.audioFile.size / 1024 / 1024).toFixed(1)} MB)
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Episode Title */}
+                  <div>
+                    <Label htmlFor="title">Episode Title *</Label>
+                    <Input
+                      id="title"
+                      value={formData.title}
+                      onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                      placeholder="e.g., Late Night Sessions #42"
+                      className="mt-1"
+                      required
+                    />
+                  </div>
+
+                  {/* Show Slug */}
+                  <div>
+                    <Label htmlFor="showSlug">Show Slug (for file organization) *</Label>
+                    <Input
+                      id="showSlug"
+                      type="text"
+                      value={formData.showSlug}
+                      onChange={(e) => {
+                        // Auto-convert to slug format (lowercase, hyphens)
+                        const slug = e.target.value
+                          .toLowerCase()
+                          .replace(/[^a-z0-9-]+/g, '-')
+                          .replace(/^-+|-+$/g, '');
+                        setFormData(prev => ({ ...prev, showSlug: slug }));
+                      }}
+                      placeholder="e.g., footwork-fridays"
+                      required
+                      data-testid="input-showSlug"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Used for file organization and playlists. Letters, numbers, and hyphens only.
                     </p>
-                  )}
-                </div>
-
-                {/* Episode Title */}
-                <div>
-                  <Label htmlFor="title">Episode Title *</Label>
-                  <Input
-                    id="title"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                    placeholder="e.g., Late Night Sessions #42"
-                    className="mt-1"
-                    required
-                  />
-                </div>
-
-                {/* Show Slug */}
-                <div>
-                  <Label htmlFor="showSlug">Show Slug (for file organization) *</Label>
-                  <Input
-                    id="showSlug"
-                    type="text"
-                    value={formData.showSlug}
-                    onChange={(e) => {
-                      // Auto-convert to slug format (lowercase, hyphens)
-                      const slug = e.target.value
-                        .toLowerCase()
-                        .replace(/[^a-z0-9-]+/g, '-')
-                        .replace(/^-+|-+$/g, '');
-                      setFormData(prev => ({ ...prev, showSlug: slug }));
-                    }}
-                    placeholder="e.g., footwork-fridays"
-                    required
-                    data-testid="input-showSlug"
-                  />
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                    Used for file organization and playlists. Letters, numbers, and hyphens only.
-                  </p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold w-full">Quick suggestions:</p>
-                    {['footwork-fridays', 'late-night-sessions', 'community-showcase', 'resident-spotlight', 'guest-mix', 'deep-cuts'].map(slug => (
-                      <button
-                        key={slug}
-                        type="button"
-                        onClick={() => setFormData(prev => ({ ...prev, showSlug: slug }))}
-                        className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
-                        data-testid={`suggest-${slug}`}
-                      >
-                        {slug}
-                      </button>
-                    ))}
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold w-full">Quick suggestions:</p>
+                      {['footwork-fridays', 'late-night-sessions', 'community-showcase', 'resident-spotlight', 'guest-mix', 'deep-cuts'].map(slug => (
+                        <button
+                          key={slug}
+                          type="button"
+                          onClick={() => setFormData(prev => ({ ...prev, showSlug: slug }))}
+                          className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                          data-testid={`suggest-${slug}`}
+                        >
+                          {slug}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 </div>
 
-                {/* Air Date */}
-                <div>
-                  <Label htmlFor="airDate">Air Date</Label>
-                  <Input
-                    id="airDate"
-                    type="datetime-local"
-                    value={formData.airDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, airDate: e.target.value }))}
-                    className="mt-1"
-                  />
+                {/* SECTION: Metadata */}
+                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                    Metadata
+                  </h3>
+                  
+                  {/* Air Date */}
+                  <div>
+                    <Label htmlFor="airDate">Air Date</Label>
+                    <Input
+                      id="airDate"
+                      type="datetime-local"
+                      value={formData.airDate}
+                      onChange={(e) => setFormData(prev => ({ ...prev, airDate: e.target.value }))}
+                      className="mt-1"
+                    />
+                  </div>
+
+                  {/* Tags */}
+                  <div>
+                    <Label htmlFor="tags">Tags</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
+                      placeholder="house, techno, ambient"
+                      className="mt-1"
+                    />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Separate tags with commas</p>
+                  </div>
                 </div>
 
-                {/* Tags */}
-                <div>
-                  <Label htmlFor="tags">Tags</Label>
-                  <Input
-                    id="tags"
-                    value={formData.tags}
-                    onChange={(e) => setFormData(prev => ({ ...prev, tags: e.target.value }))}
-                    placeholder="house, techno, ambient"
-                    className="mt-1"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
-                </div>
-
-                {/* Artwork - File or URL */}
-                <div className="space-y-4 p-4 border-2 border-gray-200 dark:border-gray-700 rounded">
-                  <Label className="text-sm font-medium">Episode Artwork</Label>
+                {/* SECTION: Artwork */}
+                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                    Episode Artwork
+                  </h3>
                   
                   {/* Artwork File Upload */}
                   <div>
@@ -356,14 +372,26 @@ export default function AdminEpisodeUpload() {
                   </div>
                 </div>
 
-                {/* Feature on Homepage */}
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="featureOnHome"
-                    checked={formData.featureOnHome}
-                    onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featureOnHome: checked }))}
-                  />
-                  <Label htmlFor="featureOnHome">Feature on Homepage</Label>
+                {/* SECTION: Display Options */}
+                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                    Display Options
+                  </h3>
+                  
+                  {/* Feature on Homepage */}
+                  <div className="space-y-1">
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="featureOnHome"
+                        checked={formData.featureOnHome}
+                        onCheckedChange={(checked) => setFormData(prev => ({ ...prev, featureOnHome: checked }))}
+                      />
+                      <Label htmlFor="featureOnHome">Feature on Homepage</Label>
+                    </div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 ml-11">
+                      If enabled, this episode will appear in the homepage banner rotation
+                    </p>
+                  </div>
                 </div>
 
                 {/* Progress Bar */}
