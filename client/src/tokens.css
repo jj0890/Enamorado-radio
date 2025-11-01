@@ -68,7 +68,7 @@
   --button-secondary-text: var(--accent-navy);
   
   /* --- BORDERS & RADIUS --- */
-  --radius: 0.875rem;
+  --radius: 0.5rem; /* 8px - Editorial tightness (was 14px) */
   
   /* --- TYPOGRAPHY SCALE --- */
   --heading-h1-size: 40px;

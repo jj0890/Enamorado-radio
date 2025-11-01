@@ -105,25 +105,30 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
   return (
     <Link 
       href={detailUrl}
-      className={`block bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1 group relative cursor-pointer ${
-        content.isFeatured ? 'border-2 border-navy' : 'border border-gray-200 dark:border-gray-800'
+      className={`block bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-shadow duration-300 group relative cursor-pointer ${
+        content.isFeatured 
+          ? 'border-2 border-[#FF0000] shadow-[0_2px_4px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)]' 
+          : 'border border-zinc-200 dark:border-gray-800 shadow-[0_1px_2px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.10)]'
       }`}
       data-testid={`card-${type}-${content.id}`}
     >
+      {/* Subtle inset ring for "printed" feel */}
+      <div className="pointer-events-none absolute inset-0 rounded-lg ring-1 ring-inset ring-black/5 dark:ring-white/5"></div>
+
       {/* Featured Badge */}
       {content.isFeatured && (
-        <div className="absolute top-3 left-3 z-10 bg-navy text-white px-3 py-1.5 text-xs font-bold font-mono shadow-lg">
+        <div className="absolute top-3 left-3 z-10 bg-[#FF0000] text-white px-3 py-1.5 text-xs font-bold font-mono shadow-md rounded">
           Featured
         </div>
       )}
 
-      {/* Artwork - Square aspect ratio for prominent display like SoundCloud */}
-      <div className="relative w-full overflow-hidden aspect-square bg-gray-200 dark:bg-gray-800">
+      {/* Artwork - Square aspect ratio with separate hover zoom */}
+      <div className="relative w-full overflow-hidden aspect-square bg-gray-200 dark:bg-gray-800 rounded-t-lg">
         {artwork ? (
           <img 
             src={artwork} 
             alt={content.title}
-            className="h-full w-full object-cover"
+            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.02]"
             loading="lazy"
           />
         ) : (
@@ -134,10 +139,10 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
       </div>
 
       {/* Text block - Compact to emphasize artwork */}
-      <div className="pt-3 px-3 pb-3">
+      <div className="pt-4 px-4 pb-3">
         <div className="flex items-center gap-1.5 mb-2 flex-wrap">
           <span 
-            className={`text-[9px] font-mono text-white px-2 py-0.5 rounded uppercase font-semibold ${
+            className={`text-[10px] font-mono text-white px-2 py-0.5 rounded uppercase font-semibold tracking-wide ${
               type === 'mix' ? 'bg-navy' : type === 'episode' ? 'bg-blue-500' : 'bg-purple-600'
             }`}
             data-testid={`chip-type-${type}`}
@@ -146,7 +151,7 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
           </span>
           {platform !== 'other' && (
             <span 
-              className="text-[9px] font-mono bg-gray-800 dark:bg-gray-700 text-white px-1.5 py-0.5 rounded uppercase flex items-center gap-1"
+              className="text-[10px] font-mono bg-zinc-100 dark:bg-gray-700 text-zinc-700 dark:text-white px-1.5 py-0.5 rounded uppercase flex items-center gap-1 tracking-wide"
               data-testid={`chip-platform-${platform}`}
               title={platform}
             >
@@ -163,7 +168,7 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
                 onGenreSelect(content.genre!);
               }}
               data-testid={`tag-genre-${content.genre.toLowerCase()}`}
-              className="text-[9px] font-mono bg-gray-100 dark:bg-gray-800 hover:bg-navy hover:text-white px-2 py-0.5 rounded uppercase dark:text-gray-300 transition-colors"
+              className="text-[10px] font-mono bg-zinc-100 dark:bg-gray-800 hover:bg-zinc-800 hover:text-white dark:hover:bg-zinc-200 dark:hover:text-zinc-900 px-2 py-0.5 rounded uppercase tracking-wide text-zinc-700 dark:text-gray-300 transition-colors"
             >
               {content.genre}
             </button>
@@ -179,13 +184,13 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
       </div>
 
       {/* CTA row */}
-      <div className="px-2 pb-2">
+      <div className="px-4 pb-4">
         <button 
           onClick={(e) => {
             e.preventDefault();
             handlePlay();
           }}
-          className="w-full h-8 rounded-md bg-navy hover:bg-navy-dark text-white text-sm font-mono flex items-center justify-center gap-2 transition-colors"
+          className="w-full h-9 rounded-md border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-900 dark:text-white text-sm font-mono font-medium flex items-center justify-center gap-2 transition-all active:translate-y-[1px]"
           data-testid={`button-listen-${content.id}`}
         >
           <Play className="w-4 h-4" />
