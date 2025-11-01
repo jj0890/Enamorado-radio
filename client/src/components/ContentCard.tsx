@@ -105,9 +105,9 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
   return (
     <Link 
       href={detailUrl}
-      className={`block bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-shadow duration-300 group relative cursor-pointer ${
+      className={`block bg-white dark:bg-gray-900 rounded-lg overflow-hidden transition-all duration-300 group relative cursor-pointer ${
         content.isFeatured 
-          ? 'border-2 border-[#FF0000] shadow-[0_2px_4px_rgba(0,0,0,0.08)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)]' 
+          ? 'border border-zinc-400 dark:border-zinc-600 shadow-[0_1px_3px_rgba(0,0,0,0.08)] hover:shadow-[0_5px_16px_rgba(0,0,0,0.14)] hover:ring-1 hover:ring-zinc-500 dark:hover:ring-zinc-400' 
           : 'border border-zinc-200 dark:border-gray-800 shadow-[0_1px_2px_rgba(0,0,0,0.06)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.10)]'
       }`}
       data-testid={`card-${type}-${content.id}`}
