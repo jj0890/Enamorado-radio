@@ -3451,7 +3451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isNumeric = !isNaN(numericId);
       
       // Try mixes (by ID or slug)
-      const allMixes = await storage.getAllMixSubmissions();
+      const allMixes = await storage.getMixSubmissions({});
       const mix = allMixes.find((m: any) => 
         (isNumeric && m.id === numericId) || 
         (m.slug && m.slug === itemId)
@@ -3464,13 +3464,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           title: mix.title,
           name: mix.name,
           slug: (mix as any).slug || null,
-          artworkUrl: (mix as any).artwork || (mix as any).artUrl || (mix as any).artworkUrl || null,
+          artworkUrl: (mix as any).artwork_url || (mix as any).artUrl || (mix as any).artworkUrl || null,
           genre: mix.genre || null,
           description: (mix as any).description || (mix as any).about || null,
           url: mix.url,
           submittedAt: mix.submittedAt,
           createdAt: mix.submittedAt,
-          isFeatured: mix.isFeatured || false,
+          isFeatured: mix.status === 'featured' || (mix as any).featured || false,
         };
         return res.json(mixItem);
       }
@@ -3488,13 +3488,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: episode.id,
           title: episode.title,
           hostName: episode.hostName,
-          slug: episode.slug || null,
-          artworkUrl: episode.artUrl || episode.artworkUrl || null,
+          slug: null, // Episodes don't have slugs in schema
+          artworkUrl: episode.artworkUrl || null,
           genre: episode.genre || null,
-          description: episode.about || null,
+          description: episode.description || null,
           tracklist: episode.tracklist || null,
           airDate: episode.airDate,
-          url: (episode as any).streamUrl || (episode as any).fileUrl || null,
+          url: episode.audioUrl || null,
           submittedAt: episode.airDate,
           createdAt: episode.airDate,
           isFeatured: episode.isFeatured || false,
