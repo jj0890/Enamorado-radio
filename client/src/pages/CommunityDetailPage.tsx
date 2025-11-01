@@ -102,9 +102,20 @@ export default function CommunityDetailPage() {
     return null;
   };
 
-  const getTracklist = () => {
+  const getTracklist = (): Array<{artist: string; title: string; timestamp?: number}> | null => {
     if ('tracklist' in item && item.tracklist) {
-      return item.tracklist;
+      try {
+        // Parse JSON string if it's a string
+        if (typeof item.tracklist === 'string') {
+          return JSON.parse(item.tracklist);
+        }
+        // Return directly if already an array
+        if (Array.isArray(item.tracklist)) {
+          return item.tracklist;
+        }
+      } catch (error) {
+        console.error('Failed to parse tracklist:', error);
+      }
     }
     return null;
   };
@@ -230,10 +241,28 @@ export default function CommunityDetailPage() {
                 <h2 className="text-xl font-serif text-gray-900 dark:text-white mb-3">
                   Tracklist
                 </h2>
-                <div className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-gray-200 dark:border-gray-800">
-                  <pre className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap font-mono" data-testid="text-tracklist">
-                    {getTracklist()}
-                  </pre>
+                <div className="space-y-2">
+                  {getTracklist()!.map((track, index) => (
+                    <div
+                      key={index}
+                      className="bg-white dark:bg-gray-900/50 border border-gray-200 dark:border-gray-700 hover:border-navy dark:hover:border-sky-500 p-3 rounded-lg transition-all duration-150 hover:-translate-y-0.5 hover:shadow-md hover:shadow-navy/10 dark:hover:shadow-sky-500/20 group cursor-default"
+                      data-testid={`track-${index}`}
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="text-navy dark:text-sky-400 font-mono font-bold text-sm pt-0.5 min-w-[2rem]">
+                          #{String(index + 1).padStart(2, '0')}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-bold text-gray-900 dark:text-white font-mono group-hover:text-navy dark:group-hover:text-sky-400 transition-colors">
+                            {track.artist}
+                          </div>
+                          <div className="text-xs text-gray-600 dark:text-gray-400 mt-0.5">
+                            {track.title}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
