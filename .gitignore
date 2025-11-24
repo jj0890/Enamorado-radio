@@ -62,3 +62,8 @@ attached_assets/
 *.mp3
 *.wav
 *.m4a
+# Large media files
+attached_assets/
+temp_audio/
+*.mp3
+*.wav
