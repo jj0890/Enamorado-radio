@@ -51,3 +51,14 @@ replit.nix
 .config/
 .upm/
 .cache/
+# Large media files
+attached_assets/
+*.mp3
+*.wav
+*.m4a
+
+# Large media files
+attached_assets/
+*.mp3
+*.wav
+*.m4a
