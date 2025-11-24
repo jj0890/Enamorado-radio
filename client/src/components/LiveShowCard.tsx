@@ -98,51 +98,76 @@ export default function LiveShowCard({
 
       {/* Content Container */}
       <div className="relative h-full flex flex-col justify-between p-6 md:p-8 text-white">
-        {/* Top Section - Station & Status */}
-        <div className="space-y-2">
+        {/* Top Section - Mission Statement & Status */}
+        <div className="space-y-3">
+          <h1 className="text-lg md:text-xl font-mono tracking-wide">
+            San Antonio's first community-run radio platform
+          </h1>
           <div className="flex items-center gap-3">
-            <span className="text-xs font-mono tracking-wider uppercase opacity-80">
-              San Antonio
-            </span>
-            {isLive && (
-              <span className="bg-navy text-white px-2 py-1 text-xs font-mono font-bold">
-                ON AIR
-              </span>
+            {isLive ? (
+              <>
+                <div className="flex items-center gap-2 bg-navy text-white px-3 py-1.5 font-mono text-xs font-bold">
+                  <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
+                  LIVE NOW
+                </div>
+                <span className="text-sm font-mono opacity-90">
+                  {streamerName}
+                </span>
+              </>
+            ) : (
+              <div className="flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/30 px-3 py-1.5">
+                <span className="text-xs font-mono">
+                  🎵 AutoDJ
+                </span>
+              </div>
             )}
           </div>
         </div>
 
-        {/* Bottom Section - Show Info & Play Button */}
-        <div className="space-y-4">
+        {/* Bottom Section - Now Playing & Actions */}
+        <div className="space-y-6">
           <div className="space-y-2">
+            <div className="text-sm font-mono opacity-80 tracking-wider uppercase">
+              {isLive ? 'On Air Now' : 'Now Playing'}
+            </div>
             <h2 className="text-4xl md:text-6xl font-serif leading-tight tracking-tight">
               {isLive ? streamerName : title}
             </h2>
-            <div className="flex items-center gap-2 text-sm font-mono opacity-90">
-              <span>{getCurrentTime()}</span>
-              <span>—</span>
-              <span>{getEndTime()} CST</span>
-            </div>
+            {!isLive && artist && (
+              <p className="text-xl md:text-2xl font-mono opacity-90">
+                {artist}
+              </p>
+            )}
           </div>
 
-          {/* Play Button */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              handlePlayPause();
-            }}
-            className="group/btn flex items-center gap-3 bg-white/10 hover:bg-white/20 backdrop-blur-sm border border-white/30 px-6 py-3 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
-            data-testid="button-live-play"
-          >
-            {isPlaying ? (
-              <Pause className="w-5 h-5" fill="white" />
-            ) : (
-              <Play className="w-5 h-5" fill="white" />
-            )}
-            <span className="font-mono text-sm font-bold tracking-wide">
-              {isPlaying ? 'PAUSE' : 'LISTEN LIVE'}
-            </span>
-          </button>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-3 flex-wrap">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                handlePlayPause();
+              }}
+              className="group/btn flex items-center gap-3 bg-white text-navy hover:bg-cream px-8 py-4 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              data-testid="button-live-play"
+            >
+              {isPlaying ? (
+                <Pause className="w-6 h-6" fill="currentColor" />
+              ) : (
+                <Play className="w-6 h-6" fill="currentColor" />
+              )}
+              <span className="font-mono text-base font-bold tracking-wide uppercase">
+                {isPlaying ? 'Pause' : 'Listen Live'}
+              </span>
+            </button>
+            
+            <a 
+              href="#latest"
+              className="text-white/90 hover:text-white underline underline-offset-4 font-mono text-sm transition-colors"
+              onClick={(e) => e.stopPropagation()}
+            >
+              Browse Archives →
+            </a>
+          </div>
         </div>
       </div>
     </section>

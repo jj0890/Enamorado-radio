@@ -112,6 +112,17 @@ export default function Home() {
     }
   }, [freshMixes, allEpisodes, contentFilter]);
 
+  // --- DATA: Upcoming schedule ---
+  const { data: upcomingShows = [] } = useQuery({
+    queryKey: ["/api/schedule", { upcoming: true }],
+    queryFn: async () => {
+      const r = await fetch("/api/schedule?upcoming=true&limit=3");
+      if (!r.ok) throw new Error("Failed to fetch schedule");
+      return r.json();
+    },
+    refetchInterval: 60000, // Refresh every minute
+  });
+
   // --- DATA: Current month's album pick for featured section ---
   const getCurrentMonth = () => {
     const now = new Date();
@@ -173,11 +184,58 @@ export default function Home() {
         <LiveShowCard />
 
         <div className="px-4 max-w-7xl mx-auto">
+        {/* Upcoming Shows Widget */}
+        {upcomingShows.length > 0 && (
+          <section className="py-8 mt-8 bg-cream dark:bg-gray-900 -mx-4 px-4">
+            <div className="max-w-7xl mx-auto">
+              <h2 className="text-3xl font-bold font-serif text-gray-900 dark:text-white mb-6">
+                Coming Up Next
+              </h2>
+              <div className="grid gap-4 md:grid-cols-3">
+                {upcomingShows.map((show: any) => {
+                  const scheduledDate = new Date(show.scheduledAt);
+                  const now = new Date();
+                  const isToday = scheduledDate.toDateString() === now.toDateString();
+                  const timeString = scheduledDate.toLocaleTimeString('en-US', { 
+                    hour: 'numeric', 
+                    minute: '2-digit',
+                    hour12: true 
+                  });
+                  const dateString = isToday ? 'Today' : scheduledDate.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric' 
+                  });
+                  
+                  return (
+                    <div 
+                      key={show.id}
+                      className="bg-white dark:bg-black border-2 border-black dark:border-gray-700 p-5 hover:border-navy dark:hover:border-navy transition-all"
+                      data-testid={`upcoming-show-${show.id}`}
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="bg-navy text-white px-3 py-1 text-xs font-mono font-bold">
+                          {dateString} • {timeString}
+                        </div>
+                      </div>
+                      <h3 className="text-lg font-bold font-mono mb-2 text-gray-900 dark:text-white">
+                        {show.title}
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
+                        {show.hostName}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* Latest From the Community - Blended Feed */}
         {blendedContent.length > 0 && (
-          <section className="py-12 mt-8">
+          <section id="latest" className="py-12 mt-8 scroll-mt-24">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-4xl font-bold font-serif text-gray-900 dark:text-white">
+              <h2 className="text-5xl font-bold font-serif text-gray-900 dark:text-white">
                 Latest from the Community
               </h2>
             </div>
@@ -219,7 +277,7 @@ export default function Home() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
               {blendedContent.map((item: any) => (
                 <ContentCard 
                   key={`${item.type}-${item.id}`} 
