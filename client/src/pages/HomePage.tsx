@@ -193,7 +193,11 @@ export default function Home() {
               </h2>
               <div className="grid gap-4 md:grid-cols-3">
                 {upcomingShows.map((show: any) => {
-                  const scheduledDate = new Date(show.scheduledAt);
+                  // Defensive: handle both scheduledAt and scheduledAirDate
+                  const scheduledTime = show.scheduledAt ?? show.scheduledAirDate;
+                  if (!scheduledTime) return null;
+                  
+                  const scheduledDate = new Date(scheduledTime);
                   const now = new Date();
                   const isToday = scheduledDate.toDateString() === now.toDateString();
                   const timeString = scheduledDate.toLocaleTimeString('en-US', { 
@@ -205,6 +209,9 @@ export default function Home() {
                     month: 'short', 
                     day: 'numeric' 
                   });
+                  
+                  // Defensive: handle both hostName and residentName
+                  const displayName = show.hostName ?? show.residentName ?? 'Resident DJ';
                   
                   return (
                     <div 
@@ -221,7 +228,7 @@ export default function Home() {
                         {show.title}
                       </h3>
                       <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
-                        {show.hostName}
+                        {displayName}
                       </p>
                     </div>
                   );
