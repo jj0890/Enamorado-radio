@@ -1,7 +1,7 @@
 # Radio Station Web Application
 
 ## Overview
-This full-stack web application provides a modern platform for a radio station, enabling users to discover and listen to live audio streams, browse content, and interact with curated music. The project aims to create a comprehensive hub for music enthusiasts, fostering community, promoting new artists, and offering a streamlined user experience with live programming, user submissions, and a robust admin content management system.
+This full-stack web application provides a modern platform for a radio station, enabling users to discover and listen to live audio streams, browse content, and interact with curated music. The project aims to create a comprehensive hub for music enthusiasts, fostering community, promoting new artists, and offering a streamlined user experience with live programming, user submissions, and a robust admin content management system. The business vision is to create a comprehensive hub for music enthusiasts, fostering community, promoting new artists, and offering a streamlined user experience with live programming, user submissions, and a robust admin content management system.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
@@ -13,85 +13,6 @@ Metadata handling: Prioritize original submission names over enhanced metadata f
 External forms: Prefer Google Forms for complex applications over custom form implementations
 UI terminology: Use "community programming" instead of "residents" in all user-facing copy
 
-## Recent Changes (Station Mode Implementation)
-- **Episode Player Enhancement** (Oct 31, 2025): Comprehensive redesign with vertical volume control and improved UX:
-  - Replaced horizontal volume slider with vertical SoundCloud-style popover (100px height, matching StickyRadioPlayer)
-  - Visual design overhaul: navy theme, gradient hero section (gray-900 to black), larger artwork (256px square)
-  - Improved header with back button and EPISODE badge
-  - Better artwork handling with Music icon fallback for missing images
-  - Enhanced tracklist styling: numbered tracks (#01, #02), navy accent colors, hover effects
-  - Improved mobile responsiveness: stacked layout on mobile, row layout on desktop
-  - Progress bar moved to top of fixed controls for better UX
-  - Accessibility improvements: aria-labels on all interactive elements, proper data-testid attributes
-  - Better typography: font-mono consistency, responsive text sizing (text-3xl → md:text-4xl)
-- **Content Unification** (Oct 31, 2025): Fixed inconsistent content display across pages:
-  - Unified all community content sections to use `/api/community` endpoint for consistency
-  - MixesLanding "Fresh from Community" now fetches `/api/community?type=mix&limit=4` (was `/api/public/mixes`)
-  - MixesLanding "All Mixes" section now fetches `/api/community?type=mix` (was `/api/public/mixes`)
-  - HomePage fresh mixes now fetches `/api/community?type=mix&limit=12` (was `/api/public/mixes`)
-  - Removed unused displayCommunitySubmissions adapter, ContentItem used directly with ContentCard
-  - Same mix items now appear consistently on homepage, /mixes, and /community pages
-  - StickyRadioPlayer volume control updated to vertical SoundCloud-style popover (8px×100px slider)
-  - ContentCard artwork handling improved to filter null/empty strings and show Music icon fallback
-  - AutoDJ subtitle text hidden (only shows "LIVE • DJ name" when broadcasting, "Station Offline" when offline)
-- **Content Type Migration** (Oct 30, 2025): Replaced "writing" with "playlists" content type:
-  - Removed WritingContentItem interface from schema, updated ContentItem union type
-  - Updated CommunityPage and CommunityDetailPage to use "playlist" type instead of "writing"
-  - Purple badge styling (bg-purple-600) for playlist content type
-  - Server routes.ts cleaned up to remove guides/writing integration from community API
-  - Playlist infrastructure ready for future implementation (PlaylistContentItem already defined in schema)
-- **Bug Fixes** (Oct 30, 2025): Fixed critical rendering issues:
-  - Fixed blank /mixes page by adding missing ContentCard import to MixesLanding.tsx
-  - Removed invalid hostName property from ContentCard content prop
-- **UI/UX Improvements** (Oct 30, 2025): Enhanced visual consistency and mobile experience:
-  - ContentCard redesigned with square aspect ratio (1:1) for prominent artwork display like SoundCloud embeds
-  - Typography enhancements: larger bold titles (text-base), readable artist names (text-sm), compact badges (9px)
-  - Navigation updated with direct /community link (between Latest and Explore dropdown) for better discoverability
-  - "Fresh from Community" section on MixesLanding now uses unified ContentCard component for consistency
-  - StickyRadioPlayer simplified for mobile: hidden artwork/volume controls on small screens, responsive text sizing with truncation
-  - Fixed wouter Link accessibility: moved className/data-testid directly to Link component for proper keyboard navigation
-- **Hero Banner System** (Oct 30, 2025): Completed full-stack seasonal banner management:
-  - HeroBanner schema with title, subtitle, imageUrl, overlayText fields in shared/schema.ts
-  - Complete CRUD operations in IStorage and FileStorage (server/storage.ts, server/persistentStorage.ts)
-  - Editor-only API routes: GET/POST/PATCH/DELETE /api/editor/hero-banners, POST /api/editor/hero-banners/:id/activate
-  - Public endpoint GET /api/hero-banners/active for homepage consumption
-  - HeroBannersAdmin page at /admin/hero-banners with upload form, preview, and banner list
-  - EditorDashboard card for quick access to banner management
-  - StaticHero component now consumes active banner from API (polls every 60s)
-  - WebSocket broadcast on banner activation for real-time updates
-- **P1 Audio Enhancement** (Oct 28, 2025): Enhanced global audio controller with professional features:
-  - Artwork caching system prevents flicker during track changes with smooth 500ms crossfade transitions
-  - Metadata persistence across route changes via enhanced audioController singleton
-  - Non-seekable progress bar for live streams (always visible, shows elapsed time + LIVE indicator)
-  - AudioProgressBar component supports both VOD (seekable) and live (non-seekable) modes
-  - StickyRadioPlayer integrates artwork cache for instant retrieval and graceful fallbacks
-- **P0 MVP Production Polish** (Oct 28, 2025): Final production-ready improvements:
-  - Sticky player hidden exclusively on homepage (/) for clean NTS-style hero experience, visible on all other routes
-  - Route consolidation: /latest and /explore now redirect to /mixes, navigation updated accordingly
-  - Unified ContentCard component enhanced with platform badges (SoundCloud, Spotify, MP3 ♫, Mixcloud) for visual clarity
-  - Design tokens refined: off-white background (#FAFAFA), typography scale (h1: 40px/1.1, h2: 28px/1.2, h3: 20px/1.25), consistent red accent
-  - Zero 404 errors from navigation, all routes working correctly
-- **NTS-Inspired Homepage Redesign** (Oct 26, 2025): Complete visual overhaul for editorial aesthetic:
-  - New LiveShowCard hero with show art background, gradient overlay, minimal typography
-  - Removed big red gradient banner (HeroOption3_FullWidth)
-  - Translucent sticky player with backdrop blur (NTS-style)
-  - Playfair Display serif font for section headings
-  - Off-white background (#FAFAFA) instead of pure white
-  - Section headings changed from red to gray-900/white for magazine feel
-  - Removed duplicate "ENAMORADO RADIO" branding from hero and sticky player
-  - Single "Enamorado" branding in navigation only
-- **Production Polish - Tasks 8-11** (Oct 26, 2025): Completed final production readiness tasks:
-  - Feature flags system (`config/features.ts`) to conditionally hide incomplete features
-  - Graceful empty states for Schedule and Residents pages with discovery CTAs
-  - Typography shift from ALL CAPS to Mixed Case for magazine-style rhythm
-  - Card style parity (12px radius, 1px borders, hover elevation) across all card types
-  - Route aliases added (`/residency` and `/residents` both work)
-- **Design Token System** (Oct 26, 2025): Created unified design token system in `client/src/tokens.css` with single accent color (red #FF0000). Removed legacy CSS variables from index.css. All shadcn components now use centralized tokens for both light/dark modes. Includes radiored/slate palette, button tokens (solid primary, text-only secondary), focus rings, and complete semantic token coverage.
-- **Lightweight Featured Integration** (Oct 26, 2025): Removed dedicated Featured Episodes section. Featured items now integrated into Latest feed with max 2 featured cards in first row (red border + Featured badge). Extra featured items demoted to regular styling but remain in feed (no data loss).
-- **Blended Community Feed** (Oct 26, 2025): "Latest from the Community" section displays unified feed of both mixes and episodes, sorted by recency. Features type chips (Mix in red, Episode in blue) and interactive filter tabs (All/Mixes/Episodes).
-- **About Section Redesign** (Oct 26, 2025): Moved long description out of hero into concise 2-sentence About section positioned below Latest feed with prominent "Submit a Mix" CTA.
-- **Live Player Hero** (Oct 26, 2025): Replaced complex hero with simplified Live Player Hero featuring large play button, now playing ticker, one-line tagline, and sticky mini-player on scroll. Unified audio controller ensures single audio element across entire site.
-
 ## System Architecture
 
 ### Frontend Architecture
@@ -100,7 +21,7 @@ UI terminology: Use "community programming" instead of "residents" in all user-f
 - **Styling**: Tailwind CSS with shadcn/ui and Radix UI primitives
 - **State Management**: TanStack Query
 - **Routing**: Wouter
-- **UI/UX Decisions**: Responsive, mobile-first design, Dark Theme (default), IBM Plex Mono typography, red accent (#FF0000). Features include an iPod Cover Flow-inspired album showcase, macOS folder-style guide navigation, and a single persistent radio player with customizable themes. A unified audio controller architecture ensures only one audio element exists in the DOM, consumed by all components requiring audio state via a shared context.
+- **UI/UX Decisions**: Responsive, mobile-first design, Dark Theme (default), IBM Plex Mono typography, red accent (#FF0000). Features include an iPod Cover Flow-inspired album showcase, macOS folder-style guide navigation, and a single persistent radio player with customizable themes. A unified audio controller architecture ensures only one audio element exists in the DOM, consumed by all components requiring audio state via a shared context. Admin UI features a unified design system with an AdminShell component, reusable DataTable, and ActivityFeed, all using a light theme. The system includes a comprehensive Hero Banner system for managing seasonal content.
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js
@@ -116,17 +37,14 @@ UI terminology: Use "community programming" instead of "residents" in all user-f
 - **ORM**: Drizzle ORM
 - **Migrations**: Drizzle Kit
 
-### Key Features
-- **Audio System**: Simplified AudioPlayer compatible with AzuraCast backend.
-- **Station Management**: Browse stations by genre, featured shows, live status.
-- **Albums of the Month**: Community-driven album curation with submission, editor voting, MusicBrainz integration, and ranked publication.
-- **Mix Upload & Playback**: Community mix submission with persistent JSON storage, admin approval, and SoundCloud/Mixcloud/Audio.com URL support with automatic metadata fetching.
-- **Episode Upload System**: Admin episode upload with SFTP, authentication, visual progress, and troubleshooting guidance. Episodes support tracklists displayed in a specific format.
-- **Resident DJ System**: Full-stack resident management with semi-automated AzuraCast streamer account setup, credential generation, and a "Copy to AzuraCast" function.
-- **User Submissions**: Community submission system with dynamic "Fresh from the Community" section and automatic metadata enhancement.
-- **Admin Controls**: Radio Ops Panel for real-time broadcast monitoring and comprehensive CRUD operations for content and AzuraCast configuration.
-- **Enhanced Routing Structure**: Navigation including Latest, Explore, Episodes, Schedule, and Mixes.
-- **Featured Content Integration**: Featured items are blended into the Latest feed with visual distinctions for the top two, while others are demoted to regular styling. A unified "Latest from the Community" section displays mixes and episodes with type chips and filter tabs.
+### System Design Choices
+- **Audio System**: Simplified AudioPlayer compatible with AzuraCast backend with artwork caching, metadata persistence, and non-seekable progress bars for live streams.
+- **Content Management**: Features for radio programs, schedules, content rotation, user submissions (mixes, episodes), and admin approval. This includes community mix submission, admin episode upload with SFTP, and tracklist support. A unified community feed displays mixes and episodes with filtering.
+- **Station Management**: Allows browsing stations by genre, featured shows, and live status. Includes a "Resident DJ System" for managing residents with semi-automated AzuraCast streamer account setup.
+- **User Engagement**: Community-driven album curation ("Albums of the Month") with submission, editor voting, and MusicBrainz integration.
+- **Admin Controls**: A Radio Ops Panel for real-time broadcast monitoring and comprehensive CRUD operations for content and AzuraCast configuration. Features include an admin portal with a unified design system for managing mixes, episodes, albums, residents, and system settings.
+- **Navigation**: Enhanced routing structure including Latest, Explore, Episodes, Schedule, and Mixes, with a simplified homepage featuring a Live Player Hero and a sticky mini-player.
+- **Design Tokens**: Unified design token system in `client/src/tokens.css` for consistent styling.
 
 ## External Dependencies
 
@@ -136,6 +54,6 @@ UI terminology: Use "community programming" instead of "residents" in all user-f
 - **Development**: Vite, TypeScript, ESLint
 - **Audio**: Web Audio API, HTML5 audio
 - **Streaming**: AzuraCast (with Icecast server)
-- **Broadcasting Software**: BUTT, Mixxx, Audio Hijack, OBS Studio (recommended for resident streaming)
+- **Broadcasting Software (recommended for resident streaming)**: BUTT, Mixxx, Audio Hijack, OBS Studio
 - **Metadata/APIs**: SoundCloud oEmbed API, Last.fm, Spotify API, MusicBrainz API (album metadata and Cover Art Archive)
 - **External Forms**: Google Sheets (for Resident Applications)
