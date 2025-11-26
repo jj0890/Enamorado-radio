@@ -5,11 +5,17 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { Settings, Save, RefreshCw } from 'lucide-react';
+import { Save, RefreshCw } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { Settings as SettingsType } from '@shared/schema';
+import AdminShell from '@/components/admin/AdminShell';
 
-export default function AdminSettings() {
+interface AdminSettingsProps {
+  onLogout: () => void;
+  currentUser?: string;
+}
+
+export default function AdminSettings({ onLogout, currentUser = "admin" }: AdminSettingsProps) {
   const { toast } = useToast();
   const [baseUrl, setBaseUrl] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -82,20 +88,16 @@ export default function AdminSettings() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FEFCF9] p-6">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold font-mono text-navy flex items-center gap-3">
-            <Settings className="w-8 h-8" />
-            AZURACAST SETTINGS
-          </h1>
-          <p className="text-gray-600 mt-2">
-            Configure AzuraCast API integration for automatic streamer account creation
-          </p>
-        </div>
-
-        <Card>
+    <AdminShell
+      title="Settings"
+      subtitle="Configure system settings"
+      breadcrumbs={[{ label: "Settings" }]}
+      currentUser={currentUser}
+      userRole="admin"
+      onLogout={onLogout}
+    >
+      <div className="max-w-4xl">
+        <Card className="bg-white border-gray-200">
           <CardHeader>
             <CardTitle>AzuraCast API Configuration</CardTitle>
             <CardDescription>
@@ -196,7 +198,7 @@ export default function AdminSettings() {
           </CardContent>
         </Card>
 
-        <Card className="mt-6">
+        <Card className="mt-6 bg-white border-gray-200">
           <CardHeader>
             <CardTitle>Current Configuration Status</CardTitle>
           </CardHeader>
@@ -207,19 +209,19 @@ export default function AdminSettings() {
               </div>
             ) : (
               <div className="space-y-2">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
                   <span className="text-sm font-medium">Base URL:</span>
                   <span className="text-sm text-gray-600">{baseUrl || 'Not configured'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
                   <span className="text-sm font-medium">API Key:</span>
                   <span className="text-sm text-gray-600">{apiKey ? '••••••••••••' : 'Not configured'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
                   <span className="text-sm font-medium">Station ID:</span>
                   <span className="text-sm text-gray-600">{stationId || 'Not configured'}</span>
                 </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded">
+                <div className="flex items-center justify-between p-3 bg-gray-50 rounded border border-gray-200">
                   <span className="text-sm font-medium">Auto-Creation Status:</span>
                   <span className={`text-sm font-medium ${baseUrl && apiKey && stationId ? 'text-green-600' : 'text-red-600'}`}>
                     {baseUrl && apiKey && stationId ? '✅ Enabled' : '❌ Disabled'}
@@ -230,6 +232,6 @@ export default function AdminSettings() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminShell>
   );
 }

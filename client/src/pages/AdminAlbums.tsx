@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Textarea } from '@/components/ui/textarea';
+import AdminShell from '@/components/admin/AdminShell';
 import { 
   Disc, 
   ThumbsUp, 
@@ -84,6 +85,11 @@ interface AlbumNote {
   createdAt: string;
 }
 
+interface AdminAlbumsProps {
+  onLogout?: () => void;
+  currentUser?: string;
+}
+
 const StatusBadge = ({ status }: { status: string }) => {
   const variants: Record<string, string> = {
     'pending': 'bg-yellow-100 text-yellow-800',
@@ -98,7 +104,7 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-export default function AdminAlbums() {
+export default function AdminAlbums({ onLogout, currentUser = "admin" }: AdminAlbumsProps) {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [location, setLocation] = useLocation();
@@ -432,21 +438,16 @@ export default function AdminAlbums() {
   });
 
   return (
-    <div className="container mx-auto p-6 max-w-7xl">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Disc className="w-8 h-8" />
-            Albums of the Month
-          </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage community album suggestions and monthly picks
-          </p>
-        </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="mb-4">
+    <AdminShell
+      title="Albums"
+      subtitle="Manage album of the month picks"
+      breadcrumbs={[{ label: "Albums" }]}
+      currentUser={currentUser}
+      userRole="admin"
+      onLogout={onLogout}
+    >
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+        <TabsList className="bg-gray-100">
           <TabsTrigger value="team-picks" data-testid="tab-team-picks">
             Team Picks ({suggestions.length})
           </TabsTrigger>
@@ -495,7 +496,7 @@ export default function AdminAlbums() {
           ) : (
             <div className="grid gap-4">
               {suggestions.map((suggestion) => (
-                <Card key={suggestion.id} className="hover:shadow-md transition-shadow">
+                <Card key={suggestion.id} className="bg-white border-gray-200 hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start gap-4">
                       {suggestion.coverArtUrl && (
@@ -620,7 +621,7 @@ export default function AdminAlbums() {
             {!selectedPickMonth ? (
               <>
                 {draftPicks.length > 0 && (
-                  <Card>
+                  <Card className="bg-white border-gray-200">
                     <CardHeader>
                       <CardTitle>Existing Drafts</CardTitle>
                     </CardHeader>
@@ -629,7 +630,7 @@ export default function AdminAlbums() {
                         {draftPicks.map((draft) => (
                           <div 
                             key={draft.id}
-                            className="flex items-center justify-between p-3 border rounded hover:bg-muted cursor-pointer"
+                            className="flex items-center justify-between p-3 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer"
                             onClick={() => setSelectedPickMonth(draft.month)}
                             data-testid={`draft-pick-${draft.month}`}
                           >
@@ -645,7 +646,7 @@ export default function AdminAlbums() {
                   </Card>
                 )}
 
-                <Card>
+                <Card className="bg-white border-gray-200">
                   <CardHeader>
                     <CardTitle>Create New Pick</CardTitle>
                   </CardHeader>
@@ -689,7 +690,7 @@ export default function AdminAlbums() {
               </>
             ) : (
               <>
-                <Card>
+                <Card className="bg-white border-gray-200">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{draftPick?.title || selectedPickMonth}</span>
@@ -710,7 +711,7 @@ export default function AdminAlbums() {
                     
                     <div className="space-y-3">
                       {draftPick?.items.map((item, index) => (
-                        <div key={item.id} className="flex items-center gap-4 p-3 border rounded">
+                        <div key={item.id} className="flex items-center gap-4 p-3 border border-gray-200 rounded">
                           <div className="flex flex-col gap-1">
                             <Button
                               size="sm"
@@ -777,10 +778,10 @@ export default function AdminAlbums() {
                   </CardContent>
                 </Card>
 
-                <Card>
+                <Card className="bg-white border-gray-200">
                   <CardHeader>
                     <CardTitle>Add Albums to Pick</CardTitle>
-                    <p className="text-sm text-muted-foreground mt-1">
+                    <p className="text-sm text-gray-500 mt-1">
                       Select from accepted album suggestions to add to this month's pick
                     </p>
                   </CardHeader>
@@ -797,7 +798,7 @@ export default function AdminAlbums() {
                         {suggestions.filter(s => s.status === 'accepted').map((suggestion) => {
                           const alreadyAdded = draftPick?.items.some(i => i.suggestionId === suggestion.id);
                           return (
-                            <div key={suggestion.id} className="flex items-center justify-between p-3 border rounded">
+                            <div key={suggestion.id} className="flex items-center justify-between p-3 border border-gray-200 rounded">
                               <div className="flex-1">
                                 <p className="font-medium">{suggestion.title}</p>
                                 <p className="text-sm text-muted-foreground">{suggestion.artist}</p>
@@ -838,7 +839,7 @@ export default function AdminAlbums() {
           ) : (
             <div className="grid gap-4">
               {publishedPicks.map((pick) => (
-                <Card key={pick.id}>
+                <Card key={pick.id} className="bg-white border-gray-200">
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>{pick.title}</span>
@@ -915,7 +916,7 @@ export default function AdminAlbums() {
                 </h4>
                 <div className="space-y-2 mb-3">
                   {notes.map((note) => (
-                    <div key={note.id} className="p-2 bg-muted rounded text-sm">
+                    <div key={note.id} className="p-2 bg-gray-50 border border-gray-200 rounded text-sm">
                       <p className="font-medium">{note.authorUsername}</p>
                       <p>{note.content}</p>
                       <p className="text-xs text-muted-foreground mt-1">
@@ -1057,6 +1058,6 @@ export default function AdminAlbums() {
           </div>
         </DialogContent>
       </Dialog>
-    </div>
+    </AdminShell>
   );
 }

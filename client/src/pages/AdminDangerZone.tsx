@@ -15,19 +15,27 @@ import {
   RefreshCw, 
   Shield,
   Users,
-  Music,
-  Radio,
-  ArrowLeft
+  Music
 } from "lucide-react";
 import { Link } from "wouter";
+import AdminShell from "@/components/admin/AdminShell";
 
-export default function AdminDangerZone() {
+interface AdminDangerZoneProps {
+  onLogout: () => void;
+  currentUser?: string;
+  userRole?: 'admin' | 'editor';
+}
+
+export default function AdminDangerZone({ 
+  onLogout, 
+  currentUser = "admin",
+  userRole = "admin"
+}: AdminDangerZoneProps) {
   const [confirmationText, setConfirmationText] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Clear all pending mix submissions
   const clearPendingMixesMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('POST', '/api/admin/danger/clear-pending-mixes', {});
@@ -49,7 +57,6 @@ export default function AdminDangerZone() {
     }
   });
 
-  // Clear all user sessions
   const clearSessionsMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('POST', '/api/admin/danger/clear-sessions', {});
@@ -60,7 +67,6 @@ export default function AdminDangerZone() {
         description: "All user sessions have been invalidated.",
       });
       setConfirmationText("");
-      // Note: Admin will need to re-login after this
       setTimeout(() => {
         window.location.href = '/admin';
       }, 2000);
@@ -74,7 +80,6 @@ export default function AdminDangerZone() {
     }
   });
 
-  // Reset all mix approval statuses
   const resetApprovalsMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('/api/admin/danger/reset-approvals', 'POST', {});
@@ -96,7 +101,6 @@ export default function AdminDangerZone() {
     }
   });
 
-  // Emergency system reset
   const emergencyResetMutation = useMutation({
     mutationFn: async () => {
       return apiRequest('/api/admin/danger/emergency-reset', 'POST', {});
@@ -107,7 +111,6 @@ export default function AdminDangerZone() {
         description: "System has been reset to default state. You will be redirected to login.",
       });
       setConfirmationText("");
-      // Redirect to login after reset
       setTimeout(() => {
         window.location.href = '/admin';
       }, 3000);
@@ -133,36 +136,22 @@ export default function AdminDangerZone() {
     
     setIsProcessing(true);
     action();
-    // Reset processing state after mutation completes
     setTimeout(() => setIsProcessing(false), 1000);
   };
 
   return (
-    <div className="min-h-screen bg-[#FEFCF9] p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <Link href="/admin">
-            <Button variant="outline" size="sm" data-testid="button-back-dashboard">
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          
-          <div>
-            <h1 className="text-3xl font-bold font-mono text-navy flex items-center gap-3">
-              <AlertTriangle className="w-8 h-8" />
-              DANGER ZONE
-            </h1>
-            <p className="text-gray-600 mt-2 font-mono">
-              Destructive administrative operations - Use with extreme caution
-            </p>
-          </div>
-        </div>
-
-        {/* Warning Alert */}
+    <AdminShell
+      title="Danger Zone"
+      subtitle="Critical system operations - use with caution"
+      breadcrumbs={[{ label: "Danger Zone" }]}
+      currentUser={currentUser}
+      userRole={userRole}
+      onLogout={onLogout}
+    >
+      <div className="max-w-4xl">
         <Alert className="mb-8 border-red-200 bg-red-50">
           <Shield className="h-4 w-4" />
-          <AlertDescription className="font-mono">
+          <AlertDescription>
             <strong>WARNING:</strong> These operations are irreversible and can cause data loss. 
             Always create a backup before performing any destructive action.
             <Link href="/admin/backups" className="ml-2 text-red-600 hover:underline">
@@ -172,17 +161,16 @@ export default function AdminDangerZone() {
         </Alert>
 
         <div className="grid gap-6">
-          {/* Clear Pending Mixes */}
-          <Card className="border-orange-200">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-mono text-orange-600">
+              <CardTitle className="flex items-center gap-2 text-orange-600">
                 <Music className="w-5 h-5" />
                 Clear Pending Mix Submissions
                 <Badge variant="secondary">Moderate Risk</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4 font-mono">
+              <p className="text-gray-600 mb-4">
                 Remove all mix submissions with "pending" status. This will permanently delete 
                 submissions that have not been reviewed yet.
               </p>
@@ -210,7 +198,7 @@ export default function AdminDangerZone() {
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
                         placeholder="DELETE PENDING"
-                        className="mt-2 font-mono"
+                        className="mt-2"
                         data-testid="input-confirm-delete-pending"
                       />
                     </AlertDialogDescription>
@@ -239,17 +227,16 @@ export default function AdminDangerZone() {
             </CardContent>
           </Card>
 
-          {/* Reset Mix Approvals */}
-          <Card className="border-orange-200">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-mono text-orange-600">
+              <CardTitle className="flex items-center gap-2 text-orange-600">
                 <RefreshCw className="w-5 h-5" />
                 Reset Mix Approval Status
                 <Badge variant="secondary">Moderate Risk</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4 font-mono">
+              <p className="text-gray-600 mb-4">
                 Reset all approved and featured mixes back to "pending" status. 
                 This will require re-reviewing all submissions.
               </p>
@@ -277,7 +264,7 @@ export default function AdminDangerZone() {
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
                         placeholder="RESET APPROVALS"
-                        className="mt-2 font-mono"
+                        className="mt-2"
                         data-testid="input-confirm-reset-approvals"
                       />
                     </AlertDialogDescription>
@@ -306,17 +293,16 @@ export default function AdminDangerZone() {
             </CardContent>
           </Card>
 
-          {/* Clear User Sessions */}
-          <Card className="border-red-200">
+          <Card className="bg-white border-gray-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-mono text-red-600">
+              <CardTitle className="flex items-center gap-2 text-red-600">
                 <Users className="w-5 h-5" />
                 Clear All User Sessions
                 <Badge variant="destructive">High Risk</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-gray-600 mb-4 font-mono">
+              <p className="text-gray-600 mb-4">
                 Invalidate all user sessions, forcing everyone including yourself to log back in. 
                 Use this if you suspect compromised sessions.
               </p>
@@ -325,7 +311,7 @@ export default function AdminDangerZone() {
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="outline" 
-                    className="border-navy-light text-red-600 hover:bg-red-50"
+                    className="border-red-300 text-red-600 hover:bg-red-50"
                     data-testid="button-clear-sessions"
                   >
                     <Users className="w-4 h-4 mr-2" />
@@ -344,7 +330,7 @@ export default function AdminDangerZone() {
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
                         placeholder="CLEAR SESSIONS"
-                        className="mt-2 font-mono"
+                        className="mt-2"
                         data-testid="input-confirm-clear-sessions"
                       />
                     </AlertDialogDescription>
@@ -356,7 +342,7 @@ export default function AdminDangerZone() {
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleConfirmedAction(() => clearSessionsMutation.mutate(), "CLEAR SESSIONS")}
-                      className="bg-navy-dark hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700"
                       disabled={isProcessing || clearSessionsMutation.isPending}
                       data-testid="button-confirm-clear-sessions"
                     >
@@ -373,17 +359,16 @@ export default function AdminDangerZone() {
             </CardContent>
           </Card>
 
-          {/* Emergency System Reset */}
-          <Card className="border-navy-light bg-red-50">
+          <Card className="bg-red-50 border-red-200">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2 font-mono text-red-700">
+              <CardTitle className="flex items-center gap-2 text-red-700">
                 <Database className="w-5 h-5" />
                 Emergency System Reset
                 <Badge variant="destructive">EXTREME RISK</Badge>
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-red-700 mb-4 font-mono font-semibold">
+              <p className="text-red-700 mb-4 font-semibold">
                 ⚠️ NUCLEAR OPTION: Reset the entire system to default state. 
                 This will delete ALL user data, mixes, submissions, and settings.
                 Only use in extreme circumstances.
@@ -393,7 +378,7 @@ export default function AdminDangerZone() {
                 <AlertDialogTrigger asChild>
                   <Button 
                     variant="destructive"
-                    className="bg-navy-dark hover:bg-red-700"
+                    className="bg-red-600 hover:bg-red-700"
                     data-testid="button-emergency-reset"
                   >
                     <AlertTriangle className="w-4 h-4 mr-2" />
@@ -414,7 +399,7 @@ export default function AdminDangerZone() {
                         value={confirmationText}
                         onChange={(e) => setConfirmationText(e.target.value)}
                         placeholder="NUCLEAR RESET"
-                        className="mt-2 font-mono border-navy-light"
+                        className="mt-2 border-red-300"
                         data-testid="input-confirm-emergency-reset"
                       />
                     </AlertDialogDescription>
@@ -426,7 +411,7 @@ export default function AdminDangerZone() {
                     </AlertDialogCancel>
                     <AlertDialogAction
                       onClick={() => handleConfirmedAction(() => emergencyResetMutation.mutate(), "NUCLEAR RESET")}
-                      className="bg-navy-dark hover:bg-red-700"
+                      className="bg-red-600 hover:bg-red-700"
                       disabled={isProcessing || emergencyResetMutation.isPending}
                       data-testid="button-confirm-emergency-reset"
                     >
@@ -444,10 +429,9 @@ export default function AdminDangerZone() {
           </Card>
         </div>
 
-        {/* Safety reminder */}
         <Alert className="mt-8 border-blue-200 bg-blue-50">
           <Shield className="h-4 w-4" />
-          <AlertDescription className="font-mono">
+          <AlertDescription>
             <strong>Safety Reminder:</strong> Always verify you have recent backups before performing any destructive operations. 
             The backup system can restore your data if something goes wrong.
             <Link href="/admin/backups" className="ml-2 text-blue-600 hover:underline">
@@ -456,6 +440,6 @@ export default function AdminDangerZone() {
           </AlertDescription>
         </Alert>
       </div>
-    </div>
+    </AdminShell>
   );
 }

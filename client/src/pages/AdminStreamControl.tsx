@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
-import { Play, Pause, SkipForward, Settings, Upload } from 'lucide-react';
+import { Play, Pause, SkipForward, Settings } from 'lucide-react';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import AdminShell from '@/components/admin/AdminShell';
 
 interface StreamState {
   currentTrack: {
@@ -22,7 +23,17 @@ interface StreamState {
   listeners: number;
 }
 
-export default function AdminStreamControl() {
+interface AdminStreamControlProps {
+  onLogout: () => void;
+  currentUser?: string;
+  userRole?: 'admin' | 'editor';
+}
+
+export default function AdminStreamControl({ 
+  onLogout, 
+  currentUser = "admin",
+  userRole = "admin"
+}: AdminStreamControlProps) {
   const { toast } = useToast();
   const [showManualUpdate, setShowManualUpdate] = useState(false);
   const [manualTrack, setManualTrack] = useState({
@@ -92,20 +103,24 @@ export default function AdminStreamControl() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-2xl font-mono font-bold">Stream Control</h1>
-            <p className="text-gray-600 font-mono text-sm">Admin panel for live radio stream</p>
-          </div>
-          <div className="flex items-center space-x-2">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            <span className="font-mono text-sm">Server Online</span>
-          </div>
-        </div>
+  const serverStatusBadge = (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+      <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+      <span className="text-sm font-medium text-green-700">Server Online</span>
+    </div>
+  );
 
+  return (
+    <AdminShell
+      title="Stream Control"
+      subtitle="Manage live broadcast and AutoDJ settings"
+      breadcrumbs={[{ label: "Stream Control" }]}
+      currentUser={currentUser}
+      userRole={userRole}
+      onLogout={onLogout}
+      actions={serverStatusBadge}
+    >
+      <div className="max-w-4xl">
         {/* Current Stream Status */}
         <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
           <h2 className="font-mono font-semibold mb-4">Current Stream</h2>
@@ -267,6 +282,6 @@ export default function AdminStreamControl() {
           )}
         </div>
       </div>
-    </div>
+    </AdminShell>
   );
 }

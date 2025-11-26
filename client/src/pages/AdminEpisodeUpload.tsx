@@ -4,15 +4,20 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
 import { Upload, Radio, Clock, CheckCircle, AlertCircle, RefreshCw, Wifi, HardDrive, Radio as RadioIcon } from 'lucide-react';
+import AdminShell from '@/components/admin/AdminShell';
 
 type UploadStage = 'idle' | 'uploading' | 'connecting' | 'transferring' | 'rescanning' | 'completed' | 'failed';
 
-export default function AdminEpisodeUpload() {
+interface AdminEpisodeUploadProps {
+  onLogout: () => void;
+  currentUser?: string;
+  userRole?: 'admin' | 'editor';
+}
+
+export default function AdminEpisodeUpload({ onLogout, currentUser = "admin", userRole = "admin" }: AdminEpisodeUploadProps) {
   const queryClient = useQueryClient();
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [uploadStage, setUploadStage] = useState<UploadStage>('idle');
@@ -193,15 +198,18 @@ export default function AdminEpisodeUpload() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FEFCF9] p-6">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
-          EPISODE UPLOAD & SCHEDULING
-        </h1>
-
+    <AdminShell
+      title="Episode Upload"
+      subtitle="Upload new episodes to the station"
+      breadcrumbs={[{ label: "Episode Upload" }]}
+      currentUser={currentUser}
+      userRole={userRole}
+      onLogout={onLogout}
+    >
+      <div className="max-w-4xl">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* Upload Form */}
-          <Card>
+          <Card className="bg-white border-gray-200">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Radio className="w-5 h-5" />
@@ -215,8 +223,8 @@ export default function AdminEpisodeUpload() {
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* SECTION: Core Episode Details */}
-                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                <div className="space-y-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 tracking-wide">
                     Core Episode Details
                   </h3>
                   
@@ -232,7 +240,7 @@ export default function AdminEpisodeUpload() {
                       required
                     />
                     {formData.audioFile && (
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      <p className="text-sm text-gray-600 mt-1">
                         Selected: {formData.audioFile.name} ({(formData.audioFile.size / 1024 / 1024).toFixed(1)} MB)
                       </p>
                     )}
@@ -270,17 +278,17 @@ export default function AdminEpisodeUpload() {
                       required
                       data-testid="input-showSlug"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    <p className="text-xs text-gray-500 mt-1">
                       Used for file organization and playlists. Letters, numbers, and hyphens only.
                     </p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold w-full">Quick suggestions:</p>
+                      <p className="text-xs text-gray-600 font-semibold w-full">Quick suggestions:</p>
                       {['footwork-fridays', 'late-night-sessions', 'community-showcase', 'resident-spotlight', 'guest-mix', 'deep-cuts'].map(slug => (
                         <button
                           key={slug}
                           type="button"
                           onClick={() => setFormData(prev => ({ ...prev, showSlug: slug }))}
-                          className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 rounded transition-colors"
+                          className="text-xs px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded transition-colors"
                           data-testid={`suggest-${slug}`}
                         >
                           {slug}
@@ -291,8 +299,8 @@ export default function AdminEpisodeUpload() {
                 </div>
 
                 {/* SECTION: Metadata */}
-                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                <div className="space-y-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 tracking-wide">
                     Metadata
                   </h3>
                   
@@ -318,19 +326,19 @@ export default function AdminEpisodeUpload() {
                       placeholder="house, techno, ambient"
                       className="mt-1"
                     />
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Separate tags with commas</p>
+                    <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
                   </div>
                 </div>
 
                 {/* SECTION: Artwork */}
-                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                <div className="space-y-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 tracking-wide">
                     Episode Artwork
                   </h3>
                   
                   {/* Artwork File Upload */}
                   <div>
-                    <Label htmlFor="artworkFile" className="text-sm text-gray-600 dark:text-gray-400">Upload Image File</Label>
+                    <Label htmlFor="artworkFile" className="text-sm text-gray-600">Upload Image File</Label>
                     <Input
                       id="artworkFile"
                       type="file"
@@ -344,17 +352,17 @@ export default function AdminEpisodeUpload() {
                       className="mt-1"
                     />
                     {formData.artworkFile && (
-                      <p className="text-sm text-green-600 dark:text-green-400 mt-1">
+                      <p className="text-sm text-green-600 mt-1">
                         ✓ Selected: {formData.artworkFile.name}
                       </p>
                     )}
                   </div>
 
-                  <div className="text-center text-xs text-gray-500 dark:text-gray-400">— OR —</div>
+                  <div className="text-center text-xs text-gray-500">— OR —</div>
 
                   {/* Artwork URL */}
                   <div>
-                    <Label htmlFor="artworkUrl" className="text-sm text-gray-600 dark:text-gray-400">Artwork URL</Label>
+                    <Label htmlFor="artworkUrl" className="text-sm text-gray-600">Artwork URL</Label>
                     <Input
                       id="artworkUrl"
                       type="url"
@@ -365,7 +373,7 @@ export default function AdminEpisodeUpload() {
                       disabled={!!formData.artworkFile}
                     />
                     {formData.artworkUrl && !formData.artworkFile && (
-                      <p className="text-sm text-blue-600 dark:text-blue-400 mt-1">
+                      <p className="text-sm text-blue-600 mt-1">
                         Using URL: {formData.artworkUrl.substring(0, 40)}...
                       </p>
                     )}
@@ -373,8 +381,8 @@ export default function AdminEpisodeUpload() {
                 </div>
 
                 {/* SECTION: Display Options */}
-                <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-900/30 border border-gray-200 dark:border-gray-800 rounded-lg">
-                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
+                <div className="space-y-4 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 tracking-wide">
                     Display Options
                   </h3>
                   
@@ -388,7 +396,7 @@ export default function AdminEpisodeUpload() {
                       />
                       <Label htmlFor="featureOnHome">Feature on Homepage</Label>
                     </div>
-                    <p className="text-sm text-gray-500 dark:text-gray-400 ml-11">
+                    <p className="text-sm text-gray-500 ml-11">
                       If enabled, this episode will appear in the homepage banner rotation
                     </p>
                   </div>
@@ -446,7 +454,7 @@ export default function AdminEpisodeUpload() {
                 <Button 
                   type="submit" 
                   disabled={uploadMutation.isPending || !formData.audioFile}
-                  className="w-full bg-navy-dark hover:bg-red-700"
+                  className="w-full bg-navy hover:bg-navy/90"
                   data-testid="button-upload"
                 >
                   {getStatusIcon()}
@@ -455,17 +463,17 @@ export default function AdminEpisodeUpload() {
 
                 {/* Error Display with Retry */}
                 {uploadError && (
-                  <div className="p-4 border-2 border-red-200 bg-red-50 dark:bg-red-950 dark:border-red-800 rounded space-y-3">
+                  <div className="p-4 border-2 border-red-200 bg-red-50 rounded space-y-3">
                     <div className="flex items-start gap-2">
-                      <AlertCircle className="w-5 h-5 text-red-600 dark:text-navy-light flex-shrink-0 mt-0.5" />
+                      <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
                       <div className="flex-1">
-                        <p className="font-semibold text-red-900 dark:text-red-100">Upload Failed</p>
-                        <p className="text-sm text-red-700 dark:text-red-300 mt-1">{uploadError.message}</p>
+                        <p className="font-semibold text-red-900">Upload Failed</p>
+                        <p className="text-sm text-red-700 mt-1">{uploadError.message}</p>
                         
                         {/* Stage-specific troubleshooting */}
-                        <div className="mt-3 p-2 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded">
-                          <p className="text-xs font-semibold text-yellow-900 dark:text-yellow-100 mb-1">💡 Troubleshooting Tips:</p>
-                          <ul className="text-xs text-yellow-800 dark:text-yellow-200 space-y-1 list-disc list-inside">
+                        <div className="mt-3 p-2 bg-yellow-50 border border-yellow-200 rounded">
+                          <p className="text-xs font-semibold text-yellow-900 mb-1">💡 Troubleshooting Tips:</p>
+                          <ul className="text-xs text-yellow-800 space-y-1 list-disc list-inside">
                             {uploadError.message.includes('Connection') && (
                               <>
                                 <li>Verify AzuraCast server is online and accessible</li>
@@ -507,7 +515,7 @@ export default function AdminEpisodeUpload() {
                         }}
                         variant="outline"
                         size="sm"
-                        className="w-full border-navy-light text-red-700 hover:bg-red-100 dark:border-red-700 dark:text-red-300 dark:hover:bg-red-900"
+                        className="w-full border-red-300 text-red-700 hover:bg-red-100"
                         data-testid="button-retry"
                       >
                         <RefreshCw className="w-4 h-4 mr-2" />
@@ -515,7 +523,7 @@ export default function AdminEpisodeUpload() {
                       </Button>
                     )}
                     {!uploadError.retryable && (
-                      <p className="text-xs text-red-600 dark:text-navy-light italic">
+                      <p className="text-xs text-red-600 italic">
                         ⚠️ This error requires manual intervention. Please check settings and try uploading a new episode.
                       </p>
                     )}
@@ -524,7 +532,7 @@ export default function AdminEpisodeUpload() {
 
                 {/* Success Message */}
                 {uploadProgress && uploadStage === 'completed' && (
-                  <div className="p-3 rounded text-sm bg-green-50 text-green-700 dark:bg-green-950 dark:text-green-300">
+                  <div className="p-3 rounded text-sm bg-green-50 text-green-700">
                     {uploadProgress}
                   </div>
                 )}
@@ -533,7 +541,7 @@ export default function AdminEpisodeUpload() {
           </Card>
 
           {/* Process Overview */}
-          <Card>
+          <Card className="bg-white border-gray-200">
             <CardHeader>
               <CardTitle>Upload Process</CardTitle>
               <CardDescription>
@@ -582,7 +590,7 @@ export default function AdminEpisodeUpload() {
                 </div>
               </div>
 
-              <div className="mt-6 p-3 bg-yellow-50 rounded-lg">
+              <div className="mt-6 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                 <h4 className="font-medium text-yellow-800 mb-1">Requirements</h4>
                 <ul className="text-sm text-yellow-700 space-y-1">
                   <li>• Audio files must be MP3 format</li>
@@ -595,6 +603,6 @@ export default function AdminEpisodeUpload() {
           </Card>
         </div>
       </div>
-    </div>
+    </AdminShell>
   );
 }

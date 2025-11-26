@@ -185,7 +185,7 @@ export default function AdminAuthWrapper() {
       case '/admin/routing':
         return <AdminMixRouting />;
       case '/admin/upload':
-        return <AdminEpisodeUpload />;
+        return <AdminEpisodeUpload onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/episode-queue':
         return <AdminEpisodeQueue />;
       case '/admin/schedule-management':
@@ -213,25 +213,25 @@ export default function AdminAuthWrapper() {
           </div>
         );
       case '/admin/backups':
-        return <AdminBackups />;
+        return <AdminBackups onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/stats':
-        return <AdminStats />;
+        return <AdminStats onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/danger-zone':
-        return <AdminDangerZone />;
+        return <AdminDangerZone onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/editorial-workflow':
         return <EditorialWorkflow />;
       case '/admin/resident-applications':
-        return <AdminResidentApplications />;
+        return <AdminResidentApplications onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/residents':
-        return <AdminResidents />;
+        return <AdminResidents onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/albums':
-        return <AdminAlbums />;
+        return <AdminAlbums onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/hero-banners':
         return <HeroBannersAdmin />;
       case '/admin/playlist-submissions':
         return <PlaylistSubmissionsAdmin />;
       case '/admin/settings':
-        return <AdminSettings />;
+        return <AdminSettings onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/radio-ops':
         return <RadioOps />;
       case '/editor':

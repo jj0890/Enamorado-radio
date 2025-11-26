@@ -3,10 +3,8 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Edit, Trash2, User, Key, Radio, AlertTriangle, Copy, ExternalLink } from 'lucide-react';
@@ -16,6 +14,7 @@ import { useForm } from 'react-hook-form';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import AdminShell from '@/components/admin/AdminShell';
 
 interface ResidentFormData {
   username: string;
@@ -32,7 +31,12 @@ interface ResidentFormData {
   canGoLive: boolean;
 }
 
-export default function AdminResidents() {
+interface AdminResidentsProps {
+  onLogout?: () => void;
+  currentUser?: string;
+}
+
+export default function AdminResidents({ onLogout, currentUser = "admin" }: AdminResidentsProps) {
   const { toast } = useToast();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingResident, setEditingResident] = useState<Resident | null>(null);
@@ -199,36 +203,38 @@ INSTRUCTIONS:
   };
 
   return (
-    <div className="min-h-screen bg-[#FEFCF9] p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold font-mono text-navy">RESIDENTS MANAGEMENT</h1>
-            <p className="text-gray-600 mt-2">Manage resident DJs and their streaming credentials</p>
-            <a
-              href="http://24.199.109.18/admin#/station/1/streamers"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1 mt-1"
-            >
-              <ExternalLink className="w-3 h-3" />
-              Open AzuraCast Streamers/DJs
-            </a>
-          </div>
-          <Dialog open={isCreateOpen || !!editingResident} onOpenChange={(open) => {
-            setIsCreateOpen(open);
-            if (!open) {
-              setEditingResident(null);
-              form.reset();
-            }
-          }}>
-            <DialogTrigger asChild>
-              <Button onClick={() => setIsCreateOpen(true)} data-testid="button-create-resident">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Resident
-              </Button>
-            </DialogTrigger>
+    <AdminShell
+      title="Residents"
+      subtitle="Manage resident DJs and streamers"
+      breadcrumbs={[{ label: "Residents" }]}
+      currentUser={currentUser}
+      userRole="admin"
+      onLogout={onLogout}
+      actions={
+        <>
+          <a
+            href="http://24.199.109.18/admin#/station/1/streamers"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1"
+          >
+            <ExternalLink className="w-3 h-3" />
+            AzuraCast
+          </a>
+          <Button onClick={() => setIsCreateOpen(true)} data-testid="button-create-resident">
+            <Plus className="w-4 h-4 mr-2" />
+            Add Resident
+          </Button>
+        </>
+      }
+    >
+      <Dialog open={isCreateOpen || !!editingResident} onOpenChange={(open) => {
+        setIsCreateOpen(open);
+        if (!open) {
+          setEditingResident(null);
+          form.reset();
+        }
+      }}>
             <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingResident ? 'Edit Resident' : 'Create New Resident'}</DialogTitle>
@@ -443,11 +449,10 @@ INSTRUCTIONS:
                 </form>
               </Form>
             </DialogContent>
-          </Dialog>
-        </div>
+      </Dialog>
 
-        {/* Residents List */}
-        <Card>
+      {/* Residents List */}
+      <Card className="bg-white border border-gray-200">
           <CardHeader>
             <CardTitle>All Residents ({residents.length})</CardTitle>
           </CardHeader>
@@ -529,7 +534,6 @@ INSTRUCTIONS:
             )}
           </CardContent>
         </Card>
-      </div>
-    </div>
+    </AdminShell>
   );
 }
