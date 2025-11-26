@@ -1,26 +1,23 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Link, useLocation } from "wouter";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import AdminShell from "@/components/admin/AdminShell";
+import ActivityFeed, { ActivityItem } from "@/components/admin/ActivityFeed";
 import { 
-  BarChart3, 
   Music, 
   Users, 
   PlayCircle, 
   Radio, 
-  ArrowLeft,
-  LogOut,
   AlertTriangle,
-  Trash2,
-  RefreshCw,
   Upload,
   Disc,
-  Settings,
-  Calendar
+  Headphones,
+  TrendingUp,
+  Clock,
+  CheckCircle2,
+  Star
 } from "lucide-react";
 
 interface AdminStats {
@@ -39,346 +36,282 @@ interface AdminStats {
   recentSubmissions: number;
 }
 
-// Comprehensive admin navigation organized by category
-const navItems = [
-  // Core Admin
-  { href: "/admin", label: "Dashboard", icon: BarChart3, category: "core" },
-  
-  // Content Management  
-  { href: "/admin/mix-submissions", label: "Mix Review", icon: Music, category: "content" },
-  { href: "/admin/song-submissions", label: "Song Review", icon: Music, category: "content" },
-  { href: "/admin/routing", label: "Mix Routing", icon: PlayCircle, category: "content" },
-  { href: "/admin/upload", label: "Episode Upload", icon: Upload, category: "content" },
-  { href: "/admin/episode-queue", label: "Episode Queue", icon: Music, category: "content" },
-  { href: "/admin/schedule-management", label: "Schedule Manager", icon: Calendar, category: "content" },
-  { href: "/admin/albums", label: "Albums of the Month", icon: Disc, category: "content" },
-  
-  // Community
-  { href: "/admin/submissions", label: "Community Submissions", icon: Music, category: "community" },
-  { href: "/admin/resident-applications", label: "DJ Applications", icon: Users, category: "community" },
-  { href: "/admin/residents", label: "Residents", icon: Users, category: "community" },
-  { href: "/admin/queue", label: "Queue", icon: PlayCircle, category: "community" },
-  
-  // AzuraCast Integration
-  { href: "/admin/radio-ops", label: "Radio Ops Panel", icon: Radio, category: "integration" },
-  { href: "/admin/azuracast", label: "AzuraCast", icon: Radio, category: "integration" },
-  { href: "/admin/azuracast-upload", label: "AzuraCast Upload", icon: Upload, category: "integration" },
-  { href: "/admin/mix-manager", label: "Mix Manager", icon: Radio, category: "integration" },
-  
-  // System Management
-  { href: "/admin/stats", label: "Stats Dashboard", icon: BarChart3, category: "system" },
-  { href: "/admin/backups", label: "Backup System", icon: RefreshCw, category: "system" },
-  { href: "/admin/settings", label: "Settings", icon: Settings, category: "system" },
-  { href: "/admin/danger-zone", label: "Danger Zone", icon: AlertTriangle, category: "system" },
-  { href: "/admin/editorial-workflow", label: "Editorial", icon: AlertTriangle, category: "system" },
-];
-
 interface AdminDashboardProps {
   onLogout: () => void;
   currentUser?: string;
 }
 
-export default function AdminDashboard({ onLogout, currentUser }: AdminDashboardProps) {
-  const [location] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
+export default function AdminDashboard({ onLogout, currentUser = "admin" }: AdminDashboardProps) {
   const { data: stats, isLoading } = useQuery<AdminStats>({
     queryKey: ['/api/admin/stats'],
-    refetchInterval: 30000, // Refresh every 30 seconds
+    refetchInterval: 30000,
   });
 
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      return apiRequest('POST', '/api/admin/logout', {});
-    },
-    onSuccess: () => {
-      // Invalidate auth queries
-      queryClient.invalidateQueries({ queryKey: ['/api/admin/auth'] });
-      toast({
-        title: "Logged Out",
-        description: "You have been logged out successfully.",
-      });
-      onLogout();
-    },
-  });
-
-  const handleLogout = () => {
-    logoutMutation.mutate();
-  };
+  // Mock activity data for now (will be replaced with API)
+  const mockActivities: ActivityItem[] = [
+    { id: 1, type: 'mix_approved', description: 'approved mix', actor: currentUser, targetName: 'Deep House Session', createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
+    { id: 2, type: 'episode_uploaded', description: 'uploaded episode', actor: currentUser, targetName: 'Weekly Show #42', createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
+    { id: 3, type: 'application_approved', description: 'approved application from', actor: currentUser, targetName: 'DJ Pulse', createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
+    { id: 4, type: 'mix_featured', description: 'featured mix', actor: currentUser, targetName: 'Summer Vibes Mix', createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
+    { id: 5, type: 'login', description: 'logged in', actor: currentUser, createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString() },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#FEFCF9]">
-      {/* Admin Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-8">
-              <h1 className="text-xl font-bold font-mono text-navy">ADMIN PANEL</h1>
-              
-              <div className="hidden lg:flex space-x-1">
-                {navItems.filter(item => item.category === 'core' || item.category === 'content').map((item) => {
-                  const Icon = item.icon;
-                  const isActive = location === item.href;
-                  
-                  return (
-                    <Link key={item.href} href={item.href}>
-                      <div className={`flex items-center space-x-2 px-2 py-2 rounded-md text-xs font-mono transition-colors ${
-                        isActive 
-                          ? 'bg-red-100 text-red-600' 
-                          : 'text-gray-600 hover:text-red-600 hover:bg-gray-100'
-                      }`} data-testid={`nav-${item.href.replace('/admin/', '').replace('/', 'dashboard')}`}>
-                        <Icon className="w-4 h-4" />
-                        <span className="hidden xl:inline">{item.label}</span>
-                      </div>
+    <AdminShell
+      title="Dashboard"
+      subtitle="Welcome back! Here's what's happening with your radio station."
+      currentUser={currentUser}
+      userRole="admin"
+      onLogout={onLogout}
+    >
+      {/* KPI Cards */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded mb-2 w-24"></div>
+                <div className="h-8 bg-gray-200 rounded w-16"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : stats ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+          <Card className="border-l-4 border-l-orange-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Pending Reviews</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.pendingMixReviews}</p>
+                  <p className="text-xs text-gray-400 mt-1">Awaiting approval</p>
+                </div>
+                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                  <Clock className="w-6 h-6 text-orange-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-green-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Approved Mixes</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.approvedMixes}</p>
+                  <p className="text-xs text-gray-400 mt-1">Total published</p>
+                </div>
+                <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                  <CheckCircle2 className="w-6 h-6 text-green-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-purple-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">Featured</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.featuredMixes}</p>
+                  <p className="text-xs text-gray-400 mt-1">Highlighted content</p>
+                </div>
+                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                  <Star className="w-6 h-6 text-purple-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-l-4 border-l-blue-500">
+            <CardContent className="p-5">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm text-gray-500 font-medium">DJ Applications</p>
+                  <p className="text-3xl font-bold text-gray-900 mt-1">{stats.pendingApplications || 0}</p>
+                  <p className="text-xs text-gray-400 mt-1">New applicants</p>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                  <Users className="w-6 h-6 text-blue-600" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
+      {/* Main Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Quick Actions & Stats */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg">Quick Actions</CardTitle>
+              <CardDescription>Common tasks at your fingertips</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <Link href="/admin/mix-submissions">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                    data-testid="quick-action-review-mixes"
+                  >
+                    <Music className="w-5 h-5" />
+                    <span className="text-xs font-medium">Review Mixes</span>
+                  </Button>
+                </Link>
+                <Link href="/admin/upload">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                    data-testid="quick-action-upload-episode"
+                  >
+                    <Upload className="w-5 h-5" />
+                    <span className="text-xs font-medium">Upload Episode</span>
+                  </Button>
+                </Link>
+                <Link href="/admin/radio-ops">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                    data-testid="quick-action-radio-ops"
+                  >
+                    <Radio className="w-5 h-5" />
+                    <span className="text-xs font-medium">Radio Ops</span>
+                  </Button>
+                </Link>
+                <Link href="/admin/residents">
+                  <Button 
+                    variant="outline" 
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                    data-testid="quick-action-manage-residents"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span className="text-xs font-medium">Residents</span>
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Overview Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Headphones className="w-5 h-5 text-navy" />
+                  Episodes
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Total Episodes</span>
+                    <span className="font-semibold">{stats?.totalEpisodes || 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Published</span>
+                    <span className="font-semibold text-green-600">{stats?.publishedEpisodes || 0}</span>
+                  </div>
+                  <div className="pt-2 border-t">
+                    <Link href="/admin/episode-queue">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Manage Episodes
+                      </Button>
                     </Link>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <Link href="/">
-                <Button variant="outline" size="sm" className="font-mono">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Back to Site
-                </Button>
-              </Link>
-              
-              <div className="text-sm text-gray-600 font-mono">
-                Logged in as: <span className="font-semibold">{currentUser}</span>
-              </div>
-              
-              <Button 
-                onClick={handleLogout}
-                variant="outline" 
-                size="sm"
-                disabled={logoutMutation.isPending}
-                className="font-mono"
-                data-testid="button-logout"
-              >
-                <LogOut className="w-4 h-4 mr-2" />
-                {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
-              </Button>
-            </div>
-          </div>
-        </div>
-      </nav>
-
-      {/* Dashboard Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h2 className="text-3xl font-bold font-mono text-gray-900">Dashboard</h2>
-          <p className="text-gray-600 font-mono">Radio station administration overview</p>
-        </div>
-
-        {/* Top KPIs - Simplified to 4 key metrics */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {[...Array(4)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardContent className="p-6">
-                  <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                  <div className="h-8 bg-gray-200 rounded"></div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        ) : stats ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Pending Reviews</p>
-                    <p className="text-3xl font-bold font-mono text-orange-600">{stats.pendingMixReviews}</p>
                   </div>
-                  <AlertTriangle className="w-8 h-8 text-orange-500" />
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Approved Mixes</p>
-                    <p className="text-3xl font-bold font-mono text-green-600">{stats.approvedMixes}</p>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Users className="w-5 h-5 text-navy" />
+                  Community
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Active Residents</span>
+                    <span className="font-semibold">{stats?.activeResidents || 0}</span>
                   </div>
-                  <PlayCircle className="w-8 h-8 text-green-500" />
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">Featured Mixes</p>
-                    <p className="text-3xl font-bold font-mono text-purple-600">{stats.featuredMixes}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Pending Applications</span>
+                    <span className="font-semibold text-orange-600">{stats?.pendingApplications || 0}</span>
                   </div>
-                  <Badge className="bg-purple-100 text-purple-800">★</Badge>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-mono text-gray-600">DJ Applications</p>
-                    <p className="text-3xl font-bold font-mono text-blue-600">{stats.pendingApplications || 0}</p>
+                  <div className="pt-2 border-t">
+                    <Link href="/admin/resident-applications">
+                      <Button variant="outline" size="sm" className="w-full">
+                        View Applications
+                      </Button>
+                    </Link>
                   </div>
-                  <Users className="w-8 h-8 text-blue-500" />
                 </div>
               </CardContent>
             </Card>
           </div>
-        ) : null}
 
-        {/* Quick Actions */}
-        <div className="mb-8">
-          <h3 className="text-xl font-bold font-mono text-gray-900 mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <Link href="/admin/mix-submissions">
-              <Button className="w-full h-20 text-lg font-mono" variant="outline">
-                <Music className="w-6 h-6 mr-2" />
-                Review Mixes
-              </Button>
-            </Link>
-            <Link href="/admin/upload">
-              <Button className="w-full h-20 text-lg font-mono" variant="outline">
-                <Upload className="w-6 h-6 mr-2" />
-                Upload Episode
-              </Button>
-            </Link>
-            <Link href="/admin/radio-ops">
-              <Button className="w-full h-20 text-lg font-mono" variant="outline">
-                <Radio className="w-6 h-6 mr-2" />
-                Radio Ops
-              </Button>
-            </Link>
-            <Link href="/admin/albums">
-              <Button className="w-full h-20 text-lg font-mono" variant="outline">
-                <Disc className="w-6 h-6 mr-2" />
-                Albums
-              </Button>
-            </Link>
-          </div>
-        </div>
-
-        {/* Admin Navigation Grid - Organized by Category */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {/* Content Management */}
+          {/* System Status */}
           <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-lg">Content Management</CardTitle>
-              <CardDescription>Review and manage submissions</CardDescription>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-navy" />
+                System Status
+              </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3">
-              {navItems.filter(item => item.category === 'content').map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.href} href={item.href} className="block">
-                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
-                      <Icon className="w-4 h-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          {/* Community */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-lg">Community</CardTitle>
-              <CardDescription>DJ applications and queue</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {navItems.filter(item => item.category === 'community').map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.href} href={item.href} className="block">
-                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
-                      <Icon className="w-4 h-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          {/* AzuraCast Integration */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-lg">AzuraCast</CardTitle>
-              <CardDescription>Radio streaming integration</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {navItems.filter(item => item.category === 'integration').map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.href} href={item.href} className="block">
-                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
-                      <Icon className="w-4 h-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-            </CardContent>
-          </Card>
-
-          {/* System Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="font-mono text-lg">System</CardTitle>
-              <CardDescription>Administration and maintenance</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {navItems.filter(item => item.category === 'system').map((item) => {
-                const Icon = item.icon;
-                return (
-                  <Link key={item.href} href={item.href} className="block">
-                    <Button variant="outline" className="w-full justify-start font-mono" data-testid={`nav-${item.href.replace('/admin/', '')}`}>
-                      <Icon className="w-4 h-4 mr-2" />
-                      {item.label}
-                    </Button>
-                  </Link>
-                );
-              })}
-              
-              {/* System Status */}
-              <div className="border-t pt-3 mt-3">
-                <div className="text-xs font-mono text-gray-600 mb-2">System Status</div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono">Session</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                      Active
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono">Database</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
-                      Connected
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-mono">Stream</span>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
-                      Live
-                    </Badge>
-                  </div>
+            <CardContent>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2 animate-pulse"></div>
+                  <p className="text-sm font-medium text-green-800">Stream</p>
+                  <p className="text-xs text-green-600">Online</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2"></div>
+                  <p className="text-sm font-medium text-green-800">Database</p>
+                  <p className="text-xs text-green-600">Connected</p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2"></div>
+                  <p className="text-sm font-medium text-green-800">AzuraCast</p>
+                  <p className="text-xs text-green-600">Connected</p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
-      </main>
-    </div>
+
+        {/* Right Column - Activity Feed */}
+        <div className="space-y-6">
+          <ActivityFeed activities={mockActivities} maxItems={10} />
+
+          {/* Alerts Card */}
+          {stats && stats.pendingMixReviews > 5 && (
+            <Card className="border-orange-200 bg-orange-50">
+              <CardContent className="p-4">
+                <div className="flex items-start gap-3">
+                  <AlertTriangle className="w-5 h-5 text-orange-600 mt-0.5" />
+                  <div>
+                    <p className="font-medium text-orange-800">Review Queue Growing</p>
+                    <p className="text-sm text-orange-600 mt-1">
+                      You have {stats.pendingMixReviews} mixes pending review. Consider reviewing them soon.
+                    </p>
+                    <Link href="/admin/mix-submissions">
+                      <Button size="sm" variant="outline" className="mt-3 border-orange-300 text-orange-700 hover:bg-orange-100">
+                        Review Now
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      </div>
+    </AdminShell>
   );
 }
