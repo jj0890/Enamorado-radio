@@ -92,5 +92,37 @@
     "rejectionReason": null,
     "createdAt": "2025-11-30T11:49:45.427Z",
     "updatedAt": "2025-11-30T11:49:45.427Z"
+  },
+  {
+    "curatorName": "jarrad",
+    "title": "Winter 25",
+    "playlistUrl": "https://open.spotify.com/playlist/647V5M8N4jN5NLKtpx3QxA?si=4b1a7d7f5df14339",
+    "description": "testing",
+    "tags": [
+      "rap"
+    ],
+    "artworkUrl": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846b478080d4e9da50d595ad82",
+    "curatorEmail": null,
+    "platform": "spotify",
+    "metadata": {
+      "title": "Winter ‘25",
+      "thumbnail": "https://image-cdn-ak.spotifycdn.com/image/ab67706c0000da846b478080d4e9da50d595ad82",
+      "embedUrl": "https://open.spotify.com/embed/playlist/647V5M8N4jN5NLKtpx3QxA?si=4b1a7d7f5df14339",
+      "providerName": "Spotify",
+      "embeddable": true
+    },
+    "id": 55,
+    "status": "approved",
+    "submittedAt": "2025-11-30T12:06:20.586Z",
+    "approvedAt": "2025-11-30T12:09:47.034Z",
+    "featuredAt": null,
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "likes": 0,
+    "trackCount": null,
+    "editorNotes": null,
+    "rejectionReason": null,
+    "createdAt": "2025-11-30T12:06:20.586Z",
+    "updatedAt": "2025-11-30T12:09:47.034Z"
   }
 ]

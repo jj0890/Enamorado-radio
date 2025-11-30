@@ -135,47 +135,7 @@ export default function CommunityDetailPage() {
 
         {/* Split Pane Layout */}
         <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left Pane: Player / Artwork */}
-          <div>
-            {oembedLoading ? (
-              <div className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse" />
-            ) : oembed?.html ? (
-              <div 
-                className="rounded-lg overflow-hidden shadow-lg"
-                dangerouslySetInnerHTML={{ __html: oembed.html }}
-                data-testid="oembed-player"
-              />
-            ) : item.artworkUrl ? (
-              <img
-                src={item.artworkUrl}
-                alt={item.title}
-                className="w-full aspect-square object-cover rounded-lg shadow-lg"
-                data-testid="img-artwork"
-              />
-            ) : (
-              <div className="aspect-square bg-gradient-to-br from-navy to-navy-light flex items-center justify-center rounded-lg shadow-lg">
-                <span className="text-white/20 text-6xl font-serif">
-                  {item.title.charAt(0)}
-                </span>
-              </div>
-            )}
-
-            {/* External Link */}
-            {item.url && (
-              <a
-                href={item.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-4 inline-flex items-center gap-2 text-navy dark:text-navy-light hover:underline"
-                data-testid="link-external"
-              >
-                <ExternalLink className="w-4 h-4" />
-                Open in {oembed?.provider_name || 'original platform'}
-              </a>
-            )}
-          </div>
-
-          {/* Right Pane: Metadata */}
+          {/* Left Pane: Metadata */}
           <div>
             {/* Type Badge */}
             <div className="mb-4">
@@ -232,6 +192,46 @@ export default function CommunityDetailPage() {
                 <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap" data-testid="text-description">
                   {item.description}
                 </p>
+              </div>
+            )}
+
+            {/* External Link */}
+            {item.url && (
+              <a
+                href={item.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-navy dark:text-navy-light hover:underline"
+                data-testid="link-external"
+              >
+                <ExternalLink className="w-4 h-4" />
+                Open in {oembed?.provider_name || 'original platform'}
+              </a>
+            )}
+          </div>
+
+          {/* Right Pane: Player / Artwork */}
+          <div>
+            {oembedLoading ? (
+              <div className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse" />
+            ) : oembed?.html ? (
+              <div 
+                className="rounded-lg overflow-hidden shadow-lg"
+                dangerouslySetInnerHTML={{ __html: oembed.html }}
+                data-testid="oembed-player"
+              />
+            ) : item.artworkUrl ? (
+              <img
+                src={item.artworkUrl}
+                alt={item.title}
+                className="w-full aspect-square object-cover rounded-lg shadow-lg"
+                data-testid="img-artwork"
+              />
+            ) : (
+              <div className="aspect-square bg-gradient-to-br from-navy to-navy-light flex items-center justify-center rounded-lg shadow-lg">
+                <span className="text-white/20 text-6xl font-serif">
+                  {item.title.charAt(0)}
+                </span>
               </div>
             )}
           </div>

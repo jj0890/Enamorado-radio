@@ -3502,7 +3502,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json(episodeItem);
       }
 
-      // Playlist support to be added in future
+      // Try playlists (by ID)
+      const allPlaylists = await storage.getPlaylistSubmissions({});
+      const playlist = allPlaylists.find((p: any) => 
+        isNumeric && p.id === numericId
+      );
+      
+      if (playlist && (playlist.status === 'approved' || playlist.status === 'featured')) {
+        const playlistItem = {
+          type: 'playlist' as const,
+          id: playlist.id,
+          title: playlist.title,
+          curatorName: playlist.curatorName,
+          curatorEmail: playlist.curatorEmail || null,
+          artworkUrl: playlist.artworkUrl || null,
+          description: playlist.description || null,
+          url: playlist.playlistUrl,
+          platform: playlist.platform || null,
+          tags: playlist.tags || null,
+          embedUrl: playlist.embedUrl || null,
+          oembedMetadata: playlist.oembedMetadata || null,
+          submittedAt: playlist.submittedAt,
+          createdAt: playlist.submittedAt,
+          isFeatured: playlist.status === 'featured',
+        };
+        return res.json(playlistItem);
+      }
       
       // Not found
       res.status(404).json({ error: 'Content not found' });
