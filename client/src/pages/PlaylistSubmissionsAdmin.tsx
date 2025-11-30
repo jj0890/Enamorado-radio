@@ -3,8 +3,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
@@ -21,9 +20,15 @@ import {
   Music2,
   ExternalLink,
   Trash2,
-  StarOff
+  StarOff,
+  Clock,
+  CheckCircle,
+  ListMusic,
 } from "lucide-react";
+import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube } from "react-icons/si";
 import { useState } from "react";
+import AdminShell from "@/components/admin/AdminShell";
+import DataTable, { StatusBadge, DateCell, TruncatedText, type Column, type RowAction } from "@/components/admin/DataTable";
 
 interface PlaylistSubmission {
   id: number;
@@ -32,7 +37,7 @@ interface PlaylistSubmission {
   title: string;
   description: string | null;
   playlistUrl: string;
-  platform: 'spotify' | 'apple_music' | 'youtube' | 'unknown';
+  platform: 'spotify' | 'apple_music' | 'soundcloud' | 'youtube' | 'unknown';
   artworkUrl: string | null;
   tags: string[] | null;
   status: 'pending' | 'approved' | 'rejected' | 'featured';
@@ -42,23 +47,73 @@ interface PlaylistSubmission {
   featuredAt: string | null;
 }
 
-export default function PlaylistSubmissionsAdmin() {
+interface PlaylistSubmissionsAdminProps {
+  currentUser: string;
+  onLogout: () => void;
+}
+
+function PlatformBadge({ platform }: { platform: string }) {
+  switch (platform) {
+    case 'spotify':
+      return (
+        <Badge className="bg-green-600 text-white flex items-center gap-1">
+          <SiSpotify className="w-3 h-3" />
+          Spotify
+        </Badge>
+      );
+    case 'apple_music':
+      return (
+        <Badge className="bg-pink-600 text-white flex items-center gap-1">
+          <SiApplemusic className="w-3 h-3" />
+          Apple Music
+        </Badge>
+      );
+    case 'soundcloud':
+      return (
+        <Badge className="bg-orange-500 text-white flex items-center gap-1">
+          <SiSoundcloud className="w-3 h-3" />
+          SoundCloud
+        </Badge>
+      );
+    case 'youtube':
+      return (
+        <Badge className="bg-red-600 text-white flex items-center gap-1">
+          <SiYoutube className="w-3 h-3" />
+          YouTube
+        </Badge>
+      );
+    default:
+      return <Badge variant="secondary">{platform}</Badge>;
+  }
+}
+
+export default function PlaylistSubmissionsAdmin({ currentUser, onLogout }: PlaylistSubmissionsAdminProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [activeTab, setActiveTab] = useState<'pending' | 'approved' | 'featured' | 'rejected'>('pending');
+  const [activeTab, setActiveTab] = useState<'all' | 'pending' | 'approved' | 'featured' | 'rejected'>('pending');
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [playlistToReject, setPlaylistToReject] = useState<number | null>(null);
   const [rejectionReason, setRejectionReason] = useState('');
 
-  // Fetch all playlists
   const { data: allPlaylists = [], isLoading } = useQuery<PlaylistSubmission[]>({
     queryKey: ['/api/editor/playlists'],
   });
 
-  // Filter by status
-  const playlists = allPlaylists.filter(p => p.status === activeTab);
+  const pendingCount = allPlaylists.filter(p => p.status === 'pending').length;
+  const approvedCount = allPlaylists.filter(p => p.status === 'approved').length;
+  const featuredCount = allPlaylists.filter(p => p.status === 'featured').length;
+  const rejectedCount = allPlaylists.filter(p => p.status === 'rejected').length;
 
-  // Approve mutation
+  const getFilteredData = () => {
+    switch (activeTab) {
+      case 'pending': return allPlaylists.filter(p => p.status === 'pending');
+      case 'approved': return allPlaylists.filter(p => p.status === 'approved');
+      case 'featured': return allPlaylists.filter(p => p.status === 'featured');
+      case 'rejected': return allPlaylists.filter(p => p.status === 'rejected');
+      default: return allPlaylists;
+    }
+  };
+
   const approveMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest('PATCH', `/api/editor/playlists/${id}/approve`);
@@ -80,7 +135,6 @@ export default function PlaylistSubmissionsAdmin() {
     },
   });
 
-  // Reject mutation
   const rejectMutation = useMutation({
     mutationFn: async ({ id, reason }: { id: number; reason?: string }) => {
       return apiRequest('PATCH', `/api/editor/playlists/${id}/reject`, { reason });
@@ -93,7 +147,6 @@ export default function PlaylistSubmissionsAdmin() {
       toast({
         title: "Playlist Rejected",
         description: "The playlist has been rejected.",
-        variant: "destructive",
       });
     },
     onError: (error) => {
@@ -107,7 +160,7 @@ export default function PlaylistSubmissionsAdmin() {
 
   const handleRejectClick = (id: number) => {
     setPlaylistToReject(id);
-    setRejectionReason(''); // Reset reason for each new rejection
+    setRejectionReason('');
     setRejectDialogOpen(true);
   };
 
@@ -117,7 +170,6 @@ export default function PlaylistSubmissionsAdmin() {
     }
   };
 
-  // Feature/Unfeature mutation
   const toggleFeatureMutation = useMutation({
     mutationFn: async ({ id, featured }: { id: number; featured: boolean }) => {
       return apiRequest('PATCH', `/api/editor/playlists/${id}/feature`, { featured });
@@ -141,7 +193,6 @@ export default function PlaylistSubmissionsAdmin() {
     },
   });
 
-  // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest('DELETE', `/api/editor/playlists/${id}`);
@@ -163,276 +214,253 @@ export default function PlaylistSubmissionsAdmin() {
     },
   });
 
-  const getPlatformBadge = (platform: string) => {
-    switch (platform) {
-      case 'spotify':
-        return <Badge className="bg-green-600">Spotify</Badge>;
-      case 'apple_music':
-        return <Badge className="bg-pink-600">Apple Music</Badge>;
-      case 'youtube':
-        return <Badge className="bg-red-600">YouTube</Badge>;
-      default:
-        return <Badge variant="secondary">{platform}</Badge>;
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <Music2 className="w-12 h-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
-          <p className="text-muted-foreground">Loading submissions...</p>
+  const columns: Column<PlaylistSubmission>[] = [
+    {
+      key: 'title',
+      header: 'Playlist',
+      sortable: true,
+      render: (playlist) => (
+        <div className="flex items-center gap-3">
+          {playlist.artworkUrl ? (
+            <img 
+              src={playlist.artworkUrl} 
+              alt={playlist.title}
+              className="w-10 h-10 rounded object-cover"
+            />
+          ) : (
+            <div className="w-10 h-10 rounded bg-gray-100 flex items-center justify-center">
+              <Music2 className="w-5 h-5 text-gray-400" />
+            </div>
+          )}
+          <div>
+            <span className="font-medium text-gray-900"><TruncatedText text={playlist.title} maxLength={30} /></span>
+            <p className="text-xs text-gray-500">{playlist.curatorName}</p>
+          </div>
         </div>
-      </div>
-    );
-  }
+      ),
+    },
+    {
+      key: 'platform',
+      header: 'Platform',
+      sortable: true,
+      render: (playlist) => <PlatformBadge platform={playlist.platform} />,
+    },
+    {
+      key: 'status',
+      header: 'Status',
+      sortable: true,
+      render: (playlist) => <StatusBadge status={playlist.status} />,
+    },
+    {
+      key: 'tags',
+      header: 'Tags',
+      render: (playlist) => playlist.tags && playlist.tags.length > 0 ? (
+        <div className="flex flex-wrap gap-1">
+          {playlist.tags.slice(0, 2).map((tag, idx) => (
+            <Badge key={idx} variant="outline" className="text-xs">
+              {tag}
+            </Badge>
+          ))}
+          {playlist.tags.length > 2 && (
+            <Badge variant="outline" className="text-xs">
+              +{playlist.tags.length - 2}
+            </Badge>
+          )}
+        </div>
+      ) : (
+        <span className="text-gray-400">—</span>
+      ),
+    },
+    {
+      key: 'submittedAt',
+      header: 'Submitted',
+      sortable: true,
+      render: (playlist) => <DateCell date={playlist.submittedAt} />,
+    },
+    {
+      key: 'playlistUrl',
+      header: 'Link',
+      render: (playlist) => (
+        <a 
+          href={playlist.playlistUrl} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline flex items-center gap-1"
+          data-testid={`link-playlist-${playlist.id}`}
+        >
+          <ExternalLink className="w-3 h-3" />
+          <span className="text-sm">Open</span>
+        </a>
+      ),
+    },
+  ];
 
-  const pendingCount = allPlaylists.filter(p => p.status === 'pending').length;
-  const approvedCount = allPlaylists.filter(p => p.status === 'approved').length;
-  const featuredCount = allPlaylists.filter(p => p.status === 'featured').length;
-  const rejectedCount = allPlaylists.filter(p => p.status === 'rejected').length;
+  const rowActions: RowAction<PlaylistSubmission>[] = [
+    {
+      label: 'Approve',
+      icon: Check,
+      onClick: (playlist) => approveMutation.mutate(playlist.id),
+      show: (playlist) => playlist.status === 'pending',
+    },
+    {
+      label: 'Feature',
+      icon: Star,
+      onClick: (playlist) => toggleFeatureMutation.mutate({ id: playlist.id, featured: true }),
+      show: (playlist) => playlist.status === 'approved',
+    },
+    {
+      label: 'Unfeature',
+      icon: StarOff,
+      onClick: (playlist) => toggleFeatureMutation.mutate({ id: playlist.id, featured: false }),
+      show: (playlist) => playlist.status === 'featured',
+    },
+    {
+      label: 'Re-approve',
+      icon: Check,
+      onClick: (playlist) => approveMutation.mutate(playlist.id),
+      show: (playlist) => playlist.status === 'rejected',
+    },
+    {
+      label: 'Reject',
+      icon: X,
+      onClick: (playlist) => handleRejectClick(playlist.id),
+      variant: 'destructive',
+      show: (playlist) => playlist.status !== 'rejected',
+    },
+    {
+      label: 'Delete',
+      icon: Trash2,
+      onClick: (playlist) => {
+        if (confirm('Are you sure you want to permanently delete this playlist?')) {
+          deleteMutation.mutate(playlist.id);
+        }
+      },
+      variant: 'destructive',
+    },
+  ];
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto p-8 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">Playlist Submissions</h1>
-          <p className="text-muted-foreground">
-            Review and manage community-submitted playlists
-          </p>
+    <AdminShell
+      title="Playlist Submissions"
+      subtitle="Review and manage community-submitted playlists"
+      breadcrumbs={[{ label: "Playlists" }]}
+      currentUser={currentUser}
+      userRole="editor"
+      onLogout={onLogout}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+          <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+            <ListMusic className="w-5 h-5 text-gray-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-gray-900">{allPlaylists.length}</p>
+            <p className="text-sm text-gray-500">Total Playlists</p>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+          <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+            <Clock className="w-5 h-5 text-orange-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-orange-600">{pendingCount}</p>
+            <p className="text-sm text-gray-500">Pending Review</p>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+          <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-green-600">{approvedCount}</p>
+            <p className="text-sm text-gray-500">Approved</p>
+          </div>
+        </div>
+        <div className="bg-white border border-gray-200 rounded-lg p-4 flex items-center gap-4">
+          <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+            <Star className="w-5 h-5 text-purple-600" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-purple-600">{featuredCount}</p>
+            <p className="text-sm text-gray-500">Featured</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <div className="p-4 border-b border-gray-200">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
+            <TabsList className="bg-gray-100">
+              <TabsTrigger value="all" data-testid="tab-all">
+                All ({allPlaylists.length})
+              </TabsTrigger>
+              <TabsTrigger value="pending" data-testid="tab-pending">
+                Pending ({pendingCount})
+              </TabsTrigger>
+              <TabsTrigger value="approved" data-testid="tab-approved">
+                Approved ({approvedCount})
+              </TabsTrigger>
+              <TabsTrigger value="featured" data-testid="tab-featured">
+                Featured ({featuredCount})
+              </TabsTrigger>
+              <TabsTrigger value="rejected" data-testid="tab-rejected">
+                Rejected ({rejectedCount})
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
-        <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-          <TabsList className="mb-6">
-            <TabsTrigger value="pending" data-testid="tab-pending">
-              Pending {pendingCount > 0 && <Badge className="ml-2" variant="destructive">{pendingCount}</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="approved" data-testid="tab-approved">
-              Approved {approvedCount > 0 && <Badge className="ml-2">{approvedCount}</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="featured" data-testid="tab-featured">
-              Featured {featuredCount > 0 && <Badge className="ml-2">{featuredCount}</Badge>}
-            </TabsTrigger>
-            <TabsTrigger value="rejected" data-testid="tab-rejected">
-              Rejected {rejectedCount > 0 && <Badge className="ml-2">{rejectedCount}</Badge>}
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value={activeTab} className="space-y-4">
-            {playlists.length === 0 ? (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <Music2 className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                  <p className="text-muted-foreground">No {activeTab} playlists</p>
-                </CardContent>
-              </Card>
-            ) : (
-              playlists.map((playlist) => (
-                <Card key={playlist.id} data-testid={`playlist-card-${playlist.id}`}>
-                  <CardHeader>
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="flex items-center gap-2 mb-2">
-                          {playlist.title}
-                          {getPlatformBadge(playlist.platform)}
-                          {playlist.status === 'featured' && (
-                            <Badge className="bg-yellow-600">
-                              <Star className="w-3 h-3 mr-1" />
-                              Featured
-                            </Badge>
-                          )}
-                        </CardTitle>
-                        <p className="text-sm text-muted-foreground">
-                          Curated by {playlist.curatorName}
-                          {playlist.curatorEmail && ` (${playlist.curatorEmail})`}
-                        </p>
-                      </div>
-                      <Button
-                        asChild
-                        variant="ghost"
-                        size="sm"
-                        data-testid={`button-open-${playlist.id}`}
-                      >
-                        <a 
-                          href={playlist.playlistUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                        >
-                          <ExternalLink className="w-4 h-4" />
-                        </a>
-                      </Button>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    <div className="space-y-4">
-                      {/* Description */}
-                      {playlist.description && (
-                        <p className="text-sm text-muted-foreground">
-                          {playlist.description}
-                        </p>
-                      )}
-
-                      {/* Tags */}
-                      {playlist.tags && playlist.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {playlist.tags.map((tag, idx) => (
-                            <Badge key={idx} variant="secondary">
-                              {tag}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Metadata */}
-                      <div className="flex gap-4 text-sm text-muted-foreground">
-                        <span>❤️ {playlist.likes} likes</span>
-                        <span>📅 Submitted {new Date(playlist.submittedAt).toLocaleDateString()}</span>
-                        {playlist.approvedAt && (
-                          <span>✅ Approved {new Date(playlist.approvedAt).toLocaleDateString()}</span>
-                        )}
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex gap-2 pt-2">
-                        {playlist.status === 'pending' && (
-                          <>
-                            <Button
-                              onClick={() => approveMutation.mutate(playlist.id)}
-                              disabled={approveMutation.isPending}
-                              size="sm"
-                              data-testid={`button-approve-${playlist.id}`}
-                            >
-                              <Check className="w-4 h-4 mr-2" />
-                              Approve
-                            </Button>
-                            <Button
-                              onClick={() => handleRejectClick(playlist.id)}
-                              disabled={rejectMutation.isPending}
-                              variant="destructive"
-                              size="sm"
-                              data-testid={`button-reject-${playlist.id}`}
-                            >
-                              <X className="w-4 h-4 mr-2" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
-
-                        {(playlist.status === 'approved' || playlist.status === 'featured') && (
-                          <>
-                            <Button
-                              onClick={() => toggleFeatureMutation.mutate({ 
-                                id: playlist.id, 
-                                featured: playlist.status !== 'featured' 
-                              })}
-                              disabled={toggleFeatureMutation.isPending}
-                              variant={playlist.status === 'featured' ? 'outline' : 'default'}
-                              size="sm"
-                              data-testid={`button-toggle-feature-${playlist.id}`}
-                            >
-                              {playlist.status === 'featured' ? (
-                                <>
-                                  <StarOff className="w-4 h-4 mr-2" />
-                                  Unfeature
-                                </>
-                              ) : (
-                                <>
-                                  <Star className="w-4 h-4 mr-2" />
-                                  Feature
-                                </>
-                              )}
-                            </Button>
-                            <Button
-                              onClick={() => handleRejectClick(playlist.id)}
-                              disabled={rejectMutation.isPending}
-                              variant="outline"
-                              size="sm"
-                              data-testid={`button-reject-approved-${playlist.id}`}
-                            >
-                              <X className="w-4 h-4 mr-2" />
-                              Reject
-                            </Button>
-                          </>
-                        )}
-
-                        {playlist.status === 'rejected' && (
-                          <Button
-                            onClick={() => approveMutation.mutate(playlist.id)}
-                            disabled={approveMutation.isPending}
-                            size="sm"
-                            data-testid={`button-reapprove-${playlist.id}`}
-                          >
-                            <Check className="w-4 h-4 mr-2" />
-                            Re-approve
-                          </Button>
-                        )}
-
-                        <div className="flex-1" />
-                        
-                        <Button
-                          onClick={() => {
-                            if (confirm('Are you sure you want to permanently delete this playlist?')) {
-                              deleteMutation.mutate(playlist.id);
-                            }
-                          }}
-                          disabled={deleteMutation.isPending}
-                          variant="ghost"
-                          size="sm"
-                          className="text-destructive hover:text-destructive"
-                          data-testid={`button-delete-${playlist.id}`}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </TabsContent>
-        </Tabs>
-
-        {/* Rejection Dialog */}
-        <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Reject Playlist</DialogTitle>
-              <DialogDescription>
-                Optionally provide a reason for rejecting this playlist. This will be visible to the curator.
-              </DialogDescription>
-            </DialogHeader>
-            <Textarea
-              placeholder="e.g., Playlist doesn't match our community guidelines, not enough diversity, etc."
-              value={rejectionReason}
-              onChange={(e) => setRejectionReason(e.target.value)}
-              rows={4}
-              data-testid="input-rejection-reason"
-            />
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setRejectDialogOpen(false);
-                  setPlaylistToReject(null);
-                  setRejectionReason('');
-                }}
-                data-testid="button-cancel-reject"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleRejectConfirm}
-                disabled={rejectMutation.isPending}
-                data-testid="button-confirm-reject"
-              >
-                {rejectMutation.isPending ? 'Rejecting...' : 'Reject Playlist'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <DataTable
+          data={getFilteredData()}
+          columns={columns}
+          rowActions={rowActions}
+          searchKeys={['title', 'curatorName', 'platform']}
+          searchPlaceholder="Search playlists..."
+          isLoading={isLoading}
+          emptyMessage={activeTab === 'pending' 
+            ? "No pending playlists to review"
+            : "No playlists match your filters"}
+        />
       </div>
-    </div>
+
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reject Playlist</DialogTitle>
+            <DialogDescription>
+              Optionally provide a reason for rejecting this playlist.
+            </DialogDescription>
+          </DialogHeader>
+          <Textarea
+            placeholder="e.g., Playlist doesn't match our community guidelines..."
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            rows={4}
+            data-testid="input-rejection-reason"
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setRejectDialogOpen(false);
+                setPlaylistToReject(null);
+                setRejectionReason('');
+              }}
+              data-testid="button-cancel-reject"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRejectConfirm}
+              disabled={rejectMutation.isPending}
+              data-testid="button-confirm-reject"
+            >
+              {rejectMutation.isPending ? 'Rejecting...' : 'Reject Playlist'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </AdminShell>
   );
 }
