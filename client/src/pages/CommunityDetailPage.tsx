@@ -227,8 +227,8 @@ export default function CommunityDetailPage() {
 
           {/* Right Pane: Player / Artwork */}
           <div>
-            {item.type === 'episode' && 'audioUrl' in item && item.audioUrl ? (
-              /* Episode Audio Player */
+            {item.type === 'episode' && item.url && item.url.startsWith('/episodes/') ? (
+              /* Episode Audio Player - uses local audio file */
               <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
                 {item.artworkUrl ? (
                   <img
@@ -247,7 +247,7 @@ export default function CommunityDetailPage() {
                 <div className="p-4">
                   <audio
                     ref={audioRef}
-                    src={item.audioUrl}
+                    src={item.url}
                     onEnded={() => setIsPlaying(false)}
                     onPause={() => setIsPlaying(false)}
                     onPlay={() => setIsPlaying(true)}
