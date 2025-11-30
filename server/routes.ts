@@ -1393,27 +1393,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const limit = parseInt(req.query.limit as string) || 12;
 
-      // Get recent episodes and approved/featured mix submissions
-      const [episodes, allMixes] = await Promise.all([
-        storage.getEpisodes({ limit: Math.ceil(limit / 2) }),
-        storage.getMixSubmissions({ limit: 50 })
+      // Get recent episodes, approved/featured mix submissions, and approved playlists
+      const [episodes, allMixes, allPlaylists] = await Promise.all([
+        storage.getEpisodes({ limit: 50 }),
+        storage.getMixSubmissions({ limit: 50 }),
+        storage.getPlaylistSubmissions({ limit: 50 })
       ]);
 
       // Filter mixes to include both approved and featured
       const mixes = allMixes.filter(mix => 
         mix.status === 'approved' || mix.status === 'featured'
-      ).slice(0, Math.ceil(limit / 2));
+      );
+
+      // Filter playlists to include approved and featured
+      const playlists = allPlaylists.filter(playlist => 
+        playlist.status === 'approved' || playlist.status === 'featured'
+      );
 
       // Combine and sort by date
       const latest = [
         ...episodes.map(e => ({ ...e, type: 'episode' as const })),
-        ...mixes.map(m => ({ ...m, type: 'mix' as const }))
+        ...mixes.map(m => ({ ...m, type: 'mix' as const })),
+        ...playlists.map(p => ({ 
+          ...p, 
+          type: 'playlist' as const,
+          artworkUrl: p.artworkUrl || null,
+          name: p.curatorName
+        }))
       ].sort((a, b) => {
         const dateA = 'airDate' in a && a.airDate ? new Date(a.airDate) : ('submittedAt' in a && a.submittedAt ? new Date(a.submittedAt) : new Date());
         const dateB = 'airDate' in b && b.airDate ? new Date(b.airDate) : ('submittedAt' in b && b.submittedAt ? new Date(b.submittedAt) : new Date());
         return dateB.getTime() - dateA.getTime();
       }).slice(0, limit);
 
+      console.log(`[Latest API] Returning ${latest.length} items (${episodes.length} episodes, ${mixes.length} mixes, ${playlists.length} playlists)`);
       res.json(latest);
     } catch (error) {
       console.error('Error fetching latest content:', error);

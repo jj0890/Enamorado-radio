@@ -2,7 +2,8 @@ import { useState } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Play, Calendar, User, Music, Clock } from "lucide-react";
+import { ArrowLeft, Play, Calendar, User, Music, Clock, ListMusic, ExternalLink } from "lucide-react";
+import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube } from "react-icons/si";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import Navigation from "@/components/Navigation";
 import PublicMixCard from "@/components/PublicMixCard";
@@ -13,12 +14,10 @@ function EpisodeCard({ episode }: { episode: any }) {
     window.open(`/episode/${episode.id}`, '_blank');
   };
 
-  // Fallback artwork for episodes (using genre-based thumbnails)
   const artwork = episode.artworkUrl || episode.artwork || episode.artUrl || `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop`;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-navy transition-all duration-300 group shadow-sm hover:shadow-md">
-      {/* Artwork */}
       <div className="aspect-square bg-gray-200 overflow-hidden relative">
         <img 
           src={artwork} 
@@ -28,7 +27,6 @@ function EpisodeCard({ episode }: { episode: any }) {
       </div>
 
       <div className="p-4">
-        {/* Episode Badge and Date */}
         <div className="flex items-center justify-between mb-3">
           <span className="text-xs font-mono text-white bg-navy px-2 py-1 rounded uppercase">
             Episode
@@ -39,7 +37,6 @@ function EpisodeCard({ episode }: { episode: any }) {
           </div>
         </div>
 
-        {/* Title */}
         <div className="mb-2">
           <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-navy transition-colors">
             {episode.title}
@@ -50,7 +47,6 @@ function EpisodeCard({ episode }: { episode: any }) {
           </div>
         </div>
 
-        {/* Genre */}
         <div className="mb-3">
           {episode.genre && (
             <span className="text-xs font-mono text-gray-600">
@@ -59,7 +55,6 @@ function EpisodeCard({ episode }: { episode: any }) {
           )}
         </div>
 
-        {/* Listen Button */}
         <Button 
           size="sm" 
           className="bg-navy hover:bg-navy-dark text-white font-mono w-full text-sm"
@@ -73,12 +68,83 @@ function EpisodeCard({ episode }: { episode: any }) {
   );
 }
 
+// Playlist Card Component
+function PlaylistCard({ playlist }: { playlist: any }) {
+  const getPlatformIcon = () => {
+    const platform = playlist.platform?.toLowerCase();
+    if (platform === 'spotify') return <SiSpotify className="w-4 h-4" />;
+    if (platform === 'apple' || platform === 'apple music') return <SiApplemusic className="w-4 h-4" />;
+    if (platform === 'soundcloud') return <SiSoundcloud className="w-4 h-4" />;
+    if (platform === 'youtube') return <SiYoutube className="w-4 h-4" />;
+    return <ListMusic className="w-4 h-4" />;
+  };
+
+  const artwork = playlist.artworkUrl || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop`;
+
+  return (
+    <Link href={`/community/${playlist.id}`}>
+      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-purple-500 transition-all duration-300 group shadow-sm hover:shadow-md cursor-pointer">
+        <div className="aspect-square bg-gray-200 overflow-hidden relative">
+          <img 
+            src={artwork} 
+            alt={playlist.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute top-2 right-2 bg-white/90 p-2 rounded-full">
+            {getPlatformIcon()}
+          </div>
+        </div>
+
+        <div className="p-4">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-mono text-white bg-purple-600 px-2 py-1 rounded uppercase">
+              Playlist
+            </span>
+            <div className="text-xs font-mono text-gray-500 flex items-center">
+              <Clock className="w-3 h-3 mr-1" />
+              {new Date(playlist.submittedAt).toLocaleDateString()}
+            </div>
+          </div>
+
+          <div className="mb-2">
+            <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-2">
+              {playlist.title}
+            </h4>
+            <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
+              <User className="w-3 h-3 mr-1" />
+              {playlist.curatorName || playlist.name}
+            </div>
+          </div>
+
+          {playlist.tags && playlist.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mb-3">
+              {playlist.tags.slice(0, 2).map((tag: string, i: number) => (
+                <span key={i} className="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-0.5 rounded">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <Button 
+            size="sm" 
+            className="bg-purple-600 hover:bg-purple-700 text-white font-mono w-full text-sm"
+          >
+            <ExternalLink className="w-4 h-4 mr-2" />
+            View Playlist
+          </Button>
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default function LatestPage() {
-  const [filter, setFilter] = useState<'all' | 'episodes' | 'mixes'>('all');
+  const [filter, setFilter] = useState<'all' | 'episodes' | 'mixes' | 'playlists'>('all');
 
   // Fetch latest content
   const { data: latestContent = [], isLoading } = useQuery({
-    queryKey: ["/api/latest", { limit: 20 }],
+    queryKey: ["/api/latest", { limit: 24 }],
     refetchInterval: 30000,
   });
 
@@ -86,6 +152,7 @@ export default function LatestPage() {
     if (filter === 'all') return true;
     if (filter === 'episodes') return item.type === 'episode';
     if (filter === 'mixes') return item.type === 'mix';
+    if (filter === 'playlists') return item.type === 'playlist';
     return true;
   });
 
@@ -129,7 +196,7 @@ export default function LatestPage() {
 
         {/* Filter Controls */}
         <div className="pt-16 pb-8 mb-8">
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-3">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
@@ -158,7 +225,17 @@ export default function LatestPage() {
                 : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
               }
             >
-              Community Mixes
+              Mixes
+            </Button>
+            <Button
+              variant={filter === 'playlists' ? 'default' : 'outline'}
+              onClick={() => setFilter('playlists')}
+              className={filter === 'playlists' 
+                ? "bg-purple-600 hover:bg-purple-700 text-white font-mono" 
+                : "border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-mono"
+              }
+            >
+              Playlists
             </Button>
           </div>
         </div>
@@ -166,13 +243,15 @@ export default function LatestPage() {
         {/* Content Grid */}
         {filteredContent.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredContent.map((item: any, index: number) => (
-              item.type === 'mix' ? (
-                <PublicMixCard key={`${item.type}-${item.id}`} mix={item} />
-              ) : (
-                <EpisodeCard key={`${item.type}-${item.id}`} episode={item} />
-              )
-            ))}
+            {filteredContent.map((item: any) => {
+              if (item.type === 'mix') {
+                return <PublicMixCard key={`mix-${item.id}`} mix={item} />;
+              } else if (item.type === 'playlist') {
+                return <PlaylistCard key={`playlist-${item.id}`} playlist={item} />;
+              } else {
+                return <EpisodeCard key={`episode-${item.id}`} episode={item} />;
+              }
+            })}
           </div>
         ) : (
           <div className="text-center py-12">
