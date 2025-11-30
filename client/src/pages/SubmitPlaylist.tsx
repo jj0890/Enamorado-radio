@@ -22,25 +22,28 @@ import {
 } from "@/components/ui/form";
 import { insertPlaylistSubmissionSchema } from "@shared/schema";
 
-// Extend schema for form-specific validation
-const formSchema = insertPlaylistSubmissionSchema.extend({
-  tags: z.string().optional().nullable().transform((val) => {
-    if (!val || val.trim() === '') return null;
-    return val.split(',').map(t => t.trim()).filter(t => t.length > 0);
-  }),
+const formSchema = z.object({
+  curatorName: z.string().min(1, 'Curator name is required'),
+  title: z.string().min(1, 'Title is required'),
+  playlistUrl: z.string().url('Must be a valid URL'),
+  description: z.string().optional().nullable(),
+  tags: z.string().optional().nullable(),
+  artworkUrl: z.string().url().optional().nullable().or(z.literal('')),
+  curatorEmail: z.string().email().optional().nullable().or(z.literal('')),
 }).refine((data) => {
   const url = data.playlistUrl.toLowerCase();
   return url.includes('spotify.com') || 
          url.includes('apple.com') || 
          url.includes('music.apple') || 
          url.includes('youtube.com') || 
-         url.includes('youtu.be');
+         url.includes('youtu.be') ||
+         url.includes('soundcloud.com');
 }, {
-  message: "Please use a Spotify, Apple Music, or YouTube playlist URL",
+  message: "Please use a Spotify, Apple Music, YouTube, or SoundCloud playlist URL",
   path: ["playlistUrl"],
 });
 
-type FormData = z.input<typeof formSchema>;
+type FormData = z.infer<typeof formSchema>;
 
 export default function SubmitPlaylist() {
   const [, setLocation] = useLocation();
@@ -54,21 +57,28 @@ export default function SubmitPlaylist() {
       curatorName: "",
       title: "",
       playlistUrl: "",
-      description: null,
-      tags: null,
-      artworkUrl: null,
-      curatorEmail: null,
-      platform: "unknown",
-      metadata: null,
-      trackCount: null,
-      editorNotes: null,
-      rejectionReason: null,
+      description: "",
+      tags: "",
+      artworkUrl: "",
+      curatorEmail: "",
     },
   });
 
   const submitMutation = useMutation({
-    mutationFn: async (data: z.output<typeof formSchema>) => {
-      return apiRequest('POST', '/api/public/playlists', data);
+    mutationFn: async (data: FormData) => {
+      const tagsArray = data.tags 
+        ? data.tags.split(',').map(t => t.trim()).filter(t => t.length > 0)
+        : null;
+      
+      return apiRequest('POST', '/api/public/playlists', {
+        curatorName: data.curatorName,
+        title: data.title,
+        playlistUrl: data.playlistUrl,
+        description: data.description || null,
+        tags: tagsArray,
+        artworkUrl: data.artworkUrl || null,
+        curatorEmail: data.curatorEmail || null,
+      });
     },
     onSuccess: () => {
       setShowSuccess(true);
@@ -146,7 +156,7 @@ export default function SubmitPlaylist() {
           
           <h1 className="text-4xl font-bold mb-2">Submit a Playlist</h1>
           <p className="text-lg text-muted-foreground">
-            Share your curated Spotify, Apple Music, or YouTube playlists with the community.
+            Share your curated playlists from Spotify, Apple Music, YouTube, or SoundCloud with the community.
           </p>
         </div>
 
@@ -208,7 +218,7 @@ export default function SubmitPlaylist() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Spotify, Apple Music, or YouTube playlist link
+                    Spotify, Apple Music, YouTube, or SoundCloud playlist link
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

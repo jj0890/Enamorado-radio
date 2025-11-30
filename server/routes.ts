@@ -3542,14 +3542,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = validated.data;
 
+      // Import oEmbed resolver for metadata fetching
+      const { resolveOEmbed, detectPlatform } = await import('./lib/oembed-resolver');
+      
       // Detect platform from URL
-      let platform = 'unknown';
-      if (data.playlistUrl.includes('spotify.com')) {
-        platform = 'spotify';
-      } else if (data.playlistUrl.includes('apple.com') || data.playlistUrl.includes('music.apple')) {
-        platform = 'apple_music';
-      } else if (data.playlistUrl.includes('youtube.com') || data.playlistUrl.includes('youtu.be')) {
-        platform = 'youtube';
+      const detectedPlatform = detectPlatform(data.playlistUrl);
+      const platform = detectedPlatform || 'unknown';
+      
+      // Fetch oEmbed metadata for thumbnail and title enrichment
+      let oembedMetadata: any = null;
+      let artworkUrl = data.artworkUrl || null;
+      
+      try {
+        const oembedResult = await resolveOEmbed(data.playlistUrl);
+        if (oembedResult.platform) {
+          oembedMetadata = {
+            title: oembedResult.title,
+            thumbnail: oembedResult.thumbnail,
+            embedUrl: oembedResult.embedUrl,
+            providerName: oembedResult.providerName,
+            authorName: oembedResult.authorName,
+            embeddable: oembedResult.embeddable,
+          };
+          
+          // Use oEmbed thumbnail if no custom artwork provided
+          if (!artworkUrl && oembedResult.thumbnail) {
+            artworkUrl = oembedResult.thumbnail;
+          }
+          
+          console.log(`[Playlist Submission] oEmbed resolved: ${oembedResult.title || 'No title'}, thumbnail: ${oembedResult.thumbnail ? 'Yes' : 'No'}`);
+        }
+      } catch (oembedError) {
+        console.log(`[Playlist Submission] oEmbed fetch failed (non-blocking):`, oembedError);
       }
 
       // Create submission with ONLY validated user fields - storage layer enforces secure defaults
@@ -3559,9 +3583,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         playlistUrl: data.playlistUrl,
         description: data.description || null,
         tags: data.tags || null,
-        artworkUrl: data.artworkUrl || null,
+        artworkUrl: artworkUrl,
         curatorEmail: data.curatorEmail || null,
         platform,
+        metadata: oembedMetadata,
       });
 
       console.log(`[Playlist Submission] Created submission ${submission.id}: "${submission.title}" by ${submission.curatorName}`);

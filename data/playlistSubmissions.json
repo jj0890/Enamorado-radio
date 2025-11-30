@@ -43,9 +43,9 @@
     "id": 47,
     "status": "rejected",
     "submittedAt": "2025-10-30T06:58:58.214Z",
-    "approvedAt": "2025-10-30T07:22:25.993Z",
+    "approvedAt": null,
     "featuredAt": null,
-    "reviewedAt": "2025-10-30T07:23:12.241Z",
+    "reviewedAt": "2025-11-26T20:06:12.637Z",
     "reviewedBy": {
       "username": "jarrad",
       "role": "admin"
@@ -56,67 +56,6 @@
     "editorNotes": null,
     "rejectionReason": null,
     "createdAt": "2025-10-30T06:58:58.214Z",
-    "updatedAt": "2025-10-30T07:23:12.241Z"
-  },
-  {
-    "curatorName": "Test Curator",
-    "title": "Chill Vibes Test",
-    "playlistUrl": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
-    "description": "Perfect playlist for testing",
-    "tags": [
-      "chill",
-      "electronic"
-    ],
-    "artworkUrl": null,
-    "curatorEmail": null,
-    "platform": "spotify",
-    "id": 48,
-    "status": "rejected",
-    "submittedAt": "2025-10-30T07:00:23.636Z",
-    "approvedAt": "2025-10-30T07:22:23.818Z",
-    "featuredAt": null,
-    "reviewedAt": "2025-10-30T07:23:09.112Z",
-    "reviewedBy": {
-      "username": "jarrad",
-      "role": "admin"
-    },
-    "likes": 0,
-    "metadata": null,
-    "trackCount": null,
-    "editorNotes": null,
-    "rejectionReason": null,
-    "createdAt": "2025-10-30T07:00:23.637Z",
-    "updatedAt": "2025-10-30T07:23:09.112Z"
-  },
-  {
-    "curatorName": "Test User wrKl",
-    "title": "Test Submission Playlist",
-    "playlistUrl": "https://open.spotify.com/playlist/647V5M8N4jN5NLKtpx3QxA?si=4d90252a0cbb4b3a",
-    "description": "A curated selection of amazing tracks for testing the submission system",
-    "tags": [
-      "electronic",
-      "chill",
-      "ambient"
-    ],
-    "artworkUrl": null,
-    "curatorEmail": null,
-    "platform": "spotify",
-    "id": 49,
-    "status": "rejected",
-    "submittedAt": "2025-10-30T07:15:32.962Z",
-    "approvedAt": "2025-10-30T07:18:43.684Z",
-    "featuredAt": null,
-    "reviewedAt": "2025-10-30T07:23:07.119Z",
-    "reviewedBy": {
-      "username": "jarrad",
-      "role": "admin"
-    },
-    "likes": 0,
-    "metadata": null,
-    "trackCount": null,
-    "editorNotes": null,
-    "rejectionReason": null,
-    "createdAt": "2025-10-30T07:15:32.962Z",
-    "updatedAt": "2025-10-30T07:23:07.119Z"
+    "updatedAt": "2025-11-26T20:06:12.637Z"
   }
 ]
