@@ -37,9 +37,10 @@ const formSchema = z.object({
          url.includes('music.apple') || 
          url.includes('youtube.com') || 
          url.includes('youtu.be') ||
-         url.includes('soundcloud.com');
+         url.includes('soundcloud.com') ||
+         url.includes('mixcloud.com');
 }, {
-  message: "Please use a Spotify, Apple Music, YouTube, or SoundCloud playlist URL",
+  message: "Please use a Spotify, Apple Music, YouTube, SoundCloud, or Mixcloud playlist URL",
   path: ["playlistUrl"],
 });
 
@@ -156,7 +157,7 @@ export default function SubmitPlaylist() {
           
           <h1 className="text-4xl font-bold mb-2">Submit a Playlist</h1>
           <p className="text-lg text-muted-foreground">
-            Share your curated playlists from Spotify, Apple Music, YouTube, or SoundCloud with the community.
+            Share your curated playlists from Spotify, Apple Music, YouTube, SoundCloud, or Mixcloud with the community.
           </p>
         </div>
 
@@ -218,7 +219,7 @@ export default function SubmitPlaylist() {
                     />
                   </FormControl>
                   <FormDescription>
-                    Spotify, Apple Music, YouTube, or SoundCloud playlist link
+                    Spotify, Apple Music, YouTube, SoundCloud, or Mixcloud playlist link
                   </FormDescription>
                   <FormMessage />
                 </FormItem>

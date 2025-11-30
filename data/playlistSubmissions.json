@@ -57,5 +57,40 @@
     "rejectionReason": null,
     "createdAt": "2025-10-30T06:58:58.214Z",
     "updatedAt": "2025-11-26T20:06:12.637Z"
+  },
+  {
+    "curatorName": "Test DJ HEDIPv",
+    "title": "Summer Vibes Mix 2024",
+    "playlistUrl": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
+    "description": "A curated collection of the best summer tracks",
+    "tags": [
+      "summer",
+      "vibes",
+      "disco",
+      "funk"
+    ],
+    "artworkUrl": "https://i.scdn.co/image/ab67706f00000002a8680ae0fc79ffd50f50cea2",
+    "curatorEmail": "testdjSFHR1b@example.com",
+    "platform": "spotify",
+    "metadata": {
+      "title": "Today’s Top Hits",
+      "thumbnail": "https://i.scdn.co/image/ab67706f00000002a8680ae0fc79ffd50f50cea2",
+      "embedUrl": "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M",
+      "providerName": "Spotify",
+      "embeddable": true
+    },
+    "id": 53,
+    "status": "pending",
+    "submittedAt": "2025-11-30T11:49:45.427Z",
+    "approvedAt": null,
+    "featuredAt": null,
+    "reviewedAt": null,
+    "reviewedBy": null,
+    "likes": 0,
+    "trackCount": null,
+    "editorNotes": null,
+    "rejectionReason": null,
+    "createdAt": "2025-11-30T11:49:45.427Z",
+    "updatedAt": "2025-11-30T11:49:45.427Z"
   }
 ]
