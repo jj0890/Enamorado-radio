@@ -1,13 +1,28 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRoute } from 'wouter';
-import { ArrowLeft, ExternalLink, Calendar, User, Tag } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Calendar, User, Tag, Play, Pause } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { Link } from 'wouter';
 import { ContentItem } from '@shared/schema';
+import { useState, useRef } from 'react';
+import { Button } from '@/components/ui/button';
 
 export default function CommunityDetailPage() {
   const [, params] = useRoute('/community/:id');
   const itemId = params?.id;
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement>(null);
+
+  const togglePlay = () => {
+    if (audioRef.current) {
+      if (isPlaying) {
+        audioRef.current.pause();
+      } else {
+        audioRef.current.play();
+      }
+      setIsPlaying(!isPlaying);
+    }
+  };
 
   // Fetch the specific content item
   const { data: item, isLoading } = useQuery<ContentItem>({
@@ -212,7 +227,53 @@ export default function CommunityDetailPage() {
 
           {/* Right Pane: Player / Artwork */}
           <div>
-            {oembedLoading ? (
+            {item.type === 'episode' && 'audioUrl' in item && item.audioUrl ? (
+              /* Episode Audio Player */
+              <div className="bg-white dark:bg-gray-900 rounded-lg shadow-lg overflow-hidden">
+                {item.artworkUrl ? (
+                  <img
+                    src={item.artworkUrl}
+                    alt={item.title}
+                    className="w-full aspect-square object-cover"
+                    data-testid="img-artwork"
+                  />
+                ) : (
+                  <div className="aspect-square bg-gradient-to-br from-navy to-navy-light flex items-center justify-center">
+                    <span className="text-white/20 text-6xl font-serif">
+                      {item.title.charAt(0)}
+                    </span>
+                  </div>
+                )}
+                <div className="p-4">
+                  <audio
+                    ref={audioRef}
+                    src={item.audioUrl}
+                    onEnded={() => setIsPlaying(false)}
+                    onPause={() => setIsPlaying(false)}
+                    onPlay={() => setIsPlaying(true)}
+                    className="hidden"
+                  />
+                  <div className="flex items-center gap-4">
+                    <Button
+                      onClick={togglePlay}
+                      size="lg"
+                      className="w-14 h-14 rounded-full bg-navy hover:bg-navy-dark text-white"
+                      data-testid="button-play-episode"
+                    >
+                      {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-1" />}
+                    </Button>
+                    <div className="flex-1">
+                      <div className="text-sm font-mono text-gray-600 dark:text-gray-400">
+                        {isPlaying ? 'Now Playing' : 'Press play to listen'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                        {'duration' in item && item.duration ? item.duration : 'Episode'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : oembedLoading ? (
               <div className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse" />
             ) : oembed?.html ? (
               <div 
