@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Link } from 'wouter';
-import { Play, Pause, Volume2, VolumeX, Music } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Music, Share2, Link2, Check } from 'lucide-react';
+import { SiX, SiFacebook } from 'react-icons/si';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { useToast } from '@/hooks/use-toast';
 import type { Episode } from '@shared/schema';
 import { useAudio } from '@/providers/AudioProvider';
 
@@ -14,13 +16,52 @@ interface EpisodePlayerProps {
 
 export function EpisodePlayer({ episode }: EpisodePlayerProps) {
   const { state, actions } = useAudio();
+  const { toast } = useToast();
   const [volumeOpen, setVolumeOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   // Check if this specific episode is currently loaded/playing
   const isThisEpisodeLoaded = state.src === episode.audioUrl;
   const isPlaying = isThisEpisodeLoaded && state.status === 'playing';
   const currentTime = isThisEpisodeLoaded ? state.currentTime : 0;
   const volume = state.volume * 100;
+  
+  // Get the shareable URL for this episode
+  const getShareUrl = () => {
+    return `${window.location.origin}/episode/${episode.id}`;
+  };
+  
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(getShareUrl());
+      setCopied(true);
+      toast({
+        title: "Link copied!",
+        description: "Episode link copied to clipboard",
+      });
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast({
+        title: "Failed to copy",
+        description: "Please copy the URL from your browser",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  const handleShareTwitter = () => {
+    const text = `Check out "${episode.title}" by ${episode.hostName} on Enamorado Radio`;
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`, '_blank');
+    setShareOpen(false);
+  };
+  
+  const handleShareFacebook = () => {
+    const url = encodeURIComponent(getShareUrl());
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank');
+    setShareOpen(false);
+  };
 
   // Parse tracklist from JSON string
   const tracks: Array<{artist: string; title: string; timestamp?: number}> = 
@@ -98,7 +139,63 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
           >
             ← Back to Home
           </Link>
-          <Badge className="bg-navy text-white font-mono">EPISODE</Badge>
+          <div className="flex items-center gap-3">
+            <Popover open={shareOpen} onOpenChange={setShareOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-gray-400 hover:text-white transition-colors"
+                  data-testid="button-share-episode"
+                  aria-label="Share episode"
+                >
+                  <Share2 className="h-5 w-5" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent 
+                align="end"
+                className="w-48 p-2 bg-gray-900/95 backdrop-blur-sm border-gray-700"
+              >
+                <div className="flex flex-col gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyLink}
+                    className="justify-start text-white hover:bg-gray-800"
+                    data-testid="button-copy-link"
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4 mr-2 text-green-500" />
+                    ) : (
+                      <Link2 className="h-4 w-4 mr-2" />
+                    )}
+                    {copied ? 'Copied!' : 'Copy Link'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShareTwitter}
+                    className="justify-start text-white hover:bg-gray-800"
+                    data-testid="button-share-twitter"
+                  >
+                    <SiX className="h-4 w-4 mr-2" />
+                    Share on X
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleShareFacebook}
+                    className="justify-start text-white hover:bg-gray-800"
+                    data-testid="button-share-facebook"
+                  >
+                    <SiFacebook className="h-4 w-4 mr-2" />
+                    Share on Facebook
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <Badge className="bg-navy text-white font-mono">EPISODE</Badge>
+          </div>
         </div>
       </div>
 
