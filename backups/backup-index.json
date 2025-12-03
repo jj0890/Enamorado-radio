@@ -1,5 +1,26 @@
 [
   {
+    "id": "backup-2025-12-03T07-09-20-252Z",
+    "timestamp": "2025-12-03T07:09:20.252Z",
+    "size": 7439,
+    "reason": "Before deleting playlist submission 47",
+    "fileCount": 5
+  },
+  {
+    "id": "backup-2025-12-03T07-09-14-878Z",
+    "timestamp": "2025-12-03T07:09:14.878Z",
+    "size": 7439,
+    "reason": "Before deleting playlist submission 53",
+    "fileCount": 5
+  },
+  {
+    "id": "backup-2025-12-03T07-08-59-521Z",
+    "timestamp": "2025-12-03T07:08:59.521Z",
+    "size": 7439,
+    "reason": "Before deleting playlist submission 46",
+    "fileCount": 5
+  },
+  {
     "id": "backup-2025-11-26T20-05-55-004Z",
     "timestamp": "2025-11-26T20:05:55.004Z",
     "size": 7439,
@@ -116,27 +137,6 @@
     "timestamp": "2025-09-19T07:42:02.690Z",
     "size": 2131,
     "reason": "Before clearing ALL 2 mix submissions",
-    "fileCount": 3
-  },
-  {
-    "id": "backup-2025-09-19T07-41-35-650Z",
-    "timestamp": "2025-09-19T07:41:35.650Z",
-    "size": 2619,
-    "reason": "Before deleting mix submission 2",
-    "fileCount": 3
-  },
-  {
-    "id": "backup-2025-09-19T07-36-46-040Z",
-    "timestamp": "2025-09-19T07:36:46.040Z",
-    "size": 4688,
-    "reason": "Before deleting mix submission 2",
-    "fileCount": 3
-  },
-  {
-    "id": "backup-2025-09-19T07-36-08-586Z",
-    "timestamp": "2025-09-19T07:36:08.586Z",
-    "size": 5155,
-    "reason": "Before deleting mix submission 6",
     "fileCount": 3
   }
 ]

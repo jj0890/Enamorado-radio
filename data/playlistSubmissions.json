@@ -1,99 +1,5 @@
 [
   {
-    "curatorName": "Test Curator",
-    "title": "Test Spotify Playlist",
-    "playlistUrl": "https://open.spotify.com/playlist/647V5M8N4jN5NLKtpx3QxA?si=9bc248c60be942f4",
-    "description": "Testing the playlist submission system with a real Spotify playlist",
-    "tags": [
-      "electronic",
-      "house",
-      "techno"
-    ],
-    "artworkUrl": null,
-    "curatorEmail": null,
-    "platform": "spotify",
-    "id": 46,
-    "status": "featured",
-    "submittedAt": "2025-10-30T06:44:29.354Z",
-    "approvedAt": "2025-10-30T06:45:22.978Z",
-    "featuredAt": "2025-10-30T06:45:56.005Z",
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "likes": 1,
-    "metadata": null,
-    "trackCount": null,
-    "editorNotes": null,
-    "rejectionReason": null,
-    "createdAt": "2025-10-30T06:44:29.354Z",
-    "updatedAt": "2025-10-30T06:45:56.005Z"
-  },
-  {
-    "curatorName": "Test Curator",
-    "title": "Chill Vibes Playlist",
-    "playlistUrl": "https://open.spotify.com/playlist/37i9dQZF1DX4WYpdgoIcn6",
-    "description": "Perfect playlist for relaxing and chilling out",
-    "tags": [
-      "chill",
-      "electronic",
-      "downtempo"
-    ],
-    "artworkUrl": null,
-    "curatorEmail": null,
-    "platform": "spotify",
-    "id": 47,
-    "status": "rejected",
-    "submittedAt": "2025-10-30T06:58:58.214Z",
-    "approvedAt": null,
-    "featuredAt": null,
-    "reviewedAt": "2025-11-26T20:06:12.637Z",
-    "reviewedBy": {
-      "username": "jarrad",
-      "role": "admin"
-    },
-    "likes": 0,
-    "metadata": null,
-    "trackCount": null,
-    "editorNotes": null,
-    "rejectionReason": null,
-    "createdAt": "2025-10-30T06:58:58.214Z",
-    "updatedAt": "2025-11-26T20:06:12.637Z"
-  },
-  {
-    "curatorName": "Test DJ HEDIPv",
-    "title": "Summer Vibes Mix 2024",
-    "playlistUrl": "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M",
-    "description": "A curated collection of the best summer tracks",
-    "tags": [
-      "summer",
-      "vibes",
-      "disco",
-      "funk"
-    ],
-    "artworkUrl": "https://i.scdn.co/image/ab67706f00000002a8680ae0fc79ffd50f50cea2",
-    "curatorEmail": "testdjSFHR1b@example.com",
-    "platform": "spotify",
-    "metadata": {
-      "title": "Today’s Top Hits",
-      "thumbnail": "https://i.scdn.co/image/ab67706f00000002a8680ae0fc79ffd50f50cea2",
-      "embedUrl": "https://open.spotify.com/embed/playlist/37i9dQZF1DXcBWIGoYBM5M",
-      "providerName": "Spotify",
-      "embeddable": true
-    },
-    "id": 53,
-    "status": "pending",
-    "submittedAt": "2025-11-30T11:49:45.427Z",
-    "approvedAt": null,
-    "featuredAt": null,
-    "reviewedAt": null,
-    "reviewedBy": null,
-    "likes": 0,
-    "trackCount": null,
-    "editorNotes": null,
-    "rejectionReason": null,
-    "createdAt": "2025-11-30T11:49:45.427Z",
-    "updatedAt": "2025-11-30T11:49:45.427Z"
-  },
-  {
     "curatorName": "jarrad",
     "title": "Winter 25",
     "playlistUrl": "https://open.spotify.com/playlist/647V5M8N4jN5NLKtpx3QxA?si=4b1a7d7f5df14339",
@@ -112,10 +18,10 @@
       "embeddable": true
     },
     "id": 55,
-    "status": "approved",
+    "status": "featured",
     "submittedAt": "2025-11-30T12:06:20.586Z",
     "approvedAt": "2025-11-30T12:09:47.034Z",
-    "featuredAt": null,
+    "featuredAt": "2025-12-03T07:09:05.334Z",
     "reviewedAt": null,
     "reviewedBy": null,
     "likes": 0,
@@ -123,6 +29,6 @@
     "editorNotes": null,
     "rejectionReason": null,
     "createdAt": "2025-11-30T12:06:20.586Z",
-    "updatedAt": "2025-11-30T12:09:47.034Z"
+    "updatedAt": "2025-12-03T07:09:05.334Z"
   }
 ]
