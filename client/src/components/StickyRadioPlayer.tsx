@@ -27,16 +27,29 @@ export default function StickyRadioPlayer() {
   const { state, actions } = useAudio();
   const isPlaying = state.status === 'playing';
   const volume = state.volume;
+  
+  // Check if we're playing episode content (not live stream)
+  const isPlayingEpisode = state.src && !state.src.includes('stream.mp3') && state.isLive === false;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [nowPlaying, setNowPlaying] = useState({
+  const [liveNowPlaying, setLiveNowPlaying] = useState({
     title: 'Enamorado Radio',
     subtitle: 'Click to tune in'
   });
-  const [artwork, setArtwork] = useState<string | null>(null);
-  const [previousArtwork, setPreviousArtwork] = useState<string | null>(null); // Prevent flicker
+  const [liveArtwork, setLiveArtwork] = useState<string | null>(null);
+  const [previousArtwork, setPreviousArtwork] = useState<string | null>(null);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
   const volumePopoverRef = useRef<HTMLDivElement>(null);
+  
+  // Use episode metadata if playing an episode, otherwise use live data
+  const nowPlaying = isPlayingEpisode 
+    ? { 
+        title: state.title || 'Episode', 
+        subtitle: state.artist || '' 
+      }
+    : liveNowPlaying;
+  
+  const artwork = isPlayingEpisode ? (state.artwork || null) : liveArtwork;
 
   // Play/Pause toggle
   const handleToggle = async () => {
@@ -96,7 +109,7 @@ export default function StickyRadioPlayer() {
         ? `LIVE • ${data.live?.streamer_name || 'On Air'}`
         : track === 'Station Offline' ? 'Station Offline' : '';
 
-      setNowPlaying({ title: displayTitle, subtitle });
+      setLiveNowPlaying({ title: displayTitle, subtitle });
       console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
       
       // Fetch artwork if we have artist and title
@@ -109,7 +122,7 @@ export default function StickyRadioPlayer() {
         if (cachedArtwork) {
           console.log('🎨 StickyPlayer using cached artwork:', cachedArtwork);
           setPreviousArtwork(artwork);
-          setArtwork(cachedArtwork);
+          setLiveArtwork(cachedArtwork);
         } else {
           // Fetch from API
           try {
@@ -126,10 +139,10 @@ export default function StickyRadioPlayer() {
                 
                 // Keep previous artwork until new one loads to prevent flicker
                 setPreviousArtwork(artwork);
-                setArtwork(artworkData.artwork);
+                setLiveArtwork(artworkData.artwork);
                 console.log('🎨 StickyPlayer artwork fetched and cached:', artworkData.artwork);
               } else if (!artwork) {
-                setArtwork(null);
+                setLiveArtwork(null);
               }
             }
           } catch (artworkError) {
@@ -138,12 +151,12 @@ export default function StickyRadioPlayer() {
           }
         }
       } else if (!artwork) {
-        setArtwork(null);
+        setLiveArtwork(null);
         setPreviousArtwork(null);
       }
     } catch (error) {
       console.error('❌ StickyPlayer NowPlaying fetch error:', error);
-      setNowPlaying({ 
+      setLiveNowPlaying({ 
         title: 'Enamorado Radio', 
         subtitle: 'Connection Error' 
       });
@@ -260,7 +273,7 @@ export default function StickyRadioPlayer() {
                       src={artwork} 
                       alt="Album artwork" 
                       className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                      onError={() => setArtwork(null)}
+                      onError={() => setLiveArtwork(null)}
                       onLoad={() => setPreviousArtwork(null)}
                     />
                   )}
@@ -329,8 +342,8 @@ export default function StickyRadioPlayer() {
 
           {/* Progress Bar Row - Always visible for better UX */}
           <div className="px-4 pb-2">
-            {/* Live streams are never seekable, regardless of AutoDJ vs Live DJ */}
-            <AudioProgressBar seekable={false} />
+            {/* Episodes are seekable, live streams are not */}
+            <AudioProgressBar seekable={!!isPlayingEpisode} />
           </div>
         </div>
       </div>

@@ -1,67 +1,30 @@
-import { useState, useEffect, useRef } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
-import { Play, Pause, SkipBack, SkipForward, Volume2, VolumeX, MoreHorizontal, ExternalLink, Music } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import type { Episode } from '@shared/schema';
+import { useAudio } from '@/providers/AudioProvider';
 
 interface EpisodePlayerProps {
   episode: Episode;
 }
 
 export function EpisodePlayer({ episode }: EpisodePlayerProps) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [volume, setVolume] = useState(100);
-  const [showTracklist, setShowTracklist] = useState(true);
+  const { state, actions } = useAudio();
   const [volumeOpen, setVolumeOpen] = useState(false);
-  const audioRef = useRef<HTMLAudioElement>(null);
+  
+  // Check if this specific episode is currently loaded/playing
+  const isThisEpisodeLoaded = state.src === episode.audioUrl;
+  const isPlaying = isThisEpisodeLoaded && state.status === 'playing';
+  const currentTime = isThisEpisodeLoaded ? state.currentTime : 0;
+  const volume = state.volume * 100;
 
   // Parse tracklist from JSON string
   const tracks: Array<{artist: string; title: string; timestamp?: number}> = 
     episode.tracklist ? JSON.parse(episode.tracklist) : [];
-  const currentTrack = null;
-
-  // Hide persistent radio player when on episode page
-  useEffect(() => {
-    let attempts = 0;
-    const maxAttempts = 10;
-    
-    const hidePlayer = () => {
-      attempts++;
-      const persistentPlayer = document.querySelector('[data-sticky-player]');
-      console.log(`🎵 Attempt ${attempts}: Looking for sticky player...`, persistentPlayer);
-      
-      if (persistentPlayer) {
-        (persistentPlayer as HTMLElement).style.display = 'none';
-        console.log('✅ Sticky player HIDDEN successfully!');
-        return true;
-      }
-      
-      if (attempts < maxAttempts) {
-        console.log(`⏳ Retry in 200ms (attempt ${attempts}/${maxAttempts})`);
-        setTimeout(hidePlayer, 200);
-      } else {
-        console.log('❌ Could not find sticky player after', maxAttempts, 'attempts');
-      }
-      return false;
-    };
-
-    // Start trying to hide it
-    hidePlayer();
-    
-    // Cleanup: Show it again when leaving
-    return () => {
-      const persistentPlayer = document.querySelector('[data-sticky-player]');
-      if (persistentPlayer) {
-        (persistentPlayer as HTMLElement).style.display = 'block';
-        console.log('✅ Sticky player restored on cleanup');
-      }
-    };
-  }, []);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -70,53 +33,38 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
   };
 
   const handlePlayPause = async () => {
-    if (!audioRef.current) return;
-    
-    console.log('🎵 Episode player: handlePlayPause, isPlaying:', isPlaying);
+    console.log('🎵 Episode player: handlePlayPause, isPlaying:', isPlaying, 'isLoaded:', isThisEpisodeLoaded);
     
     if (isPlaying) {
       console.log('⏸ Pausing episode audio...');
-      audioRef.current.pause();
-      setIsPlaying(false);
+      actions.pause();
+    } else if (isThisEpisodeLoaded) {
+      console.log('▶️ Resuming episode audio...');
+      actions.toggle();
     } else {
-      console.log('▶️ Playing episode audio...');
-      
-      // Pause the live radio player first
-      const liveRadioAudio = document.querySelector('audio[src*="/stream.mp3"]') as HTMLAudioElement;
-      if (liveRadioAudio && !liveRadioAudio.paused) {
-        console.log('⏸ Pausing live radio player to play episode');
-        liveRadioAudio.pause();
-      }
-      
+      console.log('▶️ Starting episode audio...');
       try {
-        await audioRef.current.play();
-        setIsPlaying(true);
+        await actions.play(episode.audioUrl, {
+          title: episode.title,
+          artist: episode.hostName,
+          artwork: episode.artworkUrl || undefined,
+          isLive: false,
+        });
+        console.log('✅ Episode playback started via shared AudioProvider');
       } catch (error) {
         console.error('❌ Episode play error:', error);
       }
     }
   };
 
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-    }
-  };
-
   const handleSeek = (value: number[]) => {
     const newTime = (value[0] / 100) * episode.duration;
-    if (audioRef.current) {
-      audioRef.current.currentTime = newTime;
-    }
-    setCurrentTime(newTime);
+    actions.seek(newTime);
   };
 
   const handleVolumeChange = (value: number[]) => {
-    const newVolume = value[0];
-    setVolume(newVolume);
-    if (audioRef.current) {
-      audioRef.current.volume = newVolume / 100;
-    }
+    const newVolume = value[0] / 100;
+    actions.setVolume(newVolume);
   };
 
   const openSpotifyTrack = (spotifyId: string) => {
@@ -135,22 +83,10 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
     window.open(discogsUrl, '_blank');
   };
 
-  const progress = (currentTime / episode.duration) * 100;
+  const progress = episode.duration > 0 ? (currentTime / episode.duration) * 100 : 0;
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <audio
-        ref={audioRef}
-        src={episode.audioUrl}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={() => {
-          if (audioRef.current) {
-            audioRef.current.volume = volume / 100;
-          }
-        }}
-        onEnded={() => setIsPlaying(false)}
-      />
-
+    <div className="bg-black text-white min-h-screen pb-20">
       {/* Header */}
       <div className="p-6 border-b border-gray-800">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
@@ -302,6 +238,13 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
                 <span className="text-gray-600">/</span>
                 <span className="text-gray-400">{formatTime(episode.duration)}</span>
               </div>
+              
+              {/* Persistent playback indicator */}
+              {isThisEpisodeLoaded && (
+                <span className="text-xs text-sky-400 font-mono hidden sm:inline">
+                  Browse the site while listening
+                </span>
+              )}
             </div>
 
             {/* Volume Control - Vertical SoundCloud-style Popover */}
