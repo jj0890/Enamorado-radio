@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search } from 'lucide-react';
+import { Search, Star } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import ContentCard from '@/components/ContentCard';
 import { ContentItem } from '@shared/schema';
@@ -38,6 +38,13 @@ export default function CommunityPage() {
     },
     refetchOnWindowFocus: false,
   });
+
+  // Separate featured (Staff Picks) from regular content
+  const staffPicks = allContent.filter(item => item.isFeatured);
+  const freshContent = allContent.filter(item => !item.isFeatured);
+  
+  // When searching, show all results together (don't split)
+  const isSearching = searchQuery.trim().length > 0;
 
   return (
     <div className="min-h-screen bg-cream dark:bg-gray-950">
@@ -87,13 +94,13 @@ export default function CommunityPage() {
           </div>
         </div>
 
-        {/* Content Grid */}
+        {/* Content Sections */}
         {isLoading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {Array.from({ length: 12 }).map((_, i) => (
               <div
                 key={i}
-                className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse"
+                className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse rounded-xl"
               />
             ))}
           </div>
@@ -106,11 +113,55 @@ export default function CommunityPage() {
               {searchQuery ? 'Try adjusting your search or filters' : 'Check back soon for new content'}
             </p>
           </div>
-        ) : (
+        ) : isSearching ? (
+          // Search results - show all together without sections
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {allContent.map((item) => (
               <ContentCard key={`${item.type}-${item.id}`} content={item} />
             ))}
+          </div>
+        ) : (
+          <div className="space-y-12">
+            {/* Staff Picks Section - Only show if there are featured items */}
+            {staffPicks.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="flex items-center gap-2 bg-navy/10 dark:bg-navy/20 px-4 py-2 rounded-lg">
+                    <Star className="w-4 h-4 text-navy dark:text-navy-light fill-current" />
+                    <h2 className="text-lg font-bold font-mono text-navy dark:text-navy-light">
+                      Staff Picks
+                    </h2>
+                  </div>
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {staffPicks.slice(0, 4).map((item) => (
+                    <ContentCard 
+                      key={`${item.type}-${item.id}`} 
+                      content={item} 
+                      showFeaturedBadge={true}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Fresh from Community Section */}
+            {freshContent.length > 0 && (
+              <section>
+                <div className="flex items-center gap-3 mb-6">
+                  <h2 className="text-lg font-bold font-mono text-gray-900 dark:text-white">
+                    Fresh from the Community
+                  </h2>
+                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {freshContent.map((item) => (
+                    <ContentCard key={`${item.type}-${item.id}`} content={item} />
+                  ))}
+                </div>
+              </section>
+            )}
           </div>
         )}
 
@@ -119,6 +170,7 @@ export default function CommunityPage() {
           <div className="mt-8 text-center">
             <p className="text-sm font-mono text-gray-600 dark:text-gray-400">
               Showing {allContent.length} {allContent.length === 1 ? 'item' : 'items'}
+              {staffPicks.length > 0 && !isSearching && ` (${staffPicks.length} staff pick${staffPicks.length !== 1 ? 's' : ''})`}
             </p>
           </div>
         )}

@@ -1,4 +1,4 @@
-import { Play, Music } from 'lucide-react';
+import { Play, Music, Star } from 'lucide-react';
 import { SiSoundcloud, SiSpotify } from 'react-icons/si';
 import { ContentItem } from '@shared/schema';
 import { Link } from 'wouter';
@@ -8,6 +8,7 @@ type Platform = 'soundcloud' | 'spotify' | 'mixcloud' | 'mp3' | 'other';
 interface ContentCardProps {
   content: ContentItem;
   onGenreSelect?: (genre: string) => void;
+  showFeaturedBadge?: boolean; // Only show featured badge when explicitly enabled (e.g., in Staff Picks section)
 }
 
 // Legacy interface support for backward compatibility
@@ -39,6 +40,7 @@ interface LegacyContentCardProps {
 
 export default function ContentCard(props: ContentCardProps | LegacyContentCardProps) {
   const { content, onGenreSelect } = props;
+  const showFeaturedBadge = (props as ContentCardProps).showFeaturedBadge ?? false;
   
   // Support both unified ContentItem and legacy props
   // Legacy: { content: {...}, type: 'mix' } (type as separate prop)
@@ -102,20 +104,23 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
   
   const detailUrl = getDetailUrl();
 
+  // Softer styling - all cards get the same base, featured gets subtle glow on hover
+  const baseCardClasses = "block bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 group relative cursor-pointer border border-gray-200 dark:border-gray-800";
+  const hoverClasses = content.isFeatured && showFeaturedBadge
+    ? "shadow-sm hover:shadow-[0_8px_30px_rgba(0,63,135,0.12)] hover:-translate-y-1 hover:border-navy/30" 
+    : "shadow-sm hover:shadow-lg hover:-translate-y-0.5";
+
   return (
     <Link 
       href={detailUrl}
-      className={`block bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 group relative cursor-pointer ${
-        content.isFeatured 
-          ? 'border-2 border-navy dark:border-navy shadow-[0_2px_8px_rgba(0,63,135,0.15)] hover:shadow-[0_8px_24px_rgba(0,63,135,0.25)] hover:-translate-y-1' 
-          : 'border-2 border-gray-200 dark:border-gray-800 shadow-[0_2px_4px_rgba(0,0,0,0.06)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.12)] hover:-translate-y-0.5'
-      }`}
+      className={`${baseCardClasses} ${hoverClasses}`}
       data-testid={`card-${type}-${content.id}`}
     >
-      {/* Featured Badge */}
-      {content.isFeatured && (
-        <div className="absolute top-4 left-4 z-10 bg-navy text-white px-4 py-2 text-xs font-bold font-mono shadow-lg">
-          ★ Featured
+      {/* Staff Pick Badge - only shown when explicitly enabled */}
+      {content.isFeatured && showFeaturedBadge && (
+        <div className="absolute top-3 left-3 z-10 bg-navy/90 backdrop-blur-sm text-white px-3 py-1.5 text-xs font-medium font-mono rounded-md flex items-center gap-1.5 shadow-md">
+          <Star className="w-3 h-3 fill-current" />
+          Staff Pick
         </div>
       )}
 
