@@ -1,7 +1,9 @@
 # Radio Station Web Application
 
 ## Overview
-This full-stack web application provides a modern platform for a radio station, enabling users to discover and listen to live audio streams, browse content, and interact with curated music. The project aims to create a comprehensive hub for music enthusiasts, fostering community, promoting new artists, and offering a streamlined user experience with live programming, user submissions, and a robust admin content management system. The business vision is to create a comprehensive hub for music enthusiasts, fostering community, promoting new artists, and offering a streamlined user experience with live programming, user submissions, and a robust admin content management system.
+**San Antonio's first community-run radio platform.** Online platform for artists, trying to make sharing taste more personal and accessible.
+
+This full-stack web application provides a modern platform for a radio station, enabling users to discover and listen to live audio streams, browse content, and interact with curated music. The project aims to create a comprehensive hub for music enthusiasts, fostering community, promoting new artists, and offering a streamlined user experience with live programming, user submissions, and a robust admin content management system.
 
 ## User Preferences
 Preferred communication style: Simple, everyday language.
