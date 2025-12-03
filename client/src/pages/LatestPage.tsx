@@ -7,6 +7,7 @@ import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube } from "react-icons/si
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import Navigation from "@/components/Navigation";
 import PublicMixCard from "@/components/PublicMixCard";
+import FeaturedHero from "@/components/FeaturedHero";
 
 // Episode Card Component for consistent styling with mixes
 function EpisodeCard({ episode }: { episode: any }) {
@@ -242,17 +243,27 @@ export default function LatestPage() {
 
         {/* Content Grid */}
         {filteredContent.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {filteredContent.map((item: any) => {
-              if (item.type === 'mix') {
-                return <PublicMixCard key={`mix-${item.id}`} mix={item} />;
-              } else if (item.type === 'playlist') {
-                return <PlaylistCard key={`playlist-${item.id}`} playlist={item} />;
-              } else {
-                return <EpisodeCard key={`episode-${item.id}`} episode={item} />;
-              }
-            })}
-          </div>
+          <>
+            {/* Featured Hero - Show first featured item prominently */}
+            {filteredContent[0]?.isFeatured && (
+              <FeaturedHero item={filteredContent[0]} />
+            )}
+
+            {/* Regular Grid - Skip first if it was featured */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {filteredContent
+                .slice(filteredContent[0]?.isFeatured ? 1 : 0)
+                .map((item: any) => {
+                  if (item.type === 'mix') {
+                    return <PublicMixCard key={`mix-${item.id}`} mix={{ ...item, isFeatured: false }} />;
+                  } else if (item.type === 'playlist') {
+                    return <PlaylistCard key={`playlist-${item.id}`} playlist={item} />;
+                  } else {
+                    return <EpisodeCard key={`episode-${item.id}`} episode={item} />;
+                  }
+                })}
+            </div>
+          </>
         ) : (
           <div className="text-center py-12">
             <div className="text-gray-600 font-mono">

@@ -10,6 +10,7 @@ import HeroStation from "@/components/HeroStation";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
 import ContentCard from "@/components/ContentCard";
+import FeaturedHero from "@/components/FeaturedHero";
 import Navigation from "@/components/Navigation";
 
 // Optional util (only needed if your FeaturedMixCard wants it)
@@ -284,14 +285,22 @@ export default function Home() {
               </button>
             </div>
 
+            {/* Featured Hero - Show first featured item prominently */}
+            {blendedContent[0]?.isFeatured && (
+              <FeaturedHero item={blendedContent[0]} />
+            )}
+
+            {/* Regular Grid - Skip first if it was featured */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-              {blendedContent.map((item: any) => (
-                <ContentCard 
-                  key={`${item.type}-${item.id}`} 
-                  content={item} 
-                  type={item.type} 
-                />
-              ))}
+              {blendedContent
+                .slice(blendedContent[0]?.isFeatured ? 1 : 0)
+                .map((item: any) => (
+                  <ContentCard 
+                    key={`${item.type}-${item.id}`} 
+                    content={{ ...item, isFeatured: false }} 
+                    type={item.type} 
+                  />
+                ))}
             </div>
           </section>
         )}
