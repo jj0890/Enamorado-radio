@@ -335,7 +335,7 @@ export default function Home() {
               className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Editorial/Staff Picks</h3>
+                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Albums of the Month</h3>
                 <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
                   Hand-selected favorites from our editorial team.
                 </p>

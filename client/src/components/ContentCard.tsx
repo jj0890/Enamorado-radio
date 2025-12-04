@@ -104,11 +104,10 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
   
   const detailUrl = getDetailUrl();
 
-  // Softer styling - all cards get the same base, featured gets subtle glow on hover
+  // Softer styling - all cards get the same subtle base styling
   const baseCardClasses = "block bg-white dark:bg-gray-900 rounded-xl overflow-hidden transition-all duration-300 group relative cursor-pointer border border-gray-200 dark:border-gray-800";
-  const hoverClasses = content.isFeatured && showFeaturedBadge
-    ? "shadow-sm hover:shadow-[0_8px_30px_rgba(0,63,135,0.12)] hover:-translate-y-1 hover:border-navy/30" 
-    : "shadow-sm hover:shadow-lg hover:-translate-y-0.5";
+  // All cards use the same hover - subtle shadow lift, no blue tint
+  const hoverClasses = "shadow-sm hover:shadow-lg hover:-translate-y-0.5";
 
   return (
     <Link 
