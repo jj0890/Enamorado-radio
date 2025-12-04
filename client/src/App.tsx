@@ -41,6 +41,7 @@ import AboutPage from "./pages/AboutPage";
 import ResidentsPage from "./pages/ResidentsPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityDetailPage from "./pages/CommunityDetailPage";
+import LatestPage from "./pages/LatestPage";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -51,9 +52,9 @@ function Router() {
       <Route path="/mobile" component={MobileRadio} />
       <Route path="/radio" component={RadioLanding} />
       
-      {/* Redirects for sidelined/incomplete pages */}
-      <Route path="/latest">{() => <Redirect to="/mixes" />}</Route>
-      <Route path="/explore">{() => <Redirect to="/mixes" />}</Route>
+      {/* Content browsing */}
+      <Route path="/latest" component={LatestPage} />
+      <Route path="/explore">{() => <Redirect to="/community" />}</Route>
       <Route path="/discover" component={Discover} />
 
       {/* /resident-application handled by Express redirect to Google Form */}
