@@ -494,11 +494,11 @@ export default function MixesLanding() {
           </div>
         </section>
 
-        {/* All Mixes Grid */}
+        {/* All Mixes Grid - Using ContentCard for consistent styling */}
         <section>
           <div className="flex items-center justify-between mb-8">
             <h2 className="text-3xl font-bold font-mono text-navy">
-              {genreFilter ? `${genreFilter.toUpperCase().replace(/-/g, ' ')} MIXES` : 'ALL MIXES'}
+              {genreFilter ? `${genreFilter.toUpperCase().replace(/-/g, ' ')} MIXES` : 'FRESH FROM THE COMMUNITY'}
             </h2>
             {genreFilter && (
               <Link href="/mixes">
@@ -509,93 +509,20 @@ export default function MixesLanding() {
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {displayCommunityMixes.map((mix) => (
-              <div
+              <ContentCard
                 key={mix.id}
-                className="bg-gray-50 border-2 border-black rounded-lg overflow-hidden hover:border-navy hover:shadow-lg transition-all duration-300 group"
-              >
-                <div className="flex flex-col md:flex-row">
-                  {/* Mix Thumbnail - Square on mobile, fixed width on desktop */}
-                  <div className="relative w-full md:w-48 md:h-48 aspect-square md:aspect-auto bg-white border-b-2 md:border-b-0 md:border-r-2 border-black flex-shrink-0">
-                    {(mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? (
-                      <img 
-                        src={mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl} 
-                        alt={`${mix.title} by ${mix.artist}`}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          console.log('Mix thumbnail failed to load:', e.currentTarget.src);
-                          e.currentTarget.style.display = 'none';
-                          const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
-                          if (nextElement) {
-                            nextElement.style.display = 'flex';
-                          }
-                        }}
-                      />
-                    ) : null}
-                    <div 
-                      className={`w-full h-full bg-white flex items-center justify-center absolute inset-0 ${
-                        (mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl) ? 'hidden' : 'flex'
-                      }`}
-                    >
-                      <div className="text-gray-400 text-center">
-                        <Play className="w-12 h-12 mx-auto mb-2" />
-                        <p className="text-xs font-mono">Audio Mix</p>
-                      </div>
-                    </div>
-
-                    {/* Play Button Overlay */}
-                    <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button 
-                        size="sm" 
-                        className="bg-white text-black hover:bg-gray-200"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (mix.url) {
-                            window.open(mix.url, '_blank');
-                          }
-                        }}
-                      >
-                        <Play className="h-4 w-4 mr-1" />
-                        PLAY
-                      </Button>
-                    </div>
-                  </div>
-
-                  {/* Mix Info - Horizontal layout on desktop */}
-                  <div className="p-4 flex-1 flex flex-col justify-center">
-                    <h3 className="font-bold text-lg leading-tight font-mono mb-1">
-                      {mix.title}
-                    </h3>
-                    <p className="text-gray-600 font-mono text-sm mb-3">{mix.artist}</p>
-
-                    {/* Genre Tags */}
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {mix.genre.slice(0, 2).map((genre, index) => (
-                        <Link
-                          key={index}
-                          href={`/mixes?genre=${genre.toLowerCase().replace(/\s+/g, '-')}`}
-                        >
-                          <span className="bg-navy text-white px-2 py-1 text-xs font-mono cursor-pointer hover:bg-navy-dark transition-colors">
-                            {genre}
-                          </span>
-                        </Link>
-                      ))}
-                    </div>
-
-                    {/* Platform Link */}
-                    <a 
-                      href={mix.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="inline-flex items-center text-xs font-mono text-gray-600 hover:text-navy gap-1"
-                    >
-                      <ExternalLink className="h-3 w-3" />
-                      {mix.platform.toUpperCase()}
-                    </a>
-                  </div>
-                </div>
-              </div>
+                content={{
+                  type: 'mix',
+                  id: mix.id,
+                  title: mix.title,
+                  name: mix.artist,
+                  artworkUrl: mix.thumbnailUrl || thumbnailCache[mix.id] || (mix as any).metadata?.imageUrl || (mix as any).metadata?.thumbnail_url || (mix as any).artUrl,
+                  url: mix.url,
+                  genre: Array.isArray(mix.genre) ? mix.genre[0] : mix.genre,
+                }}
+              />
             ))}
           </div>
         </section>

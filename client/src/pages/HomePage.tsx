@@ -51,6 +51,17 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
+  // --- DATA: Fresh playlists ---
+  const { data: freshPlaylists = [] } = useQuery({
+    queryKey: ["/api/community", { type: 'playlist', limit: 6 }],
+    queryFn: async () => {
+      const r = await fetch("/api/community?type=playlist&limit=6&sort=recent", { cache: "no-store" });
+      if (!r.ok) throw new Error("Failed to fetch playlists");
+      return r.json();
+    },
+    refetchOnWindowFocus: false,
+  });
+
   // --- DATA: All published episodes ---
   const { data: allEpisodes = [] } = useQuery({
     queryKey: ["/api/episodes"],
@@ -63,7 +74,7 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // --- BLENDED FEED: Combine mixes and episodes ---
+  // --- BLENDED FEED: Combine mixes, episodes, and playlists ---
   const blendedContent = useMemo(() => {
     const mixesWithType = freshMixes.map((mix: any) => ({
       ...mix,
@@ -79,8 +90,15 @@ export default function Home() {
       isFeatured: episode.isFeatured || false,
     }));
 
+    const playlistsWithType = freshPlaylists.map((playlist: any) => ({
+      ...playlist,
+      type: 'playlist' as const,
+      dateForSorting: new Date(playlist.submittedAt || playlist.date || 0).getTime(),
+      isFeatured: playlist.isFeatured || false,
+    }));
+
     // Combine all items
-    const combined = [...mixesWithType, ...episodesWithType];
+    const combined = [...mixesWithType, ...episodesWithType, ...playlistsWithType];
 
     // Separate and sort featured items
     const allFeatured = combined
@@ -111,7 +129,7 @@ export default function Home() {
       // Show all content
       return sorted.slice(0, 12);
     }
-  }, [freshMixes, allEpisodes, contentFilter]);
+  }, [freshMixes, allEpisodes, freshPlaylists, contentFilter]);
 
   // --- DATA: Upcoming schedule ---
   const { data: upcomingShows = [] } = useQuery({

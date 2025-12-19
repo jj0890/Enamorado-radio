@@ -206,15 +206,9 @@ export default function StickyRadioPlayer() {
           title={isCollapsed ? 'Expand player' : 'Collapse player'}
         >
           {isCollapsed ? (
-            <>
-              <ChevronUp className="w-4 h-4" />
-              <span className="text-xs font-mono hidden sm:inline">Show Player</span>
-            </>
+            <ChevronUp className="w-4 h-4" />
           ) : (
-            <>
-              <ChevronDown className="w-4 h-4" />
-              <span className="text-xs font-mono hidden sm:inline">Hide</span>
-            </>
+            <ChevronDown className="w-4 h-4" />
           )}
         </button>
 
