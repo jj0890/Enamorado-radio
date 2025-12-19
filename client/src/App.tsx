@@ -73,7 +73,7 @@ function Router() {
       <Route path="/guides" component={Guides} />
       <Route path="/guide/:id" component={GuideDetail} />
       <Route path="/albums" component={AlbumsPage} />
-      <Route path="/albums/top-10-2025" component={Top10AlbumsPage} />
+      <Route path="/albums/top-10-albums-2025" component={Top10AlbumsPage} />
       <Route path="/submit-album" component={SubmitAlbum} />
       <Route path="/genres" component={GenreDiscovery} />
       <Route path="/genre/:slug" component={GenrePage} />
