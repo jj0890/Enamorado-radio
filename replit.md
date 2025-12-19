@@ -43,7 +43,7 @@ UI terminology: Use "community programming" instead of "residents" in all user-f
 - **Audio System**: Simplified AudioPlayer compatible with AzuraCast backend with artwork caching, metadata persistence, and non-seekable progress bars for live streams.
 - **Content Management**: Features for radio programs, schedules, content rotation, user submissions (mixes, episodes), and admin approval. This includes community mix submission, admin episode upload with SFTP, and tracklist support. A unified community feed displays mixes and episodes with filtering.
 - **Station Management**: Allows browsing stations by genre, featured shows, and live status. Includes a "Resident DJ System" for managing residents with semi-automated AzuraCast streamer account setup.
-- **User Engagement**: Community-driven album curation ("Albums of the Month") with submission, editor voting, and MusicBrainz integration.
+- **User Engagement**: Community-driven album curation ("Albums of the Month") with submission, editor voting, and MusicBrainz integration. Features an immersive "Top 10 Albums 2025" scroll story experience with full-screen panels, keyboard navigation, progress indicators, and share functionality.
 - **Admin Controls**: A Radio Ops Panel for real-time broadcast monitoring and comprehensive CRUD operations for content and AzuraCast configuration. Features include an admin portal with a unified design system for managing mixes, episodes, albums, residents, and system settings.
 - **Navigation**: Enhanced routing structure including Latest, Explore, Episodes, Schedule, and Mixes, with a simplified homepage featuring a Live Player Hero and a sticky mini-player.
 - **Design Tokens**: Unified design token system in `client/src/tokens.css` for consistent styling.
