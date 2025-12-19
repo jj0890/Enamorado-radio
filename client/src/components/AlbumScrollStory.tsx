@@ -30,6 +30,19 @@ export function AlbumScrollStory({ list, onClose }: AlbumScrollStoryProps) {
     }
   }, [totalPanels]);
   
+  const getAlbumPanelIndex = (rank: number): number => {
+    const albumIdx = list.albums.findIndex(a => a.rank === rank);
+    if (albumIdx === -1) return -1;
+    return albumIdx + 1;
+  };
+  
+  const getProgressLabel = (): string => {
+    if (activeIndex === 0) return 'Intro';
+    if (activeIndex === totalPanels - 1) return 'End';
+    const albumRank = list.albums[activeIndex - 1]?.rank;
+    return albumRank ? `#${albumRank}` : '';
+  };
+  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
@@ -41,16 +54,22 @@ export function AlbumScrollStory({ list, onClose }: AlbumScrollStoryProps) {
       } else if (e.key === 'Escape' && onClose) {
         onClose();
       } else if (e.key >= '1' && e.key <= '9') {
-        const albumIndex = parseInt(e.key);
-        scrollToPanel(albumIndex);
+        const rank = parseInt(e.key);
+        const panelIndex = getAlbumPanelIndex(rank);
+        if (panelIndex !== -1) {
+          scrollToPanel(panelIndex);
+        }
       } else if (e.key === '0') {
-        scrollToPanel(10);
+        const panelIndex = getAlbumPanelIndex(10);
+        if (panelIndex !== -1) {
+          scrollToPanel(panelIndex);
+        }
       }
     };
     
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeIndex, scrollToPanel, totalPanels, onClose]);
+  }, [activeIndex, scrollToPanel, totalPanels, onClose, list.albums]);
   
   useEffect(() => {
     const container = containerRef.current;
@@ -148,7 +167,7 @@ export function AlbumScrollStory({ list, onClose }: AlbumScrollStoryProps) {
                 ? 'bg-white scale-125' 
                 : 'bg-white/30 hover:bg-white/60'
             }`}
-            aria-label={i === 0 ? 'Intro' : i === totalPanels - 1 ? 'Outro' : `Album ${i}`}
+            aria-label={i === 0 ? 'Intro' : i === totalPanels - 1 ? 'End' : `Album #${list.albums[i - 1]?.rank || i}`}
             data-testid={`progress-dot-${i}`}
           />
         ))}
@@ -186,8 +205,8 @@ export function AlbumScrollStory({ list, onClose }: AlbumScrollStoryProps) {
       </div>
       
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden flex items-center gap-2 bg-black/60 backdrop-blur-sm px-3 py-2 rounded-full">
-        <span className="text-white/60 text-sm font-mono">
-          {activeIndex === 0 ? 'Intro' : activeIndex === totalPanels - 1 ? 'Outro' : `${activeIndex}/${list.albums.length}`}
+        <span className="text-white/60 text-sm font-mono" data-testid="mobile-progress">
+          {getProgressLabel()}
         </span>
       </div>
     </div>
