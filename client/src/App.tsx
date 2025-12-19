@@ -22,6 +22,7 @@ import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
 import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 import AlbumsPage from "./pages/AlbumsPage";
+import Top10AlbumsPage from "./pages/Top10AlbumsPage";
 import SubmitAlbum from "./pages/SubmitAlbum";
 import GenrePage from "./pages/GenrePage";
 import MixesLanding from "./pages/MixesLanding";
@@ -72,6 +73,7 @@ function Router() {
       <Route path="/guides" component={Guides} />
       <Route path="/guide/:id" component={GuideDetail} />
       <Route path="/albums" component={AlbumsPage} />
+      <Route path="/albums/top-10-2025" component={Top10AlbumsPage} />
       <Route path="/submit-album" component={SubmitAlbum} />
       <Route path="/genres" component={GenreDiscovery} />
       <Route path="/genre/:slug" component={GenrePage} />
