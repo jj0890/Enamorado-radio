@@ -4109,6 +4109,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ADMIN: Search MusicBrainz for album details (for year-end lists)
+  app.get('/api/admin/albums/musicbrainz-search', requireRole('editor'), async (req, res) => {
+    try {
+      const { artist, album } = req.query;
+      
+      if (!artist || !album || typeof artist !== 'string' || typeof album !== 'string') {
+        return res.status(400).json({ error: 'Artist and album parameters required' });
+      }
+      
+      const details = await musicbrainzService.getAlbumDetails(artist, album);
+      
+      if (!details) {
+        return res.status(404).json({ error: 'Album not found in MusicBrainz' });
+      }
+      
+      res.json(details);
+    } catch (error) {
+      console.error('MusicBrainz search error:', error);
+      res.status(500).json({ error: 'Failed to search MusicBrainz' });
+    }
+  });
+
   // PUBLIC: Get published album picks
   app.get('/api/albums/published', async (req, res) => {
     try {
@@ -4456,6 +4478,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // =================
   // YEAR-END LISTS API
   // =================
+
+  // PUBLIC: Get published year-end list by slug (for scroll story)
+  app.get('/api/albums/top-lists/:slug', async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const list = await storage.getYearEndListWithItems(slug);
+      
+      if (!list || !list.isPublished) {
+        return res.status(404).json({ error: 'List not found or not published' });
+      }
+      
+      res.json(list);
+    } catch (error) {
+      console.error('Error fetching year-end list:', error);
+      res.status(500).json({ error: 'Failed to fetch year-end list' });
+    }
+  });
 
   // ADMIN: Get all year-end lists (draft and published)
   app.get('/api/admin/albums/year-end-lists', requireRole('editor'), async (req, res) => {
