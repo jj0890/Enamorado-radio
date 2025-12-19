@@ -369,9 +369,12 @@ export const albumVotes = pgTable("album_votes", {
 // Published monthly album picks
 export const albumPicks = pgTable("album_picks", {
   id: serial("id").primaryKey(),
-  month: text("month").notNull().unique(), // "2025-10"
-  title: text("title").notNull(), // "October 2025 Albums"
+  month: text("month").notNull().unique(), // "2025-10" for monthly, "2025-EOY" for year-end
+  title: text("title").notNull(), // "October 2025 Albums" or "Top 10 Albums of 2025"
   description: text("description"),
+  listType: text("list_type").notNull().default("monthly"), // "monthly" or "yearly" (year-end list)
+  introText: text("intro_text"), // Editorial intro for scroll story (year-end lists)
+  outroText: text("outro_text"), // Closing message for scroll story (year-end lists)
   createdBy: text("created_by").notNull(),
   publishedAt: timestamp("published_at"),
   isPublished: boolean("is_published").default(false),
@@ -385,7 +388,12 @@ export const albumPickItems = pgTable("album_pick_items", {
   pickId: integer("pick_id").references(() => albumPicks.id).notNull(),
   suggestionId: integer("suggestion_id").references(() => albumSuggestions.id).notNull(),
   rank: integer("rank").notNull(), // 1-10 for ordering
-  blurb: text("blurb"), // Editor's note about this pick
+  blurb: text("blurb"), // Editor's short note about this pick
+  writeUp: text("write_up"), // Extended editorial review (for year-end scroll story)
+  standoutTracks: text("standout_tracks").array(), // ["Track 1", "Track 2", ...]
+  label: text("label"), // Record label
+  releaseDate: text("release_date"), // ISO date format "2025-03-15"
+  accentColor: text("accent_color"), // Hex color for theming (e.g., "#667EEA")
   tags: text("tags").array(), // ["experimental", "shoegaze"]
   spotifyUrl: text("spotify_url"),
   appleMusicUrl: text("apple_music_url"),
