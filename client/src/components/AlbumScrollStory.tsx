@@ -455,7 +455,7 @@ function AlbumPanel({
                 className="text-white/60 hover:text-white hover:bg-white/10 font-mono"
               >
                 <ChevronUp className="w-4 h-4 mr-1" />
-                #{album.rank + 1}
+                #{album.rank - 1}
               </Button>
             )}
             {index < totalAlbums && (
@@ -465,7 +465,7 @@ function AlbumPanel({
                 onClick={onNext}
                 className="text-white/60 hover:text-white hover:bg-white/10 font-mono"
               >
-                #{album.rank - 1}
+                #{album.rank + 1}
                 <ChevronDown className="w-4 h-4 ml-1" />
               </Button>
             )}

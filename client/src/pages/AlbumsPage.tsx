@@ -3,8 +3,7 @@ import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Disc, ChevronRight, Star, Sparkles } from "lucide-react";
-import { top10Albums2025 } from "@/data/top10Albums2025";
+import { Calendar, Disc, ChevronRight, Sparkles } from "lucide-react";
 
 interface AlbumSuggestion {
   id: number;
@@ -103,49 +102,27 @@ export default function AlbumsPage() {
               }}
               data-testid="feature-top10-2025"
             >
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute inset-0 grid grid-cols-5 grid-rows-2 gap-0.5">
-                  {top10Albums2025.albums.slice(0, 10).map((album, i) => (
-                    <div 
-                      key={i}
-                      className="bg-cover bg-center"
-                      style={{ backgroundImage: `url(${album.coverArtUrl})` }}
-                    />
-                  ))}
-                </div>
-              </div>
-              
               <div className="relative z-10 p-8 md:p-12">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <Badge className="mb-4 bg-white/20 text-white border-white/30 font-mono">
-                      <Sparkles className="w-3 h-3 mr-1" />
-                      {top10Albums2025.year} YEAR IN REVIEW
-                    </Badge>
-                    
-                    <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white font-mono mb-4">
-                      {top10Albums2025.title}
-                    </h2>
-                    
-                    <p className="text-white/70 font-mono text-sm md:text-base max-w-xl mb-6">
-                      Our most anticipated albums from {top10Albums2025.year}. An immersive scroll experience through the sounds that defined our year.
-                    </p>
-                    
-                    <Button 
-                      className="bg-white text-navy hover:bg-white/90 font-mono group-hover:translate-x-1 transition-transform"
-                      data-testid="button-view-top10"
-                    >
-                      Explore the list
-                      <ChevronRight className="w-4 h-4 ml-2" />
-                    </Button>
-                  </div>
-                  
-                  <div className="hidden md:flex items-center gap-1 text-white/40">
-                    {[1, 2, 3, 4, 5].map((i) => (
-                      <Star key={i} className="w-4 h-4 fill-current" />
-                    ))}
-                  </div>
-                </div>
+                <Badge className="mb-4 bg-white/20 text-white border-white/30 font-mono">
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  2025 YEAR IN REVIEW
+                </Badge>
+                
+                <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white font-mono mb-4">
+                  Top 10 Albums of 2025
+                </h2>
+                
+                <p className="text-white/70 font-mono text-sm md:text-base max-w-xl mb-6">
+                  An immersive scroll experience through the sounds that defined our year.
+                </p>
+                
+                <Button 
+                  className="bg-white text-navy hover:bg-white/90 font-mono group-hover:translate-x-1 transition-transform"
+                  data-testid="button-view-top10"
+                >
+                  Explore the list
+                  <ChevronRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             </div>
           </Link>
@@ -206,49 +183,27 @@ export default function AlbumsPage() {
             }}
             data-testid="feature-top10-2025"
           >
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute inset-0 grid grid-cols-5 grid-rows-2 gap-0.5">
-                {top10Albums2025.albums.slice(0, 10).map((album, i) => (
-                  <div 
-                    key={i}
-                    className="bg-cover bg-center"
-                    style={{ backgroundImage: `url(${album.coverArtUrl})` }}
-                  />
-                ))}
-              </div>
-            </div>
-            
             <div className="relative z-10 p-8 md:p-12">
-              <div className="flex items-start justify-between">
-                <div>
-                  <Badge className="mb-4 bg-white/20 text-white border-white/30 font-mono">
-                    <Sparkles className="w-3 h-3 mr-1" />
-                    {top10Albums2025.year} YEAR IN REVIEW
-                  </Badge>
-                  
-                  <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white font-mono mb-4">
-                    {top10Albums2025.title}
-                  </h2>
-                  
-                  <p className="text-white/70 font-mono text-sm md:text-base max-w-xl mb-6">
-                    Our most anticipated albums from {top10Albums2025.year}. An immersive scroll experience through the sounds that defined our year.
-                  </p>
-                  
-                  <Button 
-                    className="bg-white text-navy hover:bg-white/90 font-mono group-hover:translate-x-1 transition-transform"
-                    data-testid="button-view-top10"
-                  >
-                    Explore the list
-                    <ChevronRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </div>
-                
-                <div className="hidden md:flex items-center gap-1 text-white/40">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <Star key={i} className="w-4 h-4 fill-current" />
-                  ))}
-                </div>
-              </div>
+              <Badge className="mb-4 bg-white/20 text-white border-white/30 font-mono">
+                <Sparkles className="w-3 h-3 mr-1" />
+                2025 YEAR IN REVIEW
+              </Badge>
+              
+              <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-white font-mono mb-4">
+                Top 10 Albums of 2025
+              </h2>
+              
+              <p className="text-white/70 font-mono text-sm md:text-base max-w-xl mb-6">
+                An immersive scroll experience through the sounds that defined our year.
+              </p>
+              
+              <Button 
+                className="bg-white text-navy hover:bg-white/90 font-mono group-hover:translate-x-1 transition-transform"
+                data-testid="button-view-top10"
+              >
+                Explore the list
+                <ChevronRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
         </Link>
