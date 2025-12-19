@@ -22,7 +22,15 @@ import {
   ArrowDown,
   Trash2,
   Send,
-  MessageSquare
+  MessageSquare,
+  Trophy,
+  Plus,
+  Edit,
+  Save,
+  X,
+  Music,
+  ExternalLink,
+  Palette
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -85,6 +93,40 @@ interface AlbumNote {
   createdAt: string;
 }
 
+interface YearEndList {
+  id: number;
+  month: string;
+  title: string;
+  slug: string;
+  listType: string;
+  introText?: string;
+  outroText?: string;
+  createdBy: string;
+  isPublished: boolean;
+  publishedAt?: string;
+  createdAt: string;
+  items?: YearEndListItem[];
+}
+
+interface YearEndListItem {
+  id: number;
+  pickId: number;
+  suggestionId: number;
+  rank: number;
+  blurb?: string;
+  writeUp?: string;
+  standoutTracks?: string[];
+  accentColor?: string;
+  label?: string;
+  releaseDate?: string;
+  spotifyUrl?: string;
+  appleMusicUrl?: string;
+  bandcampUrl?: string;
+  addedBy: string;
+  createdAt: string;
+  album?: AlbumSuggestion | null;
+}
+
 interface AdminAlbumsProps {
   onLogout?: () => void;
   currentUser?: string;
@@ -127,6 +169,36 @@ export default function AdminAlbums({ onLogout, currentUser = "admin" }: AdminAl
     releaseYear: '',
     reason: ''
   });
+
+  // Year-End Lists state
+  const [selectedYearEndListSlug, setSelectedYearEndListSlug] = useState<string | null>(null);
+  const [newListYear, setNewListYear] = useState(new Date().getFullYear().toString());
+  const [newListTitle, setNewListTitle] = useState('');
+  const [newListIntroText, setNewListIntroText] = useState('');
+  const [newListOutroText, setNewListOutroText] = useState('');
+  const [editingListMeta, setEditingListMeta] = useState(false);
+  const [editingItemId, setEditingItemId] = useState<number | null>(null);
+  const [itemFormData, setItemFormData] = useState<{
+    writeUp: string;
+    standoutTracks: string;
+    accentColor: string;
+    label: string;
+    releaseDate: string;
+    spotifyUrl: string;
+    appleMusicUrl: string;
+    bandcampUrl: string;
+  }>({
+    writeUp: '',
+    standoutTracks: '',
+    accentColor: '',
+    label: '',
+    releaseDate: '',
+    spotifyUrl: '',
+    appleMusicUrl: '',
+    bandcampUrl: ''
+  });
+  const [isAddAlbumDialogOpen, setIsAddAlbumDialogOpen] = useState(false);
+  const [selectedAlbumToAdd, setSelectedAlbumToAdd] = useState<AlbumSuggestion | null>(null);
 
   const setSelectedPickMonth = (month: string) => {
     if (month) {
@@ -198,6 +270,24 @@ export default function AdminAlbums({ onLogout, currentUser = "admin" }: AdminAl
       }).then(res => res.json());
     },
     enabled: !!selectedSuggestion,
+  });
+
+  // Fetch year-end lists
+  const { data: yearEndLists = [], isLoading: loadingYearEndLists } = useQuery<YearEndList[]>({
+    queryKey: ['/api/admin/albums/year-end-lists'],
+    enabled: activeTab === 'year-end-lists',
+  });
+
+  // Fetch selected year-end list with items
+  const { data: selectedYearEndList, isLoading: loadingSelectedList } = useQuery<YearEndList>({
+    queryKey: ['/api/admin/albums/year-end-lists', selectedYearEndListSlug],
+    queryFn: async () => {
+      if (!selectedYearEndListSlug) return null;
+      return fetch(`/api/admin/albums/year-end-lists/${selectedYearEndListSlug}`, {
+        credentials: 'include'
+      }).then(res => res.ok ? res.json() : null);
+    },
+    enabled: activeTab === 'year-end-lists' && !!selectedYearEndListSlug,
   });
 
   // Vote mutation
@@ -437,6 +527,155 @@ export default function AdminAlbums({ onLogout, currentUser = "admin" }: AdminAl
     },
   });
 
+  // Create year-end list mutation
+  const createYearEndListMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', '/api/admin/albums/year-end-lists', {
+        year: parseInt(newListYear),
+        title: newListTitle || `Top 10 Albums of ${newListYear}`,
+        introText: newListIntroText || null,
+        outroText: newListOutroText || null,
+      });
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Failed to create list');
+      return result.data;
+    },
+    onSuccess: (data) => {
+      setSelectedYearEndListSlug(data.slug);
+      setNewListYear(new Date().getFullYear().toString());
+      setNewListTitle('');
+      setNewListIntroText('');
+      setNewListOutroText('');
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists'] });
+      toast({ title: 'List created', description: 'Year-end list has been created.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to create list', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Update year-end list metadata mutation
+  const updateYearEndListMetaMutation = useMutation({
+    mutationFn: async (data: { title?: string; introText?: string; outroText?: string }) => {
+      const res = await apiRequest('PATCH', `/api/admin/albums/year-end-lists/${selectedYearEndListSlug}`, data);
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Failed to update list');
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists', selectedYearEndListSlug] });
+      setEditingListMeta(false);
+      toast({ title: 'List updated', description: 'List metadata has been updated.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to update list', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Add album to year-end list mutation
+  const addAlbumToYearEndListMutation = useMutation({
+    mutationFn: async (data: { suggestionId: number; rank: number }) => {
+      const res = await apiRequest('POST', `/api/admin/albums/year-end-lists/${selectedYearEndListSlug}/items`, data);
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Failed to add album');
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists', selectedYearEndListSlug] });
+      setIsAddAlbumDialogOpen(false);
+      setSelectedAlbumToAdd(null);
+      toast({ title: 'Album added', description: 'Album has been added to the list.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to add album', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Update year-end list item mutation
+  const updateYearEndListItemMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: Partial<YearEndListItem> }) => {
+      const res = await apiRequest('PATCH', `/api/admin/albums/year-end-lists/${selectedYearEndListSlug}/items/${id}`, data);
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Failed to update item');
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists', selectedYearEndListSlug] });
+      setEditingItemId(null);
+      toast({ title: 'Item updated', description: 'Album item has been updated.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to update item', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Delete year-end list item mutation
+  const deleteYearEndListItemMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const res = await apiRequest('DELETE', `/api/admin/albums/year-end-lists/${selectedYearEndListSlug}/items/${id}`);
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Failed to remove album');
+      return result;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists', selectedYearEndListSlug] });
+      toast({ title: 'Album removed', description: 'Album has been removed from the list.' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to remove album', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Publish year-end list mutation
+  const publishYearEndListMutation = useMutation({
+    mutationFn: async () => {
+      const res = await apiRequest('POST', `/api/admin/albums/year-end-lists/${selectedYearEndListSlug}/publish`);
+      const result = await res.json();
+      if (!result.ok) throw new Error(result.error || 'Failed to publish list');
+      return result.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/albums/year-end-lists', selectedYearEndListSlug] });
+      toast({ title: 'List published', description: 'Year-end list is now live!' });
+    },
+    onError: (error: any) => {
+      toast({ title: 'Failed to publish list', description: error.message, variant: 'destructive' });
+    },
+  });
+
+  // Helper function to start editing an item
+  const startEditingItem = (item: YearEndListItem) => {
+    setEditingItemId(item.id);
+    setItemFormData({
+      writeUp: item.writeUp || '',
+      standoutTracks: item.standoutTracks?.join(', ') || '',
+      accentColor: item.accentColor || '',
+      label: item.label || '',
+      releaseDate: item.releaseDate || '',
+      spotifyUrl: item.spotifyUrl || '',
+      appleMusicUrl: item.appleMusicUrl || '',
+      bandcampUrl: item.bandcampUrl || ''
+    });
+  };
+
+  // Helper function to save item changes
+  const saveItemChanges = (id: number) => {
+    updateYearEndListItemMutation.mutate({
+      id,
+      data: {
+        writeUp: itemFormData.writeUp || undefined,
+        standoutTracks: itemFormData.standoutTracks ? itemFormData.standoutTracks.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+        accentColor: itemFormData.accentColor || undefined,
+        label: itemFormData.label || undefined,
+        releaseDate: itemFormData.releaseDate || undefined,
+        spotifyUrl: itemFormData.spotifyUrl || undefined,
+        appleMusicUrl: itemFormData.appleMusicUrl || undefined,
+        bandcampUrl: itemFormData.bandcampUrl || undefined
+      }
+    });
+  };
+
   return (
     <AdminShell
       title="Albums"
@@ -456,6 +695,10 @@ export default function AdminAlbums({ onLogout, currentUser = "admin" }: AdminAl
           </TabsTrigger>
           <TabsTrigger value="published" data-testid="tab-published">
             Published ({publishedPicks.length})
+          </TabsTrigger>
+          <TabsTrigger value="year-end-lists" data-testid="tab-year-end-lists">
+            <Trophy className="w-4 h-4 mr-1" />
+            Year-End Lists
           </TabsTrigger>
         </TabsList>
 
@@ -875,7 +1118,510 @@ export default function AdminAlbums({ onLogout, currentUser = "admin" }: AdminAl
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="year-end-lists">
+          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
+            <p className="text-sm text-amber-900">
+              <strong>Year-End Lists:</strong> Create and manage curated "Top 10 Albums of [Year]" lists with extended editorial content, standout tracks, and streaming links.
+            </p>
+          </div>
+
+          <div className="space-y-6">
+            {!selectedYearEndListSlug ? (
+              <>
+                {yearEndLists.length > 0 && (
+                  <Card className="bg-white border-gray-200">
+                    <CardHeader>
+                      <CardTitle>Existing Year-End Lists</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {yearEndLists.map((list) => (
+                          <div
+                            key={list.id}
+                            className="flex items-center justify-between p-3 border border-gray-200 rounded hover:bg-gray-50 cursor-pointer"
+                            onClick={() => setSelectedYearEndListSlug(list.slug)}
+                            data-testid={`year-end-list-${list.slug}`}
+                          >
+                            <div className="flex items-center gap-3">
+                              <Trophy className="w-5 h-5 text-amber-600" />
+                              <div>
+                                <p className="font-medium">{list.title}</p>
+                                <p className="text-sm text-muted-foreground">{list.month}</p>
+                              </div>
+                            </div>
+                            <Badge variant={list.isPublished ? 'default' : 'outline'}>
+                              {list.isPublished ? 'Published' : 'Draft'}
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card className="bg-white border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Plus className="w-5 h-5" />
+                      Create New Year-End List
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium">Year</label>
+                      <Select value={newListYear} onValueChange={setNewListYear}>
+                        <SelectTrigger data-testid="select-year">
+                          <SelectValue placeholder="Select year" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[2025, 2024, 2023, 2022, 2021].map(year => (
+                            <SelectItem key={year} value={year.toString()}>{year}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Title</label>
+                      <Input
+                        value={newListTitle}
+                        onChange={(e) => setNewListTitle(e.target.value)}
+                        placeholder={`Top 10 Albums of ${newListYear}`}
+                        data-testid="input-list-title"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Introduction Text (optional)</label>
+                      <Textarea
+                        value={newListIntroText}
+                        onChange={(e) => setNewListIntroText(e.target.value)}
+                        placeholder="Write an introduction for your year-end list..."
+                        rows={3}
+                        data-testid="textarea-intro"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium">Outro Text (optional)</label>
+                      <Textarea
+                        value={newListOutroText}
+                        onChange={(e) => setNewListOutroText(e.target.value)}
+                        placeholder="Write a conclusion for your year-end list..."
+                        rows={3}
+                        data-testid="textarea-outro"
+                      />
+                    </div>
+                    <Button
+                      onClick={() => createYearEndListMutation.mutate()}
+                      disabled={!newListYear || createYearEndListMutation.isPending}
+                      data-testid="button-create-list"
+                    >
+                      <Trophy className="w-4 h-4 mr-2" />
+                      Create List
+                    </Button>
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <>
+                <Card className="bg-white border-gray-200">
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Trophy className="w-5 h-5 text-amber-600" />
+                        <span>{selectedYearEndList?.title || 'Loading...'}</span>
+                        {selectedYearEndList?.isPublished && (
+                          <Badge>Published</Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setEditingListMeta(!editingListMeta)}
+                          data-testid="button-edit-meta"
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Edit Info
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setSelectedYearEndListSlug(null)}
+                          data-testid="button-back-to-lists"
+                        >
+                          Back to Lists
+                        </Button>
+                      </div>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {editingListMeta ? (
+                      <div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <label className="text-sm font-medium">Title</label>
+                          <Input
+                            defaultValue={selectedYearEndList?.title}
+                            id="edit-title"
+                            data-testid="input-edit-title"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Introduction</label>
+                          <Textarea
+                            defaultValue={selectedYearEndList?.introText || ''}
+                            id="edit-intro"
+                            rows={3}
+                            data-testid="textarea-edit-intro"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-sm font-medium">Outro</label>
+                          <Textarea
+                            defaultValue={selectedYearEndList?.outroText || ''}
+                            id="edit-outro"
+                            rows={3}
+                            data-testid="textarea-edit-outro"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => {
+                              const titleEl = document.getElementById('edit-title') as HTMLInputElement;
+                              const introEl = document.getElementById('edit-intro') as HTMLTextAreaElement;
+                              const outroEl = document.getElementById('edit-outro') as HTMLTextAreaElement;
+                              updateYearEndListMetaMutation.mutate({
+                                title: titleEl?.value,
+                                introText: introEl?.value,
+                                outroText: outroEl?.value,
+                              });
+                            }}
+                            disabled={updateYearEndListMetaMutation.isPending}
+                            data-testid="button-save-meta"
+                          >
+                            <Save className="w-4 h-4 mr-1" />
+                            Save Changes
+                          </Button>
+                          <Button
+                            variant="outline"
+                            onClick={() => setEditingListMeta(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        {selectedYearEndList?.introText && (
+                          <div className="p-3 bg-amber-50 rounded-lg">
+                            <p className="text-sm font-medium text-amber-800 mb-1">Introduction</p>
+                            <p className="text-sm text-amber-700">{selectedYearEndList.introText}</p>
+                          </div>
+                        )}
+                        {selectedYearEndList?.outroText && (
+                          <div className="p-3 bg-gray-50 rounded-lg">
+                            <p className="text-sm font-medium text-gray-800 mb-1">Outro</p>
+                            <p className="text-sm text-gray-600">{selectedYearEndList.outroText}</p>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    <div className="border-t pt-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="font-medium">Albums ({selectedYearEndList?.items?.length || 0}/10)</h3>
+                        <Button
+                          size="sm"
+                          onClick={() => setIsAddAlbumDialogOpen(true)}
+                          data-testid="button-add-album"
+                        >
+                          <Plus className="w-4 h-4 mr-1" />
+                          Add Album
+                        </Button>
+                      </div>
+
+                      <div className="space-y-3">
+                        {selectedYearEndList?.items?.map((item, index) => (
+                          <div
+                            key={item.id}
+                            className="border border-gray-200 rounded-lg p-4"
+                            style={item.accentColor ? { borderLeftColor: item.accentColor, borderLeftWidth: '4px' } : {}}
+                          >
+                            <div className="flex items-start gap-4">
+                              <div className="flex flex-col gap-1">
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => updateYearEndListItemMutation.mutate({ id: item.id, data: { rank: item.rank - 1 } })}
+                                  disabled={index === 0}
+                                  data-testid={`button-rank-up-${item.id}`}
+                                >
+                                  <ArrowUp className="w-4 h-4" />
+                                </Button>
+                                <span className="text-lg font-bold text-center text-amber-600">#{item.rank}</span>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => updateYearEndListItemMutation.mutate({ id: item.id, data: { rank: item.rank + 1 } })}
+                                  disabled={index === (selectedYearEndList?.items?.length || 0) - 1}
+                                  data-testid={`button-rank-down-${item.id}`}
+                                >
+                                  <ArrowDown className="w-4 h-4" />
+                                </Button>
+                              </div>
+
+                              <div className="flex-1 space-y-2">
+                                <div className="flex items-start justify-between">
+                                  <div>
+                                    <p className="font-bold text-lg">{item.album?.title || 'Unknown Album'}</p>
+                                    <p className="text-muted-foreground">{item.album?.artist || 'Unknown Artist'}</p>
+                                    {item.label && <p className="text-sm text-gray-500">{item.label} • {item.releaseDate}</p>}
+                                  </div>
+                                  <div className="flex gap-1">
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => startEditingItem(item)}
+                                      data-testid={`button-edit-item-${item.id}`}
+                                    >
+                                      <Edit className="w-4 h-4" />
+                                    </Button>
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      onClick={() => deleteYearEndListItemMutation.mutate(item.id)}
+                                      data-testid={`button-delete-item-${item.id}`}
+                                    >
+                                      <Trash2 className="w-4 h-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+
+                                {editingItemId === item.id ? (
+                                  <div className="space-y-3 p-3 bg-gray-50 rounded-lg">
+                                    <div>
+                                      <label className="text-sm font-medium">Write-Up</label>
+                                      <Textarea
+                                        value={itemFormData.writeUp}
+                                        onChange={(e) => setItemFormData({ ...itemFormData, writeUp: e.target.value })}
+                                        placeholder="Extended review or thoughts about this album..."
+                                        rows={4}
+                                      />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="text-sm font-medium">Standout Tracks (comma-separated)</label>
+                                        <Input
+                                          value={itemFormData.standoutTracks}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, standoutTracks: e.target.value })}
+                                          placeholder="Track 1, Track 2, Track 3"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium flex items-center gap-1">
+                                          <Palette className="w-3 h-3" /> Accent Color
+                                        </label>
+                                        <Input
+                                          type="color"
+                                          value={itemFormData.accentColor || '#f59e0b'}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, accentColor: e.target.value })}
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                      <div>
+                                        <label className="text-sm font-medium">Label</label>
+                                        <Input
+                                          value={itemFormData.label}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, label: e.target.value })}
+                                          placeholder="Record label"
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium">Release Date</label>
+                                        <Input
+                                          value={itemFormData.releaseDate}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, releaseDate: e.target.value })}
+                                          placeholder="2025-01-15"
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="grid grid-cols-3 gap-3">
+                                      <div>
+                                        <label className="text-sm font-medium">Spotify URL</label>
+                                        <Input
+                                          value={itemFormData.spotifyUrl}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, spotifyUrl: e.target.value })}
+                                          placeholder="https://open.spotify.com/..."
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium">Apple Music URL</label>
+                                        <Input
+                                          value={itemFormData.appleMusicUrl}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, appleMusicUrl: e.target.value })}
+                                          placeholder="https://music.apple.com/..."
+                                        />
+                                      </div>
+                                      <div>
+                                        <label className="text-sm font-medium">Bandcamp URL</label>
+                                        <Input
+                                          value={itemFormData.bandcampUrl}
+                                          onChange={(e) => setItemFormData({ ...itemFormData, bandcampUrl: e.target.value })}
+                                          placeholder="https://...bandcamp.com/..."
+                                        />
+                                      </div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <Button
+                                        onClick={() => saveItemChanges(item.id)}
+                                        disabled={updateYearEndListItemMutation.isPending}
+                                      >
+                                        <Save className="w-4 h-4 mr-1" />
+                                        Save
+                                      </Button>
+                                      <Button variant="outline" onClick={() => setEditingItemId(null)}>
+                                        <X className="w-4 h-4 mr-1" />
+                                        Cancel
+                                      </Button>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <>
+                                    {item.writeUp && (
+                                      <p className="text-sm text-gray-700 mt-2">{item.writeUp}</p>
+                                    )}
+                                    {item.standoutTracks && item.standoutTracks.length > 0 && (
+                                      <div className="flex items-center gap-2 mt-2">
+                                        <Music className="w-4 h-4 text-gray-400" />
+                                        <p className="text-sm text-gray-500">
+                                          Standout: {item.standoutTracks.join(', ')}
+                                        </p>
+                                      </div>
+                                    )}
+                                    {(item.spotifyUrl || item.appleMusicUrl || item.bandcampUrl) && (
+                                      <div className="flex gap-2 mt-2">
+                                        {item.spotifyUrl && (
+                                          <a href={item.spotifyUrl} target="_blank" rel="noopener noreferrer" className="text-green-600 hover:underline text-sm flex items-center gap-1">
+                                            <ExternalLink className="w-3 h-3" /> Spotify
+                                          </a>
+                                        )}
+                                        {item.appleMusicUrl && (
+                                          <a href={item.appleMusicUrl} target="_blank" rel="noopener noreferrer" className="text-pink-600 hover:underline text-sm flex items-center gap-1">
+                                            <ExternalLink className="w-3 h-3" /> Apple Music
+                                          </a>
+                                        )}
+                                        {item.bandcampUrl && (
+                                          <a href={item.bandcampUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline text-sm flex items-center gap-1">
+                                            <ExternalLink className="w-3 h-3" /> Bandcamp
+                                          </a>
+                                        )}
+                                      </div>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      {(!selectedYearEndList?.items || selectedYearEndList.items.length === 0) && (
+                        <div className="text-center py-8 text-muted-foreground">
+                          <Trophy className="w-12 h-12 mx-auto mb-2 opacity-20" />
+                          <p>No albums added yet. Add your top picks!</p>
+                        </div>
+                      )}
+                    </div>
+
+                    {!selectedYearEndList?.isPublished && (
+                      <div className="border-t pt-4 flex gap-2">
+                        <Button
+                          onClick={() => publishYearEndListMutation.mutate()}
+                          disabled={(selectedYearEndList?.items?.length || 0) === 0 || publishYearEndListMutation.isPending}
+                          data-testid="button-publish-list"
+                        >
+                          <Send className="w-4 h-4 mr-2" />
+                          {publishYearEndListMutation.isPending ? 'Publishing...' : 'Publish List'}
+                        </Button>
+                        {selectedYearEndList?.items && selectedYearEndList.items.length > 0 && (
+                          <p className="text-sm text-muted-foreground self-center">
+                            {selectedYearEndList.items.length} album{selectedYearEndList.items.length === 1 ? '' : 's'} ready to publish
+                          </p>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
+          </div>
+        </TabsContent>
       </Tabs>
+
+      <Dialog open={isAddAlbumDialogOpen} onOpenChange={setIsAddAlbumDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Album to Year-End List</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Select from accepted album suggestions to add to your year-end list.
+            </p>
+            <div className="max-h-96 overflow-y-auto space-y-2">
+              {suggestions.filter(s => s.status === 'accepted').length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <p>No accepted albums available.</p>
+                  <p className="text-sm mt-1">Accept some album suggestions in the Team Picks tab first.</p>
+                </div>
+              ) : (
+                suggestions.filter(s => s.status === 'accepted').map((suggestion) => {
+                  const alreadyAdded = selectedYearEndList?.items?.some(i => i.suggestionId === suggestion.id);
+                  return (
+                    <div
+                      key={suggestion.id}
+                      className={`flex items-center justify-between p-3 border rounded ${alreadyAdded ? 'bg-gray-100 opacity-50' : 'hover:bg-gray-50 cursor-pointer'}`}
+                      onClick={() => !alreadyAdded && setSelectedAlbumToAdd(suggestion)}
+                    >
+                      <div className="flex items-center gap-3">
+                        {suggestion.coverArtUrl && (
+                          <img src={suggestion.coverArtUrl} alt="" className="w-10 h-10 rounded" />
+                        )}
+                        <div>
+                          <p className="font-medium">{suggestion.title}</p>
+                          <p className="text-sm text-muted-foreground">{suggestion.artist}</p>
+                        </div>
+                      </div>
+                      {alreadyAdded ? (
+                        <Badge variant="secondary">Added</Badge>
+                      ) : selectedAlbumToAdd?.id === suggestion.id ? (
+                        <Badge>Selected</Badge>
+                      ) : null}
+                    </div>
+                  );
+                })
+              )}
+            </div>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => { setIsAddAlbumDialogOpen(false); setSelectedAlbumToAdd(null); }}>
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  if (selectedAlbumToAdd) {
+                    addAlbumToYearEndListMutation.mutate({
+                      suggestionId: selectedAlbumToAdd.id,
+                      rank: (selectedYearEndList?.items?.length || 0) + 1,
+                    });
+                  }
+                }}
+                disabled={!selectedAlbumToAdd || addAlbumToYearEndListMutation.isPending}
+              >
+                Add to List
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={isDetailsOpen} onOpenChange={setIsDetailsOpen}>
         <DialogContent className="max-w-2xl">

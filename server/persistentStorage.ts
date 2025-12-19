@@ -1544,6 +1544,49 @@ export class FileStorage implements IStorage {
       });
   }
 
+  // Year-End Lists methods
+  async getYearEndLists(): Promise<AlbumPick[]> {
+    return this.albumPicks
+      .filter(p => p.listType === 'yearly')
+      .sort((a, b) => {
+        const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+        const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        return bTime - aTime;
+      });
+  }
+
+  async getYearEndListBySlug(slug: string): Promise<AlbumPick | undefined> {
+    return this.albumPicks.find(p => p.slug === slug && p.listType === 'yearly');
+  }
+
+  async getYearEndListWithItems(slug: string): Promise<(AlbumPick & { items: Array<AlbumPickItem & { album: AlbumSuggestion | null }> }) | null> {
+    const pick = this.albumPicks.find(p => p.slug === slug && p.listType === 'yearly');
+    if (!pick) return null;
+    
+    const items = this.albumPickItems
+      .filter(item => item.pickId === pick.id)
+      .sort((a, b) => a.rank - b.rank)
+      .map(item => {
+        const album = item.suggestionId ? this.albumSuggestions.find(s => s.id === item.suggestionId) || null : null;
+        return { ...item, album };
+      });
+    
+    return { ...pick, items };
+  }
+
+  async updateAlbumPick(id: number, updates: Partial<AlbumPick>): Promise<AlbumPick> {
+    const index = this.albumPicks.findIndex(p => p.id === id);
+    if (index === -1) throw new Error('Album pick not found');
+    
+    this.albumPicks[index] = { ...this.albumPicks[index], ...updates };
+    await this.saveData('albumPicks', this.albumPicks);
+    return this.albumPicks[index];
+  }
+
+  async getAlbumPickItemById(id: number): Promise<AlbumPickItem | undefined> {
+    return this.albumPickItems.find(i => i.id === id);
+  }
+
   // Emergency reset - clear all data
   async emergencyReset(): Promise<void> {
     await this.ensureDataDir();

@@ -4454,6 +4454,196 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // =================
+  // YEAR-END LISTS API
+  // =================
+
+  // ADMIN: Get all year-end lists (draft and published)
+  app.get('/api/admin/albums/year-end-lists', requireRole('editor'), async (req, res) => {
+    try {
+      const lists = await storage.getYearEndLists();
+      res.json(lists);
+    } catch (error) {
+      console.error('Error fetching year-end lists:', error);
+      res.status(500).json({ error: 'Failed to fetch year-end lists' });
+    }
+  });
+
+  // ADMIN: Create new year-end list
+  app.post('/api/admin/albums/year-end-lists', requireRole('editor'), async (req, res) => {
+    try {
+      const { title, introText, outroText, year } = req.body;
+      const username = (req as any).user?.username || 'admin';
+      
+      if (!title || !year) {
+        return res.status(400).json({ error: 'title and year are required' });
+      }
+      
+      const month = `${year}-EOY`;
+      const slug = `top-10-albums-${year}`;
+      
+      // Check if list already exists
+      const existing = await storage.getYearEndListBySlug(slug);
+      if (existing) {
+        return res.json({ ok: true, data: existing });
+      }
+      
+      const pick = await storage.createAlbumPick({
+        month,
+        title,
+        description: null,
+        listType: 'yearly',
+        introText: introText || null,
+        outroText: outroText || null,
+        createdBy: username,
+        slug,
+      });
+      
+      res.status(201).json({ ok: true, data: pick });
+    } catch (error) {
+      console.error('Error creating year-end list:', error);
+      res.status(500).json({ ok: false, error: 'Failed to create year-end list' });
+    }
+  });
+
+  // ADMIN: Get specific year-end list with items
+  app.get('/api/admin/albums/year-end-lists/:slug', requireRole('editor'), async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const list = await storage.getYearEndListWithItems(slug);
+      
+      if (!list) {
+        return res.status(404).json({ error: 'Year-end list not found' });
+      }
+      
+      res.json(list);
+    } catch (error) {
+      console.error('Error fetching year-end list:', error);
+      res.status(500).json({ error: 'Failed to fetch year-end list' });
+    }
+  });
+
+  // ADMIN: Update year-end list metadata
+  app.patch('/api/admin/albums/year-end-lists/:slug', requireRole('editor'), async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { title, introText, outroText } = req.body;
+      
+      const list = await storage.getYearEndListBySlug(slug);
+      if (!list) {
+        return res.status(404).json({ error: 'Year-end list not found' });
+      }
+      
+      const updates: any = {};
+      if (title !== undefined) updates.title = title;
+      if (introText !== undefined) updates.introText = introText;
+      if (outroText !== undefined) updates.outroText = outroText;
+      
+      const updated = await storage.updateAlbumPick(list.id, updates);
+      res.json({ ok: true, data: updated });
+    } catch (error) {
+      console.error('Error updating year-end list:', error);
+      res.status(500).json({ ok: false, error: 'Failed to update year-end list' });
+    }
+  });
+
+  // ADMIN: Add album to year-end list
+  app.post('/api/admin/albums/year-end-lists/:slug/items', requireRole('editor'), async (req, res) => {
+    try {
+      const { slug } = req.params;
+      const { suggestionId, rank, writeUp, standoutTracks, accentColor, label, releaseDate, spotifyUrl, appleMusicUrl, bandcampUrl } = req.body;
+      const username = (req as any).user?.username || 'admin';
+      
+      const list = await storage.getYearEndListBySlug(slug);
+      if (!list) {
+        return res.status(404).json({ error: 'Year-end list not found' });
+      }
+      
+      const item = await storage.addAlbumToPickDraft({
+        pickId: list.id,
+        suggestionId: suggestionId || 0,
+        rank: rank || 1,
+        blurb: null,
+        writeUp: writeUp || null,
+        standoutTracks: standoutTracks || null,
+        accentColor: accentColor || null,
+        label: label || null,
+        releaseDate: releaseDate || null,
+        tags: null,
+        spotifyUrl: spotifyUrl || null,
+        appleMusicUrl: appleMusicUrl || null,
+        bandcampUrl: bandcampUrl || null,
+        addedBy: username,
+      });
+      
+      res.status(201).json({ ok: true, data: item });
+    } catch (error) {
+      console.error('Error adding album to year-end list:', error);
+      res.status(500).json({ ok: false, error: 'Failed to add album to year-end list' });
+    }
+  });
+
+  // ADMIN: Update year-end list item
+  app.patch('/api/admin/albums/year-end-lists/:slug/items/:itemId', requireRole('editor'), async (req, res) => {
+    try {
+      const { itemId } = req.params;
+      const id = parseInt(itemId);
+      const { rank, writeUp, standoutTracks, accentColor, label, releaseDate, spotifyUrl, appleMusicUrl, bandcampUrl, blurb } = req.body;
+      
+      const updates: any = {};
+      if (rank !== undefined) updates.rank = rank;
+      if (writeUp !== undefined) updates.writeUp = writeUp;
+      if (standoutTracks !== undefined) updates.standoutTracks = standoutTracks;
+      if (accentColor !== undefined) updates.accentColor = accentColor;
+      if (label !== undefined) updates.label = label;
+      if (releaseDate !== undefined) updates.releaseDate = releaseDate;
+      if (spotifyUrl !== undefined) updates.spotifyUrl = spotifyUrl;
+      if (appleMusicUrl !== undefined) updates.appleMusicUrl = appleMusicUrl;
+      if (bandcampUrl !== undefined) updates.bandcampUrl = bandcampUrl;
+      if (blurb !== undefined) updates.blurb = blurb;
+      
+      const item = await storage.updateAlbumPickItem(id, updates);
+      res.json({ ok: true, data: item });
+    } catch (error) {
+      console.error('Error updating year-end list item:', error);
+      res.status(500).json({ ok: false, error: 'Failed to update year-end list item' });
+    }
+  });
+
+  // ADMIN: Remove album from year-end list
+  app.delete('/api/admin/albums/year-end-lists/:slug/items/:itemId', requireRole('editor'), async (req, res) => {
+    try {
+      const { itemId } = req.params;
+      const id = parseInt(itemId);
+      
+      await storage.deleteAlbumPickItem(id);
+      res.json({ ok: true });
+    } catch (error) {
+      console.error('Error removing album from year-end list:', error);
+      res.status(500).json({ ok: false, error: 'Failed to remove album from year-end list' });
+    }
+  });
+
+  // ADMIN: Publish year-end list
+  app.post('/api/admin/albums/year-end-lists/:slug/publish', requireRole('editor'), async (req, res) => {
+    try {
+      const { slug } = req.params;
+      
+      const list = await storage.getYearEndListBySlug(slug);
+      if (!list) {
+        return res.status(404).json({ ok: false, error: 'Year-end list not found' });
+      }
+      
+      const published = await storage.publishAlbumPick(list.id);
+      broadcast({ type: 'year_end_list_published', data: published });
+      
+      res.json({ ok: true, data: published });
+    } catch (error) {
+      console.error('Error publishing year-end list:', error);
+      res.status(500).json({ ok: false, error: 'Failed to publish year-end list' });
+    }
+  });
+
+  // =================
   // SETTINGS ROUTES (ADMIN ONLY)
   // =================
 
