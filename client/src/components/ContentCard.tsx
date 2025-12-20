@@ -94,6 +94,9 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
     'curatorName' in content ? content.curatorName :
     (content as any).artist || '';
 
+  // Get contributor handle for linking
+  const contributorHandle = 'handle' in content ? content.handle : null;
+
   // Determine detail page URL (prefer slug over ID for canonical URLs)
   const getDetailUrl = () => {
     const identifier = ('slug' in content && content.slug) ? content.slug : content.id;
@@ -186,9 +189,23 @@ export default function ContentCard(props: ContentCardProps | LegacyContentCardP
         <h3 className="text-lg font-bold text-gray-900 dark:text-white font-mono leading-snug mb-2 line-clamp-2">
           {content.title}
         </h3>
-        <p className="text-base text-gray-600 dark:text-gray-400 font-mono">
-          {displayName}
-        </p>
+        {contributorHandle ? (
+          <span
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = `/contributors/${contributorHandle}`;
+            }}
+            className="text-base text-gray-600 dark:text-gray-400 font-mono hover:text-navy dark:hover:text-navy-light hover:underline transition-colors cursor-pointer"
+            data-testid={`link-creator-${contributorHandle}`}
+          >
+            {displayName}
+          </span>
+        ) : (
+          <p className="text-base text-gray-600 dark:text-gray-400 font-mono">
+            {displayName}
+          </p>
+        )}
       </div>
     </Link>
   );

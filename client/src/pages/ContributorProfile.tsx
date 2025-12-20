@@ -85,10 +85,8 @@ export default function ContributorProfile() {
             <p className="text-gray-600 dark:text-gray-400 mb-8">
               @{handle} hasn't submitted any content yet.
             </p>
-            <Link href="/">
-              <a className="text-navy dark:text-navy-light hover:underline" data-testid="link-back-home">
-                Back to Home
-              </a>
+            <Link href="/" className="text-navy dark:text-navy-light hover:underline" data-testid="link-back-home">
+              Back to Home
             </Link>
           </div>
         </main>
@@ -111,11 +109,9 @@ export default function ContributorProfile() {
     <div className="min-h-screen bg-cream dark:bg-gray-950">
       <Navigation />
       <main className="container mx-auto px-4 py-8">
-        <Link href="/">
-          <a className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-8" data-testid="link-back">
-            <ArrowLeft className="w-4 h-4" />
-            Back
-          </a>
+        <Link href="/" className="inline-flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white mb-8" data-testid="link-back">
+          <ArrowLeft className="w-4 h-4" />
+          Back
         </Link>
 
         <div className="flex flex-col md:flex-row gap-8 mb-12">
@@ -177,22 +173,20 @@ export default function ContributorProfile() {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {contributor.submissions.mixes.map(mix => (
-                    <Link key={mix.id} href={`/community/mix-${mix.id}`}>
-                      <a className="group block" data-testid={`card-mix-${mix.id}`}>
-                        <div className="aspect-square bg-gray-200 dark:bg-gray-800 mb-2 overflow-hidden">
-                          <img
-                            src={getArtwork(mix)}
-                            alt={mix.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-navy dark:group-hover:text-navy-light">
-                          {mix.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {mix.genre}
-                        </p>
-                      </a>
+                    <Link key={mix.id} href={`/community/${mix.id}`} className="group block" data-testid={`card-mix-${mix.id}`}>
+                      <div className="aspect-square bg-gray-200 dark:bg-gray-800 mb-2 overflow-hidden">
+                        <img
+                          src={getArtwork(mix)}
+                          alt={mix.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-navy dark:group-hover:text-navy-light">
+                        {mix.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        {mix.genre}
+                      </p>
                     </Link>
                   ))}
                 </div>
@@ -207,22 +201,20 @@ export default function ContributorProfile() {
                 </h2>
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                   {contributor.submissions.playlists.map(playlist => (
-                    <Link key={playlist.id} href={`/community/playlist-${playlist.id}`}>
-                      <a className="group block" data-testid={`card-playlist-${playlist.id}`}>
-                        <div className="aspect-square bg-gray-200 dark:bg-gray-800 mb-2 overflow-hidden">
-                          <img
-                            src={getArtwork(playlist)}
-                            alt={playlist.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
-                        <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-navy dark:group-hover:text-navy-light">
-                          {playlist.title}
-                        </h3>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          Playlist
-                        </p>
-                      </a>
+                    <Link key={playlist.id} href={`/community/${playlist.id}`} className="group block" data-testid={`card-playlist-${playlist.id}`}>
+                      <div className="aspect-square bg-gray-200 dark:bg-gray-800 mb-2 overflow-hidden">
+                        <img
+                          src={getArtwork(playlist)}
+                          alt={playlist.title}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                      </div>
+                      <h3 className="font-medium text-gray-900 dark:text-white truncate group-hover:text-navy dark:group-hover:text-navy-light">
+                        {playlist.title}
+                      </h3>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Playlist
+                      </p>
                     </Link>
                   ))}
                 </div>

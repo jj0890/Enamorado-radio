@@ -100,6 +100,11 @@ export default function CommunityDetailPage() {
     return 'Unknown';
   };
 
+  const getCreatorHandle = (): string | null => {
+    if ('handle' in item && item.handle) return item.handle;
+    return null;
+  };
+
   const getDate = () => {
     if ('submittedAt' in item) return item.submittedAt;
     if ('airDate' in item) return item.airDate;
@@ -162,7 +167,13 @@ export default function CommunityDetailPage() {
             {/* Creator */}
             <div className="flex items-center gap-2 text-lg text-gray-600 dark:text-gray-400 mb-6">
               <User className="w-5 h-5" />
-              <span data-testid="text-creator">{getCreatorName()}</span>
+              {getCreatorHandle() ? (
+                <Link href={`/contributors/${getCreatorHandle()}`} className="hover:text-navy dark:hover:text-navy-light hover:underline transition-colors" data-testid="link-creator">
+                  {getCreatorName()}
+                </Link>
+              ) : (
+                <span data-testid="text-creator">{getCreatorName()}</span>
+              )}
             </div>
 
             {/* Metadata Grid */}

@@ -645,6 +645,7 @@ export interface ContentItemBase {
 export interface MixContentItem extends ContentItemBase {
   type: 'mix';
   name: string; // Artist/submitter name
+  handle?: string | null; // Contributor handle for profile link
   about?: string | null;
   platform?: string | null;
   status?: string;
@@ -684,6 +685,7 @@ export interface ArtContentItem extends ContentItemBase {
 export interface PlaylistContentItem extends ContentItemBase {
   type: 'playlist';
   curatorName: string;
+  handle?: string | null; // Contributor handle for profile link
   description?: string | null;
   trackCount?: number;
   tags?: string[] | null;
