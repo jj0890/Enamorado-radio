@@ -43,10 +43,10 @@ export default function FeaturedHero({ item }: FeaturedHeroProps) {
       data-testid="featured-hero"
     >
       {/* Clean artwork-first layout with navy frame */}
-      <div className="overflow-hidden rounded-lg border-2 border-navy shadow-lg hover:shadow-xl transition-shadow bg-black/90">
+      <div className="overflow-hidden rounded-lg border-2 border-navy shadow-lg hover:shadow-xl transition-shadow bg-cream">
         <div className="flex flex-col md:flex-row">
-          {/* Artwork - 50% on desktop, appears first on mobile */}
-          <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[360px] bg-gray-900 flex-shrink-0 md:order-1 order-1">
+          {/* Artwork - prominent, no overlay */}
+          <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[360px] bg-gray-100 flex-shrink-0">
             {artwork ? (
               <img 
                 src={artwork} 
@@ -67,8 +67,8 @@ export default function FeaturedHero({ item }: FeaturedHeroProps) {
             </div>
           </div>
           
-          {/* Content - 50% on desktop */}
-          <div className="flex-1 p-6 md:p-8 flex flex-col justify-center md:order-2 order-2">
+          {/* Content - clean typography on dark transparent background */}
+          <div className="flex-1 p-6 md:p-8 flex flex-col justify-center bg-black/90">
             {/* Small type badge */}
             <span className="text-xs font-mono text-white/50 uppercase tracking-widest mb-4">
               Featured {getTypeLabel()}
@@ -88,12 +88,12 @@ export default function FeaturedHero({ item }: FeaturedHeroProps) {
             
             {/* Description (truncated) */}
             {description && (
-              <p className="text-white/50 font-mono text-sm line-clamp-2 mb-4">
+              <p className="text-white/50 font-mono text-sm line-clamp-2 mb-4 max-w-md">
                 {description}
               </p>
             )}
             
-            {/* Genre + Play CTA */}
+            {/* Genre + Play CTA - tighter spacing */}
             <div className="flex items-center gap-4">
               {item.genre && (
                 <span className="text-xs font-mono bg-white/10 text-white/70 px-3 py-1.5 uppercase tracking-wider">
