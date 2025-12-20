@@ -308,6 +308,16 @@ export default function Home() {
               <FeaturedHero item={blendedContent[0]} />
             )}
 
+            {/* Section Break + Header */}
+            <div className="pt-10 pb-6">
+              <h2 className="text-2xl md:text-3xl font-bold font-mono text-gray-900 dark:text-white">
+                Latest from the Community
+              </h2>
+              <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mt-2">
+                Recent mixes, episodes, and playlists from our contributors
+              </p>
+            </div>
+
             {/* Regular Grid - Skip first if it was featured */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
               {blendedContent
