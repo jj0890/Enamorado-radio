@@ -18,6 +18,8 @@ import {
   AlbumPick,
   AlbumPickItem,
   AlbumSuggestionNote,
+  Contributor,
+  contributors,
   InsertEpisode,
   InsertGuide,
   InsertHeroBanner,
@@ -34,8 +36,11 @@ import {
   InsertAlbumVote,
   InsertAlbumPick,
   InsertAlbumPickItem,
-  InsertAlbumSuggestionNote
+  InsertAlbumSuggestionNote,
+  InsertContributor
 } from "@shared/schema";
+import { db } from "./db";
+import { eq } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { backupManager } from "./backupManager";
 
@@ -61,6 +66,7 @@ export class FileStorage implements IStorage {
   private albumPicks: AlbumPick[] = [];
   private albumPickItems: AlbumPickItem[] = [];
   private albumSuggestionNotes: AlbumSuggestionNote[] = [];
+  private contributorsList: Contributor[] = [];
   private nextId = 1;
 
   constructor() {
@@ -133,7 +139,8 @@ export class FileStorage implements IStorage {
         'albumVotes.json',
         'albumPicks.json',
         'albumPickItems.json',
-        'albumSuggestionNotes.json'
+        'albumSuggestionNotes.json',
+        'contributors.json'
       ];
 
       for (const file of files) {
@@ -194,6 +201,9 @@ export class FileStorage implements IStorage {
             case 'albumSuggestionNotes.json':
               this.albumSuggestionNotes = parsed || [];
               break;
+            case 'contributors.json':
+              this.contributorsList = parsed || [];
+              break;
           }
         } catch (error) {
           // File doesn't exist yet - start with empty array
@@ -225,7 +235,8 @@ export class FileStorage implements IStorage {
         ...this.albumVotes.map(v => v.id),
         ...this.albumPicks.map(p => p.id),
         ...this.albumPickItems.map(i => i.id),
-        ...this.albumSuggestionNotes.map(n => n.id)
+        ...this.albumSuggestionNotes.map(n => n.id),
+        ...this.contributorsList.map(c => c.id)
       ];
       
       const maxExistingId = allIds.length > 0 ? Math.max(...allIds) : 0;
@@ -1585,6 +1596,32 @@ export class FileStorage implements IStorage {
 
   async getAlbumPickItemById(id: number): Promise<AlbumPickItem | undefined> {
     return this.albumPickItems.find(i => i.id === id);
+  }
+
+  // Contributors - Community members who submit content
+  async getContributors(): Promise<Contributor[]> {
+    const result = await db.select().from(contributors);
+    return result;
+  }
+
+  async getContributorById(id: number): Promise<Contributor | undefined> {
+    const result = await db.select().from(contributors).where(eq(contributors.id, id));
+    return result[0];
+  }
+
+  async getContributorByHandle(handle: string): Promise<Contributor | undefined> {
+    const result = await db.select().from(contributors).where(eq(contributors.handle, handle));
+    return result[0];
+  }
+
+  async createContributor(contributor: InsertContributor): Promise<Contributor> {
+    const result = await db.insert(contributors).values(contributor).returning();
+    return result[0];
+  }
+
+  async updateContributor(id: number, updates: Partial<Contributor>): Promise<Contributor | undefined> {
+    const result = await db.update(contributors).set(updates).where(eq(contributors.id, id)).returning();
+    return result[0];
   }
 
   // Emergency reset - clear all data

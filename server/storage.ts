@@ -11,6 +11,7 @@ import {
   Admin,
   Settings,
   CurrentPlayback,
+  Contributor,
   InsertShow,
   InsertEpisode,
   InsertGuide,
@@ -22,7 +23,8 @@ import {
   InsertResident,
   InsertAdmin,
   InsertSettings,
-  InsertCurrentPlayback
+  InsertCurrentPlayback,
+  InsertContributor
 } from "@shared/schema";
 
 // Clean Storage Interface - Single source of truth for all data operations
@@ -115,6 +117,13 @@ export interface IStorage {
   getSettingByKey(key: string): Promise<Settings | undefined>;
   upsertSetting(key: string, value: string, description?: string, isSecret?: boolean): Promise<Settings>;
   deleteSetting(key: string): Promise<void>;
+
+  // Contributors - Community members who submit content
+  getContributors(): Promise<Contributor[]>;
+  getContributorById(id: number): Promise<Contributor | undefined>;
+  getContributorByHandle(handle: string): Promise<Contributor | undefined>;
+  createContributor(contributor: InsertContributor): Promise<Contributor>;
+  updateContributor(id: number, updates: Partial<Contributor>): Promise<Contributor | undefined>;
 }
 
 // In-Memory Implementation

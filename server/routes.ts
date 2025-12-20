@@ -36,9 +36,11 @@ import {
   insertAlbumPickSchema,
   insertAlbumPickItemSchema,
   insertAlbumSuggestionNoteSchema,
+  insertContributorSchema,
   type ApiResult,
   ErrorWithCode
 } from "@shared/schema";
+import { ensureContributor, backfillContributorsFromSubmissions } from "./auto-provision-contributors";
 import { getOEmbedThumbSafe } from './lib/oembed';
 import { rescanLibrary } from './azuracastHelpers';
 import { serializeMix } from './lib/serializeMix';
@@ -4679,6 +4681,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error publishing year-end list:', error);
       res.status(500).json({ ok: false, error: 'Failed to publish year-end list' });
+    }
+  });
+
+  // =================
+  // CONTRIBUTOR ROUTES
+  // =================
+
+  // Get all contributors (public)
+  app.get('/api/contributors', async (req, res) => {
+    try {
+      const allContributors = await storage.getContributors();
+      res.json(allContributors);
+    } catch (error) {
+      console.error('Error fetching contributors:', error);
+      res.status(500).json({ error: 'Failed to fetch contributors' });
+    }
+  });
+
+  // Get contributor by handle (public)
+  app.get('/api/contributors/:handle', async (req, res) => {
+    try {
+      const contributor = await storage.getContributorByHandle(req.params.handle);
+      if (!contributor) {
+        return res.status(404).json({ error: 'Contributor not found' });
+      }
+      res.json(contributor);
+    } catch (error) {
+      console.error('Error fetching contributor:', error);
+      res.status(500).json({ error: 'Failed to fetch contributor' });
+    }
+  });
+
+  // Update contributor (admin only)
+  app.patch('/api/admin/contributors/:id', requireAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const validatedData = insertContributorSchema.partial().parse(req.body);
+      const updated = await storage.updateContributor(id, validatedData);
+      if (!updated) {
+        return res.status(404).json({ error: 'Contributor not found' });
+      }
+      res.json(updated);
+    } catch (error) {
+      console.error('Error updating contributor:', error);
+      res.status(500).json({ error: 'Failed to update contributor' });
+    }
+  });
+
+  // Backfill contributors from submissions (admin only)
+  app.post('/api/admin/contributors/backfill', requireAdmin, async (req, res) => {
+    try {
+      const result = await backfillContributorsFromSubmissions();
+      res.json({ ok: true, data: result });
+    } catch (error) {
+      console.error('Error backfilling contributors:', error);
+      res.status(500).json({ error: 'Failed to backfill contributors' });
     }
   });
 
