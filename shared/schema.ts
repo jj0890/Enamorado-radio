@@ -336,6 +336,26 @@ export const residents = pgTable("residents", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Contributors - Community members who submit content
+// ===================================================
+export const contributors = pgTable("contributors", {
+  id: serial("id").primaryKey(),
+  handle: text("handle").notNull().unique(),     // @username format (stored without @)
+  displayName: text("display_name").notNull(),   // Full name
+  email: text("email"),                          // Optional contact
+  socialHandle: text("social_handle"),           // Instagram/Twitter
+  bio: text("bio"),                              // Short bio
+  avatarUrl: text("avatar_url"),                 // Profile picture
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const insertContributorSchema = createInsertSchema(contributors).omit({
+  id: true,
+  createdAt: true,
+});
+export type InsertContributor = z.infer<typeof insertContributorSchema>;
+export type Contributor = typeof contributors.$inferSelect;
+
 // Albums of the Month Feature
 // ============================
 

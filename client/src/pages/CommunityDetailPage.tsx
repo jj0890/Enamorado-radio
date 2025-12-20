@@ -138,10 +138,10 @@ export default function CommunityDetailPage() {
           </a>
         </Link>
 
-        {/* Split Pane Layout */}
-        <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-          {/* Left Pane: Metadata */}
-          <div>
+        {/* Split Pane Layout - 35% meta / 65% viewer */}
+        <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
+          {/* Left Pane: Metadata - 35% on desktop */}
+          <div className="w-full md:w-[35%] order-2 md:order-1">
             {/* Type Badge */}
             <div className="mb-4">
               <span className={`inline-block px-3 py-1 text-xs font-mono uppercase tracking-wider ${
@@ -215,8 +215,8 @@ export default function CommunityDetailPage() {
             )}
           </div>
 
-          {/* Right Pane: Player / Artwork */}
-          <div>
+          {/* Right Pane: Player / Artwork - 65% on desktop */}
+          <div className="w-full md:w-[65%] order-1 md:order-2">
             {item.type === 'episode' && item.url && item.url.startsWith('/episodes/') ? (
               /* Episode Audio Player - uses shared audio context for persistent playback */
               (() => {
