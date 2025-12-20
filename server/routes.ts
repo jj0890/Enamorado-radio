@@ -1787,6 +1787,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Auto-provision contributor if handle is provided
+      if ((req.body as any)?.handle) {
+        try {
+          const contributor = await ensureContributor({
+            handle: (req.body as any).handle,
+            displayName: validatedData.name,
+          });
+          (validatedData as any).handle = contributor.handle;
+          (validatedData as any).contributorId = contributor.id;
+          console.log(`👤 Linked submission to contributor: @${contributor.handle}`);
+        } catch (contribError) {
+          console.warn('Failed to provision contributor:', contribError);
+          // Continue with submission even if contributor fails
+        }
+      }
+
       const mixSubmission = await storage.createMixSubmission(validatedData);
       console.log(`Mix submission created: ${mixSubmission.title} by ${mixSubmission.name}`);
 
@@ -3616,6 +3632,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log(`[Playlist Submission] oEmbed fetch failed (non-blocking):`, oembedError);
       }
 
+      // Auto-provision contributor if handle is provided
+      let contributorId: number | null = null;
+      let normalizedHandle: string | null = null;
+      if (data.handle) {
+        try {
+          const contributor = await ensureContributor({
+            handle: data.handle,
+            displayName: data.curatorName,
+          });
+          contributorId = contributor.id;
+          normalizedHandle = contributor.handle;
+          console.log(`👤 Linked playlist to contributor: @${contributor.handle}`);
+        } catch (contribError) {
+          console.warn('Failed to provision contributor:', contribError);
+        }
+      }
+
       // Create submission with ONLY validated user fields - storage layer enforces secure defaults
       const submission = await storage.createPlaylistSubmission({
         curatorName: data.curatorName,
@@ -3627,6 +3660,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         curatorEmail: data.curatorEmail || null,
         platform,
         metadata: oembedMetadata,
+        handle: normalizedHandle,
+        contributorId: contributorId,
       });
 
       console.log(`[Playlist Submission] Created submission ${submission.id}: "${submission.title}" by ${submission.curatorName}`);

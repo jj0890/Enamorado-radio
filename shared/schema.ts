@@ -78,6 +78,8 @@ export const heroBanners = pgTable("hero_banners", {
 export const mixSubmissions = pgTable("mix_submissions", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(), // Submitter name (artist)
+  handle: text("handle"), // Optional @username - triggers contributor auto-provisioning
+  contributorId: integer("contributor_id"), // Links to contributors.id
   title: text("title").notNull(), // Mix title  
   genre: text("genre").notNull(),
   about: text("about"), // Description - now optional
@@ -186,6 +188,8 @@ export const playlistSubmissions = pgTable("playlist_submissions", {
   // Curator information
   curatorName: text("curator_name").notNull(), // Person who curated the playlist
   curatorEmail: text("curator_email"), // Optional contact
+  handle: text("handle"), // Optional @username - triggers contributor auto-provisioning
+  contributorId: integer("contributor_id"), // Links to contributors.id
   
   // Playlist metadata
   title: text("title").notNull(), // Playlist title
