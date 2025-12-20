@@ -4734,14 +4734,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get contributor by handle (public)
+  // Get contributor by handle with their approved submissions (public)
   app.get('/api/contributors/:handle', async (req, res) => {
     try {
       const contributor = await storage.getContributorByHandle(req.params.handle);
       if (!contributor) {
         return res.status(404).json({ error: 'Contributor not found' });
       }
-      res.json(contributor);
+
+      // Get all approved submissions by this contributor
+      const allMixes = await storage.getMixSubmissions({ approved: true });
+      const mixes = allMixes.filter(m => m.contributorId === contributor.id);
+
+      const allPlaylists = await storage.getPlaylistSubmissions({ approved: true });
+      const playlists = allPlaylists.filter(p => (p as any).contributorId === contributor.id);
+
+      res.json({
+        ...contributor,
+        submissions: {
+          mixes,
+          playlists,
+          total: mixes.length + playlists.length,
+        }
+      });
     } catch (error) {
       console.error('Error fetching contributor:', error);
       res.status(500).json({ error: 'Failed to fetch contributor' });

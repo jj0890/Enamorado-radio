@@ -42,6 +42,7 @@ import AboutPage from "./pages/AboutPage";
 import ResidentsPage from "./pages/ResidentsPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityDetailPage from "./pages/CommunityDetailPage";
+import ContributorProfile from "./pages/ContributorProfile";
 import LatestPage from "./pages/LatestPage";
 import { Toaster } from "@/components/ui/toaster";
 
@@ -82,6 +83,7 @@ function Router() {
       <Route path="/submit-playlist" component={SubmitPlaylist} />
       <Route path="/community" component={CommunityPage} />
       <Route path="/community/:id" component={CommunityDetailPage} />
+      <Route path="/contributors/:handle" component={ContributorProfile} />
       <Route path="/about" component={AboutPage} />
       <Route path="/residents" component={ResidentsPage} />
       <Route path="/residency" component={ResidentsPage} />
