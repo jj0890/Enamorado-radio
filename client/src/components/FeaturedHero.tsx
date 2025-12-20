@@ -1,4 +1,4 @@
-import { Play, Star } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface FeaturedHeroProps {
@@ -30,17 +30,9 @@ export default function FeaturedHero({ item }: FeaturedHeroProps) {
   
   const getTypeLabel = () => {
     switch (item.type) {
-      case 'episode': return 'Featured Episode';
-      case 'playlist': return 'Featured Playlist';
-      default: return 'Featured Mix';
-    }
-  };
-
-  const getTypeColor = () => {
-    switch (item.type) {
-      case 'episode': return 'bg-blue-600';
-      case 'playlist': return 'bg-purple-600';
-      default: return 'bg-navy';
+      case 'episode': return 'EPISODE';
+      case 'playlist': return 'PLAYLIST';
+      default: return 'MIX';
     }
   };
 
@@ -50,61 +42,71 @@ export default function FeaturedHero({ item }: FeaturedHeroProps) {
       className="block group mb-10"
       data-testid="featured-hero"
     >
-      <div 
-        className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-navy via-navy-dark to-black min-h-[320px] md:min-h-[400px]"
-        style={{
-          backgroundImage: artwork ? `linear-gradient(to right, rgba(0,63,135,0.95) 0%, rgba(0,63,135,0.7) 50%, transparent 100%), url(${artwork})` : undefined,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center right',
-        }}
-      >
-        {/* Content */}
-        <div className="relative z-10 h-full flex flex-col justify-end p-6 md:p-10 max-w-2xl">
-          {/* Featured Badge */}
-          <div className={`inline-flex items-center gap-2 ${getTypeColor()} text-white px-4 py-2 text-sm font-mono font-bold uppercase tracking-wider mb-4 w-fit shadow-lg`}>
-            <Star className="w-4 h-4 fill-current" />
-            {getTypeLabel()}
+      {/* Clean artwork-first layout with navy frame */}
+      <div className="overflow-hidden rounded-lg border-2 border-navy shadow-lg hover:shadow-xl transition-shadow bg-cream">
+        <div className="flex flex-col md:flex-row">
+          {/* Artwork - prominent, no overlay */}
+          <div className="relative w-full md:w-1/2 aspect-square md:aspect-auto md:min-h-[360px] bg-gray-100 flex-shrink-0">
+            {artwork ? (
+              <img 
+                src={artwork} 
+                alt={item.title}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-navy flex items-center justify-center">
+                <Play className="w-16 h-16 text-cream" />
+              </div>
+            )}
+            
+            {/* Play button overlay on hover */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/20">
+              <div className="w-16 h-16 rounded-full bg-white flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform">
+                <Play className="w-8 h-8 text-navy fill-navy ml-1" />
+              </div>
+            </div>
           </div>
           
-          {/* Title */}
-          <h2 className="text-3xl md:text-5xl font-bold text-white font-mono leading-tight mb-3 group-hover:text-cream transition-colors">
-            {item.title}
-          </h2>
-          
-          {/* Artist/Host */}
-          {displayName && (
-            <p className="text-xl md:text-2xl text-white/80 font-mono mb-4">
-              {displayName}
-            </p>
-          )}
-          
-          {/* Description (truncated) */}
-          {description && (
-            <p className="text-white/70 font-mono text-sm md:text-base line-clamp-2 mb-6 max-w-xl">
-              {description}
-            </p>
-          )}
-          
-          {/* Genre + Play CTA */}
-          <div className="flex items-center gap-4">
-            {item.genre && (
-              <span className="text-xs font-mono bg-white/20 text-white px-3 py-1 uppercase tracking-wider">
-                {item.genre}
-              </span>
+          {/* Content - clean typography on cream background */}
+          <div className="flex-1 p-6 md:p-8 flex flex-col justify-center bg-cream">
+            {/* Small type badge */}
+            <span className="text-xs font-mono text-navy/60 uppercase tracking-widest mb-2">
+              Featured {getTypeLabel()}
+            </span>
+            
+            {/* Title */}
+            <h2 className="text-2xl md:text-4xl font-bold text-navy font-mono leading-tight mb-2 group-hover:text-navy-dark transition-colors">
+              {item.title}
+            </h2>
+            
+            {/* Artist/Host */}
+            {displayName && (
+              <p className="text-lg md:text-xl text-navy/70 font-mono mb-4">
+                {displayName}
+              </p>
             )}
-            <div className="flex items-center gap-2 text-white font-mono text-sm group-hover:text-cream transition-colors">
-              <div className="w-10 h-10 rounded-full bg-white flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Play className="w-5 h-5 text-navy fill-navy ml-0.5" />
+            
+            {/* Description (truncated) */}
+            {description && (
+              <p className="text-navy/60 font-mono text-sm line-clamp-3 mb-6 max-w-md">
+                {description}
+              </p>
+            )}
+            
+            {/* Genre + Play CTA */}
+            <div className="flex items-center gap-4 mt-auto">
+              {item.genre && (
+                <span className="text-xs font-mono bg-navy/10 text-navy px-3 py-1.5 uppercase tracking-wider">
+                  {item.genre}
+                </span>
+              )}
+              <div className="flex items-center gap-2 text-navy font-mono text-sm font-medium group-hover:text-navy-dark transition-colors">
+                <Play className="w-4 h-4 fill-current" />
+                <span>Listen Now</span>
               </div>
-              <span>Listen Now</span>
             </div>
           </div>
         </div>
-
-        {/* Gradient overlay for non-artwork case */}
-        {!artwork && (
-          <div className="absolute inset-0 bg-gradient-to-br from-navy via-navy-dark to-black opacity-90" />
-        )}
       </div>
     </Link>
   );
