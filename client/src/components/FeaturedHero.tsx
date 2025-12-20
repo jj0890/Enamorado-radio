@@ -67,40 +67,40 @@ export default function FeaturedHero({ item }: FeaturedHeroProps) {
             </div>
           </div>
           
-          {/* Content - clean typography on cream background */}
-          <div className="flex-1 p-6 md:p-8 flex flex-col justify-center bg-cream">
+          {/* Content - clean typography on dark transparent background */}
+          <div className="flex-1 p-6 md:p-8 flex flex-col justify-center bg-black/90">
             {/* Small type badge */}
-            <span className="text-xs font-mono text-navy/60 uppercase tracking-widest mb-2">
+            <span className="text-xs font-mono text-white/50 uppercase tracking-widest mb-4">
               Featured {getTypeLabel()}
             </span>
             
             {/* Title */}
-            <h2 className="text-2xl md:text-4xl font-bold text-navy font-mono leading-tight mb-2 group-hover:text-navy-dark transition-colors">
+            <h2 className="text-2xl md:text-4xl font-bold text-white font-mono leading-tight mb-1 group-hover:text-cream transition-colors">
               {item.title}
             </h2>
             
-            {/* Artist/Host */}
+            {/* Artist/Host - smaller, secondary */}
             {displayName && (
-              <p className="text-lg md:text-xl text-navy/70 font-mono mb-4">
+              <p className="text-base md:text-lg text-white/60 font-mono mb-3">
                 {displayName}
               </p>
             )}
             
             {/* Description (truncated) */}
             {description && (
-              <p className="text-navy/60 font-mono text-sm line-clamp-3 mb-6 max-w-md">
+              <p className="text-white/50 font-mono text-sm line-clamp-2 mb-4 max-w-md">
                 {description}
               </p>
             )}
             
-            {/* Genre + Play CTA */}
-            <div className="flex items-center gap-4 mt-auto">
+            {/* Genre + Play CTA - tighter spacing */}
+            <div className="flex items-center gap-4">
               {item.genre && (
-                <span className="text-xs font-mono bg-navy/10 text-navy px-3 py-1.5 uppercase tracking-wider">
+                <span className="text-xs font-mono bg-white/10 text-white/70 px-3 py-1.5 uppercase tracking-wider">
                   {item.genre}
                 </span>
               )}
-              <div className="flex items-center gap-2 text-navy font-mono text-sm font-medium group-hover:text-navy-dark transition-colors">
+              <div className="flex items-center gap-2 text-white font-mono text-sm font-medium group-hover:text-cream transition-colors">
                 <Play className="w-4 h-4 fill-current" />
                 <span>Listen Now</span>
               </div>
