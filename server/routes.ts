@@ -40,7 +40,7 @@ import {
   type ApiResult,
   ErrorWithCode
 } from "@shared/schema";
-import { ensureContributor, backfillContributorsFromSubmissions } from "./auto-provision-contributors";
+import { ensureContributor, backfillContributorsFromFileStorage } from "./auto-provision-contributors";
 import { getOEmbedThumbSafe } from './lib/oembed';
 import { rescanLibrary } from './azuracastHelpers';
 import { serializeMix } from './lib/serializeMix';
@@ -4782,8 +4782,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Backfill contributors from submissions (admin only)
   app.post('/api/admin/contributors/backfill', requireAdmin, async (req, res) => {
     try {
-      const result = await backfillContributorsFromSubmissions();
-      res.json({ ok: true, data: result });
+      // Get current submissions from file storage
+      const mixSubmissions = await storage.getMixSubmissions({ status: 'all' });
+      const playlistSubmissions = await storage.getPlaylistSubmissions({});
+      
+      // Run backfill - creates contributors and returns updated submissions
+      const result = await backfillContributorsFromFileStorage(
+        mixSubmissions.map(m => ({ id: m.id, name: m.name, handle: m.handle || undefined, contributorId: m.contributorId || undefined })),
+        playlistSubmissions.map(p => ({ id: p.id, curatorName: p.curatorName, handle: p.handle || undefined, contributorId: p.contributorId || undefined }))
+      );
+      
+      // Update the file storage with new contributor IDs
+      for (const updatedMix of result.updatedMixes) {
+        if (updatedMix.contributorId) {
+          await storage.updateMixSubmission(updatedMix.id, { 
+            handle: updatedMix.handle, 
+            contributorId: updatedMix.contributorId 
+          });
+        }
+      }
+      
+      for (const updatedPlaylist of result.updatedPlaylists) {
+        if (updatedPlaylist.contributorId) {
+          await storage.updatePlaylistSubmission(updatedPlaylist.id, { 
+            handle: updatedPlaylist.handle, 
+            contributorId: updatedPlaylist.contributorId 
+          });
+        }
+      }
+      
+      res.json({ 
+        ok: true, 
+        data: {
+          contributors: result.contributors,
+          mixes: result.mixes,
+          playlists: result.playlists,
+        }
+      });
     } catch (error) {
       console.error('Error backfilling contributors:', error);
       res.status(500).json({ error: 'Failed to backfill contributors' });

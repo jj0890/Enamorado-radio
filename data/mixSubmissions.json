@@ -14,7 +14,9 @@
     "reviewedBy": "Admin",
     "notes": "Initial featured mix",
     "artUrl": "https://i1.sndcdn.com/artworks-riNIMC8W2Ihtk6au-2MODSA-t500x500.jpg",
-    "approvedAt": "2025-10-06T00:48:26.125Z"
+    "approvedAt": "2025-10-06T00:48:26.125Z",
+    "handle": "stream_454",
+    "contributorId": 6
   },
   {
     "title": "gum.mp3 Elevator Music",
@@ -30,7 +32,9 @@
     "reviewedAt": "2025-09-24T01:40:00.000Z",
     "reviewedBy": "Admin",
     "notes": "Featured ambient mix",
-    "artUrl": "https://i1.sndcdn.com/artworks-UhYTvzkYyxOEGeRd-JDLhFg-t500x500.jpg"
+    "artUrl": "https://i1.sndcdn.com/artworks-UhYTvzkYyxOEGeRd-JDLhFg-t500x500.jpg",
+    "handle": "elevator_music_live",
+    "contributorId": 5
   },
   {
     "title": "New Mix (Mostly Footwork/Juke)",
@@ -41,13 +45,15 @@
     "id": 3,
     "status": "approved",
     "featureOnSite": false,
-    "pushToAzura": false,
+    "pushToAzura": true,
     "submittedAt": "2025-09-20T10:00:00.000Z",
     "reviewedAt": "2025-09-24T03:18:21.007Z",
     "reviewedBy": "Admin",
     "notes": "Approved by admin",
     "artUrl": "https://i1.sndcdn.com/artworks-Oji9jCNjlwIbx0Az-ryyHCg-t500x500.jpg",
-    "approvedAt": "2025-10-06T00:48:15.433Z"
+    "approvedAt": "2025-10-06T00:48:15.433Z",
+    "handle": "scumbagjones1",
+    "contributorId": 4
   },
   {
     "title": "KNGDM Mix Series 005 - Juuud0",
@@ -64,7 +70,9 @@
     "reviewedBy": "Admin",
     "notes": "Approved by admin",
     "artUrl": "https://i1.sndcdn.com/artworks-9oX5lNrXENPSJClC-3kO6SQ-t500x500.jpg",
-    "approvedAt": "2025-10-06T00:48:12.641Z"
+    "approvedAt": "2025-10-06T00:48:12.641Z",
+    "handle": "kingdom_nightclub",
+    "contributorId": 3
   },
   {
     "title": "Junglemix.mp3",
@@ -75,13 +83,15 @@
     "id": 11,
     "status": "approved",
     "featureOnSite": false,
-    "pushToAzura": false,
+    "pushToAzura": true,
     "submittedAt": "2025-09-20T10:02:00.000Z",
     "reviewedAt": "2025-09-24T01:42:00.000Z",
     "reviewedBy": "Admin",
     "notes": "Featured jungle mix",
     "artUrl": "https://i1.sndcdn.com/artworks-mebwxmNjlG0S8z6P-gtAVsA-t500x500.jpg",
-    "approvedAt": "2025-10-06T00:47:57.644Z"
+    "approvedAt": "2025-10-06T00:47:57.644Z",
+    "handle": "jarrad",
+    "contributorId": 2
   },
   {
     "name": "shekdash",
@@ -114,6 +124,8 @@
     "reviewedAt": "2025-10-03T22:11:17.032Z",
     "reviewedBy": "Admin",
     "notes": "Approved by admin",
-    "approvedAt": "2025-10-06T00:09:05.887Z"
+    "approvedAt": "2025-10-06T00:09:05.887Z",
+    "handle": "shekdash",
+    "contributorId": 1
   }
 ]

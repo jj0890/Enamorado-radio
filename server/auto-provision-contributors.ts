@@ -62,67 +62,130 @@ export async function ensureContributor(params: {
 }
 
 /**
- * Backfill contributors from existing mix submissions.
- * Creates contributor records for unique submitter names.
+ * Convert a display name to a normalized handle
  */
-export async function backfillContributorsFromSubmissions(): Promise<{
-  created: number;
-  skipped: number;
-  errors: number;
+export function nameToHandle(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+}
+
+/**
+ * Backfill contributors from file-based submissions.
+ * Creates contributor records and links submissions to them.
+ * Works with the FileStorage system used for mix/playlist data.
+ */
+export async function backfillContributorsFromFileStorage(
+  mixSubmissions: Array<{ id: number; name: string; handle?: string; contributorId?: number }>,
+  playlistSubmissions: Array<{ id: number; curatorName: string; handle?: string; contributorId?: number }>
+): Promise<{
+  contributors: { created: number; skipped: number };
+  mixes: { updated: number; skipped: number };
+  playlists: { updated: number; skipped: number };
+  updatedMixes: Array<{ id: number; name: string; handle?: string; contributorId?: number }>;
+  updatedPlaylists: Array<{ id: number; curatorName: string; handle?: string; contributorId?: number }>;
 }> {
-  const stats = { created: 0, skipped: 0, errors: 0 };
+  const stats = {
+    contributors: { created: 0, skipped: 0 },
+    mixes: { updated: 0, skipped: 0 },
+    playlists: { updated: 0, skipped: 0 },
+    updatedMixes: [...mixSubmissions] as Array<{ id: number; name: string; handle?: string; contributorId?: number }>,
+    updatedPlaylists: [...playlistSubmissions] as Array<{ id: number; curatorName: string; handle?: string; contributorId?: number }>,
+  };
+
+  // Collect unique names from mixes and playlists
+  const nameMap = new Map<string, { displayName: string; handle: string }>();
   
-  try {
-    // Get unique submitter names from mix submissions
-    const submissions = await db.query.mixSubmissions.findMany({
-      columns: { name: true },
-    });
-    
-    const namesSet = new Set<string>();
-    submissions.forEach((s: { name: string }) => {
-      if (s.name) namesSet.add(s.name);
-    });
-    const uniqueNames = Array.from(namesSet);
-    
-    for (const name of uniqueNames) {
-      try {
-        const handle = name.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-        
-        if (!handle) {
-          stats.skipped++;
-          continue;
-        }
-        
-        // Check if already exists
-        const existing = await db
-          .select()
-          .from(contributors)
-          .where(eq(contributors.handle, handle))
-          .limit(1);
-        
-        if (existing.length > 0) {
-          stats.skipped++;
-          continue;
-        }
-        
-        // Create contributor
-        await db.insert(contributors).values({
-          handle,
-          displayName: name,
-        });
-        
-        stats.created++;
-      } catch (err) {
-        console.error(`[Backfill] Error processing "${name}":`, err);
-        stats.errors++;
+  for (const mix of mixSubmissions) {
+    if (mix.name && !mix.contributorId) {
+      const handle = nameToHandle(mix.name);
+      if (handle) {
+        nameMap.set(handle, { displayName: mix.name, handle });
       }
     }
-    
-    console.log(`[Backfill] Complete: ${stats.created} created, ${stats.skipped} skipped, ${stats.errors} errors`);
-  } catch (err) {
-    console.error("[Backfill] Fatal error:", err);
-    throw err;
   }
   
+  for (const playlist of playlistSubmissions) {
+    if (playlist.curatorName && !playlist.contributorId) {
+      const handle = nameToHandle(playlist.curatorName);
+      if (handle) {
+        nameMap.set(handle, { displayName: playlist.curatorName, handle });
+      }
+    }
+  }
+
+  // Create contributors for each unique handle
+  const handleToId = new Map<string, number>();
+  
+  for (const [handle, data] of Array.from(nameMap.entries())) {
+    try {
+      // Check if contributor exists
+      const existing = await db
+        .select()
+        .from(contributors)
+        .where(eq(contributors.handle, handle))
+        .limit(1);
+      
+      if (existing.length > 0) {
+        handleToId.set(handle, existing[0].id);
+        stats.contributors.skipped++;
+        console.log(`[Backfill] Contributor @${handle} already exists (id: ${existing[0].id})`);
+      } else {
+        // Create contributor
+        const [newContributor] = await db.insert(contributors).values({
+          handle,
+          displayName: data.displayName,
+        }).returning();
+        
+        handleToId.set(handle, newContributor.id);
+        stats.contributors.created++;
+        console.log(`[Backfill] Created contributor @${handle} (id: ${newContributor.id})`);
+      }
+    } catch (err) {
+      console.error(`[Backfill] Error creating contributor "${handle}":`, err);
+    }
+  }
+
+  // Update mixes with contributor IDs
+  stats.updatedMixes = mixSubmissions.map(mix => {
+    if (mix.contributorId) {
+      stats.mixes.skipped++;
+      return mix;
+    }
+    
+    const handle = nameToHandle(mix.name);
+    const contributorId = handleToId.get(handle);
+    
+    if (contributorId) {
+      stats.mixes.updated++;
+      return { ...mix, handle, contributorId };
+    }
+    
+    stats.mixes.skipped++;
+    return mix;
+  });
+
+  // Update playlists with contributor IDs
+  stats.updatedPlaylists = playlistSubmissions.map(playlist => {
+    if (playlist.contributorId) {
+      stats.playlists.skipped++;
+      return playlist;
+    }
+    
+    const handle = nameToHandle(playlist.curatorName);
+    const contributorId = handleToId.get(handle);
+    
+    if (contributorId) {
+      stats.playlists.updated++;
+      return { ...playlist, handle, contributorId };
+    }
+    
+    stats.playlists.skipped++;
+    return playlist;
+  });
+
+  console.log(`[Backfill] Complete:
+  - Contributors: ${stats.contributors.created} created, ${stats.contributors.skipped} existing
+  - Mixes: ${stats.mixes.updated} updated, ${stats.mixes.skipped} skipped
+  - Playlists: ${stats.playlists.updated} updated, ${stats.playlists.skipped} skipped`);
+
   return stats;
 }
