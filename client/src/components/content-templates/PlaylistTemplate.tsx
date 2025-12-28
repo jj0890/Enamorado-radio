@@ -1,334 +1,429 @@
-import { useState } from "react";
-import { ExternalLink, Music2, Heart, Share2 } from "lucide-react";
-import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube, SiMixcloud } from "react-icons/si";
+// client/src/components/content-templates/PlaylistTemplate.tsx
+import { ExternalLink, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  detectPlaylistPlatform,
-  getEmbedUrl,
-  getEmbedHeight,
-  getPlatformDisplayName,
-  getPlatformColor,
-  isEmbeddablePlatform,
-  type PlaylistPlatform,
-} from "@/lib/embed-utils";
+import { LikeButton } from "@/components/like-button";
+import { Separator } from "@/components/ui/separator";
+import { Link } from "wouter";
+import Navigation from "@/components/navigation";
+
+interface Content {
+  id: string;
+  title: string;
+  excerpt?: string;
+  authors?: string[];
+  coverImageUrl?: string;
+  originChannel?: string;
+  provider?: string;
+  embedUrl?: string;
+  externalUrl?: string;
+  coverWidth?: number;
+  coverHeight?: number;
+  likes?: number;
+  submittedBy?: string;
+  tags?: string[];
+  trackCount?: number;
+  duration?: string;
+}
+
+interface OEmbedMeta {
+  platform: string;
+  title: string | null;
+  thumbnail: string | null;
+  embedUrl: string | null;
+  embedHtml: string | null;
+  description: string | null;
+}
 
 interface PlaylistTemplateProps {
-  title: string;
-  curatorName: string;
-  playlistUrl: string;
-  description?: string | null;
-  artworkUrl?: string | null;
-  tags?: string[] | null;
-  platform?: string | null;
-  metadata?: {
-    embedUrl?: string;
-    thumbnail?: string;
-    title?: string;
-  } | null;
-  likes?: number;
-  onLike?: () => void;
-  showEmbed?: boolean;
+  content: Content;
+  oembed?: OEmbedMeta | null;
+  layout?: 'pane' | 'full';
+  onShare?: () => void;
+  formatDate?: (date: string) => string;
+  estimateReadingTime?: (text: string) => number;
+  labelForPlatform?: (platform?: string, kind?: string) => string;
 }
 
-function PlatformIcon({ platform, className }: { platform: PlaylistPlatform; className?: string }) {
-  const iconClass = className || "w-5 h-5";
-  
-  switch (platform) {
-    case 'spotify':
-      return <SiSpotify className={iconClass} style={{ color: getPlatformColor('spotify') }} />;
-    case 'soundcloud':
-      return <SiSoundcloud className={iconClass} style={{ color: getPlatformColor('soundcloud') }} />;
-    case 'apple-music':
-    case 'apple_music':
-      return <SiApplemusic className={iconClass} style={{ color: getPlatformColor('apple-music') }} />;
-    case 'youtube':
-      return <SiYoutube className={iconClass} style={{ color: getPlatformColor('youtube') }} />;
-    case 'mixcloud':
-      return <SiMixcloud className={iconClass} style={{ color: getPlatformColor('mixcloud') }} />;
-    default:
-      return <Music2 className={iconClass} />;
-  }
-}
-
-export default function PlaylistTemplate({
-  title,
-  curatorName,
-  playlistUrl,
-  description,
-  artworkUrl,
-  tags,
-  platform: providedPlatform,
-  metadata,
-  likes = 0,
-  onLike,
-  showEmbed = true,
+export default function PlaylistTemplate({ 
+  content, 
+  oembed, 
+  layout = 'full', 
+  onShare,
+  formatDate,
+  estimateReadingTime,
+  labelForPlatform 
 }: PlaylistTemplateProps) {
-  const [isLiked, setIsLiked] = useState(false);
-  const [embedLoaded, setEmbedLoaded] = useState(false);
-  const [embedError, setEmbedError] = useState(false);
+  const isCommunity = content.originChannel === 'community';
+  const embedUrl = content.embedUrl || oembed?.embedUrl;
+  const embedHtml = oembed?.embedHtml;
+  const platform = content.provider || oembed?.platform;
+  const isAppleMusic = platform === 'apple-music' || platform === 'apple' || embedUrl?.includes('embed.music.apple.com');
   
-  const platform = (providedPlatform as PlaylistPlatform) || detectPlaylistPlatform(playlistUrl);
-  const embedUrl = metadata?.embedUrl || getEmbedUrl(playlistUrl, platform);
-  const embedHeight = getEmbedHeight(platform);
-  const canEmbed = isEmbeddablePlatform(platform);
-  const thumbnail = artworkUrl || metadata?.thumbnail;
-  
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    onLike?.();
-  };
-  
-  const handleShare = async () => {
-    try {
-      await navigator.share({
-        title: title,
-        text: `Check out "${title}" curated by ${curatorName}`,
-        url: playlistUrl,
-      });
-    } catch {
-      await navigator.clipboard.writeText(playlistUrl);
+  // Get platform-specific embed height (larger heights for better visual experience)
+  const getEmbedHeight = (platform?: string) => {
+    switch (platform) {
+      case 'spotify': return 500;
+      case 'soundcloud': return 500;
+      case 'apple': return 500;
+      default: return 400;
     }
   };
 
-  return (
-    <div className="w-full space-y-4" data-testid="playlist-template">
-      <div className="flex items-start gap-4">
-        {thumbnail && (
-          <div className="shrink-0">
-            <img
-              src={thumbnail}
-              alt={title}
-              className="w-24 h-24 md:w-32 md:h-32 object-cover rounded-lg shadow-md"
-              data-testid="playlist-artwork"
-            />
-          </div>
-        )}
-        
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
-            <Badge 
-              variant="secondary" 
-              className="text-xs flex items-center gap-1"
-              style={{ 
-                backgroundColor: `${getPlatformColor(platform)}20`,
-                color: getPlatformColor(platform),
-                borderColor: getPlatformColor(platform),
-              }}
-              data-testid="platform-badge"
-            >
-              <PlatformIcon platform={platform} className="w-3 h-3" />
-              {getPlatformDisplayName(platform)}
-            </Badge>
-          </div>
+  // Get platform label
+  const getPlatformLabel = (platform?: string) => {
+    switch (platform) {
+      case 'spotify': return 'Listen on Spotify';
+      case 'soundcloud': return 'Listen on SoundCloud';
+      case 'apple': return 'Open in Apple Music';
+      default: return 'Open Playlist';
+    }
+  };
+
+  // Get cover image from multiple sources
+  const getCoverImage = () => {
+    return content.coverImageUrl || oembed?.thumbnail || null;
+  };
+
+  // Get curator info
+  const getCurator = () => {
+    if (content.authors && content.authors.length > 0) {
+      return content.authors[0];
+    }
+    return content.submittedBy || null;
+  };
+
+  if (layout === 'pane') {
+    // Desktop: 35/65 split (compact meta left, spacious player right)
+    return (
+      <div className="h-full flex flex-col md:flex-row bg-[var(--cream)]">
+        {/* Meta Card - Mobile: full width stacked second. Desktop: 35% left */}
+        <div className="w-full md:w-[35%] p-6 flex flex-col overflow-y-auto md:order-1 order-2">
           
-          <h2 className="text-xl md:text-2xl font-bold text-foreground truncate" data-testid="playlist-title">
-            {title}
-          </h2>
-          
-          <p className="text-sm text-muted-foreground" data-testid="playlist-curator">
-            Curated by {curatorName}
-          </p>
-          
-          {description && (
-            <p className="text-sm text-muted-foreground mt-2 line-clamp-2" data-testid="playlist-description">
-              {description}
-            </p>
-          )}
-          
-          {tags && tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-2">
-              {tags.slice(0, 5).map((tag, idx) => (
-                <Badge 
-                  key={idx} 
-                  variant="outline" 
-                  className="text-xs"
-                  data-testid={`tag-${idx}`}
-                >
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleLike}
-          className={isLiked ? "text-red-500" : "text-muted-foreground"}
-          data-testid="button-like"
-        >
-          <Heart className={`w-4 h-4 mr-1 ${isLiked ? "fill-current" : ""}`} />
-          {likes + (isLiked ? 1 : 0)}
-        </Button>
-        
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleShare}
-          className="text-muted-foreground"
-          data-testid="button-share"
-        >
-          <Share2 className="w-4 h-4 mr-1" />
-          Share
-        </Button>
-        
-        <div className="flex-1" />
-        
-        <Button
-          asChild
-          variant="outline"
-          size="sm"
-          data-testid="button-open-external"
-        >
-          <a href={playlistUrl} target="_blank" rel="noopener noreferrer">
-            <ExternalLink className="w-4 h-4 mr-1" />
-            Open in {getPlatformDisplayName(platform)}
-          </a>
-        </Button>
-      </div>
-      
-      {showEmbed && canEmbed && (
-        <div 
-          className="relative rounded-lg overflow-hidden bg-muted"
-          style={{ minHeight: embedHeight }}
-          data-testid="embed-container"
-        >
-          {!embedLoaded && !embedError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <div className="flex flex-col items-center gap-2">
-                <PlatformIcon platform={platform} className="w-8 h-8 animate-pulse" />
-                <span className="text-sm text-muted-foreground">Loading embed...</span>
+          {/* Cover Image - compact display */}
+          <div className="mb-6">
+            {getCoverImage() ? (
+              <div className="w-full aspect-square max-w-[200px] mx-auto lg:mx-0">
+                <img
+                  src={getCoverImage()!}
+                  alt={content.title}
+                  className="w-full h-full object-contain rounded-lg shadow-md"
+                  data-testid="playlist-cover"
+                />
               </div>
+            ) : (
+              <div 
+                className="w-full aspect-square max-w-[200px] mx-auto lg:mx-0 bg-gradient-to-br from-orange-200 to-orange-400 rounded-lg shadow-md flex items-center justify-center"
+              >
+                <div className="text-center">
+                  <div className="text-4xl font-bold text-white mb-2">
+                    {content.title.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="text-sm text-white/80">No Cover</div>
+                </div>
+              </div>
+            )}
+          </div>
+
+
+          {/* Title + Chips */}
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2 mb-3">
+              <Badge variant="secondary" className="text-xs">
+                PLAYLIST
+              </Badge>
+              {platform && (
+                <Badge variant="outline" className="text-xs">
+                  {platform.toUpperCase()}
+                </Badge>
+              )}
+              {isCommunity && (
+                <Badge variant="outline" className="text-xs">COMMUNITY</Badge>
+              )}
             </div>
-          )}
-          
-          {embedError && (
-            <div className="absolute inset-0 flex items-center justify-center bg-muted">
-              <div className="flex flex-col items-center gap-2 text-center px-4">
-                <Music2 className="w-8 h-8 text-muted-foreground" />
-                <p className="text-sm text-muted-foreground">
-                  Unable to load embed. 
-                  <a 
-                    href={playlistUrl} 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="text-primary hover:underline ml-1"
-                  >
-                    Open directly
-                  </a>
+            
+            <h1 className="text-xl font-bold text-[var(--charcoal)] leading-tight">
+              {content.title}
+            </h1>
+          </div>
+
+          {/* Curator Row */}
+          {getCurator() && (
+            <div className="flex items-center mb-4 pb-4 border-b">
+              <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center mr-3">
+                <span className="text-sm font-medium text-gray-600">
+                  {getCurator()!.charAt(0).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <p className="text-sm text-[var(--charcoal)]/70">
+                  Curated by <span className="font-medium">{getCurator()}</span>
                 </p>
               </div>
             </div>
           )}
-          
-          <iframe
-            src={embedUrl}
-            width="100%"
-            height={embedHeight}
-            frameBorder="0"
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            onLoad={() => setEmbedLoaded(true)}
-            onError={() => setEmbedError(true)}
-            className={embedLoaded ? "opacity-100" : "opacity-0"}
-            style={{ transition: "opacity 0.3s ease" }}
-            data-testid="playlist-embed"
-          />
-        </div>
-      )}
-      
-      {showEmbed && !canEmbed && (
-        <div 
-          className="relative rounded-lg overflow-hidden bg-muted p-8 text-center"
-          data-testid="embed-fallback"
-        >
-          <PlatformIcon platform={platform} className="w-12 h-12 mx-auto mb-4" />
-          <p className="text-muted-foreground mb-4">
-            This playlist can't be embedded directly.
-          </p>
-          <Button asChild>
-            <a href={playlistUrl} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="w-4 h-4 mr-2" />
-              Open in {getPlatformDisplayName(platform)}
-            </a>
-          </Button>
-        </div>
-      )}
-    </div>
-  );
-}
 
-export function PlaylistCard({
-  title,
-  curatorName,
-  playlistUrl,
-  artworkUrl,
-  platform: providedPlatform,
-  metadata,
-  tags,
-  likes = 0,
-}: Omit<PlaylistTemplateProps, 'showEmbed'>) {
-  const platform = (providedPlatform as PlaylistPlatform) || detectPlaylistPlatform(playlistUrl);
-  const thumbnail = artworkUrl || metadata?.thumbnail;
-  
-  return (
-    <a
-      href={playlistUrl}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group block bg-card border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
-      data-testid="playlist-card"
-    >
-      <div className="aspect-square relative bg-muted">
-        {thumbnail ? (
-          <img
-            src={thumbnail}
-            alt={title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <PlatformIcon platform={platform} className="w-12 h-12 text-muted-foreground" />
-          </div>
-        )}
-        
-        <div className="absolute top-2 right-2">
-          <Badge 
-            className="text-xs flex items-center gap-1"
-            style={{ 
-              backgroundColor: getPlatformColor(platform),
-              color: 'white',
-            }}
-          >
-            <PlatformIcon platform={platform} className="w-3 h-3" />
-          </Badge>
-        </div>
-      </div>
-      
-      <div className="p-3">
-        <h3 className="font-semibold text-sm truncate group-hover:text-primary transition-colors">
-          {title}
-        </h3>
-        <p className="text-xs text-muted-foreground truncate">
-          {curatorName}
-        </p>
-        
-        <div className="flex items-center justify-between mt-2">
-          {tags && tags.length > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {tags[0]}
-            </span>
+          {/* Primary CTA */}
+          {content.externalUrl && (
+            <Button
+              asChild
+              className="w-full mb-3 bg-orange-600 hover:bg-orange-700"
+            >
+              <a
+                href={content.externalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                data-testid="playlist-cta"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                {getPlatformLabel(platform)}
+              </a>
+            </Button>
           )}
-          <span className="text-xs text-muted-foreground flex items-center gap-1">
-            <Heart className="w-3 h-3" />
-            {likes}
-          </span>
+
+          {/* Secondary Actions */}
+          <div className="flex gap-2 mb-4">
+            {onShare && (
+              <Button variant="outline" size="sm" className="flex-1">
+                Share
+              </Button>
+            )}
+            {isCommunity && (
+              <LikeButton id={content.id} initial={content.likes || 0} />
+            )}
+          </div>
+
+          {/* Curator Notes */}
+          {content.excerpt && (
+            <div className="mb-4">
+              <p className="text-sm text-[var(--charcoal)]/80 leading-relaxed line-clamp-3">
+                {content.excerpt}
+              </p>
+            </div>
+          )}
+
+          {/* Metadata Chips */}
+          <div className="flex flex-wrap gap-2 text-xs">
+            {content.trackCount && (
+              <Badge variant="outline" className="text-xs">
+                {content.trackCount} tracks
+              </Badge>
+            )}
+            {content.duration && (
+              <Badge variant="outline" className="text-xs">
+                {content.duration}
+              </Badge>
+            )}
+            {content.tags && content.tags.map((tag, index) => (
+              <Badge key={index} variant="outline" className="text-xs">
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        </div>
+        
+        {/* Player Pane - Mobile: full width stacked first. Desktop: 65% right (more spacious) */}
+        <div className="w-full md:w-[65%] bg-white md:border-l overflow-hidden flex flex-col md:order-2 order-1 min-h-[320px] md:min-h-[600px]">
+          {embedHtml ? (
+            <div 
+              className={`w-full h-full flex items-center justify-center ${isAppleMusic ? 'p-0' : 'p-4'}`}
+              data-testid="playlist-embed"
+            >
+              {isAppleMusic ? (
+                /* Apple Music: Crop horizontally to show track list with song artwork - hide main album art */
+                <div className="w-full h-full overflow-hidden">
+                  <div 
+                    className="h-full [&>iframe]:h-full [&>iframe]:border-0"
+                    style={{ 
+                      width: 'calc(100% + 270px)', 
+                      marginLeft: '-270px',
+                    }}
+                    dangerouslySetInnerHTML={{ __html: embedHtml }}
+                  />
+                </div>
+              ) : (
+                <div 
+                  className="w-full h-full max-w-full [&>iframe]:w-full [&>iframe]:h-full [&>iframe]:min-h-full"
+                  dangerouslySetInnerHTML={{ __html: embedHtml }}
+                />
+              )}
+            </div>
+          ) : embedUrl ? (
+            isAppleMusic ? (
+              /* Apple Music fallback: Crop horizontally to show track list with song artwork */
+              <div className="w-full h-full overflow-hidden">
+                <iframe
+                  src={embedUrl}
+                  title={content.title}
+                  className="h-full border-0"
+                  style={{ 
+                    width: 'calc(100% + 270px)', 
+                    marginLeft: '-270px',
+                  }}
+                  allow="autoplay; encrypted-media; clipboard-write; picture-in-picture"
+                  loading="lazy"
+                  data-testid="playlist-embed-fallback"
+                />
+              </div>
+            ) : (
+              <iframe
+                src={embedUrl}
+                title={content.title}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; clipboard-write; picture-in-picture"
+                loading="lazy"
+                data-testid="playlist-embed-fallback"
+              />
+            )
+          ) : (
+            <div className="w-full h-full flex items-center justify-center bg-gray-50">
+              <div className="text-center p-8">
+                <div className="mb-4">
+                  <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <ExternalLink className="w-8 h-8 text-gray-400" />
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Playback not available here</h3>
+                  <p className="text-gray-500 mb-6">This playlist can't be embedded, but you can still listen on the original platform.</p>
+                </div>
+                {content.externalUrl && (
+                  <Button asChild className="bg-orange-600 hover:bg-orange-700">
+                    <a
+                      href={content.externalUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      {getPlatformLabel(platform)}
+                    </a>
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </div>
-    </a>
+    );
+  }
+
+  // Full page layout: embed at top, meta below
+  return (
+    <div className="min-h-screen bg-[var(--cream)]">
+      <Navigation />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 pt-20">
+        {/* Hero Embed */}
+        <div className="mb-8">
+          {embedHtml ? (
+            <div 
+              className="w-full rounded-lg overflow-hidden shadow-lg"
+              data-testid="playlist-embed-full"
+            >
+              <div dangerouslySetInnerHTML={{ __html: embedHtml }} />
+            </div>
+          ) : embedUrl ? (
+            <div 
+              className="w-full rounded-lg overflow-hidden shadow-lg"
+              style={{ height: getEmbedHeight(platform) }}
+            >
+              <iframe
+                src={embedUrl}
+                title={content.title}
+                className="w-full h-full border-0"
+                allow="autoplay; encrypted-media; clipboard-write; picture-in-picture"
+                loading="lazy"
+                data-testid="playlist-embed-full-fallback"
+              />
+            </div>
+          ) : content.coverImageUrl ? (
+            <div className="w-full aspect-[3/2] rounded-lg overflow-hidden shadow-lg">
+              <img
+                src={content.coverImageUrl}
+                alt={content.title}
+                className="w-full h-full object-cover"
+                style={{
+                  aspectRatio: content.coverWidth && content.coverHeight 
+                    ? `${content.coverWidth}/${content.coverHeight}` 
+                    : '3/2',
+                  objectFit: 'contain'
+                }}
+              />
+            </div>
+          ) : null}
+        </div>
+        
+        {/* Meta below */}
+        <div className="space-y-6">
+          <div>
+            <div className="flex items-center gap-2 mb-4">
+              <Badge variant="secondary">
+                {platform?.toUpperCase() || 'PLAYLIST'}
+              </Badge>
+              {isCommunity && (
+                <Badge variant="outline">COMMUNITY</Badge>
+              )}
+            </div>
+            
+            <h1 className="text-4xl font-bold text-[var(--charcoal)] mb-4">
+              {content.title}
+            </h1>
+            
+            {content.authors && content.authors.length > 0 && (
+              <p className="text-lg text-[var(--charcoal)]/70 mb-6">
+                Curated by {content.authors.join(', ')}
+              </p>
+            )}
+          </div>
+          
+          {content.excerpt && (
+            <div className="prose prose-lg max-w-none">
+              <p className="text-[var(--charcoal)]/80 leading-relaxed">
+                {content.excerpt}
+              </p>
+            </div>
+          )}
+          
+          {/* Actions */}
+          <div className="flex items-center gap-4 pt-6">
+            {content.externalUrl && (
+              <Button
+                asChild
+                className="bg-orange-600 hover:bg-orange-700"
+              >
+                <a
+                  href={content.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  data-testid="playlist-cta-full"
+                >
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  {getPlatformLabel(platform)}
+                </a>
+              </Button>
+            )}
+            
+            {onShare && (
+              <Button variant="outline" onClick={onShare}>
+                Share
+              </Button>
+            )}
+            
+            {isCommunity && (
+              <LikeButton id={content.id} initial={content.likes || 0} />
+            )}
+          </div>
+          
+          <Separator className="my-12" />
+
+          {/* Back Navigation */}
+          <div className="text-center">
+            <Link href={isCommunity ? "/community" : "/editorials"}>
+              <Button variant="outline" className="inline-flex items-center space-x-2" data-testid="back-navigation">
+                <ArrowLeft className="w-4 h-4" />
+                <span>{isCommunity ? "Back to Community" : "Back to Editorials"}</span>
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

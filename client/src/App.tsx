@@ -44,6 +44,13 @@ import CommunityPage from "./pages/CommunityPage";
 import CommunityDetailPage from "./pages/CommunityDetailPage";
 import ContributorProfile from "./pages/ContributorProfile";
 import LatestPage from "./pages/LatestPage";
+import Editorial from "./pages/Editorial";
+import IssuePage from "./pages/IssuePage";
+import SubmissionPage from "./pages/SubmissionPage";
+import AdminEditorial from "./pages/AdminEditorial";
+import AdminEditorialEditor from "./pages/AdminEditorialEditor";
+import AdminIssues from "./pages/AdminIssues";
+import UnifiedSubmit from "./pages/UnifiedSubmit";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -79,11 +86,24 @@ function Router() {
       <Route path="/genres" component={GenreDiscovery} />
       <Route path="/genre/:slug" component={GenrePage} />
       <Route path="/mixes" component={MixesLanding} />
+
+      {/* Unified submission landing page */}
+      <Route path="/submit" component={UnifiedSubmit} />
       <Route path="/submit-mix" component={SubmitMix} />
       <Route path="/submit-playlist" component={SubmitPlaylist} />
+
       <Route path="/community" component={CommunityPage} />
       <Route path="/community/:id" component={CommunityDetailPage} />
       <Route path="/contributors/:handle" component={ContributorProfile} />
+
+      {/* Editorial / Magazine routes */}
+      <Route path="/editorial" component={Editorial} />
+      <Route path="/issue/:slug" component={IssuePage} />
+      <Route path="/content/:slug" component={SubmissionPage} />
+      <Route path="/admin/editorial" component={AdminEditorial} />
+      <Route path="/admin/editorial/:id" component={AdminEditorialEditor} />
+      <Route path="/admin/issues" component={AdminIssues} />
+
       <Route path="/about" component={AboutPage} />
       <Route path="/residents" component={ResidentsPage} />
       <Route path="/residency" component={ResidentsPage} />

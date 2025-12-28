@@ -102,16 +102,13 @@ export default function Navigation() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <a 
-                    href="https://replit.com/@jarradjones7/Magazine-Mockup"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy flex items-center gap-2"
+                  <Link
+                    href="/editorial"
+                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
                     data-testid="dropdown-item-editorial"
                   >
                     Editorial
-                    <span className="text-xs text-gray-400">↗</span>
-                  </a>
+                  </Link>
                 </DropdownMenuItem>
                 {FEATURES.SCHEDULE && (
                   <DropdownMenuItem asChild>
@@ -127,38 +124,13 @@ export default function Navigation() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-navy transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                data-testid="dropdown-nav-submit"
-              >
-                Submit
-                <ChevronDown className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-white dark:bg-black border-black dark:border-gray-800 font-mono"
-              >
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/submit-mix" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-submit-mix"
-                  >
-                    Submit a Mix
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/submit-playlist" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-submit-playlist"
-                  >
-                    Submit a Playlist
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Link
+              href="/submit"
+              className={navLinkClass("/submit")}
+              data-testid="link-nav-submit"
+            >
+              Submit
+            </Link>
 
             <Link 
               href="/about" 

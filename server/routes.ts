@@ -4885,16 +4885,459 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/admin/settings/:key', requireAdmin, async (req, res) => {
     try {
       await storage.deleteSetting(req.params.key);
-      
+
       // Re-initialize AzuraCast service if AzuraCast settings were deleted
       if (req.params.key.startsWith('azuracast_')) {
         await azuracastService.initializeWithStorage(storage);
       }
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting setting:', error);
       res.status(500).json({ error: 'Failed to delete setting' });
+    }
+  });
+
+  // =================
+  // EDITORIAL / MAGAZINE ROUTES
+  // =================
+
+  // Community submissions - public submission endpoint
+  app.post('/api/submissions', async (req, res) => {
+    try {
+      const data = req.body;
+
+      // Ensure contributor exists
+      const contributor = await ensureContributor(storage, {
+        name: data.contributorName,
+        email: data.contributorEmail,
+        handle: data.contributorHandle || data.contributorName.toLowerCase().replace(/\s+/g, '-')
+      });
+
+      const submission = await storage.createSubmission({
+        ...data,
+        contributorId: contributor.id,
+        status: 'pending'
+      });
+
+      res.json(submission);
+    } catch (error) {
+      console.error('Error creating submission:', error);
+      res.status(500).json({ error: 'Failed to create submission' });
+    }
+  });
+
+  // Get all submissions (admin only)
+  app.get('/api/submissions', requireAdmin, async (req, res) => {
+    try {
+      const { status, contentType } = req.query;
+      const submissions = await storage.getAllSubmissions({
+        status: status as string,
+        contentType: contentType as string
+      });
+      res.json(submissions);
+    } catch (error) {
+      console.error('Error fetching submissions:', error);
+      res.status(500).json({ error: 'Failed to fetch submissions' });
+    }
+  });
+
+  // Get submission by ID
+  app.get('/api/submissions/:id', requireAdmin, async (req, res) => {
+    try {
+      const submission = await storage.getSubmissionById(parseInt(req.params.id));
+      if (!submission) {
+        return res.status(404).json({ error: 'Submission not found' });
+      }
+      res.json(submission);
+    } catch (error) {
+      console.error('Error fetching submission:', error);
+      res.status(500).json({ error: 'Failed to fetch submission' });
+    }
+  });
+
+  // Approve/reject submission
+  app.patch('/api/submissions/:id/status', requireAdmin, async (req, res) => {
+    try {
+      const { status, feedback } = req.body;
+      const submission = await storage.updateSubmissionStatus(
+        parseInt(req.params.id),
+        status,
+        feedback
+      );
+
+      if (!submission) {
+        return res.status(404).json({ error: 'Submission not found' });
+      }
+
+      res.json(submission);
+    } catch (error) {
+      console.error('Error updating submission status:', error);
+      res.status(500).json({ error: 'Failed to update submission status' });
+    }
+  });
+
+  // Published editorial content - public
+  app.get('/api/published-content', async (req, res) => {
+    try {
+      const { contentType, featured } = req.query;
+      const content = await storage.getPublishedContent({
+        contentType: contentType as string,
+        featured: featured === 'true'
+      });
+      res.json(content);
+    } catch (error) {
+      console.error('Error fetching published content:', error);
+      res.status(500).json({ error: 'Failed to fetch published content' });
+    }
+  });
+
+  // Get all content (admin/editor only)
+  app.get('/api/content', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const { status, contentType } = req.query;
+      const content = await storage.getAllContent({
+        status: status as string,
+        contentType: contentType as string
+      });
+      res.json(content);
+    } catch (error) {
+      console.error('Error fetching content:', error);
+      res.status(500).json({ error: 'Failed to fetch content' });
+    }
+  });
+
+  // Get content by ID or slug
+  app.get('/api/content/:identifier', async (req, res) => {
+    try {
+      let content;
+      const id = parseInt(req.params.identifier);
+
+      if (!isNaN(id)) {
+        content = await storage.getContentById(id);
+      } else {
+        content = await storage.getContentBySlug(req.params.identifier);
+      }
+
+      if (!content) {
+        return res.status(404).json({ error: 'Content not found' });
+      }
+
+      // Only allow published content for non-admin users
+      const user = (req as any).user;
+      const isAuthorized = user && (user.role === 'admin' || user.role === 'editor');
+      if (!isAuthorized && content.status !== 'published') {
+        return res.status(404).json({ error: 'Content not found' });
+      }
+
+      res.json(content);
+    } catch (error) {
+      console.error('Error fetching content:', error);
+      res.status(500).json({ error: 'Failed to fetch content' });
+    }
+  });
+
+  // Create content
+  app.post('/api/content', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const content = await storage.createContent(req.body);
+      broadcast({ type: 'content_created', data: content });
+      res.json(content);
+    } catch (error) {
+      console.error('Error creating content:', error);
+      res.status(500).json({ error: 'Failed to create content' });
+    }
+  });
+
+  // Update content
+  app.patch('/api/content/:id', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const content = await storage.updateContent(parseInt(req.params.id), req.body);
+      if (!content) {
+        return res.status(404).json({ error: 'Content not found' });
+      }
+      broadcast({ type: 'content_updated', data: content });
+      res.json(content);
+    } catch (error) {
+      console.error('Error updating content:', error);
+      res.status(500).json({ error: 'Failed to update content' });
+    }
+  });
+
+  // Delete content
+  app.delete('/api/content/:id', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      await storage.deleteContent(parseInt(req.params.id));
+      broadcast({ type: 'content_deleted', data: { id: parseInt(req.params.id) } });
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting content:', error);
+      res.status(500).json({ error: 'Failed to delete content' });
+    }
+  });
+
+  // Magazine Issues
+  app.get('/api/issues', async (req, res) => {
+    try {
+      const user = (req as any).user;
+      const isAuthorized = user && (user.role === 'admin' || user.role === 'editor');
+      const issues = await storage.getAllIssues(isAuthorized);
+      res.json(issues);
+    } catch (error) {
+      console.error('Error fetching issues:', error);
+      res.status(500).json({ error: 'Failed to fetch issues' });
+    }
+  });
+
+  app.get('/api/issues/:identifier', async (req, res) => {
+    try {
+      let issue;
+      const id = parseInt(req.params.identifier);
+
+      if (!isNaN(id)) {
+        issue = await storage.getIssueById(id);
+      } else {
+        issue = await storage.getIssueBySlug(req.params.identifier);
+      }
+
+      if (!issue) {
+        return res.status(404).json({ error: 'Issue not found' });
+      }
+
+      const user = (req as any).user;
+      const isAuthorized = user && (user.role === 'admin' || user.role === 'editor');
+      if (!isAuthorized && issue.status !== 'published') {
+        return res.status(404).json({ error: 'Issue not found' });
+      }
+
+      res.json(issue);
+    } catch (error) {
+      console.error('Error fetching issue:', error);
+      res.status(500).json({ error: 'Failed to fetch issue' });
+    }
+  });
+
+  app.post('/api/issues', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const issue = await storage.createIssue(req.body);
+      res.json(issue);
+    } catch (error) {
+      console.error('Error creating issue:', error);
+      res.status(500).json({ error: 'Failed to create issue' });
+    }
+  });
+
+  app.patch('/api/issues/:id', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const issue = await storage.updateIssue(parseInt(req.params.id), req.body);
+      if (!issue) {
+        return res.status(404).json({ error: 'Issue not found' });
+      }
+      res.json(issue);
+    } catch (error) {
+      console.error('Error updating issue:', error);
+      res.status(500).json({ error: 'Failed to update issue' });
+    }
+  });
+
+  app.delete('/api/issues/:id', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      await storage.deleteIssue(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting issue:', error);
+      res.status(500).json({ error: 'Failed to delete issue' });
+    }
+  });
+
+  // Issue contents (table of contents management)
+  app.get('/api/issues/:issueId/contents', async (req, res) => {
+    try {
+      const contents = await storage.getIssueContents(parseInt(req.params.issueId));
+      res.json(contents);
+    } catch (error) {
+      console.error('Error fetching issue contents:', error);
+      res.status(500).json({ error: 'Failed to fetch issue contents' });
+    }
+  });
+
+  app.post('/api/issues/:issueId/contents', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const content = await storage.addContentToIssue(
+        parseInt(req.params.issueId),
+        req.body
+      );
+      res.json(content);
+    } catch (error) {
+      console.error('Error adding content to issue:', error);
+      res.status(500).json({ error: 'Failed to add content to issue' });
+    }
+  });
+
+  app.delete('/api/issues/:issueId/contents/:contentId', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      await storage.removeContentFromIssue(
+        parseInt(req.params.issueId),
+        parseInt(req.params.contentId)
+      );
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error removing content from issue:', error);
+      res.status(500).json({ error: 'Failed to remove content from issue' });
+    }
+  });
+
+  // Features (time-based homepage curation)
+  app.get('/api/features', async (req, res) => {
+    try {
+      const features = await storage.getActiveFeatures();
+      res.json(features);
+    } catch (error) {
+      console.error('Error fetching features:', error);
+      res.status(500).json({ error: 'Failed to fetch features' });
+    }
+  });
+
+  app.post('/api/features', requireAdmin, async (req, res) => {
+    try {
+      const feature = await storage.createFeature(req.body);
+      res.json(feature);
+    } catch (error) {
+      console.error('Error creating feature:', error);
+      res.status(500).json({ error: 'Failed to create feature' });
+    }
+  });
+
+  app.patch('/api/features/:id', requireAdmin, async (req, res) => {
+    try {
+      const feature = await storage.updateFeature(parseInt(req.params.id), req.body);
+      if (!feature) {
+        return res.status(404).json({ error: 'Feature not found' });
+      }
+      res.json(feature);
+    } catch (error) {
+      console.error('Error updating feature:', error);
+      res.status(500).json({ error: 'Failed to update feature' });
+    }
+  });
+
+  app.delete('/api/features/:id', requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteFeature(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting feature:', error);
+      res.status(500).json({ error: 'Failed to delete feature' });
+    }
+  });
+
+  // Pitches (internal editorial planning)
+  app.get('/api/pitches', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const pitches = await storage.getAllPitches();
+      res.json(pitches);
+    } catch (error) {
+      console.error('Error fetching pitches:', error);
+      res.status(500).json({ error: 'Failed to fetch pitches' });
+    }
+  });
+
+  app.post('/api/pitches', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const pitch = await storage.createPitch(req.body);
+      res.json(pitch);
+    } catch (error) {
+      console.error('Error creating pitch:', error);
+      res.status(500).json({ error: 'Failed to create pitch' });
+    }
+  });
+
+  app.patch('/api/pitches/:id', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const pitch = await storage.updatePitch(parseInt(req.params.id), req.body);
+      if (!pitch) {
+        return res.status(404).json({ error: 'Pitch not found' });
+      }
+      res.json(pitch);
+    } catch (error) {
+      console.error('Error updating pitch:', error);
+      res.status(500).json({ error: 'Failed to update pitch' });
+    }
+  });
+
+  app.delete('/api/pitches/:id', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      await storage.deletePitch(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting pitch:', error);
+      res.status(500).json({ error: 'Failed to delete pitch' });
+    }
+  });
+
+  // Open Calls (themed submission drives)
+  app.get('/api/open-calls', async (req, res) => {
+    try {
+      const openCalls = await storage.getActiveOpenCalls();
+      res.json(openCalls);
+    } catch (error) {
+      console.error('Error fetching open calls:', error);
+      res.status(500).json({ error: 'Failed to fetch open calls' });
+    }
+  });
+
+  app.get('/api/open-calls/:identifier', async (req, res) => {
+    try {
+      let openCall;
+      const id = parseInt(req.params.identifier);
+
+      if (!isNaN(id)) {
+        openCall = await storage.getOpenCallById(id);
+      } else {
+        openCall = await storage.getOpenCallBySlug(req.params.identifier);
+      }
+
+      if (!openCall) {
+        return res.status(404).json({ error: 'Open call not found' });
+      }
+
+      res.json(openCall);
+    } catch (error) {
+      console.error('Error fetching open call:', error);
+      res.status(500).json({ error: 'Failed to fetch open call' });
+    }
+  });
+
+  app.post('/api/open-calls', requireAdmin, async (req, res) => {
+    try {
+      const openCall = await storage.createOpenCall(req.body);
+      res.json(openCall);
+    } catch (error) {
+      console.error('Error creating open call:', error);
+      res.status(500).json({ error: 'Failed to create open call' });
+    }
+  });
+
+  app.patch('/api/open-calls/:id', requireAdmin, async (req, res) => {
+    try {
+      const openCall = await storage.updateOpenCall(parseInt(req.params.id), req.body);
+      if (!openCall) {
+        return res.status(404).json({ error: 'Open call not found' });
+      }
+      res.json(openCall);
+    } catch (error) {
+      console.error('Error updating open call:', error);
+      res.status(500).json({ error: 'Failed to update open call' });
+    }
+  });
+
+  app.delete('/api/open-calls/:id', requireAdmin, async (req, res) => {
+    try {
+      await storage.deleteOpenCall(parseInt(req.params.id));
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting open call:', error);
+      res.status(500).json({ error: 'Failed to delete open call' });
     }
   });
 

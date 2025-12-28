@@ -1,0 +1,207 @@
+import { useState } from "react";
+import Navigation from "@/components/Navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Music, ListMusic, Image, FileText, Link as LinkIcon, BookOpen, Disc } from "lucide-react";
+import { Link } from "wouter";
+
+type SubmissionType = 'mix' | 'playlist' | 'artwork' | 'writing' | 'link' | 'album' | null;
+
+export default function UnifiedSubmit() {
+  const [selectedType, setSelectedType] = useState<SubmissionType>(null);
+
+  const submissionTypes = [
+    {
+      id: 'mix' as const,
+      title: 'DJ Mix',
+      description: 'Share your recorded DJ set or mix',
+      icon: Music,
+      color: 'bg-red-500'
+    },
+    {
+      id: 'playlist' as const,
+      title: 'Playlist',
+      description: 'Curate a playlist from Spotify, Apple Music, or YouTube',
+      icon: ListMusic,
+      color: 'bg-blue-500'
+    },
+    {
+      id: 'artwork' as const,
+      title: 'Artwork / Visual',
+      description: 'Submit photography, illustrations, or visual art',
+      icon: Image,
+      color: 'bg-purple-500'
+    },
+    {
+      id: 'writing' as const,
+      title: 'Writing',
+      description: 'Share poems, essays, reviews, or creative writing',
+      icon: BookOpen,
+      color: 'bg-green-500'
+    },
+    {
+      id: 'link' as const,
+      title: 'Link / Video',
+      description: 'Share interesting links, videos, or web content',
+      icon: LinkIcon,
+      color: 'bg-orange-500'
+    },
+    {
+      id: 'album' as const,
+      title: 'Album Suggestion',
+      description: 'Nominate an album for our Album of the Month',
+      icon: Disc,
+      color: 'bg-pink-500'
+    }
+  ];
+
+  if (selectedType) {
+    // Redirect to specific submission forms based on type
+    const redirectMap = {
+      'mix': '/submit-mix',
+      'playlist': '/submit-playlist',
+      'album': '/submit-album',
+      'artwork': '/submit-editorial?type=art',
+      'writing': '/submit-editorial?type=writing',
+      'link': '/submit-editorial?type=link'
+    };
+
+    window.location.href = redirectMap[selectedType];
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-white dark:bg-black">
+      <Navigation />
+
+      <div className="pt-20 pb-16">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Header */}
+          <div className="mb-12 text-center">
+            <h1 className="text-4xl md:text-5xl font-bold text-navy dark:text-white mb-4">
+              Submit to Enamorado
+            </h1>
+            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+              Share your creativity with our community. All submissions are reviewed by our editorial team and become part of our living archive.
+            </p>
+          </div>
+
+          {/* How It Works */}
+          <Card className="mb-12 border-black dark:border-gray-800">
+            <CardHeader>
+              <CardTitle className="text-2xl text-navy dark:text-white">How It Works</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                    1
+                  </div>
+                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Choose Type</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Select what you'd like to submit
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                    2
+                  </div>
+                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Fill Form</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Provide details and upload files
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                    3
+                  </div>
+                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Editorial Review</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Our team reviews your submission
+                  </p>
+                </div>
+
+                <div className="text-center">
+                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                    4
+                  </div>
+                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Get Featured</h4>
+                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                    Approved work joins our archive
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Submission Type Selection */}
+          <div className="mb-12">
+            <h2 className="text-2xl font-bold text-navy dark:text-white mb-6 text-center">
+              What would you like to submit?
+            </h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {submissionTypes.map((type) => {
+                const Icon = type.icon;
+                return (
+                  <Card
+                    key={type.id}
+                    className="cursor-pointer border-2 border-black dark:border-gray-800 hover:border-navy dark:hover:border-white transition-all hover:shadow-lg"
+                    onClick={() => setSelectedType(type.id)}
+                  >
+                    <CardContent className="p-6">
+                      <div className={`w-14 h-14 ${type.color} rounded-lg flex items-center justify-center mb-4`}>
+                        <Icon className="w-8 h-8 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-navy dark:text-white mb-2">
+                        {type.title}
+                      </h3>
+                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        {type.description}
+                      </p>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Guidelines */}
+          <Card className="border-black dark:border-gray-800">
+            <CardHeader>
+              <CardTitle className="text-xl text-navy dark:text-white">Submission Guidelines</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-gray-600 dark:text-gray-400">
+              <div>
+                <h4 className="font-semibold text-navy dark:text-white mb-2">Quality Standards</h4>
+                <p className="text-sm">
+                  We value authentic, original work. Ensure your submissions are high quality and properly credited.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-navy dark:text-white mb-2">Rights & Attribution</h4>
+                <p className="text-sm">
+                  You retain all rights to your work. By submitting, you grant us permission to feature it on our platform with proper attribution.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-navy dark:text-white mb-2">Review Process</h4>
+                <p className="text-sm">
+                  Our editorial team reviews all submissions. We aim to respond within 1-2 weeks. Not all submissions will be accepted, but we appreciate every contribution.
+                </p>
+              </div>
+              <div>
+                <h4 className="font-semibold text-navy dark:text-white mb-2">Community Standards</h4>
+                <p className="text-sm">
+                  We welcome diverse voices and perspectives. Submissions should be respectful and aligned with our community values.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  );
+}
