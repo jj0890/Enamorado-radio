@@ -7,7 +7,7 @@ vite.config.ts.*
 
 # Sensitive data files - DO NOT COMMIT TO PUBLIC REPOS
 data/
-*.json
+data/*.json
 admins.json
 residents.json
 mixSubmissions.json
