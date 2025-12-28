@@ -518,7 +518,7 @@ export const settings = pgTable("settings", {
 // ============================================
 
 // Open Calls - Themed submission drives
-export const openCalls = pgTable("open_calls", {
+export const openCalls = pgTable("editorial_open_calls", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
@@ -532,7 +532,7 @@ export const openCalls = pgTable("open_calls", {
 });
 
 // Community Submissions - Magazine-style submissions
-export const submissions = pgTable("submissions", {
+export const submissions = pgTable("editorial_submissions", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -582,7 +582,7 @@ export const submissions = pgTable("submissions", {
 });
 
 // Magazine Issues
-export const issues = pgTable("issues", {
+export const issues = pgTable("editorial_issues", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
@@ -598,7 +598,7 @@ export const issues = pgTable("issues", {
 });
 
 // Issue Contents - Many-to-many linking
-export const issueContents = pgTable("issue_contents", {
+export const issueContents = pgTable("editorial_issue_contents", {
   id: serial("id").primaryKey(),
   issueId: integer("issue_id").references(() => issues.id).notNull(),
   contentId: integer("content_id").references(() => content.id).notNull(),
@@ -607,7 +607,7 @@ export const issueContents = pgTable("issue_contents", {
 });
 
 // Magazine Content - Editorial pieces
-export const content = pgTable("content", {
+export const content = pgTable("editorial_content", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   slug: text("slug").notNull().unique(),
@@ -675,7 +675,7 @@ export const featuredStories = pgTable("featured_stories", {
 });
 
 // Features - Homepage feature management
-export const features = pgTable("features", {
+export const features = pgTable("editorial_features", {
   id: serial("id").primaryKey(),
   entityType: text("entity_type").notNull(),
   entityId: text("entity_id").notNull(),
@@ -689,7 +689,7 @@ export const features = pgTable("features", {
 });
 
 // Pitches - Internal editorial planning
-export const pitches = pgTable("pitches", {
+export const pitches = pgTable("editorial_pitches", {
   id: serial("id").primaryKey(),
   title: text("title").notNull(),
   concept: text("concept").notNull(),
