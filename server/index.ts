@@ -325,7 +325,7 @@ validateAdminCredentials();
   // Serve the app on configured port (default 5000)
   // this serves both the API and the client.
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  server.listen(port, "localhost", () => {
+  server.listen(port, "0.0.0.0", () => {
     log(`🚀 Server running at http://localhost:${port}`);
     log(`📻 Radio features ready`);
     log(`📝 Magazine features ready`);

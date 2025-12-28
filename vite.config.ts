@@ -33,5 +33,8 @@ export default defineConfig({
       strict: true,
       deny: ["**/.*"],
     },
+    hmr: {
+      clientPort: process.env.PORT ? parseInt(process.env.PORT) : 5000,
+    },
   },
 });
