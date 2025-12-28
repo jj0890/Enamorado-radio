@@ -1,0 +1,806 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Radio Player - Professional Audio Streaming</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'radio-dark': '#1a1a1a',
+                        'radio-surface': '#2d2d2d',
+                        'radio-accent': '#007AFF',
+                        'radio-success': '#34C759',
+                        'radio-warning': '#FF9500',
+                        'radio-error': '#FF3B30'
+                    },
+                    fontFamily: {
+                        'sf-pro': ['-apple-system', 'BlinkMacSystemFont', 'SF Pro Display', 'SF Pro Text', 'system-ui', 'sans-serif']
+                    },
+                    backdropBlur: {
+                        'xs': '2px',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', system-ui, sans-serif;
+        }
+        
+        .glass-effect {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(45, 45, 45, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .album-blur {
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+        }
+        
+        .waveform-bar {
+            animation: waveform 1.5s ease-in-out infinite;
+        }
+        
+        @keyframes waveform {
+            0%, 100% { transform: scaleY(0.3); }
+            50% { transform: scaleY(1); }
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #007AFF 0%, #007AFF 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 100%);
+            background-size: 200% 100%;
+            animation: progress-flow 3s linear infinite;
+        }
+        
+        @keyframes progress-flow {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .slide-up {
+            transform: translateY(100%);
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+        
+        .slide-up.active {
+            transform: translateY(0);
+        }
+        
+        .rotate-vinyl {
+            animation: vinyl-spin 3s linear infinite;
+        }
+        
+        @keyframes vinyl-spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .show-card {
+            transition: all 0.3s ease;
+        }
+        
+        .show-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .live-pulse {
+            animation: pulse-red 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse-red {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body class="bg-radio-dark text-white overflow-x-hidden">
+    <!-- @COMPONENT: MainLayout -->
+    <div class="min-h-screen flex flex-col">
+        
+        <!-- @COMPONENT: Header -->
+        <header class="glass-effect fixed top-0 left-0 right-0 z-50 px-6 py-4">
+            <div class="max-w-7xl mx-auto flex items-center justify-between">
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 bg-gradient-to-br from-radio-accent to-purple-500 rounded-full flex items-center justify-center">
+                            <i class="fas fa-radio text-white text-lg"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-xl font-bold">Radio<span class="text-radio-accent">Cast</span></h1>
+                            <div class="flex items-center space-x-1 text-xs text-gray-400">
+                                <div class="w-2 h-2 bg-radio-success rounded-full live-pulse"></div>
+                                <span>LIVE</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <nav class="hidden md:flex items-center space-x-6">
+                        <a href="#" class="text-sm font-medium hover:text-radio-accent transition-colors">Shows</a>
+                        <a href="#" class="text-sm font-medium hover:text-radio-accent transition-colors">Discover</a>
+                        <a href="#" class="text-sm font-medium hover:text-radio-accent transition-colors">Schedule</a>
+                        <a href="#" class="text-sm font-medium hover:text-radio-accent transition-colors">About</a>
+                    </nav>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                        <i class="fas fa-search text-lg"></i>
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                        <i class="fas fa-heart text-lg"></i>
+                    </button>
+                    <button class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                        <i class="fas fa-user text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        
+        <!-- @COMPONENT: HeroSection -->
+        <main class="flex-1 pt-20">
+            <div class="relative h-96 overflow-hidden">
+                <!-- Beautiful gradient background representing radio waves -->
+                <div class="absolute inset-0 bg-gradient-to-br from-radio-accent/20 via-purple-500/20 to-pink-500/20"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-radio-dark via-radio-dark/50 to-transparent"></div>
+                
+                <div class="relative max-w-7xl mx-auto px-6 py-16 h-full flex flex-col justify-center">
+                    <div class="max-w-3xl">
+                        <div class="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-6">
+                            <div class="w-2 h-2 bg-radio-success rounded-full live-pulse"></div>
+                            <span class="text-sm font-medium">NOW PLAYING</span>
+                        </div>
+                        
+                        <h2 class="text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
+                            Deep House Sessions
+                        </h2>
+                        <p class="text-xl text-gray-300 mb-2">with <span class="text-radio-accent font-semibold">Marcus Rivera</span></p>
+                        <p class="text-gray-400 mb-8">Journey through the depths of electronic music with curated deep house tracks from around the globe.</p>
+                        
+                        <div class="flex items-center space-x-4">
+                            <button class="px-8 py-3 bg-radio-accent hover:bg-blue-600 rounded-full font-semibold transition-all transform hover:scale-105">
+                                <i class="fas fa-play mr-2"></i>
+                                Listen Live
+                            </button>
+                            <button class="px-8 py-3 bg-white/10 hover:bg-white/20 rounded-full font-semibold transition-all">
+                                <i class="fas fa-calendar mr-2"></i>
+                                Schedule
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- @COMPONENT: FeaturedShows -->
+            <section class="py-16 px-6">
+                <div class="max-w-7xl mx-auto">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-2xl font-bold">Featured Shows</h3>
+                        <button class="text-radio-accent hover:text-blue-400 font-medium">View All</button>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        <!-- @MAP: featuredShows.map(show => ( -->
+                        <div class="show-card glass-effect rounded-2xl overflow-hidden group cursor-pointer" data-mock="true">
+                            <!-- Album artwork showcasing electronic music aesthetics -->
+                            <img src="https://pixabay.com/get/g786d8d8f234791cf40783aff4382bd4beee73b0c45aa858bb0d57c5eb41314485d31c575664430623e2268ad4f35a1629e7df105ba8ded7b8e6868af3ae89f43_1280.jpg" 
+                                 alt="Electronic music setup with turntables and neon lights" 
+                                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-mock-image="true" />
+                            
+                            <div class="p-6">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <div class="w-2 h-2 bg-radio-success rounded-full"></div>
+                                    <span class="text-xs font-medium text-gray-400">LIVE</span>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2" data-bind="show.title">Midnight Frequency</h4>
+                                <p class="text-gray-400 text-sm mb-4" data-bind="show.description">Late night experimental electronic music and ambient soundscapes</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500" data-bind="show.host">DJ Luna</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-radio-accent/20 text-radio-accent rounded">Electronic</span>
+                                        <span class="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">Ambient</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="show-card glass-effect rounded-2xl overflow-hidden group cursor-pointer" data-mock="true">
+                            <!-- Hip-hop culture and urban music scene -->
+                            <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400" 
+                                 alt="Hip-hop artist performing with microphone and urban backdrop" 
+                                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-mock-image="true" />
+                            
+                            <div class="p-6">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <div class="w-2 h-2 bg-radio-warning rounded-full"></div>
+                                    <span class="text-xs font-medium text-gray-400">SCHEDULED</span>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2" data-bind="show.title">Urban Beats</h4>
+                                <p class="text-gray-400 text-sm mb-4" data-bind="show.description">The freshest hip-hop tracks and underground rap scene</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500" data-bind="show.host">MC Flow</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-radio-warning/20 text-radio-warning rounded">Hip-Hop</span>
+                                        <span class="text-xs px-2 py-1 bg-red-500/20 text-red-400 rounded">Rap</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="show-card glass-effect rounded-2xl overflow-hidden group cursor-pointer" data-mock="true">
+                            <!-- Jazz and soul music atmosphere -->
+                            <img src="https://images.unsplash.com/photo-1415201364774-f6f0bb35f28f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400" 
+                                 alt="Jazz musician playing saxophone in atmospheric lighting" 
+                                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-mock-image="true" />
+                            
+                            <div class="p-6">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <div class="w-2 h-2 bg-radio-success rounded-full"></div>
+                                    <span class="text-xs font-medium text-gray-400">LIVE</span>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2" data-bind="show.title">Jazz After Hours</h4>
+                                <p class="text-gray-400 text-sm mb-4" data-bind="show.description">Smooth jazz and soul classics for the late night listener</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500" data-bind="show.host">Sarah Blue</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">Jazz</span>
+                                        <span class="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">Soul</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="show-card glass-effect rounded-2xl overflow-hidden group cursor-pointer" data-mock="true">
+                            <!-- Indie rock and alternative music scene -->
+                            <img src="https://images.unsplash.com/photo-1524368535928-5b5e00ddc76b?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=400" 
+                                 alt="Indie rock band performing on stage with colorful lighting" 
+                                 class="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-300" data-mock-image="true" />
+                            
+                            <div class="p-6">
+                                <div class="flex items-center space-x-2 mb-3">
+                                    <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                    <span class="text-xs font-medium text-gray-400">OFFLINE</span>
+                                </div>
+                                <h4 class="text-lg font-semibold mb-2" data-bind="show.title">Indie Discoveries</h4>
+                                <p class="text-gray-400 text-sm mb-4" data-bind="show.description">Emerging indie artists and alternative rock gems</p>
+                                <div class="flex items-center justify-between">
+                                    <span class="text-sm text-gray-500" data-bind="show.host">Alex Stone</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">Indie</span>
+                                        <span class="text-xs px-2 py-1 bg-red-500/20 text-red-400 rounded">Rock</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP -->
+                    </div>
+                </div>
+            </section>
+            
+            <!-- @COMPONENT: LiveSchedule -->
+            <section class="py-16 px-6 bg-gradient-to-r from-radio-surface/50 to-radio-surface/30">
+                <div class="max-w-7xl mx-auto">
+                    <h3 class="text-2xl font-bold mb-8">Live Schedule</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- @MAP: scheduleItems.map(item => ( -->
+                        <div class="glass-effect rounded-xl p-6 hover:bg-white/10 transition-all cursor-pointer" data-mock="true">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-radio-accent to-purple-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-music text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold" data-bind="item.time">2:00 PM</h4>
+                                    <p class="text-sm text-gray-400" data-bind="item.duration">2 hours</p>
+                                </div>
+                            </div>
+                            <h5 class="text-lg font-semibold mb-2" data-bind="item.showName">Tech Talk Radio</h5>
+                            <p class="text-gray-400 text-sm mb-3" data-bind="item.description">Latest in technology and digital innovation</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-500" data-bind="item.host">Dr. Sarah Chen</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs px-2 py-1 bg-radio-accent/20 text-radio-accent rounded">Tech</span>
+                                    <span class="text-xs px-2 py-1 bg-green-500/20 text-green-400 rounded">Talk</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-xl p-6 hover:bg-white/10 transition-all cursor-pointer" data-mock="true">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-radio-success to-green-600 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-microphone text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold" data-bind="item.time">4:00 PM</h4>
+                                    <p class="text-sm text-gray-400" data-bind="item.duration">1 hour</p>
+                                </div>
+                            </div>
+                            <h5 class="text-lg font-semibold mb-2" data-bind="item.showName">World Music Hour</h5>
+                            <p class="text-gray-400 text-sm mb-3" data-bind="item.description">Exploring global sounds and cultural rhythms</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-500" data-bind="item.host">Maria Santos</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs px-2 py-1 bg-orange-500/20 text-orange-400 rounded">World</span>
+                                    <span class="text-xs px-2 py-1 bg-blue-500/20 text-blue-400 rounded">Cultural</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="glass-effect rounded-xl p-6 hover:bg-white/10 transition-all cursor-pointer" data-mock="true">
+                            <div class="flex items-center space-x-4 mb-4">
+                                <div class="w-12 h-12 bg-gradient-to-br from-radio-warning to-red-500 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-headphones text-white"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold" data-bind="item.time">6:00 PM</h4>
+                                    <p class="text-sm text-gray-400" data-bind="item.duration">3 hours</p>
+                                </div>
+                            </div>
+                            <h5 class="text-lg font-semibold mb-2" data-bind="item.showName">Drive Time Mix</h5>
+                            <p class="text-gray-400 text-sm mb-3" data-bind="item.description">Perfect soundtrack for your evening commute</p>
+                            <div class="flex items-center justify-between">
+                                <span class="text-sm text-gray-500" data-bind="item.host">Jake Morrison</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">Mix</span>
+                                    <span class="text-xs px-2 py-1 bg-pink-500/20 text-pink-400 rounded">Pop</span>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- @END_MAP -->
+                    </div>
+                </div>
+            </section>
+        </main>
+        
+        <!-- @COMPONENT: MiniPlayer [fixed bottom player] -->
+        <div id="miniPlayer" class="fixed bottom-0 left-0 right-0 z-50 slide-up">
+            <div class="glass-effect border-t border-white/10 px-6 py-4">
+                <div class="max-w-7xl mx-auto flex items-center justify-between">
+                    <!-- Track Info -->
+                    <div class="flex items-center space-x-4 flex-1">
+                        <div class="relative">
+                            <!-- Album artwork with subtle rotation animation -->
+                            <img src="https://pixabay.com/get/g525d7492065e203c550987b98c6496d61af5dc7f8d211ed7f6a9945461f707e2f45ed4420da86643ebaaf5b3dbf3afd029b01a27514b761f1601f41cf140b586_1280.jpg" 
+                                 alt="Current track album artwork" 
+                                 class="w-12 h-12 rounded-lg object-cover rotate-vinyl" data-mock-image="true" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent rounded-lg"></div>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h4 class="font-semibold truncate" data-bind="currentTrack.title">Midnight Groove</h4>
+                            <p class="text-sm text-gray-400 truncate" data-bind="currentTrack.artist">DJ Luna • Deep House Sessions</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Playback Controls -->
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 rounded-full hover:bg-white/10 transition-colors" data-event="click:previousTrack">
+                            <i class="fas fa-backward text-lg"></i>
+                        </button>
+                        <button class="p-3 bg-radio-accent rounded-full hover:bg-blue-600 transition-colors" data-event="click:togglePlay">
+                            <i class="fas fa-pause text-white"></i>
+                        </button>
+                        <button class="p-2 rounded-full hover:bg-white/10 transition-colors" data-event="click:nextTrack">
+                            <i class="fas fa-forward text-lg"></i>
+                        </button>
+                    </div>
+                    
+                    <!-- Waveform Visualization -->
+                    <div class="hidden md:flex items-center space-x-1 mx-6">
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-4" style="animation-delay: 0s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-6" style="animation-delay: 0.1s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-3" style="animation-delay: 0.2s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-8" style="animation-delay: 0.3s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-2" style="animation-delay: 0.4s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-6" style="animation-delay: 0.5s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-4" style="animation-delay: 0.6s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-7" style="animation-delay: 0.7s;"></div>
+                    </div>
+                    
+                    <!-- Additional Controls -->
+                    <div class="flex items-center space-x-4">
+                        <button class="p-2 rounded-full hover:bg-white/10 transition-colors" data-event="click:toggleMute">
+                            <i class="fas fa-volume-up text-lg"></i>
+                        </button>
+                        <button class="p-2 rounded-full hover:bg-white/10 transition-colors" data-event="click:expandPlayer">
+                            <i class="fas fa-expand text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="max-w-7xl mx-auto mt-3">
+                    <div class="w-full bg-white/20 rounded-full h-1">
+                        <div class="progress-bar h-1 rounded-full w-1/3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: ExpandedPlayer [full screen player overlay] -->
+        <div id="expandedPlayer" class="fixed inset-0 z-50 bg-radio-dark/95 backdrop-blur-2xl hidden">
+            <div class="h-full flex flex-col">
+                <!-- Header -->
+                <div class="glass-effect border-b border-white/10 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold">Now Playing</h3>
+                        <button class="p-2 rounded-full hover:bg-white/10 transition-colors" data-event="click:minimizePlayer">
+                            <i class="fas fa-times text-xl"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Main Content -->
+                <div class="flex-1 flex items-center justify-center p-6">
+                    <div class="max-w-2xl w-full text-center">
+                        <!-- Large Album Artwork -->
+                        <div class="relative mb-8">
+                            <!-- Large album artwork with blur background effect -->
+                            <img src="https://pixabay.com/get/g1209ee853c05408f80fdbbf83ca0ed180528ac68776c2f71d54ba3f7b1a468fa7a3a32521664c97ffd72a23aa9f4027ed55221406826f7852e4bf6dae981900c_1280.jpg" 
+                                 alt="Expanded view of current track album artwork" 
+                                 class="w-80 h-80 mx-auto rounded-3xl object-cover shadow-2xl rotate-vinyl" data-mock-image="true" />
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent rounded-3xl"></div>
+                        </div>
+                        
+                        <!-- Track Information -->
+                        <div class="mb-8">
+                            <h2 class="text-4xl font-bold mb-2" data-bind="currentTrack.title">Midnight Groove</h2>
+                            <p class="text-xl text-gray-300 mb-1" data-bind="currentTrack.artist">DJ Luna</p>
+                            <p class="text-gray-400" data-bind="currentTrack.album">Deep House Sessions • Episode 42</p>
+                        </div>
+                        
+                        <!-- Progress Bar -->
+                        <div class="mb-8">
+                            <div class="w-full bg-white/20 rounded-full h-2 mb-2">
+                                <div class="progress-bar h-2 rounded-full w-1/3"></div>
+                            </div>
+                            <div class="flex justify-between text-sm text-gray-400">
+                                <span data-bind="currentTrack.currentTime">2:34</span>
+                                <span data-bind="currentTrack.duration">5:47</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Playback Controls -->
+                        <div class="flex items-center justify-center space-x-6 mb-8">
+                            <button class="p-3 rounded-full hover:bg-white/10 transition-colors" data-event="click:shuffle">
+                                <i class="fas fa-random text-xl"></i>
+                            </button>
+                            <button class="p-3 rounded-full hover:bg-white/10 transition-colors" data-event="click:previousTrack">
+                                <i class="fas fa-backward text-2xl"></i>
+                            </button>
+                            <button class="p-4 bg-radio-accent rounded-full hover:bg-blue-600 transition-colors" data-event="click:togglePlay">
+                                <i class="fas fa-pause text-white text-2xl"></i>
+                            </button>
+                            <button class="p-3 rounded-full hover:bg-white/10 transition-colors" data-event="click:nextTrack">
+                                <i class="fas fa-forward text-2xl"></i>
+                            </button>
+                            <button class="p-3 rounded-full hover:bg-white/10 transition-colors" data-event="click:repeat">
+                                <i class="fas fa-redo text-xl"></i>
+                            </button>
+                        </div>
+                        
+                        <!-- Volume Control -->
+                        <div class="flex items-center justify-center space-x-4">
+                            <i class="fas fa-volume-down text-gray-400"></i>
+                            <div class="w-32 bg-white/20 rounded-full h-2">
+                                <div class="bg-radio-accent h-2 rounded-full w-3/4"></div>
+                            </div>
+                            <i class="fas fa-volume-up text-gray-400"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Waveform Visualization -->
+                <div class="glass-effect border-t border-white/10 px-6 py-4">
+                    <div class="flex items-center justify-center space-x-1">
+                        <!-- @MAP: waveformBars.map((height, index) => ( -->
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-8" style="animation-delay: 0s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-12" style="animation-delay: 0.1s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-6" style="animation-delay: 0.2s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-16" style="animation-delay: 0.3s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-4" style="animation-delay: 0.4s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-14" style="animation-delay: 0.5s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-8" style="animation-delay: 0.6s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-10" style="animation-delay: 0.7s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-6" style="animation-delay: 0.8s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-12" style="animation-delay: 0.9s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-8" style="animation-delay: 1s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-14" style="animation-delay: 1.1s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-4" style="animation-delay: 1.2s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-10" style="animation-delay: 1.3s;"></div>
+                        <div class="w-1 bg-radio-accent rounded-full waveform-bar h-6" style="animation-delay: 1.4s;"></div>
+                        <!-- @END_MAP -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- @COMPONENT: Footer -->
+        <footer class="glass-effect border-t border-white/10 px-6 py-12 mb-20">
+            <div class="max-w-7xl mx-auto">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <div class="col-span-1 md:col-span-2">
+                        <div class="flex items-center space-x-3 mb-6">
+                            <div class="w-10 h-10 bg-gradient-to-br from-radio-accent to-purple-500 rounded-full flex items-center justify-center">
+                                <i class="fas fa-radio text-white text-lg"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xl font-bold">Radio<span class="text-radio-accent">Cast</span></h4>
+                                <p class="text-sm text-gray-400">Professional Audio Streaming</p>
+                            </div>
+                        </div>
+                        <p class="text-gray-400 mb-6">Discover amazing shows, connect with artists, and enjoy high-quality audio streaming. Your gateway to the world of radio.</p>
+                        <div class="flex items-center space-x-4">
+                            <a href="#" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <i class="fab fa-twitter text-xl"></i>
+                            </a>
+                            <a href="#" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <i class="fab fa-instagram text-xl"></i>
+                            </a>
+                            <a href="#" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <i class="fab fa-facebook text-xl"></i>
+                            </a>
+                            <a href="#" class="p-2 rounded-full hover:bg-white/10 transition-colors">
+                                <i class="fab fa-youtube text-xl"></i>
+                            </a>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-4">Platform</h5>
+                        <ul class="space-y-2 text-gray-400">
+                            <li><a href="#" class="hover:text-white transition-colors">Browse Shows</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Live Schedule</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Podcast Archive</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Mobile App</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <h5 class="font-semibold mb-4">Support</h5>
+                        <ul class="space-y-2 text-gray-400">
+                            <li><a href="#" class="hover:text-white transition-colors">Help Center</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Contact Us</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                            <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="border-t border-white/10 pt-8 mt-8 text-center text-gray-400">
+                    <p>&copy; 2025 RadioCast. All rights reserved. Built with passion for audio excellence.</p>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <!-- @END_COMPONENT: MainLayout -->
+    
+    <script>
+        // TODO: Implement Web Audio API for advanced audio processing
+        // TODO: Add real-time metadata updates from streaming server
+        // TODO: Implement playlist management and track queueing
+        // TODO: Add keyboard shortcuts for all player controls
+        // TODO: Implement drag-and-drop for playlist reordering
+        // TODO: Add accessibility features (ARIA labels, keyboard navigation)
+        // TODO: Optimize performance with lazy loading for large playlists
+        // TODO: Add gesture support for mobile devices
+        // TODO: Implement audio equalizer and sound processing
+        // TODO: Add support for multiple audio formats and streaming protocols
+        
+        (function() {
+            'use strict';
+            
+            // Player state management
+            const playerState = {
+                isPlaying: false,
+                isExpanded: false,
+                currentTime: 0,
+                duration: 0,
+                volume: 0.75,
+                isMuted: false
+            };
+            
+            // DOM elements
+            const miniPlayer = document.getElementById('miniPlayer');
+            const expandedPlayer = document.getElementById('expandedPlayer');
+            
+            // Initialize player
+            function initializePlayer() {
+                // Show mini player after page load
+                setTimeout(() => {
+                    miniPlayer.classList.add('active');
+                }, 1000);
+                
+                // Attach event listeners
+                attachEventListeners();
+            }
+            
+            // Event listeners
+            function attachEventListeners() {
+                // Player controls
+                document.addEventListener('click', handlePlayerControls);
+                
+                // Keyboard shortcuts
+                document.addEventListener('keydown', handleKeyboardShortcuts);
+                
+                // Window resize
+                window.addEventListener('resize', handleResize);
+            }
+            
+            // Handle player control clicks
+            function handlePlayerControls(event) {
+                const button = event.target.closest('[data-event]');
+                if (!button) return;
+                
+                const action = button.dataset.event.split(':')[1];
+                
+                switch (action) {
+                    case 'togglePlay':
+                        togglePlayPause();
+                        break;
+                    case 'previousTrack':
+                        previousTrack();
+                        break;
+                    case 'nextTrack':
+                        nextTrack();
+                        break;
+                    case 'expandPlayer':
+                        expandPlayer();
+                        break;
+                    case 'minimizePlayer':
+                        minimizePlayer();
+                        break;
+                    case 'toggleMute':
+                        toggleMute();
+                        break;
+                    case 'shuffle':
+                        toggleShuffle();
+                        break;
+                    case 'repeat':
+                        toggleRepeat();
+                        break;
+                }
+            }
+            
+            // Handle keyboard shortcuts
+            function handleKeyboardShortcuts(event) {
+                // Prevent shortcuts when typing in input fields
+                if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') {
+                    return;
+                }
+                
+                switch (event.code) {
+                    case 'Space':
+                        event.preventDefault();
+                        togglePlayPause();
+                        break;
+                    case 'ArrowRight':
+                        event.preventDefault();
+                        nextTrack();
+                        break;
+                    case 'ArrowLeft':
+                        event.preventDefault();
+                        previousTrack();
+                        break;
+                    case 'ArrowUp':
+                        event.preventDefault();
+                        adjustVolume(0.1);
+                        break;
+                    case 'ArrowDown':
+                        event.preventDefault();
+                        adjustVolume(-0.1);
+                        break;
+                    case 'KeyF':
+                        event.preventDefault();
+                        expandPlayer();
+                        break;
+                    case 'Escape':
+                        event.preventDefault();
+                        minimizePlayer();
+                        break;
+                }
+            }
+            
+            // Player control functions
+            function togglePlayPause() {
+                playerState.isPlaying = !playerState.isPlaying;
+                updatePlayButton();
+                // TODO: Implement actual audio playback control
+            }
+            
+            function previousTrack() {
+                // TODO: Implement previous track functionality
+                console.log('Previous track');
+            }
+            
+            function nextTrack() {
+                // TODO: Implement next track functionality
+                console.log('Next track');
+            }
+            
+            function expandPlayer() {
+                playerState.isExpanded = true;
+                expandedPlayer.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function minimizePlayer() {
+                playerState.isExpanded = false;
+                expandedPlayer.classList.add('hidden');
+                document.body.style.overflow = 'auto';
+            }
+            
+            function toggleMute() {
+                playerState.isMuted = !playerState.isMuted;
+                updateVolumeIcon();
+                // TODO: Implement actual audio mute functionality
+            }
+            
+            function toggleShuffle() {
+                // TODO: Implement shuffle functionality
+                console.log('Toggle shuffle');
+            }
+            
+            function toggleRepeat() {
+                // TODO: Implement repeat functionality
+                console.log('Toggle repeat');
+            }
+            
+            function adjustVolume(delta) {
+                playerState.volume = Math.max(0, Math.min(1, playerState.volume + delta));
+                updateVolumeDisplay();
+                // TODO: Implement actual volume control
+            }
+            
+            // UI update functions
+            function updatePlayButton() {
+                const playButtons = document.querySelectorAll('[data-event="click:togglePlay"] i');
+                playButtons.forEach(button => {
+                    button.className = playerState.isPlaying ? 'fas fa-pause' : 'fas fa-play';
+                });
+            }
+            
+            function updateVolumeIcon() {
+                const volumeButtons = document.querySelectorAll('[data-event="click:toggleMute"] i');
+                volumeButtons.forEach(button => {
+                    button.className = playerState.isMuted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+                });
+            }
+            
+            function updateVolumeDisplay() {
+                // TODO: Update volume slider visuals
+            }
+            
+            // Handle window resize
+            function handleResize() {
+                // TODO: Implement responsive behavior adjustments
+            }
+            
+            // Initialize when DOM is ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initializePlayer);
+            } else {
+                initializePlayer();
+            }
+            
+            // Expose player API for external use
+            window.RadioPlayer = {
+                play: () => { playerState.isPlaying = true; updatePlayButton(); },
+                pause: () => { playerState.isPlaying = false; updatePlayButton(); },
+                expand: expandPlayer,
+                minimize: minimizePlayer,
+                setVolume: (volume) => { playerState.volume = Math.max(0, Math.min(1, volume)); updateVolumeDisplay(); },
+                getState: () => ({ ...playerState })
+            };
+        })();
+    </script>
+</body>
+</html>

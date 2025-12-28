@@ -1,0 +1,200 @@
+/**
+ * Design Tokens
+ * Station Mode - Single accent color system with radiored/slate palette
+ */
+
+:root {
+  /* --- ACCENT COLOR --- */
+  /* Single primary accent used throughout the site */
+  --accent-navy: hsl(213, 100%, 26%);
+  --accent-navy-dark: hsl(213, 100%, 22%);
+  --accent-navy-light: hsl(213, 100%, 32%);
+  
+  /* --- NEUTRAL PALETTE (SLATE) --- */
+  --slate-50: hsl(210, 40%, 98%);
+  --slate-100: hsl(210, 40%, 96.1%);
+  --slate-200: hsl(214, 32%, 91%);
+  --slate-300: hsl(213, 27%, 84%);
+  --slate-400: hsl(215, 20%, 65%);
+  --slate-500: hsl(215, 16%, 47%);
+  --slate-600: hsl(215, 19%, 35%);
+  --slate-700: hsl(215, 25%, 27%);
+  --slate-800: hsl(217, 33%, 17%);
+  --slate-900: hsl(222, 47%, 11%);
+  --slate-950: hsl(229, 84%, 5%);
+  
+  /* --- SEMANTIC TOKENS (LIGHT MODE) --- */
+  --background: hsl(42, 100%, 95%); /* Warm cream background */
+  --foreground: hsl(222, 47%, 11%);
+  
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222, 47%, 11%);
+  
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(222, 47%, 11%);
+  
+  --muted: hsl(210, 40%, 96.1%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  
+  /* Primary uses accent navy */
+  --primary: var(--accent-navy);
+  --primary-foreground: hsl(0, 0%, 100%);
+  
+  /* Secondary: Muted background */
+  --secondary: hsl(210, 40%, 96.1%);
+  --secondary-foreground: hsl(222, 47%, 11%);
+  
+  /* Accent: Muted variant */
+  --accent: hsl(210, 40%, 96.1%);
+  --accent-foreground: hsl(222, 47%, 11%);
+  
+  /* Destructive uses red (keep red for destructive actions) */
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  
+  /* Input & Border */
+  --border: hsl(214, 32%, 91%);
+  --input: hsl(214, 32%, 91%);
+  
+  /* --- BUTTON TOKENS --- */
+  /* Primary: Solid navy background with white text */
+  --button-primary-bg: var(--accent-navy);
+  --button-primary-hover: var(--accent-navy-dark);
+  --button-primary-text: hsl(0, 0%, 100%);
+  
+  /* Secondary: Text-only with no background */
+  --button-secondary-bg: transparent;
+  --button-secondary-hover: hsl(210, 40%, 96.1%);
+  --button-secondary-text: var(--accent-navy);
+  
+  /* --- BORDERS & RADIUS --- */
+  --radius: 0.5rem; /* 8px - Editorial tightness (was 14px) */
+  
+  /* --- TYPOGRAPHY SCALE --- */
+  --heading-h1-size: 40px;
+  --heading-h1-lh: 1.1;
+  --heading-h2-size: 28px;
+  --heading-h2-lh: 1.2;
+  --heading-h3-size: 20px;
+  --heading-h3-lh: 1.25;
+  
+  /* --- FOCUS RINGS --- */
+  --ring: var(--accent-navy);
+  --ring-offset: hsl(0, 0%, 100%);
+  
+  /* --- CHARTS --- */
+  --chart-1: var(--accent-navy);
+  --chart-2: hsl(215, 19%, 35%);
+  --chart-3: hsl(215, 20%, 65%);
+  --chart-4: hsl(213, 27%, 84%);
+  --chart-5: hsl(210, 40%, 96.1%);
+  
+  /* --- SIDEBAR --- */
+  --sidebar-background: hsl(42, 100%, 98%);
+  --sidebar-foreground: hsl(222, 47%, 11%);
+  --sidebar-primary: var(--accent-navy);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(210, 40%, 96.1%);
+  --sidebar-accent-foreground: hsl(222, 47%, 11%);
+  --sidebar-border: hsl(214, 32%, 91%);
+  --sidebar-ring: var(--accent-navy);
+}
+
+.dark {
+  /* --- SEMANTIC TOKENS (DARK MODE) --- */
+  --background: hsl(222, 47%, 11%);
+  --foreground: hsl(210, 40%, 98%);
+  
+  --card: hsl(217, 33%, 17%);
+  --card-foreground: hsl(210, 40%, 98%);
+  
+  --popover: hsl(217, 33%, 17%);
+  --popover-foreground: hsl(210, 40%, 98%);
+  
+  --muted: hsl(217, 33%, 17%);
+  --muted-foreground: hsl(215, 20%, 65%);
+  
+  /* Primary uses accent navy */
+  --primary: var(--accent-navy);
+  --primary-foreground: hsl(0, 0%, 100%);
+  
+  /* Secondary: Muted background */
+  --secondary: hsl(217, 33%, 17%);
+  --secondary-foreground: hsl(210, 40%, 98%);
+  
+  /* Accent: Muted variant */
+  --accent: hsl(217, 33%, 17%);
+  --accent-foreground: hsl(210, 40%, 98%);
+  
+  /* Destructive uses red (keep red for destructive actions) */
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  
+  /* Input & Border */
+  --border: hsl(215, 25%, 27%);
+  --input: hsl(215, 25%, 27%);
+  
+  /* --- BUTTON TOKENS (DARK) --- */
+  --button-primary-bg: var(--accent-navy);
+  --button-primary-hover: var(--accent-navy-light);
+  --button-primary-text: hsl(0, 0%, 100%);
+  
+  --button-secondary-bg: transparent;
+  --button-secondary-hover: hsl(217, 33%, 17%);
+  --button-secondary-text: var(--accent-navy);
+  
+  /* --- FOCUS (DARK) --- */
+  --ring-offset: hsl(222, 47%, 11%);
+  
+  /* --- CHARTS (DARK) --- */
+  --chart-1: var(--accent-navy);
+  --chart-2: hsl(215, 20%, 65%);
+  --chart-3: hsl(213, 27%, 84%);
+  --chart-4: hsl(214, 32%, 91%);
+  --chart-5: hsl(210, 40%, 96.1%);
+  
+  /* --- SIDEBAR (DARK) --- */
+  --sidebar-background: hsl(217, 33%, 17%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: var(--accent-navy);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(217, 33%, 17%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(215, 25%, 27%);
+  --sidebar-ring: var(--accent-navy);
+}
+
+/* --- BUTTON COMPONENT CLASSES --- */
+.btn-primary {
+  background: var(--button-primary-bg);
+  color: var(--button-primary-text);
+  border: none;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.btn-primary:hover {
+  background: var(--button-primary-hover);
+}
+
+.btn-primary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.btn-secondary {
+  background: var(--button-secondary-bg);
+  color: var(--button-secondary-text);
+  border: none;
+  font-weight: 600;
+  transition: background 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--button-secondary-hover);
+}
+
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}

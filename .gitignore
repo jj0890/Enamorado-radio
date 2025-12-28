@@ -1,0 +1,69 @@
+node_modules
+dist
+.DS_Store
+server/public
+vite.config.ts.*
+*.tar.gz
+
+# Sensitive data files - DO NOT COMMIT TO PUBLIC REPOS
+data/
+*.json
+admins.json
+residents.json
+mixSubmissions.json
+episodes.json
+settings.json
+heroBanners.json
+guides.json
+albumSubmissions.json
+playlistSubmissions.json
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.development
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Replit specific
+.replit
+replit.nix
+.config/
+.upm/
+.cache/
+# Large media files
+attached_assets/
+*.mp3
+*.wav
+*.m4a
+
+# Large media files
+attached_assets/
+*.mp3
+*.wav
+*.m4a
+# Large media files
+attached_assets/
+temp_audio/
+*.mp3
+*.wav

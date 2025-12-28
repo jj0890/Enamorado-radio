@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RadioWave - Live Electronic Music Station</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'radio-dark': '#1a1a1a',
+                        'radio-card': '#2a2a2a',
+                        'radio-accent': '#00ff88',
+                        'radio-purple': '#8b5cf6',
+                        'radio-muted': '#888888',
+                    },
+                    fontFamily: {
+                        'sans': ['Inter', 'sans-serif'],
+                        'mono': ['JetBrains Mono', 'monospace'],
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'slide-up': 'slideUp 0.3s ease-out',
+                        'slide-down': 'slideDown 0.3s ease-out',
+                    },
+                    keyframes: {
+                        slideUp: {
+                            '0%': { transform: 'translateY(100%)', opacity: '0' },
+                            '100%': { transform: 'translateY(0)', opacity: '1' },
+                        },
+                        slideDown: {
+                            '0%': { transform: 'translateY(0)', opacity: '1' },
+                            '100%': { transform: 'translateY(100%)', opacity: '0' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-radio-dark text-white font-sans overflow-x-hidden">
+    <!-- @COMPONENT: Header -->
+    <header class="fixed top-0 left-0 right-0 z-50 bg-radio-dark/90 backdrop-blur-md border-b border-radio-card">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-8">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-radio-accent to-radio-purple rounded-lg flex items-center justify-center">
+                            <i class="fas fa-broadcast-tower text-radio-dark text-sm"></i>
+                        </div>
+                        <h1 class="text-xl font-bold">RadioWave</h1>
+                    </div>
+                    <nav class="hidden md:flex space-x-6">
+                        <a href="#live" class="text-radio-accent hover:text-white transition-colors">Live</a>
+                        <a href="#shows" class="text-radio-muted hover:text-white transition-colors">Shows</a>
+                        <a href="#schedule" class="text-radio-muted hover:text-white transition-colors">Schedule</a>
+                        <a href="#events" class="text-radio-muted hover:text-white transition-colors">Events</a>
+                        <a href="#builder" class="text-radio-purple hover:text-white transition-colors">Builder</a>
+                    </nav>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2 text-sm">
+                        <div class="w-2 h-2 bg-radio-accent rounded-full animate-pulse"></div>
+                        <span class="text-radio-muted">1,247 listeners</span>
+                    </div>
+                    <button class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-user"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: Hero Section -->
+    <section class="relative pt-16 pb-20 overflow-hidden">
+        <!-- Modern abstract background with radio waves -->
+        <div class="absolute inset-0 bg-gradient-to-br from-radio-dark via-radio-card to-radio-dark">
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1)_0%,transparent_50%)]"></div>
+            <div class="absolute inset-0 bg-[radial-gradient(circle_at_80%_20%,rgba(0,255,136,0.1)_0%,transparent_50%)]"></div>
+        </div>
+        
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <div class="space-y-4">
+                        <div class="flex items-center space-x-2 text-radio-accent">
+                            <div class="w-2 h-2 bg-radio-accent rounded-full animate-pulse"></div>
+                            <span class="text-sm font-mono uppercase tracking-wide">Now Playing</span>
+                        </div>
+                        <h2 class="text-4xl lg:text-6xl font-bold leading-tight">
+                            Electronic Music
+                            <span class="text-radio-purple">Revolution</span>
+                        </h2>
+                        <p class="text-xl text-radio-muted">
+                            Discover underground beats, live DJ sets, and exclusive mixes from the world's most innovative electronic artists.
+                        </p>
+                    </div>
+                    
+                    <div class="flex flex-wrap gap-4">
+                        <button class="px-6 py-3 bg-radio-accent text-radio-dark font-semibold rounded-lg hover:bg-radio-accent/90 transition-colors">
+                            <i class="fas fa-play mr-2"></i>
+                            Listen Live
+                        </button>
+                        <button class="px-6 py-3 bg-radio-card text-white font-semibold rounded-lg hover:bg-radio-card/80 transition-colors">
+                            <i class="fas fa-calendar mr-2"></i>
+                            View Schedule
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <!-- Modern radio interface mockup -->
+                    <div class="bg-radio-card/50 backdrop-blur-md rounded-2xl p-8 border border-radio-card">
+                        <div class="space-y-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-12 h-12 bg-gradient-to-br from-radio-accent to-radio-purple rounded-lg flex items-center justify-center">
+                                        <i class="fas fa-music text-radio-dark"></i>
+                                    </div>
+                                    <div>
+                                        <h3 class="font-semibold">Deep House Vibes</h3>
+                                        <p class="text-sm text-radio-muted">Mixed by DJ Aurora</p>
+                                    </div>
+                                </div>
+                                <div class="text-radio-accent">
+                                    <i class="fas fa-heart"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Waveform visualization -->
+                            <div class="relative h-16 bg-radio-dark/50 rounded-lg overflow-hidden">
+                                <div class="absolute inset-0 flex items-center justify-center space-x-1">
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 60%;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 40%; animation-delay: 0.1s;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 80%; animation-delay: 0.2s;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 30%; animation-delay: 0.3s;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 90%; animation-delay: 0.4s;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 50%; animation-delay: 0.5s;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 70%; animation-delay: 0.6s;"></div>
+                                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 45%; animation-delay: 0.7s;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-center justify-between text-sm text-radio-muted">
+                                <span>2:34</span>
+                                <div class="flex space-x-2">
+                                    <span class="px-2 py-1 bg-radio-dark/50 rounded text-xs">House</span>
+                                    <span class="px-2 py-1 bg-radio-dark/50 rounded text-xs">Deep</span>
+                                    <span class="px-2 py-1 bg-radio-dark/50 rounded text-xs">Electronic</span>
+                                </div>
+                                <span>5:47</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Hero Section -->
+
+    <!-- @COMPONENT: Live Shows Section -->
+    <section id="live" class="py-20 bg-radio-card/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">Live Shows</h2>
+                <p class="text-radio-muted text-lg">Currently broadcasting and coming up next</p>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Live Show Card -->
+                <div class="bg-radio-card/50 backdrop-blur-md rounded-xl p-6 border border-radio-card/50 hover:border-radio-accent/50 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-radio-accent/20 text-radio-accent text-sm rounded-full flex items-center">
+                            <div class="w-2 h-2 bg-radio-accent rounded-full animate-pulse mr-2"></div>
+                            LIVE
+                        </span>
+                        <span class="text-radio-muted text-sm font-mono">18:00 - 20:00</span>
+                    </div>
+                    <!-- Artist photo representing underground electronic music -->
+                    <img src="https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=300" alt="DJ mixing electronic music" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-semibold mb-2">Underground Sessions</h3>
+                    <p class="text-radio-muted mb-4">with DJ Nexus</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Techno</span>
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Underground</span>
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Industrial</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-sm text-radio-muted">
+                            <i class="fas fa-headphones"></i>
+                            <span>892 listening</span>
+                        </div>
+                        <button class="p-2 text-radio-accent hover:text-white transition-colors">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Upcoming Show Card -->
+                <div class="bg-radio-card/50 backdrop-blur-md rounded-xl p-6 border border-radio-card/50 hover:border-radio-purple/50 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-radio-purple/20 text-radio-purple text-sm rounded-full">
+                            NEXT
+                        </span>
+                        <span class="text-radio-muted text-sm font-mono">20:00 - 22:00</span>
+                    </div>
+                    <!-- Modern DJ setup with ambient lighting -->
+                    <img src="https://pixabay.com/get/ge49a12f3b5bbdd157e9a0afbbc71d97b8b15c941b7265430fbba194ee9c0c41215c210f7f8aa61b14bb7c70a4fd8dec7d2dd0110e60370bf0be61863b648c54a_1280.jpg" alt="Modern DJ setup with ambient lighting" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-semibold mb-2">Ambient Frequencies</h3>
+                    <p class="text-radio-muted mb-4">with Luna Waves</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Ambient</span>
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Drone</span>
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Experimental</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-sm text-radio-muted">
+                            <i class="fas fa-clock"></i>
+                            <span>Starts in 42 min</span>
+                        </div>
+                        <button class="p-2 text-radio-purple hover:text-white transition-colors">
+                            <i class="fas fa-bell"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Archive Show Card -->
+                <div class="bg-radio-card/50 backdrop-blur-md rounded-xl p-6 border border-radio-card/50 hover:border-radio-accent/50 transition-all duration-300">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="px-3 py-1 bg-radio-card text-radio-muted text-sm rounded-full">
+                            ARCHIVE
+                        </span>
+                        <span class="text-radio-muted text-sm font-mono">Recently aired</span>
+                    </div>
+                    <!-- Professional music studio equipment -->
+                    <img src="https://images.unsplash.com/photo-1598488035139-bdbb2231ce04?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=400&h=300" alt="Professional music studio equipment" class="w-full h-48 object-cover rounded-lg mb-4">
+                    <h3 class="text-xl font-semibold mb-2">Bass & Breaks</h3>
+                    <p class="text-radio-muted mb-4">with MC Voltage</p>
+                    <div class="flex flex-wrap gap-2 mb-4">
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Drum & Bass</span>
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Jungle</span>
+                        <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Breakbeat</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-2 text-sm text-radio-muted">
+                            <i class="fas fa-archive"></i>
+                            <span>2.1k plays</span>
+                        </div>
+                        <button class="p-2 text-radio-accent hover:text-white transition-colors">
+                            <i class="fas fa-play"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Live Shows Section -->
+
+    <!-- @COMPONENT: Playlist Builder Section -->
+    <section id="builder" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl lg:text-4xl font-bold mb-4">Playlist Builder</h2>
+                <p class="text-radio-muted text-lg">Create and schedule your own radio shows</p>
+            </div>
+            
+            <div class="bg-radio-card/50 backdrop-blur-md rounded-2xl p-8 border border-radio-card/50">
+                <div class="grid lg:grid-cols-3 gap-8">
+                    <!-- Music Sources -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-music text-radio-accent mr-2"></i>
+                            Music Sources
+                        </h3>
+                        <div class="space-y-3">
+                            <div class="flex items-center space-x-3 p-3 bg-radio-dark/30 rounded-lg">
+                                <i class="fab fa-spotify text-green-500"></i>
+                                <span>Spotify Integration</span>
+                                <div class="ml-auto w-2 h-2 bg-radio-accent rounded-full"></div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-radio-dark/30 rounded-lg">
+                                <i class="fab fa-soundcloud text-orange-500"></i>
+                                <span>SoundCloud</span>
+                                <div class="ml-auto w-2 h-2 bg-radio-accent rounded-full"></div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-radio-dark/30 rounded-lg">
+                                <i class="fas fa-upload text-radio-purple"></i>
+                                <span>Upload Files</span>
+                                <div class="ml-auto w-2 h-2 bg-radio-muted rounded-full"></div>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-radio-dark/30 rounded-lg">
+                                <i class="fas fa-microphone text-radio-accent"></i>
+                                <span>Live Recording</span>
+                                <div class="ml-auto w-2 h-2 bg-radio-muted rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Timeline Builder -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-timeline text-radio-purple mr-2"></i>
+                            Timeline
+                        </h3>
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-3 p-3 bg-radio-accent/10 border border-radio-accent/20 rounded-lg">
+                                <div class="w-8 h-8 bg-radio-accent/20 rounded flex items-center justify-center">
+                                    <i class="fas fa-music text-radio-accent text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium">Intro Track</div>
+                                    <div class="text-xs text-radio-muted">0:00 - 3:24</div>
+                                </div>
+                                <button class="text-radio-muted hover:text-white">
+                                    <i class="fas fa-grip-vertical"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-radio-purple/10 border border-radio-purple/20 rounded-lg">
+                                <div class="w-8 h-8 bg-radio-purple/20 rounded flex items-center justify-center">
+                                    <i class="fas fa-microphone text-radio-purple text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium">DJ Talk</div>
+                                    <div class="text-xs text-radio-muted">3:24 - 4:12</div>
+                                </div>
+                                <button class="text-radio-muted hover:text-white">
+                                    <i class="fas fa-grip-vertical"></i>
+                                </button>
+                            </div>
+                            <div class="flex items-center space-x-3 p-3 bg-radio-card/50 border border-radio-card rounded-lg">
+                                <div class="w-8 h-8 bg-radio-card rounded flex items-center justify-center">
+                                    <i class="fas fa-music text-radio-muted text-xs"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="text-sm font-medium">Main Mix</div>
+                                    <div class="text-xs text-radio-muted">4:12 - 45:30</div>
+                                </div>
+                                <button class="text-radio-muted hover:text-white">
+                                    <i class="fas fa-grip-vertical"></i>
+                                </button>
+                            </div>
+                            <div class="p-3 border-2 border-dashed border-radio-muted/30 rounded-lg text-center">
+                                <div class="text-radio-muted">
+                                    <i class="fas fa-plus mb-2"></i>
+                                    <div class="text-sm">Drop tracks here</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Controls & Settings -->
+                    <div class="space-y-6">
+                        <h3 class="text-xl font-semibold flex items-center">
+                            <i class="fas fa-sliders-h text-radio-accent mr-2"></i>
+                            Controls
+                        </h3>
+                        <div class="space-y-4">
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium">Show Title</label>
+                                <input type="text" class="w-full p-3 bg-radio-dark/50 border border-radio-card rounded-lg focus:border-radio-accent focus:outline-none" placeholder="Enter show title">
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium">Genre Tags</label>
+                                <div class="flex flex-wrap gap-2">
+                                    <span class="px-2 py-1 bg-radio-accent/20 text-radio-accent text-xs rounded">House</span>
+                                    <span class="px-2 py-1 bg-radio-purple/20 text-radio-purple text-xs rounded">Techno</span>
+                                    <button class="px-2 py-1 bg-radio-card text-radio-muted text-xs rounded hover:bg-radio-card/80">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-sm font-medium">Schedule</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <input type="date" class="p-2 bg-radio-dark/50 border border-radio-card rounded text-sm focus:border-radio-accent focus:outline-none">
+                                    <input type="time" class="p-2 bg-radio-dark/50 border border-radio-card rounded text-sm focus:border-radio-accent focus:outline-none">
+                                </div>
+                            </div>
+                            <div class="pt-4 space-y-2">
+                                <button class="w-full p-3 bg-radio-accent text-radio-dark font-semibold rounded-lg hover:bg-radio-accent/90 transition-colors">
+                                    <i class="fas fa-save mr-2"></i>
+                                    Save Draft
+                                </button>
+                                <button class="w-full p-3 bg-radio-purple text-white font-semibold rounded-lg hover:bg-radio-purple/90 transition-colors">
+                                    <i class="fas fa-paper-plane mr-2"></i>
+                                    Submit for Review
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Playlist Builder Section -->
+
+    <!-- @COMPONENT: Expandable Audio Player -->
+    <div id="audioPlayer" class="fixed bottom-6 right-6 z-50 transition-all duration-300 ease-in-out">
+        <!-- Collapsed State -->
+        <div id="playerCollapsed" class="bg-radio-card/90 backdrop-blur-md rounded-xl p-4 border border-radio-card shadow-2xl w-80">
+            <div class="flex items-center space-x-4">
+                <!-- Album Art -->
+                <div class="w-12 h-12 bg-gradient-to-br from-radio-accent to-radio-purple rounded-lg flex items-center justify-center flex-shrink-0">
+                    <i class="fas fa-music text-radio-dark"></i>
+                </div>
+                
+                <!-- Track Info -->
+                <div class="flex-1 min-w-0">
+                    <div class="text-sm font-medium truncate">Deep House Vibes</div>
+                    <div class="text-xs text-radio-muted truncate">DJ Aurora</div>
+                </div>
+                
+                <!-- Controls -->
+                <div class="flex items-center space-x-2">
+                    <button class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-backward"></i>
+                    </button>
+                    <button id="playPauseBtn" class="p-2 text-radio-accent hover:text-white transition-colors">
+                        <i class="fas fa-pause"></i>
+                    </button>
+                    <button class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-forward"></i>
+                    </button>
+                    <button id="expandBtn" class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-expand"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mt-3">
+                <div class="w-full bg-radio-dark/50 rounded-full h-1">
+                    <div class="bg-radio-accent h-1 rounded-full" style="width: 45%"></div>
+                </div>
+                <div class="flex justify-between text-xs text-radio-muted mt-1">
+                    <span>2:34</span>
+                    <span>5:47</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Expanded State (Hidden by default) -->
+        <div id="playerExpanded" class="hidden bg-radio-card/95 backdrop-blur-md rounded-xl p-6 border border-radio-card shadow-2xl w-96">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold">Now Playing</h3>
+                <button id="collapseBtn" class="p-2 text-radio-muted hover:text-white transition-colors">
+                    <i class="fas fa-compress"></i>
+                </button>
+            </div>
+            
+            <!-- Large Album Art -->
+            <div class="w-full h-48 bg-gradient-to-br from-radio-accent to-radio-purple rounded-lg flex items-center justify-center mb-4">
+                <i class="fas fa-music text-radio-dark text-3xl"></i>
+            </div>
+            
+            <!-- Track Info -->
+            <div class="text-center mb-6">
+                <h4 class="text-xl font-semibold mb-1">Deep House Vibes</h4>
+                <p class="text-radio-muted">DJ Aurora</p>
+                <div class="flex justify-center space-x-2 mt-2">
+                    <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">House</span>
+                    <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Deep</span>
+                    <span class="px-2 py-1 bg-radio-dark/50 text-xs rounded">Electronic</span>
+                </div>
+            </div>
+            
+            <!-- Waveform -->
+            <div class="relative h-16 bg-radio-dark/50 rounded-lg overflow-hidden mb-4">
+                <div class="absolute inset-0 flex items-center justify-center space-x-1">
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 60%;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 40%; animation-delay: 0.1s;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 80%; animation-delay: 0.2s;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 30%; animation-delay: 0.3s;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 90%; animation-delay: 0.4s;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 50%; animation-delay: 0.5s;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 70%; animation-delay: 0.6s;"></div>
+                    <div class="w-1 bg-radio-accent rounded-full animate-pulse" style="height: 45%; animation-delay: 0.7s;"></div>
+                </div>
+            </div>
+            
+            <!-- Progress Bar -->
+            <div class="mb-6">
+                <div class="w-full bg-radio-dark/50 rounded-full h-2">
+                    <div class="bg-radio-accent h-2 rounded-full" style="width: 45%"></div>
+                </div>
+                <div class="flex justify-between text-sm text-radio-muted mt-2">
+                    <span>2:34</span>
+                    <span>5:47</span>
+                </div>
+            </div>
+            
+            <!-- Controls -->
+            <div class="flex items-center justify-center space-x-4 mb-4">
+                <button class="p-3 text-radio-muted hover:text-white transition-colors">
+                    <i class="fas fa-random"></i>
+                </button>
+                <button class="p-3 text-radio-muted hover:text-white transition-colors">
+                    <i class="fas fa-backward"></i>
+                </button>
+                <button class="p-4 bg-radio-accent text-radio-dark rounded-full hover:bg-radio-accent/90 transition-colors">
+                    <i class="fas fa-pause text-lg"></i>
+                </button>
+                <button class="p-3 text-radio-muted hover:text-white transition-colors">
+                    <i class="fas fa-forward"></i>
+                </button>
+                <button class="p-3 text-radio-muted hover:text-white transition-colors">
+                    <i class="fas fa-repeat"></i>
+                </button>
+            </div>
+            
+            <!-- Volume Control -->
+            <div class="flex items-center space-x-3">
+                <i class="fas fa-volume-down text-radio-muted"></i>
+                <div class="flex-1">
+                    <div class="w-full bg-radio-dark/50 rounded-full h-1">
+                        <div class="bg-radio-accent h-1 rounded-full" style="width: 70%"></div>
+                    </div>
+                </div>
+                <i class="fas fa-volume-up text-radio-muted"></i>
+            </div>
+            
+            <!-- Additional Controls -->
+            <div class="flex items-center justify-between mt-4 pt-4 border-t border-radio-card">
+                <div class="flex items-center space-x-2 text-sm text-radio-muted">
+                    <i class="fas fa-headphones"></i>
+                    <span>892 listeners</span>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-heart"></i>
+                    </button>
+                    <button class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-share"></i>
+                    </button>
+                    <button class="p-2 text-radio-muted hover:text-white transition-colors">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- @END_COMPONENT: Expandable Audio Player -->
+
+    <!-- @COMPONENT: Footer -->
+    <footer class="bg-radio-card/30 border-t border-radio-card py-12">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-2">
+                        <div class="w-8 h-8 bg-gradient-to-br from-radio-accent to-radio-purple rounded-lg flex items-center justify-center">
+                            <i class="fas fa-broadcast-tower text-radio-dark text-sm"></i>
+                        </div>
+                        <h3 class="text-lg font-bold">RadioWave</h3>
+                    </div>
+                    <p class="text-radio-muted text-sm">
+                        Broadcasting the future of electronic music, connecting artists and listeners worldwide.
+                    </p>
+                </div>
+                
+                <div class="space-y-4">
+                    <h4 class="font-semibold">Listen</h4>
+                    <div class="space-y-2 text-sm">
+                        <a href="#" class="block text-radio-muted hover:text-white transition-colors">Live Stream</a>
+                        <a href="#" class="block text-radio-muted hover:text-white transition-colors">Show Archive</a>
+                        <a href="#" class="block text-radio-muted hover:text-white transition-colors">Podcast</a>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h4 class="font-semibold">Create</h4>
+                    <div class="space-y-2 text-sm">
+                        <a href="#" class="block text-radio-muted hover:text-white transition-colors">Playlist Builder</a>
+                        <a href="#" class="block text-radio-muted hover:text-white transition-colors">Submit Show</a>
+                        <a href="#" class="block text-radio-muted hover:text-white transition-colors">Artist Portal</a>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <h4 class="font-semibold">Connect</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-radio-muted hover:text-white transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="text-radio-muted hover:text-white transition-colors">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="#" class="text-radio-muted hover:text-white transition-colors">
+                            <i class="fab fa-soundcloud"></i>
+                        </a>
+                        <a href="#" class="text-radio-muted hover:text-white transition-colors">
+                            <i class="fab fa-discord"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-radio-card mt-8 pt-8 text-center text-radio-muted text-sm">
+                <p>&copy; 2025 RadioWave. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    <!-- @END_COMPONENT: Footer -->
+
+    <!-- JavaScript for Player Functionality -->
+    <script>
+        (function() {
+            const expandBtn = document.getElementById('expandBtn');
+            const collapseBtn = document.getElementById('collapseBtn');
+            const playerCollapsed = document.getElementById('playerCollapsed');
+            const playerExpanded = document.getElementById('playerExpanded');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            
+            let isExpanded = false;
+            let isPlaying = true;
+            
+            // Toggle player expansion
+            function togglePlayer() {
+                isExpanded = !isExpanded;
+                
+                if (isExpanded) {
+                    playerCollapsed.classList.add('hidden');
+                    playerExpanded.classList.remove('hidden');
+                    playerExpanded.classList.add('animate-slide-up');
+                } else {
+                    playerExpanded.classList.add('hidden');
+                    playerCollapsed.classList.remove('hidden');
+                    playerCollapsed.classList.add('animate-slide-up');
+                }
+            }
+            
+            // Toggle play/pause
+            function togglePlayPause() {
+                isPlaying = !isPlaying;
+                const icon = playPauseBtn.querySelector('i');
+                
+                if (isPlaying) {
+                    icon.classList.remove('fa-play');
+                    icon.classList.add('fa-pause');
+                } else {
+                    icon.classList.remove('fa-pause');
+                    icon.classList.add('fa-play');
+                }
+            }
+            
+            // Event listeners
+            expandBtn.addEventListener('click', togglePlayer);
+            collapseBtn.addEventListener('click', togglePlayer);
+            playPauseBtn.addEventListener('click', togglePlayPause);
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.code === 'Space' && !e.target.matches('input, textarea')) {
+                    e.preventDefault();
+                    togglePlayPause();
+                }
+                if (e.code === 'KeyE' && e.ctrlKey) {
+                    e.preventDefault();
+                    togglePlayer();
+                }
+            });
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // TODO: Implement business logic for:
+            // - Real-time audio streaming
+            // - Playlist management
+            // - User authentication
+            // - Show scheduling
+            // - Multi-platform music integration
+            // - WebAudio API for advanced features
+        })();
+    </script>
+</body>
+</html>

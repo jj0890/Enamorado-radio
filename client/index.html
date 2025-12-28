@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Enamorado Radio</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+
+    <!-- Kill any old floating live button -->
+    <style>
+      /* kill the legacy header player/badge */
+      #listen-live,
+      .listen-live,
+      .listen-live-btn,
+      .header-player,
+      .header .player,
+      .header .listen-live,
+      button[data-player],
+      a[href*="listen"], 
+      a[aria-label*="Listen Live"],
+      [data-live-button], 
+      .live-button,
+      .fixed.top-4.right-4,
+      .fixed.top-0.right-0,
+      .fixed.top-2.right-2,
+      .fixed.top-6.right-6 {
+        display: none !important;
+        visibility: hidden !important;
+      }
+    </style>
+
+    <!-- React-based StickyRadioPlayer and HeroStation handle all audio playback -->
+  </body>
+</html>

@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title id="pageTitle">Explore – Enamorado Radio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <style>
+    body { 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+      background: #000;
+      color: white;
+    }
+    
+    /* Tag styling */
+    .tag-item {
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .tag-item:hover {
+      background: rgba(59, 130, 246, 0.2);
+      border-color: rgb(59, 130, 246);
+      transform: translateY(-2px);
+    }
+    .tag-item.active {
+      background: rgba(59, 130, 246, 0.3);
+      border-color: rgb(59, 130, 246);
+    }
+    
+    /* Card styling */
+    .content-card {
+      transition: all 0.3s ease;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .content-card:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-black text-white">
+  <!-- Header -->
+  <header class="border-b border-white/10 bg-black/90 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-8">
+          <h1 class="text-2xl font-bold tracking-tight cursor-pointer hover:text-blue-400 transition-colors" onclick="goHome()">
+            ENAMORADO
+          </h1>
+          <nav class="hidden md:flex items-center space-x-6 text-sm">
+            <a href="/" class="text-white/80 hover:text-white transition-colors">HOME</a>
+            <a href="/radio" class="text-white/80 hover:text-white transition-colors">RADIO</a>
+            <a href="#" class="text-white hover:text-blue-400 transition-colors font-medium">EXPLORE</a>
+            <a href="#" class="text-white/80 hover:text-white transition-colors">GUIDES</a>
+            <a href="#" class="text-white/80 hover:text-white transition-colors">RESIDENTS</a>
+          </nav>
+        </div>
+        <div class="flex items-center space-x-4">
+          <button class="p-2 hover:bg-white/10 rounded transition-colors">
+            <i data-lucide="search" class="w-5 h-5"></i>
+          </button>
+          <button class="p-2 hover:bg-white/10 rounded transition-colors">
+            <i data-lucide="user" class="w-5 h-5"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="py-16 border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 text-center">
+      <h2 id="tagName" class="text-4xl font-bold mb-4">EXPLORE ENAMORADO</h2>
+      <p id="tagDesc" class="text-xl text-white/70 max-w-2xl mx-auto">
+        Discover shows, mixes, and content by genre, mood, or theme. From Texas roots to global sounds.
+      </p>
+    </div>
+  </section>
+
+  <!-- Main Layout -->
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      
+      <!-- Sidebar - Tag Navigation -->
+      <aside class="lg:sticky lg:top-24 lg:h-fit">
+        <div class="bg-white/5 border border-white/10 rounded-lg p-6">
+          <h3 class="text-lg font-semibold mb-4 flex items-center">
+            <i data-lucide="filter" class="w-5 h-5 mr-2"></i>
+            Browse by Genre
+          </h3>
+          <ul id="tagList" class="space-y-2">
+            <!-- JS populates tag buttons -->
+          </ul>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="bg-white/5 border border-white/10 rounded-lg p-6 mt-6">
+          <h3 class="text-lg font-semibold mb-4">Archive Stats</h3>
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between">
+              <span class="text-white/70">Total Shows</span>
+              <span class="font-medium">247</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-white/70">Hours of Content</span>
+              <span class="font-medium">492h</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-white/70">Active Residents</span>
+              <span class="font-medium">12</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-white/70">Genres Covered</span>
+              <span class="font-medium" id="genreCount">15</span>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="lg:col-span-3">
+        <!-- Content Header -->
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 id="contentTitle" class="text-2xl font-bold">All Content</h3>
+            <p id="contentSubtitle" class="text-white/70 mt-1">Latest shows, mixes, and broadcasts from our archive</p>
+          </div>
+          <div class="flex items-center space-x-4">
+            <!-- Sort Options -->
+            <select id="sortBy" class="bg-white/5 border border-white/20 text-white rounded px-3 py-2 text-sm">
+              <option value="date">Newest First</option>
+              <option value="title">Title A-Z</option>
+              <option value="host">Host A-Z</option>
+              <option value="duration">Duration</option>
+            </select>
+            <!-- View Toggle -->
+            <div class="flex border border-white/20 rounded overflow-hidden">
+              <button id="gridView" class="px-3 py-2 bg-white/10 text-white text-sm">
+                <i data-lucide="grid-3x3" class="w-4 h-4"></i>
+              </button>
+              <button id="listView" class="px-3 py-2 text-white/70 hover:bg-white/5 text-sm">
+                <i data-lucide="list" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content Grid -->
+        <section id="contentGrid" class="space-y-6">
+          <!-- Content populated by JS -->
+        </section>
+
+        <!-- Pagination -->
+        <nav class="flex items-center justify-center space-x-4 mt-12" id="pagination">
+          <button id="prevBtn" class="px-4 py-2 border border-white/20 text-white hover:bg-white/10 rounded transition-colors" disabled>
+            <i data-lucide="chevron-left" class="w-4 h-4 mr-1"></i>
+            Previous
+          </button>
+          <span id="pageInfo" class="text-white/70">Page 1 of 5</span>
+          <button id="nextBtn" class="px-4 py-2 border border-white/20 text-white hover:bg-white/10 rounded transition-colors">
+            Next
+            <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+          </button>
+        </nav>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    // Configuration
+    const PER_PAGE = 9;
+    
+    // Sample data - Texas/SA themed
+    const allContent = [
+      {
+        id: 1,
+        type: "show",
+        date: "JAN 08, 2025",
+        title: "DJ Amadeezy's Best of 2024",
+        host: "DJ Amadeezy",
+        location: "San Antonio",
+        description: "Year-end mix featuring the tracks that defined DJ Amadeezy's sound this past year.",
+        duration: "2h 00m",
+        tags: ["HIP-HOP", "ELECTRONIC", "YEAR-END", "DJ-AMADEEZY"],
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"
+      },
+      {
+        id: 2,
+        type: "mix",
+        date: "JAN 07, 2025", 
+        title: "SAC Student Spotlight",
+        host: "SAC Students",
+        location: "San Antonio College",
+        description: "Featuring original compositions and mixes from San Antonio College's most talented students.",
+        duration: "1h 45m",
+        tags: ["STUDENT", "ORIGINAL", "SPOTLIGHT", "SAC"],
+        image: "https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop"
+      },
+      {
+        id: 3,
+        type: "show",
+        date: "JAN 06, 2025",
+        title: "Houston's Electronic Underground",
+        host: "Keisha Williams", 
+        location: "Houston",
+        description: "The city's hidden electronic scene beyond the mainstream rap - from warehouse techno to ambient explorations.",
+        duration: "2h 15m",
+        tags: ["ELECTRONIC", "HOUSTON", "UNDERGROUND", "TECHNO"],
+        image: "https://images.unsplash.com/photo-1571266028243-8c68250dd571?w=400&h=400&fit=crop"
+      },
+      {
+        id: 4,
+        type: "show",
+        date: "JAN 05, 2025",
+        title: "Desert Techno Explorations",
+        host: "Carlos Mendez",
+        location: "El Paso", 
+        description: "Minimalist beats echoing across West Texas landscapes - where the desert meets the dancefloor.",
+        duration: "2h 30m",
+        tags: ["TECHNO", "MINIMAL", "WEST-TEXAS", "DESERT"],
+        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop"
+      },
+      {
+        id: 5,
+        type: "mix",
+        date: "JAN 04, 2025",
+        title: "Tejano Electronic Fusion",
+        host: "Various Artists",
+        location: "San Antonio",
+        description: "Traditional Tejano accordion meets synthesizers and drum machines in this cultural collision.",
+        duration: "1h 30m", 
+        tags: ["TEJANO", "ELECTRONIC", "FUSION", "TRADITIONAL"],
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"
+      },
+      {
+        id: 6,
+        type: "show",
+        date: "JAN 03, 2025",
+        title: "Dallas Underground Hip-Hop",
+        host: "Jake Morrison",
+        location: "Dallas",
+        description: "Beyond the mainstream - Dallas' experimental hip-hop scene pushing boundaries.",
+        duration: "2h 00m",
+        tags: ["HIP-HOP", "UNDERGROUND", "DALLAS", "EXPERIMENTAL"],
+        image: "https://images.unsplash.com/photo-1571266028243-8c68250dd571?w=400&h=400&fit=crop"
+      },
+      {
+        id: 7,
+        type: "show", 
+        date: "JAN 02, 2025",
+        title: "Texas Country Reimagined",
+        host: "Sarah Martinez",
+        location: "San Antonio",
+        description: "How modern artists are reinventing Texas country music for a new generation.",
+        duration: "1h 50m",
+        tags: ["COUNTRY", "REIMAGINED", "MODERN", "TEXAS"],
+        image: "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop"
+      },
+      {
+        id: 8,
+        type: "mix",
+        date: "JAN 01, 2025",
+        title: "New Year Ambient Journey",
+        host: "Alex Rivera",
+        location: "San Antonio", 
+        description: "A meditative start to 2025 with ambient textures and field recordings from South Texas.",
+        duration: "3h 00m",
+        tags: ["AMBIENT", "MEDITATION", "FIELD-RECORDING", "NEW-YEAR"],
+        image: "https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=400&h=400&fit=crop"
+      },
+      {
+        id: 9,
+        type: "show",
+        date: "DEC 31, 2024",
+        title: "Year-End Trap Anthology",
+        host: "Rico Suave",
+        location: "Houston",
+        description: "The best trap and hip-hop tracks that defined Houston's 2024 music scene.",
+        duration: "2h 45m",
+        tags: ["TRAP", "HIP-HOP", "HOUSTON", "YEAR-END"],
+        image: "https://images.unsplash.com/photo-1571266028243-8c68250dd571?w=400&h=400&fit=crop"
+      }
+    ];
+
+    // Get unique tags
+    const allTags = [...new Set(allContent.flatMap(item => item.tags))].sort();
+    
+    // State
+    let activeTag = 'all';
+    let currentPage = 1;
+    let sortBy = 'date';
+    let viewMode = 'grid';
+
+    // DOM elements
+    const tagNameEl = document.getElementById('tagName');
+    const tagDescEl = document.getElementById('tagDesc');
+    const contentGrid = document.getElementById('contentGrid');
+    const tagList = document.getElementById('tagList');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const pageInfo = document.getElementById('pageInfo');
+    const contentTitle = document.getElementById('contentTitle');
+    const contentSubtitle = document.getElementById('contentSubtitle');
+    const genreCount = document.getElementById('genreCount');
+
+    // Initialize
+    function init() {
+      lucide.createIcons();
+      buildTagSidebar();
+      setupEventListeners();
+      routeFromQuery();
+      render();
+      updateGenreCount();
+    }
+
+    // Build sidebar tag navigation
+    function buildTagSidebar() {
+      const tagButtons = [
+        `<li><button class="tag-item w-full text-left px-4 py-2 rounded cursor-pointer ${activeTag === 'all' ? 'active' : ''}" data-tag="all">All Content</button></li>`,
+        ...allTags.map(tag => 
+          `<li><button class="tag-item w-full text-left px-4 py-2 rounded cursor-pointer ${activeTag === tag ? 'active' : ''}" data-tag="${tag}">${tag}</button></li>`
+        )
+      ];
+      
+      tagList.innerHTML = tagButtons.join('');
+      
+      // Add click handlers
+      tagList.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => setActiveTag(btn.dataset.tag));
+      });
+    }
+
+    // Update active tag
+    function setActiveTag(tag) {
+      activeTag = tag;
+      currentPage = 1;
+      
+      // Update URL
+      const url = tag === 'all' ? '/explore' : `/explore?tag=${encodeURIComponent(tag)}`;
+      history.replaceState(null, '', url);
+      
+      // Update UI
+      updateTagDisplay();
+      buildTagSidebar();
+      render();
+    }
+
+    function updateTagDisplay() {
+      if (activeTag === 'all') {
+        tagNameEl.textContent = 'EXPLORE ENAMORADO';
+        tagDescEl.textContent = 'Discover shows, mixes, and content by genre, mood, or theme. From Texas roots to global sounds.';
+        contentTitle.textContent = 'All Content';
+        contentSubtitle.textContent = 'Latest shows, mixes, and broadcasts from our archive';
+        document.title = 'Explore – Enamorado Radio';
+      } else {
+        tagNameEl.textContent = activeTag;
+        tagDescEl.textContent = `Curated content filed under "${activeTag}" - exploring the sounds and stories that define this genre.`;
+        contentTitle.textContent = `${activeTag} Content`;
+        contentSubtitle.textContent = `Shows, mixes, and broadcasts tagged with "${activeTag}"`;
+        document.title = `${activeTag} – Enamorado Radio`;
+      }
+    }
+
+    // Route from URL query
+    function routeFromQuery() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlTag = urlParams.get('tag');
+      if (urlTag && allTags.includes(urlTag)) {
+        setActiveTag(urlTag);
+      }
+    }
+
+    // Filter and sort content
+    function getFilteredContent() {
+      let filtered = activeTag === 'all' 
+        ? allContent 
+        : allContent.filter(item => item.tags.includes(activeTag));
+      
+      // Sort content
+      filtered.sort((a, b) => {
+        switch(sortBy) {
+          case 'title':
+            return a.title.localeCompare(b.title);
+          case 'host':
+            return a.host.localeCompare(b.host);
+          case 'duration':
+            return a.duration.localeCompare(b.duration);
+          case 'date':
+          default:
+            return new Date(b.date) - new Date(a.date);
+        }
+      });
+      
+      return filtered;
+    }
+
+    // Render content
+    function render() {
+      const filtered = getFilteredContent();
+      const totalPages = Math.ceil(filtered.length / PER_PAGE);
+      currentPage = Math.min(currentPage, Math.max(1, totalPages));
+      
+      const startIndex = (currentPage - 1) * PER_PAGE;
+      const pageContent = filtered.slice(startIndex, startIndex + PER_PAGE);
+      
+      // Render content cards
+      contentGrid.innerHTML = pageContent.map(createContentCard).join('');
+      
+      // Update pagination
+      pageInfo.textContent = `Page ${currentPage} of ${totalPages}`;
+      prevBtn.disabled = currentPage === 1;
+      nextBtn.disabled = currentPage === totalPages;
+      
+      lucide.createIcons();
+    }
+
+    // Create content card
+    function createContentCard(item) {
+      return `
+        <article class="content-card rounded-lg p-6 cursor-pointer">
+          <div class="flex items-start space-x-4">
+            <div class="w-24 h-24 bg-white/5 rounded-lg flex-shrink-0 overflow-hidden">
+              <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+            </div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between mb-2">
+                <div>
+                  <div class="text-xs text-white/60 mb-1">${item.date}</div>
+                  <h3 class="text-lg font-semibold text-white mb-1">${item.title}</h3>
+                  <div class="text-white/70 text-sm mb-2">
+                    ${item.host} • ${item.location}
+                  </div>
+                </div>
+                <div class="flex items-center space-x-2 flex-shrink-0">
+                  <span class="text-xs px-2 py-1 border border-white/20 rounded ${item.type === 'show' ? 'text-blue-400 border-blue-400' : 'text-green-400 border-green-400'}">
+                    ${item.type.toUpperCase()}
+                  </span>
+                  <span class="text-xs border border-white/20 px-2 py-1 rounded">${item.duration}</span>
+                </div>
+              </div>
+              <p class="text-white/70 text-sm mb-4 line-clamp-2">${item.description}</p>
+              <div class="flex flex-wrap gap-2">
+                ${item.tags.map(tag => `
+                  <span class="px-2 py-1 bg-white/10 border border-white/20 rounded text-xs cursor-pointer hover:bg-blue-500/20 hover:border-blue-500 transition-colors" onclick="setActiveTag('${tag}')">
+                    ${tag}
+                  </span>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    // Event listeners
+    function setupEventListeners() {
+      // Sort dropdown
+      document.getElementById('sortBy').addEventListener('change', (e) => {
+        sortBy = e.target.value;
+        render();
+      });
+      
+      // Pagination
+      prevBtn.addEventListener('click', () => {
+        if (currentPage > 1) {
+          currentPage--;
+          render();
+        }
+      });
+      
+      nextBtn.addEventListener('click', () => {
+        const filtered = getFilteredContent();
+        const totalPages = Math.ceil(filtered.length / PER_PAGE);
+        if (currentPage < totalPages) {
+          currentPage++;
+          render();
+        }
+      });
+      
+      // View mode (placeholder for future enhancement)
+      document.getElementById('gridView').addEventListener('click', () => {
+        viewMode = 'grid';
+        document.getElementById('gridView').classList.add('bg-white/10');
+        document.getElementById('listView').classList.remove('bg-white/10');
+      });
+      
+      document.getElementById('listView').addEventListener('click', () => {
+        viewMode = 'list';
+        document.getElementById('listView').classList.add('bg-white/10');
+        document.getElementById('gridView').classList.remove('bg-white/10');
+      });
+    }
+
+    function updateGenreCount() {
+      genreCount.textContent = allTags.length;
+    }
+
+    function goHome() {
+      window.location.href = '/';
+    }
+
+    // Initialize when DOM is loaded
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>

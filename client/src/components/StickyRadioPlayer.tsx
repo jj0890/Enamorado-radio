@@ -1,0 +1,349 @@
+import { useEffect, useState, useRef } from 'react';
+import { useAudio } from '@/providers/AudioProvider';
+import AudioProgressBar from '@/components/AudioProgressBar';
+import { audioController } from '@/lib/audioController';
+import { Volume2, VolumeX, ChevronUp, ChevronDown } from 'lucide-react';
+
+// HTTPS-safe proxy URLs (routes through our server)
+const STREAM_URL = '/stream.mp3'; // Proxied stream
+const NOWPLAYING_URL = '/api/nowplaying'; // Proxied now playing
+const ARTWORK_URL = '/api/artwork'; // Spotify artwork
+
+interface NowPlayingData {
+  now_playing?: {
+    song?: {
+      artist?: string;
+      title?: string;
+    };
+  };
+  live?: {
+    is_live?: boolean;
+    streamer_name?: string;
+  };
+}
+
+export default function StickyRadioPlayer() {
+  // Use shared audio context
+  const { state, actions } = useAudio();
+  const isPlaying = state.status === 'playing';
+  const volume = state.volume;
+  
+  // Check if we're playing episode content (not live stream)
+  const isPlayingEpisode = state.src && !state.src.includes('stream.mp3') && state.isLive === false;
+
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [liveNowPlaying, setLiveNowPlaying] = useState({
+    title: 'Enamorado Radio',
+    subtitle: 'Click to tune in'
+  });
+  const [liveArtwork, setLiveArtwork] = useState<string | null>(null);
+  const [previousArtwork, setPreviousArtwork] = useState<string | null>(null);
+  const [showVolumePopover, setShowVolumePopover] = useState(false);
+  const volumePopoverRef = useRef<HTMLDivElement>(null);
+  
+  // Use episode metadata if playing an episode, otherwise use live data
+  const nowPlaying = isPlayingEpisode 
+    ? { 
+        title: state.title || 'Episode', 
+        subtitle: state.artist || '' 
+      }
+    : liveNowPlaying;
+  
+  const artwork = isPlayingEpisode ? (state.artwork || null) : liveArtwork;
+
+  // Play/Pause toggle
+  const handleToggle = async () => {
+    console.log('🎵 StickyPlayer handleToggle called, isPlaying:', isPlaying);
+    
+    if (isPlaying) {
+      actions.pause();
+    } else {
+      try {
+        console.log('🎵 StickyPlayer attempting to play audio...');
+        await actions.play(STREAM_URL, {
+          title: nowPlaying.title,
+          isLive: nowPlaying.subtitle.includes('LIVE'),
+        });
+        console.log('✅ StickyPlayer audio playing successfully');
+      } catch (error) {
+        console.error('❌ StickyPlayer audio play failed:', error);
+        alert('Failed to start audio: ' + (error as Error).message);
+      }
+    }
+  };
+
+  // Volume control
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVolume = parseFloat(e.target.value);
+    actions.setVolume(newVolume);
+    console.log('🔊 StickyPlayer volume set to:', newVolume);
+  };
+
+  // Poll AzuraCast for now playing info
+  const pollNowPlaying = async () => {
+    try {
+      console.log('📡 StickyPlayer polling now playing...');
+      const response = await fetch(NOWPLAYING_URL, { cache: 'no-store' });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      const data: NowPlayingData = await response.json();
+      console.log('📡 StickyPlayer now playing response:', data);
+
+      const song = data.now_playing?.song || {};
+      const artist = song.artist || '';
+      const track = song.title || 'Live Stream';
+
+      // Enhanced title mapping for uploaded episodes
+      let displayTitle = 'Enamorado Radio';
+      if (artist && track && track !== 'Station Offline') {
+        displayTitle = `${artist} — ${track}`;
+      } else if (track && track !== 'Station Offline' && track !== 'Live Stream') {
+        displayTitle = track;
+      }
+      
+      const isLive = data.live?.is_live;
+      const subtitle = isLive
+        ? `LIVE • ${data.live?.streamer_name || 'On Air'}`
+        : track === 'Station Offline' ? 'Station Offline' : '';
+
+      setLiveNowPlaying({ title: displayTitle, subtitle });
+      console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
+      
+      // Fetch artwork if we have artist and title
+      if (artist && track && track !== 'Station Offline' && track !== 'Live Stream') {
+        // Create cache key from artist + track
+        const cacheKey = `${artist}::${track}`;
+        
+        // Check cache first
+        const cachedArtwork = audioController.getCachedArtwork(cacheKey);
+        if (cachedArtwork) {
+          console.log('🎨 StickyPlayer using cached artwork:', cachedArtwork);
+          setPreviousArtwork(artwork);
+          setLiveArtwork(cachedArtwork);
+        } else {
+          // Fetch from API
+          try {
+            const artworkResponse = await fetch(
+              `${ARTWORK_URL}?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(track)}`,
+              { cache: 'no-store' }
+            );
+            
+            if (artworkResponse.ok) {
+              const artworkData = await artworkResponse.json();
+              if (artworkData.artwork) {
+                // Cache the artwork for future use
+                audioController.cacheArtwork(cacheKey, artworkData.artwork);
+                
+                // Keep previous artwork until new one loads to prevent flicker
+                setPreviousArtwork(artwork);
+                setLiveArtwork(artworkData.artwork);
+                console.log('🎨 StickyPlayer artwork fetched and cached:', artworkData.artwork);
+              } else if (!artwork) {
+                setLiveArtwork(null);
+              }
+            }
+          } catch (artworkError) {
+            console.error('❌ StickyPlayer artwork fetch error:', artworkError);
+            // Keep previous artwork on error to prevent flicker
+          }
+        }
+      } else if (!artwork) {
+        setLiveArtwork(null);
+        setPreviousArtwork(null);
+      }
+    } catch (error) {
+      console.error('❌ StickyPlayer NowPlaying fetch error:', error);
+      setLiveNowPlaying({ 
+        title: 'Enamorado Radio', 
+        subtitle: 'Connection Error' 
+      });
+    }
+  };
+
+  // Initialize polling
+  useEffect(() => {
+    // Initial poll and set up interval
+    pollNowPlaying();
+    const interval = setInterval(pollNowPlaying, 10000); // Poll every 10 seconds
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  // Close volume popover when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (volumePopoverRef.current && !volumePopoverRef.current.contains(event.target as Node)) {
+        setShowVolumePopover(false);
+      }
+    };
+
+    if (showVolumePopover) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showVolumePopover]);
+
+  return (
+    <>
+      {/* Bottom sticky player - Translucent NTS-style with collapse toggle */}
+      <div 
+        data-sticky-player
+        data-testid="sticky-radio-player"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 dark:bg-black/90 backdrop-blur-lg text-white border-t border-white/10 transition-transform duration-300 ease-in-out"
+        style={{ 
+          backdropFilter: 'blur(10px)',
+          transform: isCollapsed ? 'translateY(calc(100% - 40px))' : 'translateY(0)'
+        }}
+      >
+        {/* Collapse/Expand Toggle Tab */}
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          data-testid="button-player-toggle"
+          className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-lg border border-white/10 border-b-0 rounded-t-lg px-4 py-1 flex items-center gap-2 hover:bg-white/10 transition-colors"
+          title={isCollapsed ? 'Expand player' : 'Collapse player'}
+        >
+          {isCollapsed ? (
+            <ChevronUp className="w-4 h-4" />
+          ) : (
+            <ChevronDown className="w-4 h-4" />
+          )}
+        </button>
+
+        {/* Collapsed Mini Bar - Always visible at top */}
+        <div 
+          className={`flex items-center h-10 px-2 md:px-4 gap-2 md:gap-3 border-b border-white/5 ${isCollapsed ? '' : 'hidden'}`}
+        >
+          <button
+            onClick={handleToggle}
+            data-testid="button-mini-play-pause"
+            className="w-8 h-8 bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 rounded text-sm"
+            title={isPlaying ? 'Pause' : 'Play'}
+          >
+            {isPlaying ? '⏸' : '▶'}
+          </button>
+          <div className="flex-1 min-w-0">
+            <div className="text-xs font-medium truncate">
+              {nowPlaying.title}
+            </div>
+          </div>
+          {isPlaying && (
+            <div className="flex items-center gap-1 text-green-400">
+              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
+              <span className="text-[10px] font-mono uppercase">Live</span>
+            </div>
+          )}
+        </div>
+
+        {/* Full Player - Hidden when collapsed */}
+        <div className={isCollapsed ? 'hidden' : ''}>
+          <div className="flex items-center h-16 px-2 md:px-4 gap-2 md:gap-4">
+            {/* Play/Pause Button */}
+            <button
+              onClick={handleToggle}
+              data-testid="button-sticky-play-pause"
+              className="w-10 h-10 md:w-12 md:h-12 bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 rounded"
+              title={isPlaying ? 'Pause' : 'Play'}
+            >
+              {isPlaying ? '⏸' : '▶'}
+            </button>
+
+            {/* Now Playing Info with Artwork */}
+            <div className="flex-1 flex items-center gap-2 min-w-0">
+              {/* Album Artwork - hidden on mobile */}
+              {(artwork || previousArtwork) && (
+                <div className="hidden md:block w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative">
+                  {previousArtwork && previousArtwork !== artwork && (
+                    <img 
+                      src={previousArtwork} 
+                      alt="Previous artwork" 
+                      className="absolute inset-0 w-full h-full object-cover"
+                    />
+                  )}
+                  {artwork && (
+                    <img 
+                      src={artwork} 
+                      alt="Album artwork" 
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                      onError={() => setLiveArtwork(null)}
+                      onLoad={() => setPreviousArtwork(null)}
+                    />
+                  )}
+                </div>
+              )}
+              
+              {/* Track Info - Truncated */}
+              <div className="min-w-0 flex-1">
+                <div className="text-xs md:text-sm font-medium truncate">
+                  {nowPlaying.title}
+                </div>
+                {nowPlaying.subtitle && (
+                  <div className="text-[10px] md:text-xs text-gray-400 truncate">
+                    {nowPlaying.subtitle}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Volume Control Popover - hidden on mobile */}
+            <div className="hidden md:block relative flex-shrink-0" ref={volumePopoverRef}>
+              <button
+                onClick={() => setShowVolumePopover(!showVolumePopover)}
+                data-testid="button-volume-toggle"
+                className="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors rounded"
+                title="Volume"
+              >
+                {volume === 0 ? (
+                  <VolumeX className="w-5 h-5" />
+                ) : (
+                  <Volume2 className="w-5 h-5" />
+                )}
+              </button>
+              
+              {showVolumePopover && (
+                <div 
+                  className="absolute bottom-12 right-0 bg-neutral-900 rounded-xl p-3 shadow-lg border border-white/10 flex flex-col items-center"
+                  data-testid="volume-popover"
+                  style={{ width: '48px' }}
+                >
+                  <div className="text-xs text-gray-400 font-mono mb-2">
+                    {Math.round(volume * 100)}%
+                  </div>
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.01"
+                    value={volume}
+                    onChange={handleVolumeChange}
+                    data-testid="volume-slider"
+                    className="accent-white"
+                    orient="vertical"
+                    style={{
+                      writingMode: 'bt-lr',
+                      WebkitAppearance: 'slider-vertical',
+                      width: '8px',
+                      height: '100px',
+                      background: `linear-gradient(to top, white ${volume * 100}%, #4b5563 ${volume * 100}%)`
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Progress Bar Row - Always visible for better UX */}
+          <div className="px-4 pb-2">
+            {/* Episodes are seekable, live streams are not */}
+            <AudioProgressBar seekable={!!isPlayingEpisode} />
+          </div>
+        </div>
+      </div>
+
+      {/* Spacer for fixed bottom bar - adjusts based on collapsed state */}
+      <div className={isCollapsed ? 'h-10' : 'h-20'} />
+    </>
+  );
+}

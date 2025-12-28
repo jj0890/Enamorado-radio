@@ -1,0 +1,119 @@
+type Meta = { 
+  title?: string; 
+  artist?: string; 
+  artwork?: string; 
+  isLive?: boolean;
+};
+
+class AudioController {
+  private audio = new Audio();
+  private listeners = new Map<string, Set<(...args: any[]) => void>>();
+  private artworkCache = new Map<string, string>(); // Cache artwork URLs
+  private currentArtwork: string | null = null;
+  private currentMeta: Meta = {};
+
+  constructor() {
+    this.audio.preload = "none";
+    
+    // Set up event listeners
+    ["play", "pause", "timeupdate", "ended", "error", "loadedmetadata"].forEach(ev =>
+      this.audio.addEventListener(ev, () => this.emit(ev))
+    );
+    
+    // Guard against SSR/Node environments
+    if (typeof document !== 'undefined') {
+      // Append audio element to DOM for accessibility and debugging
+      this.audio.style.display = "none";
+      document.body.appendChild(this.audio);
+    }
+    
+    console.log('🎵 AudioController singleton initialized');
+  }
+
+  on(ev: string, fn: (...args: any[]) => void) {
+    if (!this.listeners.has(ev)) {
+      this.listeners.set(ev, new Set());
+    }
+    this.listeners.get(ev)!.add(fn);
+    return () => this.listeners.get(ev)!.delete(fn);
+  }
+
+  private emit(ev: string, payload?: any) {
+    this.listeners.get(ev)?.forEach(f => f(payload));
+  }
+
+  async play(src: string, meta?: Meta) {
+    // Store metadata
+    if (meta) {
+      this.currentMeta = { ...this.currentMeta, ...meta };
+      
+      // Cache artwork if provided
+      if (meta.artwork) {
+        this.cacheArtwork(src, meta.artwork);
+        this.currentArtwork = meta.artwork;
+      }
+      
+      console.log('🎵 Audio metadata updated:', this.currentMeta);
+    }
+    
+    if (this.audio.src !== src) {
+      this.audio.src = src;
+      console.log('🎵 Audio source set to:', src);
+    }
+    try {
+      await this.audio.play();
+      console.log('▶️ Audio playback started');
+    } catch (error) {
+      console.error('❌ Audio play failed:', error);
+      throw error;
+    }
+  }
+
+  // Artwork caching methods
+  cacheArtwork(key: string, artworkUrl: string) {
+    this.artworkCache.set(key, artworkUrl);
+    console.log('🎨 Artwork cached for:', key);
+  }
+
+  getCachedArtwork(key: string): string | null {
+    return this.artworkCache.get(key) || null;
+  }
+
+  getMetadata() {
+    return {
+      ...this.currentMeta,
+      artwork: this.currentArtwork,
+    };
+  }
+
+  pause() {
+    this.audio.pause();
+    console.log('⏸ Audio paused');
+  }
+
+  toggle() {
+    if (this.audio.paused) {
+      this.audio.play();
+    } else {
+      this.audio.pause();
+    }
+  }
+
+  setVolume(v: number) {
+    this.audio.volume = Math.max(0, Math.min(1, v));
+  }
+
+  seek(t: number) {
+    this.audio.currentTime = t;
+  }
+
+  get el() {
+    return this.audio;
+  }
+
+  get isPlaying() {
+    return !this.audio.paused;
+  }
+}
+
+export const audioController = new AudioController();
