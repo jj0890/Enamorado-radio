@@ -68,3 +68,6 @@ temp_audio/
 *.mp3
 *.wav
 .firecrawl/
+
+# Uploaded user files (stay on server, not in git)
+uploads/
