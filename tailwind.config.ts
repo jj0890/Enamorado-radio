@@ -17,10 +17,34 @@ export default {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        navy: {
-          DEFAULT: "var(--accent-navy)",
-          dark: "var(--accent-navy-dark)",
-          light: "var(--accent-navy-light)",
+        cream: {
+          50: "var(--cream-50)",
+          100: "var(--cream-100)",
+          200: "var(--cream-200)",
+          300: "var(--cream-300)",
+          400: "var(--cream-400)",
+        },
+        charcoal: {
+          500: "var(--charcoal-500)",
+          600: "var(--charcoal-600)",
+          700: "var(--charcoal-700)",
+          800: "var(--charcoal-800)",
+          900: "var(--charcoal-900)",
+        },
+        'burnt-orange': {
+          100: "var(--burnt-orange-100)",
+          300: "var(--burnt-orange-300)",
+          400: "var(--burnt-orange-400)",
+          500: "var(--burnt-orange-500)",
+          600: "var(--burnt-orange-600)",
+        },
+        terracotta: {
+          400: "var(--terracotta-400)",
+          500: "var(--terracotta-500)",
+        },
+        olive: {
+          400: "var(--olive-400)",
+          500: "var(--olive-500)",
         },
         card: {
           DEFAULT: "var(--card)",

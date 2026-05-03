@@ -51,6 +51,7 @@ import AdminEditorial from "./pages/AdminEditorial";
 import AdminEditorialEditor from "./pages/AdminEditorialEditor";
 import AdminIssues from "./pages/AdminIssues";
 import UnifiedSubmit from "./pages/UnifiedSubmit";
+import WriterSubmissionPage from "./pages/WriterSubmissionPage";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -91,6 +92,7 @@ function Router() {
       <Route path="/submit" component={UnifiedSubmit} />
       <Route path="/submit-mix" component={SubmitMix} />
       <Route path="/submit-playlist" component={SubmitPlaylist} />
+      <Route path="/write-for-us" component={WriterSubmissionPage} />
 
       <Route path="/community" component={CommunityPage} />
       <Route path="/community/:id" component={CommunityDetailPage} />

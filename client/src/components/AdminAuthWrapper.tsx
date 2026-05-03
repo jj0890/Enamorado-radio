@@ -24,6 +24,7 @@ import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
 import ScheduleManagement from "@/pages/ScheduleManagement";
+import AdminSubmissions from "@/pages/AdminSubmissions";
 import { useLocation, Link } from "wouter";
 import { ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -220,6 +221,8 @@ export default function AdminAuthWrapper() {
         return <AdminDangerZone onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/editorial-workflow':
         return <EditorialWorkflow />;
+      case '/admin/writer-submissions':
+        return <AdminSubmissions />;
       case '/admin/resident-applications':
         return <AdminResidentApplications onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/residents':

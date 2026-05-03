@@ -1,0 +1,132 @@
+# Claude Code Rules for Enamorado Platform
+
+## File and Directory Inclusion Syntax
+
+Use the `@` syntax to include files and directories in your Gemini prompts:
+
+### File Inclusion
+- `@file_name.ext` - Include a specific file
+- `@path/to/file.ext` - Include a file with full path
+- Multiple files: `@file1.js @file2.ts @file3.css`
+
+### Directory Inclusion
+- `@directory_name/` - Include all files in a directory
+- `@path/to/directory/` - Include directory with full path
+- Recursive: `@directory_name/**` - Include all files recursively
+
+### Pattern Matching
+- `@*.js` - Include all JavaScript files in current directory
+- `@**/*.tsx` - Include all TypeScript React files recursively
+- `@src/**/*.{ts,tsx}` - Include all TypeScript files in src directory
+
+### Examples
+```
+"Review @src/components/Navigation.tsx and @src/App.tsx"
+"Analyze all components: @src/components/"
+"Check types: @shared/schema.ts @server/types.ts"
+"Fix all pages: @src/pages/**/*.tsx"
+```
+
+## Project Structure
+
+### Core Directories
+- `client/src/` - React frontend
+  - `components/` - Reusable UI components
+  - `pages/` - Route pages
+  - `hooks/` - Custom React hooks
+  - `lib/` - Utility functions
+- `server/` - Express backend
+  - `routes.ts` - API endpoints (5300+ lines)
+  - `index.ts` - Server entry point
+  - `storage.ts` - Database operations
+- `shared/` - Shared types and schemas
+  - `schema.ts` - Database schema (30+ tables)
+
+### Important Files
+- `.env` - Environment variables (DO NOT COMMIT)
+- `vite.config.ts` - Vite build configuration
+- `package.json` - Dependencies
+- `PLATFORM_STATUS.md` - Current platform status
+
+## Development Guidelines
+
+### Database Schema
+- Radio tables: standard naming (shows, episodes, guides, etc.)
+- Magazine/Editorial tables: `editorial_` prefix (editorial_submissions, editorial_content, editorial_issues)
+- Unified contributor system shared across both
+
+### API Routes
+- Radio: `/api/shows`, `/api/episodes`, `/api/guides`
+- Editorial: `/api/submissions`, `/api/content`, `/api/issues`
+- Admin: `/api/admin/*` (requires authentication)
+
+### Component Conventions
+- Use TypeScript for all new components
+- Follow existing shadcn/ui patterns
+- Prefer composition over inheritance
+- Use Tailwind CSS for styling
+
+### Submission System
+Unified submission flow supporting:
+- DJ mixes (audio files via AzuraCast SFTP)
+- Playlists (Spotify, Apple Music, YouTube)
+- Artwork (images, photography)
+- Writing (essays, poems, PDFs)
+- Links/Videos (web content)
+- Album suggestions (community voting)
+
+## External Integrations
+
+### AzuraCast (Radio Streaming)
+- Base URL: http://24.199.109.18
+- Station: enamorado_radio
+- SFTP uploads for DJ mixes
+
+### APIs Connected
+- Spotify (metadata enrichment)
+- Last.fm (scrobbling, recommendations)
+- Iframely (rich embeds for 1900+ platforms)
+- Google Sheets (resident applications)
+- Replit Object Storage (file uploads)
+
+## Common Tasks
+
+### Starting Development
+```bash
+npm run dev  # Starts on port 8080
+```
+
+### Database Operations
+```bash
+npm run db:push  # Push schema changes
+npm run db:studio  # Open Drizzle Studio
+```
+
+### Type Checking
+```bash
+npm run check  # TypeScript type check
+```
+
+### Building
+```bash
+npm run build  # Production build
+npm start  # Run production server
+```
+
+## Troubleshooting
+
+### Port Conflicts
+- Port 5000: macOS Control Center (AirPlay)
+- Port 3000: Website inspector tools
+- Default: Port 8080
+
+### Missing Dependencies
+If build fails with missing imports:
+1. Check if component exists in `client/src/components/`
+2. Create missing component with proper TypeScript types
+3. Ensure imports match actual file structure
+
+### Database Conflicts
+- Always use `editorial_` prefix for new magazine tables
+- Check PLATFORM_STATUS.md for current schema
+- Review DATABASE_SCHEMA_ANALYSIS.md before migrations

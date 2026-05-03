@@ -3,15 +3,16 @@ import { Link } from "wouter";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Music, 
+import {
+  Music,
   Disc,
   Image,
   LogOut,
   CheckCircle2,
   Clock,
   ArrowRight,
-  ListMusic
+  ListMusic,
+  PenLine
 } from "lucide-react";
 
 interface EditorStats {
@@ -88,6 +89,16 @@ export default function EditorDashboard({ onLogout, currentUser }: EditorDashboa
       color: "text-purple-500",
       bgColor: "bg-purple-50",
       dataTestId: "card-playlists"
+    },
+    {
+      title: "Writer Submissions",
+      description: "Review editorial pitch submissions from writers",
+      icon: PenLine,
+      href: "/admin/writer-submissions",
+      count: 0,
+      color: "text-amber-600",
+      bgColor: "bg-amber-50",
+      dataTestId: "card-writer-submissions"
     }
   ];
 

@@ -16,42 +16,42 @@ export default function UnifiedSubmit() {
       title: 'DJ Mix',
       description: 'Share your recorded DJ set or mix',
       icon: Music,
-      color: 'bg-red-500'
+      color: 'bg-olive-500'
     },
     {
       id: 'playlist' as const,
       title: 'Playlist',
       description: 'Curate a playlist from Spotify, Apple Music, or YouTube',
       icon: ListMusic,
-      color: 'bg-blue-500'
+      color: 'bg-terracotta-500'
     },
     {
       id: 'artwork' as const,
       title: 'Artwork / Visual',
       description: 'Submit photography, illustrations, or visual art',
       icon: Image,
-      color: 'bg-purple-500'
+      color: 'bg-burnt-orange-500'
     },
     {
       id: 'writing' as const,
       title: 'Writing',
       description: 'Share poems, essays, reviews, or creative writing',
       icon: BookOpen,
-      color: 'bg-green-500'
+      color: 'bg-charcoal-800'
     },
     {
       id: 'link' as const,
       title: 'Link / Video',
       description: 'Share interesting links, videos, or web content',
       icon: LinkIcon,
-      color: 'bg-orange-500'
+      color: 'bg-burnt-orange-400'
     },
     {
       id: 'album' as const,
       title: 'Album Suggestion',
       description: 'Nominate an album for our Album of the Month',
       icon: Disc,
-      color: 'bg-pink-500'
+      color: 'bg-terracotta-400'
     }
   ];
 
@@ -71,64 +71,64 @@ export default function UnifiedSubmit() {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-black">
+    <div className="min-h-screen bg-cream-100">
       <Navigation />
 
       <div className="pt-20 pb-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Header */}
           <div className="mb-12 text-center">
-            <h1 className="text-4xl md:text-5xl font-bold text-navy dark:text-white mb-4">
+            <h1 className="text-4xl md:text-5xl font-bold text-charcoal-900 mb-4 font-display">
               Submit to Enamorado
             </h1>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
+            <p className="text-xl text-charcoal-600 max-w-3xl mx-auto font-body">
               Share your creativity with our community. All submissions are reviewed by our editorial team and become part of our living archive.
             </p>
           </div>
 
           {/* How It Works */}
-          <Card className="mb-12 border-black dark:border-gray-800">
+          <Card className="mb-12 bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
             <CardHeader>
-              <CardTitle className="text-2xl text-navy dark:text-white">How It Works</CardTitle>
+              <CardTitle className="text-2xl text-charcoal-900 font-display">How It Works</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                  <div className="w-12 h-12 bg-burnt-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
                     1
                   </div>
-                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Choose Type</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <h4 className="font-semibold mb-2 text-charcoal-900 font-accent">Choose Type</h4>
+                  <p className="text-sm text-charcoal-600 font-body">
                     Select what you'd like to submit
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                  <div className="w-12 h-12 bg-burnt-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
                     2
                   </div>
-                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Fill Form</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <h4 className="font-semibold mb-2 text-charcoal-900 font-accent">Fill Form</h4>
+                  <p className="text-sm text-charcoal-600 font-body">
                     Provide details and upload files
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                  <div className="w-12 h-12 bg-burnt-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
                     3
                   </div>
-                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Editorial Review</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <h4 className="font-semibold mb-2 text-charcoal-900 font-accent">Editorial Review</h4>
+                  <p className="text-sm text-charcoal-600 font-body">
                     Our team reviews your submission
                   </p>
                 </div>
 
                 <div className="text-center">
-                  <div className="w-12 h-12 bg-navy dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
+                  <div className="w-12 h-12 bg-burnt-orange-500 text-white rounded-full flex items-center justify-center font-bold text-lg mb-3 mx-auto">
                     4
                   </div>
-                  <h4 className="font-semibold mb-2 text-navy dark:text-white">Get Featured</h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-400">
+                  <h4 className="font-semibold mb-2 text-charcoal-900 font-accent">Get Featured</h4>
+                  <p className="text-sm text-charcoal-600 font-body">
                     Approved work joins our archive
                   </p>
                 </div>
@@ -138,27 +138,27 @@ export default function UnifiedSubmit() {
 
           {/* Submission Type Selection */}
           <div className="mb-12">
-            <h2 className="text-2xl font-bold text-navy dark:text-white mb-6 text-center">
+            <h2 className="text-2xl font-bold text-charcoal-900 mb-6 text-center font-display">
               What would you like to submit?
             </h2>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {submissionTypes.map((type) => {
                 const Icon = type.icon;
                 return (
                   <Card
                     key={type.id}
-                    className="cursor-pointer border-2 border-black dark:border-gray-800 hover:border-navy dark:hover:border-white transition-all hover:shadow-lg"
+                    className="cursor-pointer bg-white transition-all duration-200 shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1"
                     onClick={() => setSelectedType(type.id)}
                   >
                     <CardContent className="p-6">
                       <div className={`w-14 h-14 ${type.color} rounded-lg flex items-center justify-center mb-4`}>
                         <Icon className="w-8 h-8 text-white" />
                       </div>
-                      <h3 className="text-xl font-bold text-navy dark:text-white mb-2">
+                      <h3 className="text-xl font-bold text-charcoal-900 mb-2 font-accent">
                         {type.title}
                       </h3>
-                      <p className="text-gray-600 dark:text-gray-400 text-sm">
+                      <p className="text-charcoal-600 text-sm font-body">
                         {type.description}
                       </p>
                     </CardContent>
@@ -169,31 +169,31 @@ export default function UnifiedSubmit() {
           </div>
 
           {/* Guidelines */}
-          <Card className="border-black dark:border-gray-800">
+          <Card className="bg-white shadow-[0_2px_8px_rgba(0,0,0,0.1)]">
             <CardHeader>
-              <CardTitle className="text-xl text-navy dark:text-white">Submission Guidelines</CardTitle>
+              <CardTitle className="text-xl text-charcoal-900 font-display">Submission Guidelines</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 text-gray-600 dark:text-gray-400">
+            <CardContent className="space-y-4 text-charcoal-600 font-body">
               <div>
-                <h4 className="font-semibold text-navy dark:text-white mb-2">Quality Standards</h4>
+                <h4 className="font-semibold text-charcoal-900 mb-2 font-accent">Quality Standards</h4>
                 <p className="text-sm">
                   We value authentic, original work. Ensure your submissions are high quality and properly credited.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-navy dark:text-white mb-2">Rights & Attribution</h4>
+                <h4 className="font-semibold text-charcoal-900 mb-2 font-accent">Rights & Attribution</h4>
                 <p className="text-sm">
                   You retain all rights to your work. By submitting, you grant us permission to feature it on our platform with proper attribution.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-navy dark:text-white mb-2">Review Process</h4>
+                <h4 className="font-semibold text-charcoal-900 mb-2 font-accent">Review Process</h4>
                 <p className="text-sm">
                   Our editorial team reviews all submissions. We aim to respond within 1-2 weeks. Not all submissions will be accepted, but we appreciate every contribution.
                 </p>
               </div>
               <div>
-                <h4 className="font-semibold text-navy dark:text-white mb-2">Community Standards</h4>
+                <h4 className="font-semibold text-charcoal-900 mb-2 font-accent">Community Standards</h4>
                 <p className="text-sm">
                   We welcome diverse voices and perspectives. Submissions should be respectful and aligned with our community values.
                 </p>

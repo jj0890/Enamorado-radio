@@ -1,180 +1,190 @@
 /**
- * Design Tokens
- * Station Mode - Single accent color system with radiored/slate palette
+ * Enamorado Radio - Design Tokens
+ * Warm Editorial Aesthetic
+ * Based on Magazine + Radio hybrid design system
  */
 
+/* Import Typography */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700;800;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600;1,700&family=Space+Grotesk:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+
 :root {
-  /* --- ACCENT COLOR --- */
-  /* Single primary accent used throughout the site */
-  --accent-navy: hsl(213, 100%, 26%);
-  --accent-navy-dark: hsl(213, 100%, 22%);
-  --accent-navy-light: hsl(213, 100%, 32%);
-  
-  /* --- NEUTRAL PALETTE (SLATE) --- */
-  --slate-50: hsl(210, 40%, 98%);
-  --slate-100: hsl(210, 40%, 96.1%);
-  --slate-200: hsl(214, 32%, 91%);
-  --slate-300: hsl(213, 27%, 84%);
-  --slate-400: hsl(215, 20%, 65%);
-  --slate-500: hsl(215, 16%, 47%);
-  --slate-600: hsl(215, 19%, 35%);
-  --slate-700: hsl(215, 25%, 27%);
-  --slate-800: hsl(217, 33%, 17%);
-  --slate-900: hsl(222, 47%, 11%);
-  --slate-950: hsl(229, 84%, 5%);
-  
+  /* --- FOUNDATION COLORS --- */
+  /* Warm Neutral Backgrounds */
+  --cream-50: hsl(42, 35%, 99%);      /* #FEFDFB - Lightest cream for overlays */
+  --cream-100: hsl(42, 30%, 97%);     /* #FAF8F5 - Primary background */
+  --cream-200: hsl(40, 25%, 94%);     /* #F4F1EC - Secondary backgrounds */
+  --cream-300: hsl(38, 20%, 88%);     /* #E8E4DD - Subtle sections */
+  --cream-400: hsl(36, 15%, 82%);     /* #D8D3CB - Muted borders */
+
+  /* Warm Dark Tones (for text & accents) */
+  --charcoal-900: hsl(30, 10%, 15%);  /* #28221C - Darkest text */
+  --charcoal-800: hsl(30, 8%, 22%);   /* #3A3530 - Headings */
+  --charcoal-700: hsl(30, 6%, 32%);   /* #524D47 - Body text */
+  --charcoal-600: hsl(30, 5%, 45%);   /* #76716A - Muted text */
+  --charcoal-500: hsl(30, 4%, 60%);   /* #9A9691 - Disabled states */
+
+  /* --- ACCENT COLORS --- */
+  /* Burnt Orange - Primary Accent */
+  --burnt-orange-500: hsl(20, 100%, 40%);  /* #CC4A00 - Primary CTA */
+  --burnt-orange-600: hsl(20, 100%, 35%);  /* #B34200 - Hover state */
+  --burnt-orange-400: hsl(20, 100%, 50%);  /* #FF5E00 - Lighter variant */
+  --burnt-orange-300: hsl(20, 100%, 65%);  /* #FF8E47 - Subtle accents */
+  --burnt-orange-100: hsl(20, 100%, 95%);  /* #FFE8DB - Backgrounds */
+
+  /* Terracotta - Secondary Accent (for variety) */
+  --terracotta-500: hsl(12, 60%, 55%);     /* #D47358 - Warm alternative */
+  --terracotta-400: hsl(12, 60%, 65%);     /* #E09681 - Lighter */
+
+  /* Olive Green - Tertiary (for status/success) */
+  --olive-500: hsl(85, 20%, 40%);          /* #5C6B4A - Natural green */
+  --olive-400: hsl(85, 20%, 50%);          /* #758A61 - Lighter */
+
   /* --- SEMANTIC TOKENS (LIGHT MODE) --- */
-  --background: hsl(42, 100%, 95%); /* Warm cream background */
-  --foreground: hsl(222, 47%, 11%);
-  
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222, 47%, 11%);
-  
+  --background: var(--cream-100);
+  --foreground: var(--charcoal-900);
+
+  --card: hsl(0, 0%, 100%);               /* Pure white for cards */
+  --card-foreground: var(--charcoal-900);
+
   --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222, 47%, 11%);
-  
-  --muted: hsl(210, 40%, 96.1%);
-  --muted-foreground: hsl(215, 16%, 47%);
-  
-  /* Primary uses accent navy */
-  --primary: var(--accent-navy);
+  --popover-foreground: var(--charcoal-900);
+
+  --muted: var(--cream-300);
+  --muted-foreground: var(--charcoal-600);
+
+  --border: var(--cream-400);
+  --input: var(--cream-300);
+
+  --primary: var(--burnt-orange-500);
   --primary-foreground: hsl(0, 0%, 100%);
-  
-  /* Secondary: Muted background */
-  --secondary: hsl(210, 40%, 96.1%);
-  --secondary-foreground: hsl(222, 47%, 11%);
-  
-  /* Accent: Muted variant */
-  --accent: hsl(210, 40%, 96.1%);
-  --accent-foreground: hsl(222, 47%, 11%);
-  
-  /* Destructive uses red (keep red for destructive actions) */
-  --destructive: hsl(0, 84%, 60%);
+
+  --secondary: var(--cream-300);
+  --secondary-foreground: var(--charcoal-900);
+
+  --accent: var(--burnt-orange-500);
+  --accent-foreground: hsl(0, 0%, 100%);
+
+  --destructive: hsl(0, 70%, 50%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  
-  /* Input & Border */
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  
-  /* --- BUTTON TOKENS --- */
-  /* Primary: Solid navy background with white text */
-  --button-primary-bg: var(--accent-navy);
-  --button-primary-hover: var(--accent-navy-dark);
-  --button-primary-text: hsl(0, 0%, 100%);
-  
-  /* Secondary: Text-only with no background */
-  --button-secondary-bg: transparent;
-  --button-secondary-hover: hsl(210, 40%, 96.1%);
-  --button-secondary-text: var(--accent-navy);
-  
+
+  --success: var(--olive-500);
+  --success-foreground: hsl(0, 0%, 100%);
+
+  --ring: var(--burnt-orange-500);
+  --ring-offset: hsl(0, 0%, 100%);
+
+  /* --- RADIO-SPECIFIC COLORS --- */
+  --live-indicator: hsl(0, 100%, 60%);    /* #FF3333 - Pulsing red dot */
+  --waveform: var(--burnt-orange-500);     /* Audio visualizer */
+  --player-bg: hsl(30, 10%, 12%);         /* #1F1A16 - Dark player bar */
+  --player-text: var(--cream-100);
+
+  /* --- MAGAZINE-SPECIFIC COLORS --- */
+  --editorial-tag: var(--burnt-orange-500);
+  --community-tag: var(--olive-500);
+  --featured-tag: var(--charcoal-800);
+
   /* --- BORDERS & RADIUS --- */
-  --radius: 0.5rem; /* 8px - Editorial tightness (was 14px) */
-  
+  --radius: 0.5rem; /* 8px */
+
   /* --- TYPOGRAPHY SCALE --- */
+  --font-display: 'Playfair Display', Georgia, serif;      /* Headlines */
+  --font-body: 'Crimson Text', Georgia, serif;             /* Article body */
+  --font-accent: 'Space Grotesk', system-ui, sans-serif;   /* Tags, metadata */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+
   --heading-h1-size: 40px;
   --heading-h1-lh: 1.1;
   --heading-h2-size: 28px;
   --heading-h2-lh: 1.2;
   --heading-h3-size: 20px;
   --heading-h3-lh: 1.25;
-  
-  /* --- FOCUS RINGS --- */
-  --ring: var(--accent-navy);
-  --ring-offset: hsl(0, 0%, 100%);
-  
+
   /* --- CHARTS --- */
-  --chart-1: var(--accent-navy);
-  --chart-2: hsl(215, 19%, 35%);
-  --chart-3: hsl(215, 20%, 65%);
-  --chart-4: hsl(213, 27%, 84%);
-  --chart-5: hsl(210, 40%, 96.1%);
-  
+  --chart-1: var(--burnt-orange-500);
+  --chart-2: var(--terracotta-500);
+  --chart-3: var(--olive-500);
+  --chart-4: var(--charcoal-600);
+  --chart-5: var(--cream-400);
+
   /* --- SIDEBAR --- */
-  --sidebar-background: hsl(42, 100%, 98%);
-  --sidebar-foreground: hsl(222, 47%, 11%);
-  --sidebar-primary: var(--accent-navy);
+  --sidebar-background: var(--cream-50);
+  --sidebar-foreground: var(--charcoal-900);
+  --sidebar-primary: var(--burnt-orange-500);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(210, 40%, 96.1%);
-  --sidebar-accent-foreground: hsl(222, 47%, 11%);
-  --sidebar-border: hsl(214, 32%, 91%);
-  --sidebar-ring: var(--accent-navy);
+  --sidebar-accent: var(--cream-200);
+  --sidebar-accent-foreground: var(--charcoal-900);
+  --sidebar-border: var(--cream-400);
+  --sidebar-ring: var(--burnt-orange-500);
 }
 
+/* --- OPTIONAL DARK MODE (for late-night radio listening) --- */
 .dark {
-  /* --- SEMANTIC TOKENS (DARK MODE) --- */
-  --background: hsl(222, 47%, 11%);
-  --foreground: hsl(210, 40%, 98%);
-  
-  --card: hsl(217, 33%, 17%);
-  --card-foreground: hsl(210, 40%, 98%);
-  
-  --popover: hsl(217, 33%, 17%);
-  --popover-foreground: hsl(210, 40%, 98%);
-  
-  --muted: hsl(217, 33%, 17%);
-  --muted-foreground: hsl(215, 20%, 65%);
-  
-  /* Primary uses accent navy */
-  --primary: var(--accent-navy);
-  --primary-foreground: hsl(0, 0%, 100%);
-  
-  /* Secondary: Muted background */
-  --secondary: hsl(217, 33%, 17%);
-  --secondary-foreground: hsl(210, 40%, 98%);
-  
-  /* Accent: Muted variant */
-  --accent: hsl(217, 33%, 17%);
-  --accent-foreground: hsl(210, 40%, 98%);
-  
-  /* Destructive uses red (keep red for destructive actions) */
-  --destructive: hsl(0, 84%, 60%);
+  /* Inverted warm palette - maintains warmth even in dark mode */
+  --background: hsl(30, 15%, 12%);        /* #201A14 - Warm black */
+  --foreground: var(--cream-100);
+
+  --card: hsl(30, 12%, 18%);              /* #302820 - Warm dark gray */
+  --card-foreground: var(--cream-100);
+
+  --popover: hsl(30, 12%, 18%);
+  --popover-foreground: var(--cream-100);
+
+  --muted: hsl(30, 10%, 22%);
+  --muted-foreground: var(--cream-400);
+
+  --border: hsl(30, 8%, 25%);
+  --input: hsl(30, 10%, 22%);
+
+  --primary: var(--burnt-orange-400);     /* Brighter in dark mode */
+  --primary-foreground: var(--charcoal-900);
+
+  --secondary: hsl(30, 10%, 22%);
+  --secondary-foreground: var(--cream-100);
+
+  --accent: var(--burnt-orange-400);
+  --accent-foreground: var(--charcoal-900);
+
+  --destructive: hsl(0, 70%, 50%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  
-  /* Input & Border */
-  --border: hsl(215, 25%, 27%);
-  --input: hsl(215, 25%, 27%);
-  
-  /* --- BUTTON TOKENS (DARK) --- */
-  --button-primary-bg: var(--accent-navy);
-  --button-primary-hover: var(--accent-navy-light);
-  --button-primary-text: hsl(0, 0%, 100%);
-  
-  --button-secondary-bg: transparent;
-  --button-secondary-hover: hsl(217, 33%, 17%);
-  --button-secondary-text: var(--accent-navy);
-  
-  /* --- FOCUS (DARK) --- */
-  --ring-offset: hsl(222, 47%, 11%);
-  
-  /* --- CHARTS (DARK) --- */
-  --chart-1: var(--accent-navy);
-  --chart-2: hsl(215, 20%, 65%);
-  --chart-3: hsl(213, 27%, 84%);
-  --chart-4: hsl(214, 32%, 91%);
-  --chart-5: hsl(210, 40%, 96.1%);
-  
+
+  --success: var(--olive-400);
+  --success-foreground: var(--charcoal-900);
+
+  --ring: var(--burnt-orange-400);
+  --ring-offset: hsl(30, 15%, 12%);
+
+  /* Radio player stays dark regardless of theme */
+  --player-bg: hsl(30, 10%, 10%);
+  --player-text: var(--cream-100);
+
   /* --- SIDEBAR (DARK) --- */
-  --sidebar-background: hsl(217, 33%, 17%);
-  --sidebar-foreground: hsl(210, 40%, 98%);
-  --sidebar-primary: var(--accent-navy);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(217, 33%, 17%);
-  --sidebar-accent-foreground: hsl(210, 40%, 98%);
-  --sidebar-border: hsl(215, 25%, 27%);
-  --sidebar-ring: var(--accent-navy);
+  --sidebar-background: hsl(30, 12%, 15%);
+  --sidebar-foreground: var(--cream-100);
+  --sidebar-primary: var(--burnt-orange-400);
+  --sidebar-primary-foreground: var(--charcoal-900);
+  --sidebar-accent: hsl(30, 10%, 22%);
+  --sidebar-accent-foreground: var(--cream-100);
+  --sidebar-border: hsl(30, 8%, 25%);
+  --sidebar-ring: var(--burnt-orange-400);
 }
 
-/* --- BUTTON COMPONENT CLASSES --- */
+/* --- COMPONENT CLASSES --- */
+
+/* Buttons */
 .btn-primary {
-  background: var(--button-primary-bg);
-  color: var(--button-primary-text);
+  background: var(--burnt-orange-500);
+  color: white;
   border: none;
   font-weight: 600;
-  transition: background 0.2s ease;
+  font-family: var(--font-ui);
+  transition: all 0.2s ease;
 }
 
 .btn-primary:hover {
-  background: var(--button-primary-hover);
+  background: var(--burnt-orange-600);
+  box-shadow: 0 4px 12px rgba(204, 74, 0, 0.3);
 }
 
 .btn-primary:focus-visible {
@@ -183,18 +193,202 @@
 }
 
 .btn-secondary {
-  background: var(--button-secondary-bg);
-  color: var(--button-secondary-text);
-  border: none;
+  background: transparent;
+  color: var(--burnt-orange-500);
+  border: 2px solid var(--burnt-orange-500);
   font-weight: 600;
-  transition: background 0.2s ease;
+  font-family: var(--font-ui);
+  transition: all 0.2s ease;
 }
 
 .btn-secondary:hover {
-  background: var(--button-secondary-hover);
+  background: var(--burnt-orange-500);
+  color: white;
 }
 
 .btn-secondary:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--charcoal-700);
+  border: none;
+  font-weight: 500;
+  font-family: var(--font-ui);
+  transition: all 0.2s ease;
+}
+
+.btn-ghost:hover {
+  color: var(--burnt-orange-500);
+  background: var(--cream-200);
+}
+
+/* Form Inputs */
+.input-standard {
+  background: var(--cream-200);
+  border: 2px solid var(--cream-400);
+  color: var(--charcoal-900);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  font-family: var(--font-ui);
+  transition: all 0.2s ease;
+}
+
+.input-standard:focus {
+  outline: none;
+  border-color: var(--burnt-orange-500);
+  background: white;
+  box-shadow: 0 0 0 3px rgba(204, 74, 0, 0.1);
+}
+
+.input-standard::placeholder {
+  color: var(--charcoal-500);
+}
+
+/* Typography */
+.text-display {
+  font-family: var(--font-display);
+  color: var(--charcoal-900);
+}
+
+.text-body {
+  font-family: var(--font-body);
+  color: var(--charcoal-700);
+}
+
+.text-accent {
+  font-family: var(--font-accent);
+  color: var(--charcoal-600);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.text-ui {
+  font-family: var(--font-ui);
+}
+
+/* Links */
+a {
+  color: var(--burnt-orange-500);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: var(--burnt-orange-600);
+  text-decoration: underline;
+}
+
+/* Carousel Components */
+.auto-scroll-carousel {
+  background: var(--background);
+  position: relative;
+}
+
+.carousel-item {
+  background: var(--card);
+  border: 1px solid var(--cream-400);
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.carousel-item:hover {
+  border-color: var(--burnt-orange-500);
+  box-shadow: 0 8px 24px rgba(204, 74, 0, 0.12);
+  transform: translateY(-4px);
+}
+
+/* Music Player */
+.music-player {
+  background: var(--player-bg);
+  color: var(--player-text);
+  border-top: 1px solid var(--charcoal-800);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 -4px 24px rgba(204, 74, 0, 0.08);
+}
+
+.player-progress-bar {
+  background: rgba(248, 246, 243, 0.2);
+}
+
+.player-progress-fill {
+  background: var(--burnt-orange-500);
+  box-shadow: 0 0 8px rgba(204, 74, 0, 0.4);
+}
+
+/* Live Indicator */
+.live-indicator {
+  background: var(--live-indicator);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(255, 51, 51, 0.4);
+  }
+  50% {
+    opacity: 0.8;
+    box-shadow: 0 0 0 8px rgba(255, 51, 51, 0);
+  }
+}
+
+/* Tags */
+.tag-editorial {
+  background: var(--editorial-tag);
+  color: white;
+  font-family: var(--font-accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tag-community {
+  background: var(--community-tag);
+  color: white;
+  font-family: var(--font-accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.tag-featured {
+  background: var(--featured-tag);
+  color: var(--cream-100);
+  font-family: var(--font-accent);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream-200);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--cream-400);
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--burnt-orange-500);
 }

@@ -1,13 +1,14 @@
 import fs from 'fs/promises';
 import path from 'path';
 import {
-  Episode, 
+  Show,
+  Episode,
   Guide,
   HeroBanner,
   MixSubmission,
   PlaylistSubmission,
   EpisodeSubmission,
-  Schedule, 
+  Schedule,
   ResidentApplication,
   Resident,
   Admin,
@@ -19,7 +20,25 @@ import {
   AlbumPickItem,
   AlbumSuggestionNote,
   Contributor,
+  Content,
+  Issue,
+  IssueContent,
+  Pitch,
+  OpenCall,
   contributors,
+  shows,
+  content,
+  issues,
+  issueContents,
+  pitches,
+  openCalls,
+  contentContributors,
+  ContentContributor,
+  InsertContentContributor,
+  editorialSubmissions,
+  EditorialSubmission,
+  InsertEditorialSubmission,
+  InsertShow,
   InsertEpisode,
   InsertGuide,
   InsertHeroBanner,
@@ -37,10 +56,15 @@ import {
   InsertAlbumPick,
   InsertAlbumPickItem,
   InsertAlbumSuggestionNote,
-  InsertContributor
+  InsertContributor,
+  InsertContent,
+  InsertIssue,
+  InsertIssueContent,
+  InsertPitch,
+  InsertOpenCall,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq } from "drizzle-orm";
+import { eq, and, desc, asc } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { backupManager } from "./backupManager";
 
@@ -974,61 +998,6 @@ export class FileStorage implements IStorage {
     }
   }
 
-  // Song Submissions
-  async getSongSubmissions(filters?: { status?: string; limit?: number }): Promise<SongSubmission[]> {
-    let filtered = [...this.songSubmissions];
-    
-    if (filters?.status) {
-      filtered = filtered.filter(s => s.approvalStatus === filters.status);
-    }
-    
-    filtered.sort((a, b) => {
-      const aTime = a.submittedAt ? new Date(a.submittedAt).getTime() : 0;
-      const bTime = b.submittedAt ? new Date(b.submittedAt).getTime() : 0;
-      return bTime - aTime;
-    });
-    
-    if (filters?.limit) {
-      filtered = filtered.slice(0, filters.limit);
-    }
-    
-    return filtered;
-  }
-
-  async createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission> {
-    const newSubmission: SongSubmission = {
-      ...submission,
-      id: this.nextId++,
-      approvalStatus: 'pending',
-      submittedAt: new Date(),
-      reviewedAt: null,
-      notes: submission.notes || null,
-      spotifyUrl: submission.spotifyUrl || null,
-      youtubeUrl: submission.youtubeUrl || null,
-    };
-    this.songSubmissions.push(newSubmission);
-    await this.saveData('songSubmissions', this.songSubmissions);
-    return newSubmission;
-  }
-
-  async updateSongSubmissionStatus(id: number, status: string): Promise<SongSubmission> {
-    const index = this.songSubmissions.findIndex(s => s.id === id);
-    if (index === -1) throw new Error('Song submission not found');
-    
-    this.songSubmissions[index] = {
-      ...this.songSubmissions[index],
-      approvalStatus: status,
-      reviewedAt: new Date()
-    };
-    
-    await this.saveData('songSubmissions', this.songSubmissions);
-    return this.songSubmissions[index];
-  }
-
-  async getSongSubmissionById(id: number): Promise<SongSubmission | undefined> {
-    return this.songSubmissions.find(s => s.id === id);
-  }
-
   // Resident Applications
   async getResidentApplications(filters?: { status?: string; priority?: string; limit?: number }): Promise<ResidentApplication[]> {
     let filtered = [...this.residentApplications];
@@ -1598,6 +1567,39 @@ export class FileStorage implements IStorage {
     return this.albumPickItems.find(i => i.id === id);
   }
 
+  // Shows - Radio show series/programs (DB-backed)
+  async getShows(filters?: { status?: string; limit?: number }): Promise<Show[]> {
+    let result = await db.select().from(shows).orderBy(desc(shows.createdAt));
+    if (filters?.status) result = result.filter(s => s.status === filters.status);
+    if (filters?.limit) result = result.slice(0, filters.limit);
+    return result;
+  }
+
+  async getShowById(id: number): Promise<Show | undefined> {
+    const result = await db.select().from(shows).where(eq(shows.id, id));
+    return result[0];
+  }
+
+  async getShowBySlug(slug: string): Promise<Show | undefined> {
+    const result = await db.select().from(shows).where(eq(shows.slug, slug));
+    return result[0];
+  }
+
+  async createShow(show: InsertShow): Promise<Show> {
+    const result = await db.insert(shows).values(show).returning();
+    return result[0];
+  }
+
+  async updateShow(id: number, updates: Partial<Show>): Promise<Show> {
+    const result = await db.update(shows).set({ ...updates, updatedAt: new Date() }).where(eq(shows.id, id)).returning();
+    if (!result[0]) throw new Error('Show not found');
+    return result[0];
+  }
+
+  async deleteShow(id: number): Promise<void> {
+    await db.delete(shows).where(eq(shows.id, id));
+  }
+
   // Contributors - Community members who submit content
   async getContributors(): Promise<Contributor[]> {
     const result = await db.select().from(contributors);
@@ -1624,6 +1626,247 @@ export class FileStorage implements IStorage {
     return result[0];
   }
 
+  // ============================================
+  // EDITORIAL CONTENT - DB-backed via Drizzle
+  // ============================================
+
+  async getPublishedContent(filters?: { tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]> {
+    let result = await db.select().from(content)
+      .where(eq(content.status, 'published'))
+      .orderBy(desc(content.publishedAt));
+    if (filters?.tier) result = result.filter(c => c.tier === filters.tier);
+    if (filters?.contentType) result = result.filter(c => c.contentType === filters.contentType);
+    const offset = filters?.offset || 0;
+    if (offset) result = result.slice(offset);
+    if (filters?.limit) result = result.slice(0, filters.limit);
+    return result;
+  }
+
+  async getAllContent(filters?: { status?: string; tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]> {
+    let result = await db.select().from(content).orderBy(desc(content.createdAt));
+    if (filters?.status) result = result.filter(c => c.status === filters.status);
+    if (filters?.tier) result = result.filter(c => c.tier === filters.tier);
+    if (filters?.contentType) result = result.filter(c => c.contentType === filters.contentType);
+    const offset = filters?.offset || 0;
+    if (offset) result = result.slice(offset);
+    if (filters?.limit) result = result.slice(0, filters.limit);
+    return result;
+  }
+
+  async getContentById(id: number): Promise<Content | undefined> {
+    const result = await db.select().from(content).where(eq(content.id, id));
+    return result[0];
+  }
+
+  async getContentBySlug(slug: string): Promise<Content | undefined> {
+    const result = await db.select().from(content).where(eq(content.slug, slug));
+    return result[0];
+  }
+
+  async createContent(data: InsertContent): Promise<Content> {
+    const result = await db.insert(content).values(data).returning();
+    return result[0];
+  }
+
+  async updateContent(id: number, updates: Partial<Content>): Promise<Content> {
+    const result = await db.update(content)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(content.id, id))
+      .returning();
+    if (!result[0]) throw new Error('Content not found');
+    return result[0];
+  }
+
+  async deleteContent(id: number): Promise<void> {
+    await db.delete(content).where(eq(content.id, id));
+  }
+
+  // Editorial Issues
+  async getAllIssues(includeUnpublished = false): Promise<Issue[]> {
+    const result = await db.select().from(issues).orderBy(desc(issues.createdAt));
+    if (!includeUnpublished) return result.filter(i => i.status === 'published');
+    return result;
+  }
+
+  async getIssueById(id: number): Promise<Issue | undefined> {
+    const result = await db.select().from(issues).where(eq(issues.id, id));
+    return result[0];
+  }
+
+  async getIssueBySlug(slug: string): Promise<Issue | undefined> {
+    const result = await db.select().from(issues).where(eq(issues.slug, slug));
+    return result[0];
+  }
+
+  async createIssue(data: InsertIssue): Promise<Issue> {
+    const result = await db.insert(issues).values(data).returning();
+    return result[0];
+  }
+
+  async updateIssue(id: number, updates: Partial<Issue>): Promise<Issue> {
+    const result = await db.update(issues).set(updates).where(eq(issues.id, id)).returning();
+    if (!result[0]) throw new Error('Issue not found');
+    return result[0];
+  }
+
+  async deleteIssue(id: number): Promise<void> {
+    await db.delete(issues).where(eq(issues.id, id));
+  }
+
+  async getIssueContents(issueId: number): Promise<Content[]> {
+    const links = await db.select().from(issueContents)
+      .where(eq(issueContents.issueId, issueId))
+      .orderBy(asc(issueContents.position));
+    const contentIds = links.map(l => l.contentId);
+    if (!contentIds.length) return [];
+    const pieces = await db.select().from(content);
+    return pieces.filter(c => contentIds.includes(c.id))
+      .sort((a, b) => contentIds.indexOf(a.id) - contentIds.indexOf(b.id));
+  }
+
+  async addContentToIssue(issueId: number, contentId: number, position = 0): Promise<IssueContent> {
+    const result = await db.insert(issueContents).values({ issueId, contentId, position }).returning();
+    return result[0];
+  }
+
+  async removeContentFromIssue(issueId: number, contentId: number): Promise<void> {
+    await db.delete(issueContents)
+      .where(and(eq(issueContents.issueId, issueId), eq(issueContents.contentId, contentId)));
+  }
+
+  // Editorial Pitches
+  async getAllPitches(): Promise<Pitch[]> {
+    return db.select().from(pitches).orderBy(desc(pitches.createdAt));
+  }
+
+  async createPitch(data: InsertPitch): Promise<Pitch> {
+    const result = await db.insert(pitches).values(data).returning();
+    return result[0];
+  }
+
+  async updatePitch(id: number, updates: Partial<Pitch>): Promise<Pitch> {
+    const result = await db.update(pitches).set(updates).where(eq(pitches.id, id)).returning();
+    if (!result[0]) throw new Error('Pitch not found');
+    return result[0];
+  }
+
+  async deletePitch(id: number): Promise<void> {
+    await db.delete(pitches).where(eq(pitches.id, id));
+  }
+
+  // Open Calls
+  async getActiveOpenCalls(): Promise<OpenCall[]> {
+    const result = await db.select().from(openCalls).orderBy(desc(openCalls.publishedAt));
+    return result.filter(oc => oc.status === 'published');
+  }
+
+  async getOpenCallById(id: number): Promise<OpenCall | undefined> {
+    const result = await db.select().from(openCalls).where(eq(openCalls.id, id));
+    return result[0];
+  }
+
+  async getOpenCallBySlug(slug: string): Promise<OpenCall | undefined> {
+    const result = await db.select().from(openCalls).where(eq(openCalls.slug, slug));
+    return result[0];
+  }
+
+  async createOpenCall(data: InsertOpenCall): Promise<OpenCall> {
+    const result = await db.insert(openCalls).values(data).returning();
+    return result[0];
+  }
+
+  async updateOpenCall(id: number, updates: Partial<OpenCall>): Promise<OpenCall> {
+    const result = await db.update(openCalls).set(updates).where(eq(openCalls.id, id)).returning();
+    if (!result[0]) throw new Error('Open call not found');
+    return result[0];
+  }
+
+  async deleteOpenCall(id: number): Promise<void> {
+    await db.delete(openCalls).where(eq(openCalls.id, id));
+  }
+
+  // Content-Contributor Junction (DB-backed)
+  async getContentContributors(contentId: number): Promise<ContentContributor[]> {
+    return db.select()
+      .from(contentContributors)
+      .where(eq(contentContributors.contentId, contentId))
+      .orderBy(asc(contentContributors.position));
+  }
+
+  async addContentContributor(data: InsertContentContributor): Promise<ContentContributor> {
+    const result = await db.insert(contentContributors).values(data).returning();
+    return result[0];
+  }
+
+  async updateContentContributor(id: number, updates: Partial<ContentContributor>): Promise<ContentContributor> {
+    const result = await db.update(contentContributors)
+      .set(updates)
+      .where(eq(contentContributors.id, id))
+      .returning();
+    if (!result[0]) throw new Error(`ContentContributor ${id} not found`);
+    return result[0];
+  }
+
+  async removeContentContributor(id: number): Promise<void> {
+    await db.delete(contentContributors).where(eq(contentContributors.id, id));
+  }
+
+  async setContentContributors(contentId: number, contributors: InsertContentContributor[]): Promise<ContentContributor[]> {
+    // Atomic replace: delete existing, then insert new
+    await db.delete(contentContributors).where(eq(contentContributors.contentId, contentId));
+    if (contributors.length === 0) return [];
+    const values = contributors.map((c, i) => ({
+      ...c,
+      contentId,
+      position: c.position ?? i,
+    }));
+    return db.insert(contentContributors).values(values).returning();
+  }
+
+  // Editorial Writer Submissions (DB-backed)
+  async getEditorialSubmissions(filters?: { status?: string; limit?: number; offset?: number }): Promise<EditorialSubmission[]> {
+    let result = await db.select().from(editorialSubmissions).orderBy(desc(editorialSubmissions.submittedAt));
+    if (filters?.status) result = result.filter(s => s.status === filters.status);
+    if (filters?.offset) result = result.slice(filters.offset);
+    if (filters?.limit) result = result.slice(0, filters.limit);
+    return result;
+  }
+
+  async getEditorialSubmissionById(id: number): Promise<EditorialSubmission | undefined> {
+    const result = await db.select().from(editorialSubmissions).where(eq(editorialSubmissions.id, id));
+    return result[0];
+  }
+
+  async createEditorialSubmission(data: InsertEditorialSubmission): Promise<EditorialSubmission> {
+    const result = await db.insert(editorialSubmissions).values({
+      writerName: data.writerName,
+      writerEmail: data.writerEmail,
+      writerBio: data.writerBio ?? null,
+      portfolioLinks: data.portfolioLinks ?? null,
+      socialLinks: data.socialLinks ?? null,
+      pitchTitle: data.pitchTitle,
+      pitchCategory: data.pitchCategory ?? null,
+      pitchSummary: data.pitchSummary,
+      whyThisPublication: data.whyThisPublication ?? null,
+      uniqueAngle: data.uniqueAngle ?? null,
+      writingSampleText: data.writingSampleText ?? null,
+      wordCount: data.wordCount ?? null,
+      targetPublishDate: data.targetPublishDate ?? null,
+      exclusiveSubmission: data.exclusiveSubmission ?? false,
+      previouslyPublished: data.previouslyPublished ?? false,
+    }).returning();
+    return result[0];
+  }
+
+  async updateEditorialSubmission(id: number, updates: Partial<EditorialSubmission>): Promise<EditorialSubmission> {
+    const result = await db.update(editorialSubmissions)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(editorialSubmissions.id, id))
+      .returning();
+    if (!result[0]) throw new Error(`EditorialSubmission ${id} not found`);
+    return result[0];
+  }
+
   // Emergency reset - clear all data
   async emergencyReset(): Promise<void> {
     await this.ensureDataDir();
@@ -1637,7 +1880,6 @@ export class FileStorage implements IStorage {
       this.guides = [];
       this.mixSubmissions = [];
       this.scheduleItems = [];
-      this.songSubmissions = [];
       this.residentApplications = [];
       this.admins = [];
       this.currentPlayback = null;
@@ -1654,7 +1896,6 @@ export class FileStorage implements IStorage {
         'guides.json',
         'mixSubmissions.json',
         'scheduleItems.json',
-        'songSubmissions.json',
         'residentApplications.json',
         'admins.json',
         'currentPlayback.json',

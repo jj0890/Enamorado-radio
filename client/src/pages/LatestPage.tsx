@@ -18,10 +18,10 @@ function EpisodeCard({ episode }: { episode: any }) {
   const artwork = episode.artworkUrl || episode.artwork || episode.artUrl || `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop`;
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-navy transition-all duration-300 group shadow-sm hover:shadow-md">
+    <div className="bg-white rounded-lg overflow-hidden transition-all duration-200 group shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1">
       <div className="aspect-square bg-gray-200 overflow-hidden relative">
-        <img 
-          src={artwork} 
+        <img
+          src={artwork}
           alt={episode.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
         />
@@ -29,7 +29,7 @@ function EpisodeCard({ episode }: { episode: any }) {
 
       <div className="p-4">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono text-white bg-navy px-2 py-1 rounded uppercase">
+          <span className="text-xs font-mono text-white bg-burnt-orange-500 px-2 py-1 rounded uppercase">
             Episode
           </span>
           <div className="text-xs font-mono text-gray-500 flex items-center">
@@ -39,7 +39,7 @@ function EpisodeCard({ episode }: { episode: any }) {
         </div>
 
         <div className="mb-2">
-          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-navy transition-colors">
+          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-burnt-orange-500 transition-colors">
             {episode.title}
           </h4>
           <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
@@ -56,9 +56,9 @@ function EpisodeCard({ episode }: { episode: any }) {
           )}
         </div>
 
-        <Button 
-          size="sm" 
-          className="bg-navy hover:bg-navy-dark text-white font-mono w-full text-sm"
+        <Button
+          size="sm"
+          className="bg-burnt-orange-500 hover:bg-burnt-orange-600 text-white font-mono w-full text-sm"
           onClick={handlePlay}
         >
           <Play className="w-4 h-4 mr-2" />
@@ -84,10 +84,10 @@ function PlaylistCard({ playlist }: { playlist: any }) {
 
   return (
     <Link href={`/community/${playlist.id}`}>
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-purple-500 transition-all duration-300 group shadow-sm hover:shadow-md cursor-pointer">
+      <div className="bg-white rounded-lg overflow-hidden transition-all duration-200 group shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1 cursor-pointer">
         <div className="aspect-square bg-gray-200 overflow-hidden relative">
-          <img 
-            src={artwork} 
+          <img
+            src={artwork}
             alt={playlist.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
@@ -98,7 +98,7 @@ function PlaylistCard({ playlist }: { playlist: any }) {
 
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-white bg-purple-600 px-2 py-1 rounded uppercase">
+            <span className="text-xs font-mono text-white bg-terracotta-500 px-2 py-1 rounded uppercase">
               Playlist
             </span>
             <div className="text-xs font-mono text-gray-500 flex items-center">
@@ -108,7 +108,7 @@ function PlaylistCard({ playlist }: { playlist: any }) {
           </div>
 
           <div className="mb-2">
-            <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-purple-600 transition-colors line-clamp-2">
+            <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-terracotta-500 transition-colors line-clamp-2">
               {playlist.title}
             </h4>
             <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
@@ -120,16 +120,16 @@ function PlaylistCard({ playlist }: { playlist: any }) {
           {playlist.tags && playlist.tags.length > 0 && (
             <div className="flex flex-wrap gap-1 mb-3">
               {playlist.tags.slice(0, 2).map((tag: string, i: number) => (
-                <span key={i} className="text-xs font-mono text-purple-600 bg-purple-50 px-2 py-0.5 rounded">
+                <span key={i} className="text-xs font-mono text-terracotta-500 bg-burnt-orange-100 px-2 py-0.5 rounded">
                   {tag}
                 </span>
               ))}
             </div>
           )}
 
-          <Button 
-            size="sm" 
-            className="bg-purple-600 hover:bg-purple-700 text-white font-mono w-full text-sm"
+          <Button
+            size="sm"
+            className="bg-terracotta-500 hover:bg-terracotta-400 text-white font-mono w-full text-sm"
           >
             <ExternalLink className="w-4 h-4 mr-2" />
             View Playlist
@@ -159,12 +159,12 @@ export default function LatestPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
+      <div className="min-h-screen bg-cream-100 text-charcoal-900">
         <StickyRadioPlayer />
         <Navigation />
         <div className="max-w-7xl mx-auto px-4 py-12">
           <div className="text-center py-12">
-            <div className="text-gray-600 dark:text-gray-400 font-mono">Loading latest content...</div>
+            <div className="text-charcoal-600 font-mono">Loading latest content...</div>
           </div>
         </div>
       </div>
@@ -172,7 +172,7 @@ export default function LatestPage() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-cream-100 text-charcoal-900">
       <StickyRadioPlayer />
       <Navigation />
       <main className="max-w-7xl mx-auto px-4">
@@ -180,7 +180,7 @@ export default function LatestPage() {
         <div className="pt-16 pb-8 mb-8">
           <Link
             href="/"
-            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
+            className="inline-flex items-center text-charcoal-600 hover:text-burnt-orange-500 transition-colors font-mono"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
@@ -189,8 +189,8 @@ export default function LatestPage() {
 
         {/* Page Header */}
         <div className="pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">LATEST</h1>
-          <p className="text-xl text-gray-600 max-w-2xl font-mono">
+          <h1 className="text-6xl font-bold mb-4 font-mono text-charcoal-900">LATEST</h1>
+          <p className="text-xl text-charcoal-600 max-w-2xl font-mono">
             The most recent episodes, shows, and mixes from our community
           </p>
         </div>
@@ -201,9 +201,9 @@ export default function LatestPage() {
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}
-              className={filter === 'all' 
-                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
-                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
+              className={filter === 'all'
+                ? "bg-charcoal-800 hover:bg-charcoal-900 text-white font-mono"
+                : "border-charcoal-800 text-charcoal-800 hover:bg-charcoal-800 hover:text-white font-mono"
               }
             >
               All Content
@@ -211,9 +211,9 @@ export default function LatestPage() {
             <Button
               variant={filter === 'episodes' ? 'default' : 'outline'}
               onClick={() => setFilter('episodes')}
-              className={filter === 'episodes' 
-                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
-                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
+              className={filter === 'episodes'
+                ? "bg-burnt-orange-500 hover:bg-burnt-orange-600 text-white font-mono"
+                : "border-burnt-orange-500 text-burnt-orange-500 hover:bg-burnt-orange-500 hover:text-white font-mono"
               }
             >
               Episodes
@@ -221,9 +221,9 @@ export default function LatestPage() {
             <Button
               variant={filter === 'mixes' ? 'default' : 'outline'}
               onClick={() => setFilter('mixes')}
-              className={filter === 'mixes' 
-                ? "bg-navy hover:bg-navy-dark text-white font-mono" 
-                : "border-navy text-navy hover:bg-navy hover:text-white font-mono"
+              className={filter === 'mixes'
+                ? "bg-olive-500 hover:bg-olive-400 text-white font-mono"
+                : "border-olive-500 text-olive-500 hover:bg-olive-500 hover:text-white font-mono"
               }
             >
               Mixes
@@ -231,9 +231,9 @@ export default function LatestPage() {
             <Button
               variant={filter === 'playlists' ? 'default' : 'outline'}
               onClick={() => setFilter('playlists')}
-              className={filter === 'playlists' 
-                ? "bg-purple-600 hover:bg-purple-700 text-white font-mono" 
-                : "border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white font-mono"
+              className={filter === 'playlists'
+                ? "bg-terracotta-500 hover:bg-terracotta-400 text-white font-mono"
+                : "border-terracotta-500 text-terracotta-500 hover:bg-terracotta-500 hover:text-white font-mono"
               }
             >
               Playlists
@@ -250,7 +250,7 @@ export default function LatestPage() {
             )}
 
             {/* Regular Grid - Skip first if it was featured */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {filteredContent
                 .slice(filteredContent[0]?.isFeatured ? 1 : 0)
                 .map((item: any) => {
@@ -266,11 +266,11 @@ export default function LatestPage() {
           </>
         ) : (
           <div className="text-center py-12">
-            <div className="text-gray-600 font-mono">
+            <div className="text-charcoal-600 font-mono">
               No {filter === 'all' ? 'content' : filter} available yet.
             </div>
             <Link href="/submit-mix" className="mt-4 inline-block">
-              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
+              <Button className="bg-burnt-orange-500 hover:bg-burnt-orange-600 text-white font-mono">
                 Submit Your Mix
               </Button>
             </Link>
@@ -280,7 +280,7 @@ export default function LatestPage() {
         {/* Load More (Future Enhancement) */}
         {filteredContent.length >= 20 && (
           <div className="text-center mt-12">
-            <Button variant="outline" className="border-navy text-navy hover:bg-navy hover:text-white font-mono">
+            <Button variant="outline" className="border-burnt-orange-500 text-burnt-orange-500 hover:bg-burnt-orange-500 hover:text-white font-mono">
               Load More Content
             </Button>
           </div>

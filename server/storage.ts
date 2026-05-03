@@ -1,30 +1,56 @@
-import { 
+import {
   Show,
-  Episode, 
+  Episode,
   Guide,
   HeroBanner,
   MixSubmission,
-  PlaylistSubmission, 
-  Schedule, 
+  PlaylistSubmission,
+  EpisodeSubmission,
+  Schedule,
   ResidentApplication,
   Resident,
   Admin,
   Settings,
   CurrentPlayback,
   Contributor,
+  AlbumSuggestion,
+  AlbumVote,
+  AlbumPick,
+  AlbumPickItem,
+  AlbumSuggestionNote,
+  Content,
+  Issue,
+  IssueContent,
+  Pitch,
+  OpenCall,
   InsertShow,
   InsertEpisode,
   InsertGuide,
   InsertHeroBanner,
   InsertMixSubmission,
   InsertPlaylistSubmission,
+  InsertEpisodeSubmission,
   InsertSchedule,
   InsertResidentApplication,
   InsertResident,
   InsertAdmin,
   InsertSettings,
   InsertCurrentPlayback,
-  InsertContributor
+  InsertContributor,
+  InsertAlbumSuggestion,
+  InsertAlbumVote,
+  InsertAlbumPick,
+  InsertAlbumPickItem,
+  InsertAlbumSuggestionNote,
+  InsertContent,
+  InsertIssue,
+  InsertIssueContent,
+  InsertPitch,
+  InsertOpenCall,
+  ContentContributor,
+  InsertContentContributor,
+  EditorialSubmission,
+  InsertEditorialSubmission,
 } from "@shared/schema";
 
 // Clean Storage Interface - Single source of truth for all data operations
@@ -43,6 +69,13 @@ export interface IStorage {
   createEpisode(episode: InsertEpisode): Promise<Episode>;
   updateEpisode(id: number, episode: Partial<Episode>): Promise<Episode>;
   deleteEpisode(id: number): Promise<void>;
+
+  // Episode Submissions - Resident-uploaded episodes
+  getEpisodeSubmissions(filters?: { status?: string; residentId?: number; limit?: number }): Promise<EpisodeSubmission[]>;
+  getEpisodeSubmissionById(id: number): Promise<EpisodeSubmission | undefined>;
+  createEpisodeSubmission(submission: InsertEpisodeSubmission): Promise<EpisodeSubmission>;
+  updateEpisodeSubmission(id: number, updates: Partial<EpisodeSubmission>): Promise<EpisodeSubmission>;
+  deleteEpisodeSubmission(id: number): Promise<void>;
 
   // Guides - Explore content
   getGuides(filters?: { featured?: boolean; type?: string; limit?: number }): Promise<Guide[]>;
@@ -111,7 +144,7 @@ export interface IStorage {
   createAdmin(admin: InsertAdmin): Promise<Admin>;
   getCurrentPlayback(): Promise<CurrentPlayback | undefined>;
   updateCurrentPlayback(playback: InsertCurrentPlayback): Promise<CurrentPlayback>;
-  
+
   // Settings - System configuration
   getSettings(): Promise<Settings[]>;
   getSettingByKey(key: string): Promise<Settings | undefined>;
@@ -124,6 +157,84 @@ export interface IStorage {
   getContributorByHandle(handle: string): Promise<Contributor | undefined>;
   createContributor(contributor: InsertContributor): Promise<Contributor>;
   updateContributor(id: number, updates: Partial<Contributor>): Promise<Contributor | undefined>;
+
+  // Albums of the Month
+  getAlbumSuggestions(filters?: { status?: string; limit?: number }): Promise<AlbumSuggestion[]>;
+  getAlbumSuggestionById(id: number): Promise<AlbumSuggestion | undefined>;
+  createAlbumSuggestion(data: InsertAlbumSuggestion, mbData?: { musicbrainzId: string; releaseGroupId: string; coverArtUrl: string | null; artist: string; title: string }, spotifyUrl?: string): Promise<AlbumSuggestion>;
+  updateAlbumSuggestion(id: number, updates: Partial<AlbumSuggestion>): Promise<AlbumSuggestion>;
+  acceptAlbumSuggestion(id: number, reviewedBy: string): Promise<AlbumSuggestion>;
+  rejectAlbumSuggestion(id: number, reviewedBy: string): Promise<AlbumSuggestion>;
+  deleteAlbumSuggestion(id: number): Promise<void>;
+  voteOnAlbumSuggestion(suggestionId: number, voterUsername: string, value: 1 | -1): Promise<AlbumVote>;
+  getAlbumVotesForSuggestion(suggestionId: number): Promise<AlbumVote[]>;
+  getAlbumSuggestionsWithVotes(): Promise<Array<AlbumSuggestion & { voteCount: number; approvalCount: number; votes: AlbumVote[] }>>;
+  createAlbumPick(data: InsertAlbumPick): Promise<AlbumPick>;
+  getAlbumPickByMonth(month: string): Promise<AlbumPick | undefined>;
+  getAlbumPickById(id: number): Promise<AlbumPick | undefined>;
+  getPublishedAlbumPicks(): Promise<AlbumPick[]>;
+  getDraftAlbumPicks(): Promise<AlbumPick[]>;
+  updateAlbumPick(id: number, updates: Partial<AlbumPick>): Promise<AlbumPick>;
+  publishAlbumPick(pickId: number): Promise<AlbumPick>;
+  deleteAlbumPick(pickId: number): Promise<void>;
+  addAlbumToPickDraft(data: InsertAlbumPickItem): Promise<AlbumPickItem>;
+  getAlbumPickItems(pickId: number): Promise<AlbumPickItem[]>;
+  getAlbumPickItemById(id: number): Promise<AlbumPickItem | undefined>;
+  updateAlbumPickItem(id: number, updates: Partial<AlbumPickItem>): Promise<AlbumPickItem>;
+  deleteAlbumPickItem(id: number): Promise<void>;
+  getPublishedAlbumPickWithItems(month: string): Promise<(AlbumPick & { items: Array<AlbumPickItem & { album: AlbumSuggestion }> }) | null>;
+  addAlbumSuggestionNote(data: InsertAlbumSuggestionNote): Promise<AlbumSuggestionNote>;
+  getAlbumSuggestionNotes(suggestionId: number): Promise<AlbumSuggestionNote[]>;
+  getYearEndLists(): Promise<AlbumPick[]>;
+  getYearEndListBySlug(slug: string): Promise<AlbumPick | undefined>;
+  getYearEndListWithItems(slug: string): Promise<(AlbumPick & { items: Array<AlbumPickItem & { album: AlbumSuggestion | null }> }) | null>;
+
+  // Editorial Content - Magazine articles, essays, interviews
+  getPublishedContent(filters?: { tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]>;
+  getAllContent(filters?: { status?: string; tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]>;
+  getContentById(id: number): Promise<Content | undefined>;
+  getContentBySlug(slug: string): Promise<Content | undefined>;
+  createContent(data: InsertContent): Promise<Content>;
+  updateContent(id: number, updates: Partial<Content>): Promise<Content>;
+  deleteContent(id: number): Promise<void>;
+
+  // Editorial Issues - Magazine issue groupings
+  getAllIssues(includeUnpublished?: boolean): Promise<Issue[]>;
+  getIssueById(id: number): Promise<Issue | undefined>;
+  getIssueBySlug(slug: string): Promise<Issue | undefined>;
+  createIssue(data: InsertIssue): Promise<Issue>;
+  updateIssue(id: number, updates: Partial<Issue>): Promise<Issue>;
+  deleteIssue(id: number): Promise<void>;
+  getIssueContents(issueId: number): Promise<Content[]>;
+  addContentToIssue(issueId: number, contentId: number, position?: number): Promise<IssueContent>;
+  removeContentFromIssue(issueId: number, contentId: number): Promise<void>;
+
+  // Editorial Pitches - Internal planning/tracking
+  getAllPitches(): Promise<Pitch[]>;
+  createPitch(data: InsertPitch): Promise<Pitch>;
+  updatePitch(id: number, updates: Partial<Pitch>): Promise<Pitch>;
+  deletePitch(id: number): Promise<void>;
+
+  // Open Calls - Community submission calls
+  getActiveOpenCalls(): Promise<OpenCall[]>;
+  getOpenCallById(id: number): Promise<OpenCall | undefined>;
+  getOpenCallBySlug(slug: string): Promise<OpenCall | undefined>;
+  createOpenCall(data: InsertOpenCall): Promise<OpenCall>;
+  updateOpenCall(id: number, updates: Partial<OpenCall>): Promise<OpenCall>;
+  deleteOpenCall(id: number): Promise<void>;
+
+  // Content-Contributor Junction - Links content to contributor profiles with roles
+  getContentContributors(contentId: number): Promise<ContentContributor[]>;
+  addContentContributor(data: InsertContentContributor): Promise<ContentContributor>;
+  updateContentContributor(id: number, updates: Partial<ContentContributor>): Promise<ContentContributor>;
+  removeContentContributor(id: number): Promise<void>;
+  setContentContributors(contentId: number, contributors: InsertContentContributor[]): Promise<ContentContributor[]>;
+
+  // Editorial Writer Submissions - Public pitch submissions from writers
+  getEditorialSubmissions(filters?: { status?: string; limit?: number; offset?: number }): Promise<EditorialSubmission[]>;
+  getEditorialSubmissionById(id: number): Promise<EditorialSubmission | undefined>;
+  createEditorialSubmission(data: InsertEditorialSubmission): Promise<EditorialSubmission>;
+  updateEditorialSubmission(id: number, updates: Partial<EditorialSubmission>): Promise<EditorialSubmission>;
 }
 
 // In-Memory Implementation
@@ -703,6 +814,19 @@ class MemStorage implements IStorage {
       this.settings.splice(index, 1);
     }
   }
+
+  // Content-Contributor Junction stubs (MemStorage not used in production)
+  async getContentContributors(_contentId: number): Promise<ContentContributor[]> { return []; }
+  async addContentContributor(_data: InsertContentContributor): Promise<ContentContributor> { throw new Error('Not implemented in MemStorage'); }
+  async updateContentContributor(_id: number, _updates: Partial<ContentContributor>): Promise<ContentContributor> { throw new Error('Not implemented in MemStorage'); }
+  async removeContentContributor(_id: number): Promise<void> { throw new Error('Not implemented in MemStorage'); }
+  async setContentContributors(_contentId: number, _contributors: InsertContentContributor[]): Promise<ContentContributor[]> { return []; }
+
+  // Editorial Writer Submissions stubs (MemStorage not used in production)
+  async getEditorialSubmissions(_filters?: { status?: string; limit?: number; offset?: number }): Promise<EditorialSubmission[]> { return []; }
+  async getEditorialSubmissionById(_id: number): Promise<EditorialSubmission | undefined> { return undefined; }
+  async createEditorialSubmission(_data: InsertEditorialSubmission): Promise<EditorialSubmission> { throw new Error('Not implemented in MemStorage'); }
+  async updateEditorialSubmission(_id: number, _updates: Partial<EditorialSubmission>): Promise<EditorialSubmission> { throw new Error('Not implemented in MemStorage'); }
 }
 
 import { FileStorage } from './persistentStorage';

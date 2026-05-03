@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
 import { sql, relations } from 'drizzle-orm';
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -103,16 +103,65 @@ export const templateTypeSchema = z.enum([
   "playlist",
   "video",
   "pdf",
+  "notes",      // Raw thoughts, notes app style
+  "picks_list", // Numbered recommendations with commentary
 ]);
 export type TemplateType = z.infer<typeof templateTypeSchema>;
 
 // Content tier schema
+// editorial = commissioned/curated, featured = elevated community, archive = approved submissions
 export const tierSchema = z.enum([
-  "issue",          // Part of a curated magazine issue
-  "web_exclusive",  // Standalone editorial piece
-  "community",      // User submission (approved)
+  "editorial",      // Commissioned, planned, or editorially curated (was "issue")
+  "featured",       // Community work that gets elevated (was "web_exclusive")
+  "archive",        // All approved community submissions (was "community")
+  // Legacy values kept for backwards compatibility during migration
+  "issue",          // @deprecated - use "editorial"
+  "web_exclusive",  // @deprecated - use "featured"
+  "community",      // @deprecated - use "archive"
 ]);
 export type Tier = z.infer<typeof tierSchema>;
+
+// Contributor role schema
+export const contributorRoleSchema = z.enum([
+  "dj",
+  "writer",
+  "photographer",
+  "curator",
+  "artist",
+  "producer",
+  "other",
+]);
+export type ContributorRole = z.infer<typeof contributorRoleSchema>;
+
+// Social links schema for contributors
+export const socialLinksSchema = z.object({
+  instagram: z.string().optional(),
+  twitter: z.string().optional(),
+  soundcloud: z.string().optional(),
+  bandcamp: z.string().optional(),
+  spotify: z.string().optional(),
+}).optional();
+export type SocialLinks = z.infer<typeof socialLinksSchema>;
+
+// Photoshoot gallery item schema
+export const photoshootGalleryItemSchema = z.object({
+  src: z.string(),
+  alt: z.string().optional(),
+  caption: z.string().optional(),
+  credit: z.string().optional(),
+});
+export type PhotoshootGalleryItem = z.infer<typeof photoshootGalleryItemSchema>;
+
+// Content contributor role (for junction table)
+export const contentContributorRoleSchema = z.enum([
+  "author",
+  "photographer",
+  "interviewer",
+  "subject",
+  "curator",
+  "editor",
+]);
+export type ContentContributorRole = z.infer<typeof contentContributorRoleSchema>;
 
 // Editorial category schema
 export const editorialCategorySchema = z.enum([
@@ -142,17 +191,52 @@ export const users = pgTable("users", {
 });
 
 // Contributors - Community members who submit content (unified from both)
+// Anyone who publishes content gets a contributor profile
 export const contributors = pgTable("contributors", {
   id: serial("id").primaryKey(),
-  handle: text("handle").notNull().unique(), // @username format
+  handle: text("handle").notNull().unique(), // @username format (lowercase, no spaces)
   displayName: text("display_name").notNull(), // Full name or DJ name
   email: text("email"),
-  socialHandle: text("social_handle"), // Instagram/Twitter
-  bio: text("bio"),
+
+  // Profile info
+  bio: text("bio"), // Longer bio (up to 500 chars)
+  tagline: text("tagline"), // Short 1-liner for cards (up to 150 chars)
+  location: text("location"), // "Brooklyn, NY" style
+  role: text("role"), // "dj", "writer", "photographer", etc.
   avatarUrl: text("avatar_url"),
-  isResident: boolean("is_resident").default(false), // If they're also a radio resident
-  residentId: integer("resident_id"), // Link to residents table if applicable
+  websiteUrl: text("website_url"),
+
+  // Social links (expanded from single socialHandle)
+  socialHandle: text("social_handle"), // @deprecated - use socialLinks
+  socialLinks: jsonb("social_links").$type<{
+    instagram?: string;
+    twitter?: string;
+    soundcloud?: string;
+    bandcamp?: string;
+    spotify?: string;
+  }>(),
+
+  // Profile showcase content
+  photoshootGallery: jsonb("photoshoot_gallery").$type<Array<{
+    src: string;
+    alt?: string;
+    caption?: string;
+    credit?: string;
+  }>>(),
+  recommendedPlaylistUrl: text("recommended_playlist_url"), // Spotify/Apple/etc playlist
+  recommendedPlaylistPlatform: text("recommended_playlist_platform"), // "spotify" | "apple" | "soundcloud"
+
+  // Resident linking
+  isResident: boolean("is_resident").default(false),
+  residentId: integer("resident_id"),
+
+  // Visibility & featuring
+  isPublic: boolean("is_public").default(true),
+  isFeatured: boolean("is_featured").default(false),
+
+  // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // ============================================
@@ -613,17 +697,20 @@ export const content = pgTable("editorial_content", {
   slug: text("slug").notNull().unique(),
   excerpt: text("excerpt"),
   body: text("body"),
-  authors: text("authors").array().default([]),
+  authors: text("authors").array().default([]), // @deprecated - use contentContributors junction
   coverImageUrl: text("cover_image_url"),
   videoUrl: text("video_url"),
   status: text("status").notNull().default("draft"),
+  // contentType now includes "notes" and "picks_list"
   contentType: text("content_type").notNull().default("essay"),
   publishedAt: timestamp("published_at"),
   featuredRank: integer("featured_rank"),
   isHero: boolean("is_hero").default(false),
   issueId: integer("issue_id").references(() => issues.id),
+  // templateType now includes "notes" and "picks_list"
   templateType: text("template_type"),
-  tier: text("tier").default("web_exclusive"),
+  // tier: "editorial" | "featured" | "archive" (new naming)
+  tier: text("tier").default("featured"),
   editorialCategory: text("editorial_category"),
   sections: jsonb("sections").$type<EditorialSection[]>(),
   type: text("type"),
@@ -639,6 +726,30 @@ export const content = pgTable("editorial_content", {
   galleryUrls: text("gallery_urls"),
   files: text("files").array().default([]),
   gallery: text("gallery"),
+
+  // Import tracking (for Substack, Medium, etc.)
+  importSource: text("import_source"), // "substack" | "medium" | "gdocs" | null
+  importSourceUrl: text("import_source_url"), // Original URL
+  importSourceAuthor: text("import_source_author"), // Original author name if different
+  importedAt: timestamp("imported_at"),
+
+  // Read time (auto-calculated based on word count)
+  readTimeMinutes: integer("read_time_minutes"),
+
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Content-Contributor Junction Table
+// Links content to contributors with roles (replaces string-based authors array)
+export const contentContributors = pgTable("content_contributors", {
+  id: serial("id").primaryKey(),
+  contentId: integer("content_id").references(() => content.id, { onDelete: "cascade" }).notNull(),
+  contributorId: integer("contributor_id").references(() => contributors.id, { onDelete: "cascade" }).notNull(),
+  // Role in this content: author, photographer, interviewer, subject, curator, editor
+  role: text("role").default("author"),
+  // Position for ordering multiple contributors
+  position: integer("position").default(0),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -659,6 +770,20 @@ export const contentTags = pgTable("content_tags", {
   contentId: integer("content_id").references(() => content.id),
   tagId: integer("tag_id").references(() => tags.id),
 });
+
+// Listener Likes — anonymous session-based likes that drive community promotion
+// One like per (entityType, entityId, sessionKey) — enforced by unique index
+export const contentLikes = pgTable("content_likes", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // 'submission' | 'episode' | 'mix'
+  entityId: integer("entity_id").notNull(),
+  sessionKey: text("session_key").notNull(), // UUID from enamorado_lsid cookie
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  uniqueLike: uniqueIndex("content_likes_unique").on(table.entityType, table.entityId, table.sessionKey),
+  entityIdx: index("content_likes_entity_idx").on(table.entityType, table.entityId),
+  createdAtIdx: index("content_likes_created_at_idx").on(table.createdAt),
+}));
 
 // Featured Stories
 export const featuredStories = pgTable("featured_stories", {
@@ -717,6 +842,8 @@ export const contributorsRelations = relations(contributors, ({ many }) => ({
   mixSubmissions: many(mixSubmissions),
   playlistSubmissions: many(playlistSubmissions),
   pitches: many(pitches),
+  // Content they've contributed to (via junction table)
+  contentCredits: many(contentContributors),
 }));
 
 export const submissionsRelations = relations(submissions, ({ one }) => ({
@@ -757,6 +884,20 @@ export const contentRelations = relations(content, ({ one, many }) => ({
   }),
   contentTags: many(contentTags),
   issueContents: many(issueContents),
+  // Contributors linked via junction table
+  contributors: many(contentContributors),
+}));
+
+// Content-Contributor junction relations
+export const contentContributorsRelations = relations(contentContributors, ({ one }) => ({
+  content: one(content, {
+    fields: [contentContributors.contentId],
+    references: [content.id],
+  }),
+  contributor: one(contributors, {
+    fields: [contentContributors.contributorId],
+    references: [contributors.id],
+  }),
 }));
 
 export const tagsRelations = relations(tags, ({ many }) => ({
@@ -824,13 +965,29 @@ export const insertUserSchema = createInsertSchema(users).omit({
 export const insertContributorSchema = createInsertSchema(contributors).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 }).extend({
-  handle: z.string().min(1, "Handle is required").max(50, "Handle is too long"),
+  handle: z.string()
+    .min(1, "Handle is required")
+    .max(50, "Handle is too long")
+    .regex(/^[a-z0-9_-]+$/, "Handle can only contain lowercase letters, numbers, underscores, and hyphens"),
   displayName: z.string().min(1, "Display name is required").max(100, "Name is too long"),
-  email: z.string().email("Invalid email").optional(),
-  socialHandle: z.string().optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
   bio: z.string().max(500, "Bio is too long").optional(),
-  avatarUrl: z.string().optional(),
+  tagline: z.string().max(150, "Tagline is too long").optional(),
+  location: z.string().max(100, "Location is too long").optional(),
+  role: contributorRoleSchema.optional(),
+  avatarUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  websiteUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  socialHandle: z.string().optional(), // @deprecated
+  socialLinks: socialLinksSchema,
+  photoshootGallery: z.array(photoshootGalleryItemSchema).max(10, "Maximum 10 images").optional(),
+  recommendedPlaylistUrl: z.string().url("Invalid URL").optional().or(z.literal("")),
+  recommendedPlaylistPlatform: z.enum(["spotify", "apple", "soundcloud", "youtube"]).optional(),
+  isResident: z.boolean().optional(),
+  residentId: z.number().optional(),
+  isPublic: z.boolean().default(true),
+  isFeatured: z.boolean().default(false),
 });
 
 export const insertShowSchema = createInsertSchema(shows).omit({
@@ -1021,23 +1178,27 @@ const isValidYouTubeUrl = (url: string | undefined): boolean => {
 export const insertContentSchema = createInsertSchema(content).omit({
   id: true,
   createdAt: true,
+  updatedAt: true,
 }).extend({
   title: z.string().min(1, "Content title is required").max(200, "Title is too long"),
   slug: z.string().min(1, "Slug is required").regex(/^[a-z0-9-]+$/, "Slug can only contain lowercase letters, numbers, and hyphens"),
   excerpt: z.string().optional(),
   body: z.string().optional(),
-  authors: z.array(z.string()).default([]),
+  authors: z.array(z.string()).default([]), // @deprecated - use contentContributors
   coverImageUrl: z.string().optional(),
   videoUrl: z.string().optional().refine(isValidYouTubeUrl, {
     message: "Please enter a valid YouTube URL"
   }),
   status: z.enum(["draft", "published"]).default("draft"),
-  contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link"]).default("essay"),
+  // Added "notes" and "picks_list" content types
+  contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link", "notes", "picks_list"]).default("essay"),
   featuredRank: z.number().min(1).max(10).optional(),
   isHero: z.boolean().default(false),
   issueId: z.number().optional(),
-  templateType: z.enum(["article", "interview", "photo_essay", "playlist", "video", "pdf"]).optional(),
-  tier: z.enum(["issue", "web_exclusive", "community"]).default("web_exclusive"),
+  // Added "notes" and "picks_list" template types
+  templateType: z.enum(["article", "interview", "photo_essay", "playlist", "video", "pdf", "notes", "picks_list"]).optional(),
+  // New tier naming: editorial (curated), featured (elevated), archive (approved)
+  tier: z.enum(["editorial", "featured", "archive", "issue", "web_exclusive", "community"]).default("featured"),
   editorialCategory: z.enum(["essay", "review", "profile", "feature", "column", "news", "art", "interview", "radio"]).optional(),
   type: z.enum(["playlist", "writing", "art", "video", "pdf", "link"]).optional(),
   originChannel: z.enum(["community", "editorial"]).default("editorial"),
@@ -1058,6 +1219,11 @@ export const insertContentSchema = createInsertSchema(content).omit({
   credits: z.string().optional(),
   galleryUrls: z.string().optional(),
   sections: sectionsArraySchema.optional(),
+  // Import tracking fields
+  importSource: z.enum(["substack", "medium", "gdocs"]).optional(),
+  importSourceUrl: z.string().url().optional(),
+  importSourceAuthor: z.string().optional(),
+  readTimeMinutes: z.number().positive().optional(),
 });
 
 export const updateContentSchema = z.object({
@@ -1069,11 +1235,12 @@ export const updateContentSchema = z.object({
   coverImageUrl: z.string().optional(),
   videoUrl: z.string().optional().refine(isValidYouTubeUrl, { message: "Please enter a valid YouTube URL" }),
   status: z.enum(["draft", "published"]).optional(),
-  contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link"]).optional(),
+  contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link", "notes", "picks_list"]).optional(),
   featuredRank: z.number().min(1).max(10).optional(),
   isHero: z.boolean().optional(),
   issueId: z.number().optional(),
   publishedAt: z.date().optional(),
+  tier: z.enum(["editorial", "featured", "archive"]).optional(),
   gallery: z.array(z.object({
     src: z.string(),
     caption: z.string().optional(),
@@ -1087,6 +1254,11 @@ export const updateContentSchema = z.object({
   credits: z.string().optional(),
   galleryUrls: z.string().optional(),
   sections: sectionsArraySchema.optional(),
+  // Import tracking
+  importSource: z.enum(["substack", "medium", "gdocs"]).optional(),
+  importSourceUrl: z.string().url().optional(),
+  importSourceAuthor: z.string().optional(),
+  readTimeMinutes: z.number().positive().optional(),
 });
 
 export const updateSubmissionStatusSchema = z.object({
@@ -1139,12 +1311,55 @@ export const updateFeatureSchema = z.object({
 });
 
 export const updateContributorSchema = z.object({
-  handle: z.string().min(1).max(50).optional(),
+  handle: z.string().min(1).max(50).regex(/^[a-z0-9_-]+$/, "Invalid handle format").optional(),
   displayName: z.string().min(1).max(100).optional(),
-  email: z.string().email().optional(),
-  socialHandle: z.string().optional(),
+  email: z.string().email().optional().or(z.literal("")),
   bio: z.string().max(500).optional(),
-  avatarUrl: z.string().optional(),
+  tagline: z.string().max(150).optional(),
+  location: z.string().max(100).optional(),
+  role: contributorRoleSchema.optional(),
+  avatarUrl: z.string().url().optional().or(z.literal("")),
+  websiteUrl: z.string().url().optional().or(z.literal("")),
+  socialHandle: z.string().optional(), // @deprecated
+  socialLinks: socialLinksSchema,
+  photoshootGallery: z.array(photoshootGalleryItemSchema).max(10).optional(),
+  recommendedPlaylistUrl: z.string().url().optional().or(z.literal("")),
+  recommendedPlaylistPlatform: z.enum(["spotify", "apple", "soundcloud", "youtube"]).optional(),
+  isResident: z.boolean().optional(),
+  residentId: z.number().optional(),
+  isPublic: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+});
+
+// Content-Contributor linking schema
+export const insertContentContributorSchema = z.object({
+  contentId: z.number().positive("Content ID is required"),
+  contributorId: z.number().positive("Contributor ID is required"),
+  role: contentContributorRoleSchema.default("author"),
+  position: z.number().min(0).default(0),
+});
+
+// Substack import schema
+export const substackImportSchema = z.object({
+  url: z.string().url("Invalid URL").refine(
+    (url) => url.includes("substack.com") || url.includes(".substack."),
+    "Must be a valid Substack URL"
+  ),
+  // Optional overrides
+  title: z.string().optional(),
+  excerpt: z.string().optional(),
+  contributorId: z.number().positive().optional(),
+  tier: z.enum(["editorial", "featured", "archive"]).default("featured"),
+});
+
+// Auto-create contributor schema (for when content is approved)
+export const autoCreateContributorSchema = z.object({
+  handle: z.string().min(1).max(50).regex(/^[a-z0-9_-]+$/),
+  displayName: z.string().min(1).max(100),
+  email: z.string().email().optional(),
+  role: contributorRoleSchema.optional(),
+  avatarUrl: z.string().url().optional(),
+  socialLinks: socialLinksSchema.optional(),
 });
 
 export const insertPitchSchema = createInsertSchema(pitches).omit({
@@ -1273,6 +1488,40 @@ export type OpenCall = typeof openCalls.$inferSelect;
 export type InsertOpenCall = z.infer<typeof insertOpenCallSchema>;
 export type UpdateOpenCall = z.infer<typeof updateOpenCallSchema>;
 
+// Content-Contributor junction types
+export type ContentContributor = typeof contentContributors.$inferSelect;
+export type InsertContentContributor = z.infer<typeof insertContentContributorSchema>;
+
+// Admin type aliases (users table serves as admin store)
+export type Admin = User;
+export type InsertAdmin = InsertUser;
+
+// Substack import type
+export type SubstackImport = z.infer<typeof substackImportSchema>;
+
+// Auto-create contributor type
+export type AutoCreateContributor = z.infer<typeof autoCreateContributorSchema>;
+
+// Contributor with content (for profile pages)
+export interface ContributorWithContent extends Contributor {
+  contentCredits?: Array<{
+    content: Content;
+    role: string;
+    position: number;
+  }>;
+  mixSubmissions?: MixSubmission[];
+  playlistSubmissions?: PlaylistSubmission[];
+}
+
+// Content with contributors (for article pages)
+export interface ContentWithContributors extends Content {
+  contributors?: Array<{
+    contributor: Contributor;
+    role: string;
+    position: number;
+  }>;
+}
+
 // Unified content types (for community page)
 export interface ContentItemBase {
   id: number;
@@ -1354,6 +1603,103 @@ export function isArtContent(item: ContentItem): item is ArtContentItem {
 export function isPlaylistContent(item: ContentItem): item is PlaylistContentItem {
   return item.type === 'playlist';
 }
+
+// ============================================
+// GENRE TAG SYSTEM
+// ============================================
+
+// Genres - Tag system for content discovery
+export const genres = pgTable("genres", {
+  id: serial("id").primaryKey(),
+  slug: varchar("slug", { length: 100 }).notNull().unique(),
+  name: varchar("name", { length: 100 }).notNull(),
+  category: varchar("category", { length: 50 }), // parent category for grouping
+  description: text("description"),
+  colorHex: varchar("color_hex", { length: 7 }), // optional brand color
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Content-Genre Relationships (polymorphic - handles mixes, episodes, playlists)
+export const contentGenres = pgTable("content_genres", {
+  id: serial("id").primaryKey(),
+  genreId: integer("genre_id").references(() => genres.id).notNull(),
+  contentType: varchar("content_type", { length: 50 }).notNull(), // 'mix', 'episode', 'playlist'
+  contentId: integer("content_id").notNull(), // ID of the mix/episode/playlist
+  isPrimary: boolean("is_primary").default(false), // primary genre for the content
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// ============================================
+// EDITORIAL SUBMISSIONS
+// ============================================
+
+// Editorial Submissions - Writer pitch submissions
+// NOTE: Uses "editorial_writer_submissions" to avoid collision with the community submissions table
+export const editorialSubmissions = pgTable("editorial_writer_submissions", {
+  id: serial("id").primaryKey(),
+
+  // Writer Info
+  writerName: varchar("writer_name", { length: 255 }).notNull(),
+  writerEmail: varchar("writer_email", { length: 255 }).notNull(),
+  writerBio: text("writer_bio"),
+  portfolioLinks: jsonb("portfolio_links").$type<string[]>(), // Array of URLs
+  socialLinks: jsonb("social_links").$type<{ twitter?: string; instagram?: string }>(),
+
+  // Pitch Info
+  pitchTitle: varchar("pitch_title", { length: 500 }).notNull(),
+  pitchCategory: varchar("pitch_category", { length: 100 }),
+  pitchSummary: text("pitch_summary").notNull(),
+  whyThisPublication: text("why_this_publication"),
+  uniqueAngle: text("unique_angle"),
+
+  // Writing Sample
+  writingSampleText: text("writing_sample_text"),
+  writingSampleFile: varchar("writing_sample_file", { length: 500 }), // S3 URL or file path
+  wordCount: integer("word_count"),
+
+  // Metadata
+  targetPublishDate: timestamp("target_publish_date"),
+  exclusiveSubmission: boolean("exclusive_submission").default(false),
+  previouslyPublished: boolean("previously_published").default(false),
+
+  // Status & Review
+  status: varchar("status", { length: 50 }).default("pending"), // pending, under_review, accepted, rejected
+  reviewedBy: integer("reviewed_by").references(() => users.id),
+  reviewNotes: text("review_notes"),
+
+  // Timestamps
+  submittedAt: timestamp("submitted_at").defaultNow(),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Insert schema for editorial submissions
+export const insertEditorialSubmissionSchema = z.object({
+  writerName: z.string().min(2, "Name is required"),
+  writerEmail: z.string().email("Valid email is required"),
+  writerBio: z.string().optional(),
+  portfolioLinks: z.array(z.string().url()).optional(),
+  socialLinks: z.object({
+    twitter: z.string().optional(),
+    instagram: z.string().optional(),
+  }).optional(),
+  pitchTitle: z.string().min(3, "Pitch title is required"),
+  pitchCategory: z.string().optional(),
+  pitchSummary: z.string().min(50, "Pitch summary must be at least 50 characters"),
+  whyThisPublication: z.string().optional(),
+  uniqueAngle: z.string().optional(),
+  writingSampleText: z.string().optional(),
+  wordCount: z.number().int().positive().optional(),
+  targetPublishDate: z.coerce.date().optional(),
+  exclusiveSubmission: z.boolean().default(false),
+  previouslyPublished: z.boolean().default(false),
+});
+
+export type EditorialSubmission = typeof editorialSubmissions.$inferSelect;
+export type InsertEditorialSubmission = z.infer<typeof insertEditorialSubmissionSchema>;
 
 // API Response Types
 export type ApiOk<T = void> = { ok: true; data: T };
