@@ -18,8 +18,8 @@ function EpisodeCard({ episode }: { episode: any }) {
   const artwork = episode.artworkUrl || episode.artwork || episode.artUrl || `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=400&h=400&fit=crop`;
 
   return (
-    <div className="bg-white rounded-lg overflow-hidden transition-all duration-200 group shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1">
-      <div className="aspect-square bg-gray-200 overflow-hidden relative">
+    <div className="bg-white rounded-lg overflow-hidden transition-all duration-200 group shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.14)] hover:-translate-y-0.5 flex flex-col">
+      <div className="aspect-square bg-gray-100 overflow-hidden relative flex-shrink-0">
         <img
           src={artwork}
           alt={episode.title}
@@ -27,41 +27,46 @@ function EpisodeCard({ episode }: { episode: any }) {
         />
       </div>
 
-      <div className="p-4">
-        <div className="flex items-center justify-between mb-3">
-          <span className="text-xs font-mono text-white bg-burnt-orange-500 px-2 py-1 rounded uppercase">
+      <div className="p-4 flex flex-col flex-1">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-mono text-white bg-burnt-orange-500 px-2 py-0.5 rounded-sm uppercase tracking-wide">
             Episode
           </span>
-          <div className="text-xs font-mono text-gray-500 flex items-center">
-            <Clock className="w-3 h-3 mr-1" />
-            {new Date(episode.airDate || episode.date).toLocaleDateString()}
-          </div>
+          <span className="text-xs text-charcoal-400 font-mono">
+            {new Date(episode.airDate || episode.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+          </span>
         </div>
 
-        <div className="mb-2">
-          <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-burnt-orange-500 transition-colors">
-            {episode.title}
-          </h4>
-          <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
-            <User className="w-3 h-3 mr-1" />
-            {episode.hostName || episode.host}
-          </div>
-        </div>
+        <h4 className="text-base font-semibold text-charcoal-900 group-hover:text-burnt-orange-500 transition-colors leading-tight mb-1 line-clamp-2">
+          {episode.title}
+        </h4>
+        <p className="text-sm text-charcoal-500 mb-3">
+          {episode.hostName || episode.host}
+        </p>
 
-        <div className="mb-3">
+        <div className="flex flex-wrap gap-1 mb-3 min-h-[1.5rem]">
           {episode.genre && (
-            <span className="text-xs font-mono text-gray-600">
-              {episode.genre}
-            </span>
+            <Link href={`/genre/${episode.genre.toLowerCase().replace(/\s+/g, '-')}`}>
+              <span className="text-xs font-mono text-burnt-orange-500 hover:text-burnt-orange-600 bg-burnt-orange-100 px-2 py-0.5 rounded cursor-pointer transition-colors">
+                {episode.genre}
+              </span>
+            </Link>
           )}
+          {episode.tags?.slice(0, 2).map((tag: string, i: number) => (
+            <Link key={i} href={`/genre/${tag.toLowerCase().replace(/\s+/g, '-')}`}>
+              <span className="text-xs font-mono text-charcoal-500 hover:text-charcoal-900 bg-cream-200 px-2 py-0.5 rounded cursor-pointer transition-colors">
+                {tag}
+              </span>
+            </Link>
+          ))}
         </div>
 
         <Button
           size="sm"
-          className="bg-burnt-orange-500 hover:bg-burnt-orange-600 text-white font-mono w-full text-sm"
+          className="bg-burnt-orange-500 hover:bg-burnt-orange-600 text-white font-mono w-full text-sm mt-auto"
           onClick={handlePlay}
         >
-          <Play className="w-4 h-4 mr-2" />
+          <Play className="w-4 h-4 mr-1.5" />
           Listen
         </Button>
       </div>
@@ -84,54 +89,50 @@ function PlaylistCard({ playlist }: { playlist: any }) {
 
   return (
     <Link href={`/community/${playlist.id}`}>
-      <div className="bg-white rounded-lg overflow-hidden transition-all duration-200 group shadow-[0_2px_8px_rgba(0,0,0,0.1)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.15)] hover:-translate-y-1 cursor-pointer">
-        <div className="aspect-square bg-gray-200 overflow-hidden relative">
+      <div className="bg-white rounded-lg overflow-hidden transition-all duration-200 group shadow-[0_2px_8px_rgba(0,0,0,0.08)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.14)] hover:-translate-y-0.5 cursor-pointer flex flex-col">
+        <div className="aspect-square bg-gray-100 overflow-hidden relative flex-shrink-0">
           <img
             src={artwork}
             alt={playlist.title}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
-          <div className="absolute top-2 right-2 bg-white/90 p-2 rounded-full">
+          <div className="absolute top-2 right-2 bg-white/90 p-1.5 rounded-full shadow-sm">
             {getPlatformIcon()}
           </div>
         </div>
 
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-mono text-white bg-terracotta-500 px-2 py-1 rounded uppercase">
+        <div className="p-4 flex flex-col flex-1">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs font-mono text-white bg-terracotta-500 px-2 py-0.5 rounded-sm uppercase tracking-wide">
               Playlist
             </span>
-            <div className="text-xs font-mono text-gray-500 flex items-center">
-              <Clock className="w-3 h-3 mr-1" />
-              {new Date(playlist.submittedAt).toLocaleDateString()}
-            </div>
+            <span className="text-xs text-charcoal-400 font-mono">
+              {new Date(playlist.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
           </div>
 
-          <div className="mb-2">
-            <h4 className="text-lg font-bold font-mono text-gray-900 group-hover:text-terracotta-500 transition-colors line-clamp-2">
-              {playlist.title}
-            </h4>
-            <div className="flex items-center text-gray-600 font-mono text-sm mt-1">
-              <User className="w-3 h-3 mr-1" />
-              {playlist.curatorName || playlist.name}
-            </div>
-          </div>
+          <h4 className="text-base font-semibold text-charcoal-900 group-hover:text-terracotta-500 transition-colors leading-tight mb-1 line-clamp-2">
+            {playlist.title}
+          </h4>
+          <p className="text-sm text-charcoal-500 mb-3">
+            {playlist.curatorName || playlist.name}
+          </p>
 
-          {playlist.tags && playlist.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mb-3">
-              {playlist.tags.slice(0, 2).map((tag: string, i: number) => (
-                <span key={i} className="text-xs font-mono text-terracotta-500 bg-burnt-orange-100 px-2 py-0.5 rounded">
+          <div className="flex flex-wrap gap-1 mb-3 min-h-[1.5rem]">
+            {playlist.tags?.slice(0, 2).map((tag: string, i: number) => (
+              <Link key={i} href={`/genre/${tag.toLowerCase().replace(/\s+/g, '-')}`}>
+                <span className="text-xs font-mono text-terracotta-500 hover:text-terracotta-400 bg-burnt-orange-100 px-2 py-0.5 rounded cursor-pointer transition-colors">
                   {tag}
                 </span>
-              ))}
-            </div>
-          )}
+              </Link>
+            ))}
+          </div>
 
           <Button
             size="sm"
-            className="bg-terracotta-500 hover:bg-terracotta-400 text-white font-mono w-full text-sm"
+            className="bg-terracotta-500 hover:bg-terracotta-400 text-white font-mono w-full text-sm mt-auto"
           >
-            <ExternalLink className="w-4 h-4 mr-2" />
+            <ExternalLink className="w-4 h-4 mr-1.5" />
             View Playlist
           </Button>
         </div>
@@ -175,29 +176,25 @@ export default function LatestPage() {
     <div className="min-h-screen bg-cream-100 text-charcoal-900">
       <StickyRadioPlayer />
       <Navigation />
-      <main className="max-w-7xl mx-auto px-4">
-        {/* Back Navigation */}
-        <div className="pt-16 pb-8 mb-8">
+      <main className="max-w-7xl mx-auto px-4 pb-16">
+        {/* Page Header */}
+        <div className="pt-10 pb-6">
           <Link
             href="/"
-            className="inline-flex items-center text-charcoal-600 hover:text-burnt-orange-500 transition-colors font-mono"
+            className="inline-flex items-center text-charcoal-500 hover:text-burnt-orange-500 transition-colors font-mono text-sm mb-4"
           >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Home
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Home
           </Link>
-        </div>
-
-        {/* Page Header */}
-        <div className="pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-charcoal-900">LATEST</h1>
-          <p className="text-xl text-charcoal-600 max-w-2xl font-mono">
-            The most recent episodes, shows, and mixes from our community
+          <h1 className="text-5xl font-bold mb-2 font-mono text-charcoal-900 tracking-tight">Latest</h1>
+          <p className="text-base text-charcoal-500 font-sans">
+            Recent episodes, shows, and mixes from our community
           </p>
         </div>
 
         {/* Filter Controls */}
-        <div className="pt-16 pb-8 mb-8">
-          <div className="flex flex-wrap gap-3">
+        <div className="pb-8">
+          <div className="flex flex-wrap gap-2">
             <Button
               variant={filter === 'all' ? 'default' : 'outline'}
               onClick={() => setFilter('all')}

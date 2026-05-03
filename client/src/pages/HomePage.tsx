@@ -196,7 +196,7 @@ export default function Home() {
   const featuredAlbum = getFeaturedAlbum();
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-black text-black dark:text-white transition-colors">
+    <div className="min-h-screen bg-white text-charcoal-900">
       <Navigation />
       <main className="pb-28">
         {/* HERO - Live Show Card */}
@@ -207,7 +207,7 @@ export default function Home() {
         {upcomingShows.length > 0 && (
           <section className="py-8 mt-8 bg-cream dark:bg-gray-900 -mx-4 px-4">
             <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl font-bold font-serif text-gray-900 dark:text-white mb-6">
+              <h2 className="text-3xl font-bold font-serif text-charcoal-900 mb-6">
                 Coming Up Next
               </h2>
               <div className="grid gap-4 md:grid-cols-3">
@@ -243,10 +243,10 @@ export default function Home() {
                           {dateString} • {timeString}
                         </div>
                       </div>
-                      <h3 className="text-lg font-bold font-mono mb-2 text-gray-900 dark:text-white">
+                      <h3 className="text-lg font-bold font-mono mb-2 text-charcoal-900">
                         {show.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
+                      <p className="text-sm text-charcoal-500 font-mono">
                         {displayName}
                       </p>
                     </div>
@@ -261,7 +261,7 @@ export default function Home() {
         {blendedContent.length > 0 && (
           <section id="latest" className="py-12 mt-8 scroll-mt-24">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-5xl font-bold font-serif text-gray-900 dark:text-white">
+              <h2 className="text-5xl font-bold font-serif text-charcoal-900">
                 Latest from the Community
               </h2>
             </div>
@@ -272,8 +272,8 @@ export default function Home() {
                 onClick={() => setContentFilter('all')}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'all'
-                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-charcoal-900 text-white border-charcoal-900'
+                    : 'bg-cream-100 text-charcoal-700 border-charcoal-200 hover:border-charcoal-900 hover:bg-cream-200'
                 }`}
                 data-testid="filter-all"
               >
@@ -283,8 +283,8 @@ export default function Home() {
                 onClick={() => setContentFilter('mixes')}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'mixes'
-                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-charcoal-900 text-white border-charcoal-900'
+                    : 'bg-cream-100 text-charcoal-700 border-charcoal-200 hover:border-charcoal-900 hover:bg-cream-200'
                 }`}
                 data-testid="filter-mixes"
               >
@@ -294,8 +294,8 @@ export default function Home() {
                 onClick={() => setContentFilter('episodes')}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'episodes'
-                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
+                    ? 'bg-charcoal-900 text-white border-charcoal-900'
+                    : 'bg-cream-100 text-charcoal-700 border-charcoal-200 hover:border-charcoal-900 hover:bg-cream-200'
                 }`}
                 data-testid="filter-episodes"
               >
@@ -310,10 +310,10 @@ export default function Home() {
 
             {/* Section Break + Header */}
             <div className="pt-10 pb-6">
-              <h2 className="text-2xl md:text-3xl font-bold font-mono text-gray-900 dark:text-white">
+              <h2 className="text-2xl md:text-3xl font-bold font-mono text-charcoal-900">
                 Latest from the Community
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mt-2">
+              <p className="text-charcoal-500 text-sm mt-2">
                 Recent mixes, episodes, and playlists from our contributors
               </p>
             </div>
@@ -334,14 +334,14 @@ export default function Home() {
         )}
 
         {/* About Section with CTA */}
-        <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-gray-200 dark:border-gray-800 py-12">
-          <h3 className="font-serif text-3xl text-gray-900 dark:text-white mb-4">About Enamorado Radio</h3>
-          <p className="text-gray-700 dark:text-gray-300 font-mono text-lg mb-6 leading-relaxed">
+        <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-charcoal-200 py-12">
+          <h3 className="font-serif text-3xl text-charcoal-900 mb-4">About Enamorado Radio</h3>
+          <p className="text-charcoal-600 text-lg mb-6 leading-relaxed">
             Listener-driven internet radio from San Antonio. We feature community mixes, community programming, and themed shows—all dedicated to the music we are enamored with.
           </p>
-          <Link 
-            href="/submit-mix" 
-            className="inline-block bg-navy text-white px-6 py-3 font-mono hover:bg-navy-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+          <Link
+            href="/submit-mix"
+            className="inline-block bg-charcoal-900 text-white px-6 py-3 font-mono hover:bg-burnt-orange-500 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-burnt-orange-500 focus-visible:ring-offset-2"
             data-testid="button-submit-mix-cta"
           >
             Submit a Mix →
@@ -351,8 +351,8 @@ export default function Home() {
         {/* Explore tiles (from your “clean” page) */}
         <section className="mb-16">
           <div className="text-center pt-16 pb-8 mb-8">
-            <h2 className="text-4xl font-bold mb-4 font-serif text-gray-900 dark:text-white">Explore</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
+            <h2 className="text-4xl font-bold mb-4 font-serif text-charcoal-900">Explore</h2>
+            <p className="text-xl text-charcoal-500 max-w-3xl mx-auto">
               Discover curated content, join our community, and contribute to the station
             </p>
           </div>
@@ -360,14 +360,14 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Link
               href="/albums"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              className="bg-white border-2 border-black p-8 hover:bg-cream-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-burnt-orange-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Albums of the Month</h3>
-                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
+                <h3 className="text-xl font-bold mb-3 font-mono text-charcoal-900">Albums of the Month</h3>
+                <p className="text-charcoal-500 text-sm mb-4">
                   Hand-selected favorites from our editorial team.
                 </p>
-                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
+                <div className="text-burnt-orange-500 font-mono text-sm group-hover:text-burnt-orange-600 transition-colors">
                   Explore Picks →
                 </div>
               </div>
@@ -377,14 +377,14 @@ export default function Home() {
               href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              className="bg-white border-2 border-black p-8 hover:bg-cream-50 transition-colors block focus-visible:ring-2 focus-visible:ring-burnt-orange-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Community Programming Applications</h3>
-                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
+                <h3 className="text-xl font-bold mb-3 font-mono text-charcoal-900">Community Programming Applications</h3>
+                <p className="text-charcoal-500 text-sm mb-4">
                   Apply for a regular slot and become part of our programming lineup.
                 </p>
-                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
+                <div className="text-burnt-orange-500 font-mono text-sm group-hover:text-burnt-orange-600 transition-colors">
                   Apply for Season 1 →
                 </div>
               </div>
@@ -392,14 +392,14 @@ export default function Home() {
 
             <Link
               href="/submit-mix"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+              className="bg-white border-2 border-black p-8 hover:bg-cream-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-burnt-orange-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Submit a Mix</h3>
-                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
+                <h3 className="text-xl font-bold mb-3 font-mono text-charcoal-900">Submit a Mix</h3>
+                <p className="text-charcoal-500 text-sm mb-4">
                   Share your DJ mixes with our community.
                 </p>
-                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
+                <div className="text-burnt-orange-500 font-mono text-sm group-hover:text-burnt-orange-600 transition-colors">
                   Submit Mix →
                 </div>
               </div>
@@ -415,7 +415,7 @@ export default function Home() {
               className="block group"
               data-testid="link-featured-album"
             >
-              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-black p-8 md:p-12 hover:border-navy transition-all duration-300">
+              <div className="bg-gradient-to-br from-cream-50 to-white border-2 border-black p-8 md:p-12 hover:border-burnt-orange-500 transition-all duration-300">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   {/* Album Artwork */}
                   <div className="w-full md:w-64 h-64 flex-shrink-0">
@@ -435,18 +435,18 @@ export default function Home() {
 
                   {/* Album Info */}
                   <div className="flex-1 text-center md:text-left">
-                    <div className="inline-block bg-navy text-white px-3 py-1 text-xs font-mono mb-4">
+                    <div className="inline-block bg-burnt-orange-500 text-white px-3 py-1 text-xs font-mono mb-4">
                       From Albums of the Month
                     </div>
-                    <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-navy transition-colors" data-testid="text-featured-album-title">
+                    <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-burnt-orange-500 transition-colors" data-testid="text-featured-album-title">
                       {featuredAlbum.album.title}
                     </h3>
-                    <p className="text-xl text-gray-600 mb-4 font-mono" data-testid="text-featured-album-artist">
+                    <p className="text-xl text-charcoal-500 mb-4" data-testid="text-featured-album-artist">
                       {featuredAlbum.album.artist}
                       {featuredAlbum.album.releaseYear && ` (${featuredAlbum.album.releaseYear})`}
                     </p>
                     {featuredAlbum.album.reason && (
-                      <p className="text-gray-700 mb-4 font-mono italic max-w-2xl" data-testid="text-featured-album-reason">
+                      <p className="text-charcoal-600 mb-4 italic max-w-2xl" data-testid="text-featured-album-reason">
                         "{featuredAlbum.album.reason}"
                       </p>
                     )}

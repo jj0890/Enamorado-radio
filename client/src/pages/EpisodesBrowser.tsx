@@ -1,14 +1,89 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Link } from 'wouter';
-import { Play, ExternalLink, Calendar, Clock, User } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Play, Search, Clock, Radio } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import StickyRadioPlayer from '@/components/StickyRadioPlayer';
 import Navigation from '@/components/Navigation';
 import type { Episode } from '@shared/schema-clean';
+
+function formatDate(date: string) {
+  return new Date(date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function formatDuration(seconds: number) {
+  if (!seconds) return '';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m} min`;
+}
+
+function EpisodeRow({ episode }: { episode: Episode }) {
+  const artwork = episode.artworkUrl || `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop`;
+  const tags: string[] = (episode as any).tags || [];
+
+  return (
+    <Link href={`/episode/${episode.id}`}>
+      <div className="group flex gap-4 py-4 border-b border-gray-100 hover:bg-cream-50 transition-colors cursor-pointer px-2 -mx-2 rounded">
+        {/* Artwork */}
+        <div className="relative flex-shrink-0 w-20 h-20 md:w-24 md:h-24 rounded overflow-hidden bg-gray-100">
+          <img
+            src={artwork}
+            alt={episode.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <Play className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
+          </div>
+        </div>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <h3 className="font-semibold text-charcoal-900 leading-tight line-clamp-1 group-hover:text-burnt-orange-500 transition-colors">
+                {episode.title}
+              </h3>
+              <p className="text-sm text-charcoal-500 mt-0.5 line-clamp-1">
+                {episode.hostName}
+              </p>
+            </div>
+            <span className="text-xs text-charcoal-400 font-mono whitespace-nowrap flex-shrink-0 mt-0.5">
+              {formatDate(episode.airDate)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-3 mt-2 flex-wrap">
+            {episode.duration ? (
+              <span className="flex items-center gap-1 text-xs text-charcoal-400 font-mono">
+                <Clock className="w-3 h-3" />
+                {formatDuration(episode.duration)}
+              </span>
+            ) : null}
+            {tags.slice(0, 3).map((tag, i) => (
+              <span
+                key={i}
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/genre/${tag.toLowerCase().replace(/\s+/g, '-')}`;
+                }}
+                className="text-xs font-mono text-burnt-orange-500 hover:text-burnt-orange-600 bg-burnt-orange-100 px-2 py-0.5 rounded transition-colors"
+              >
+                {tag}
+              </span>
+            ))}
+            {episode.seriesTitle && (
+              <span className="text-xs font-mono text-charcoal-400 border border-charcoal-200 px-2 py-0.5 rounded">
+                {episode.seriesTitle}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 export default function EpisodesBrowser() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -17,212 +92,93 @@ export default function EpisodesBrowser() {
   const { data: episodes = [], isLoading } = useQuery<Episode[]>({
     queryKey: ['/api/episodes'],
     queryFn: async () => {
-      const response = await fetch('/api/episodes');
-      if (!response.ok) throw new Error('Failed to fetch episodes');
-      return response.json();
+      const res = await fetch('/api/episodes');
+      if (!res.ok) throw new Error('Failed to fetch episodes');
+      return res.json();
     },
   });
 
   const filteredEpisodes = episodes.filter(episode => {
-    const matchesSearch = episode.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         episode.hostName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         episode.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
+    const matchesSearch = !searchTerm ||
+      episode.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      episode.hostName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      episode.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesSeries = !selectedSeries || episode.seriesTitle === selectedSeries;
-    
     return matchesSearch && matchesSeries;
   });
 
-  const uniqueSeries = [...new Set(episodes.map(ep => ep.seriesTitle).filter(Boolean))];
-
-  const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const formatDuration = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = Math.floor(seconds % 60);
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-white">
-        <StickyRadioPlayer />
-        <Navigation />
-        <div className="flex items-center justify-center py-12">
-          <LoadingSpinner />
-        </div>
-      </div>
-    );
-  }
+  const uniqueSeries = [...new Set(episodes.map(ep => ep.seriesTitle).filter(Boolean))] as string[];
 
   return (
-    <div className="bg-white text-black min-h-screen">
+    <div className="min-h-screen bg-white text-charcoal-900">
       <StickyRadioPlayer />
       <Navigation />
-      <div className="container mx-auto px-4 py-8">
-        {/* Back to Home */}
-        <div className="mb-6">
-          <Link 
-            href="/"
-            className="inline-flex items-center text-gray-600 hover:text-navy transition-colors font-mono"
-          >
-            ← Back to Home
-          </Link>
-        </div>
-        
+
+      <div className="max-w-4xl mx-auto px-4 pb-24">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-4 font-mono text-navy">Episodes</h1>
-          <p className="text-gray-400 mb-6">
-            Discover radio shows and mixes from our community of DJs and artists
-          </p>
-          
-          {/* Search and Filter */}
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
-            <div className="flex-1">
-              <Input
-                placeholder="Search episodes, hosts, or descriptions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="bg-gray-900 border-gray-700 text-white placeholder-gray-400"
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={selectedSeries === null ? "default" : "outline"}
-                onClick={() => setSelectedSeries(null)}
-                className="whitespace-nowrap"
-              >
-                All Series
-              </Button>
-              {uniqueSeries.map(series => (
-                <Button
-                  key={series}
-                  variant={selectedSeries === series ? "default" : "outline"}
-                  onClick={() => setSelectedSeries(series)}
-                  className="whitespace-nowrap"
-                >
-                  {series}
-                </Button>
-              ))}
-            </div>
+        <div className="pt-10 pb-8 border-b border-black">
+          <div className="flex items-center gap-3 mb-1">
+            <Radio className="w-5 h-5 text-burnt-orange-500" />
+            <span className="text-xs font-mono text-charcoal-400 uppercase tracking-widest">Archive</span>
           </div>
+          <h1 className="text-4xl font-bold font-mono text-charcoal-900 tracking-tight">Episodes</h1>
+          <p className="text-charcoal-500 mt-2 text-sm">
+            {episodes.length} show{episodes.length !== 1 ? 's' : ''} from our community of DJs and artists
+          </p>
         </div>
 
-        {/* Episodes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredEpisodes.map((episode) => (
-            <div key={episode.id} className="bg-gray-900 rounded-lg overflow-hidden hover:bg-gray-800 transition-colors">
-              <div className="aspect-video bg-gray-800 relative overflow-hidden">
-                {episode.artworkUrl ? (
-                  <img 
-                    src={episode.artworkUrl} 
-                    alt={episode.title}
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Play className="h-12 w-12 text-gray-600" />
-                  </div>
-                )}
-                
-                {/* Play Button Overlay */}
-                <Link href={`/episode/${episode.id}`}>
-                  <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer">
-                    <Button size="lg" className="rounded-full">
-                      <Play className="h-6 w-6 mr-2" />
-                      Play Episode
-                    </Button>
-                  </div>
-                </Link>
-              </div>
-              
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Badge variant="outline" className="text-xs">
-                    {episode.seriesTitle || 'Episode'}
-                  </Badge>
-                  {episode.isFeatured && (
-                    <Badge variant="secondary" className="text-xs">
-                      Featured
-                    </Badge>
-                  )}
-                </div>
-                
-                <Link href={`/episode/${episode.id}`}>
-                  <h3 className="font-semibold text-lg mb-2 hover:text-blue-400 transition-colors cursor-pointer">
-                    {episode.title}
-                  </h3>
-                </Link>
-                
-                <div className="flex items-center text-sm text-gray-400 mb-2">
-                  <User className="h-4 w-4 mr-1" />
-                  <span>{episode.hostName}</span>
-                </div>
-                
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                  <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1" />
-                    <span>{formatDate(episode.airDate)}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    <span>{formatDuration(episode.duration)}</span>
-                  </div>
-                </div>
-                
-                {episode.description && (
-                  <p className="text-sm text-gray-400 mb-3 line-clamp-2">
-                    {episode.description}
-                  </p>
-                )}
-                
-                {episode.tags && episode.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-3">
-                    {episode.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {episode.tags.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{episode.tags.length - 3} more
-                      </Badge>
-                    )}
-                  </div>
-                )}
-                
-                <div className="flex items-center justify-between">
-                  <Link href={`/episode/${episode.id}`}>
-                    <Button variant="outline" size="sm">
-                      <Play className="h-4 w-4 mr-2" />
-                      Listen Now
-                    </Button>
-                  </Link>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => window.open(episode.audioUrl, '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
+        {/* Search + Filter row */}
+        <div className="py-4 border-b border-gray-100 flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400" />
+            <Input
+              placeholder="Search episodes or hosts..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 border-charcoal-200 focus:border-burnt-orange-500 font-mono text-sm"
+            />
+          </div>
+          {uniqueSeries.length > 0 && (
+            <div className="flex gap-2 flex-wrap">
+              <button
+                onClick={() => setSelectedSeries(null)}
+                className={`text-xs font-mono px-3 py-1.5 rounded border transition-colors ${
+                  selectedSeries === null
+                    ? 'bg-charcoal-900 text-white border-charcoal-900'
+                    : 'border-charcoal-300 text-charcoal-600 hover:border-charcoal-900'
+                }`}
+              >
+                All
+              </button>
+              {uniqueSeries.map(series => (
+                <button
+                  key={series}
+                  onClick={() => setSelectedSeries(s => s === series ? null : series)}
+                  className={`text-xs font-mono px-3 py-1.5 rounded border transition-colors ${
+                    selectedSeries === series
+                      ? 'bg-burnt-orange-500 text-white border-burnt-orange-500'
+                      : 'border-charcoal-300 text-charcoal-600 hover:border-burnt-orange-500 hover:text-burnt-orange-500'
+                  }`}
+                >
+                  {series}
+                </button>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-        
-        {filteredEpisodes.length === 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg">
-              No episodes found matching your search criteria
-            </p>
+
+        {/* Episode list */}
+        {isLoading ? (
+          <div className="py-20 text-center text-charcoal-400 font-mono text-sm">Loading episodes...</div>
+        ) : filteredEpisodes.length === 0 ? (
+          <div className="py-20 text-center">
+            <p className="text-charcoal-400 font-mono text-sm">No episodes match your search</p>
+          </div>
+        ) : (
+          <div className="mt-2">
+            {filteredEpisodes.map(episode => (
+              <EpisodeRow key={episode.id} episode={episode} />
+            ))}
           </div>
         )}
       </div>

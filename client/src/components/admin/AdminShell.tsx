@@ -62,6 +62,7 @@ const adminNavSections: NavSection[] = [
       { href: "/admin/mix-submissions", label: "Mixes", icon: Music },
       { href: "/admin/episode-queue", label: "Episodes", icon: Headphones },
       { href: "/admin/albums", label: "Albums", icon: Disc },
+      { href: "/admin/editorial", label: "Editorial", icon: FileText },
       { href: "/admin/hero-banners", label: "Hero Banners", icon: Image },
       { href: "/admin/playlist-submissions", label: "Playlists", icon: ListMusic },
     ]

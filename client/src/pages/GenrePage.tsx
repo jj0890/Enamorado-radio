@@ -1,74 +1,52 @@
 import { useQuery } from "@tanstack/react-query";
 import { useRoute, Link } from "wouter";
 import PublicMixCard from "@/components/PublicMixCard";
-import { Music, Headphones, Calendar, Clock, ExternalLink } from "lucide-react";
+import { Music, Headphones, Play, Clock, Radio } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import Navigation from "@/components/Navigation";
+import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
-// Simple Episode Card Component
-function EpisodeCard({ episode }: { episode: any }) {
+function formatDuration(seconds: number) {
+  if (!seconds) return '';
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m} min`;
+}
+
+// Inline episode row — matches EpisodesBrowser style
+function EpisodeRow({ episode }: { episode: any }) {
+  const artwork = episode.artworkUrl || episode.artUrl ||
+    `https://images.unsplash.com/photo-1511379938547-c1f69419868d?w=300&h=300&fit=crop`;
+
   return (
-    <Link href={`/episode/${episode.id}`} className="block">
-      <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:border-navy transition-all duration-300 group shadow-sm hover:shadow-md">
-        <div className="aspect-[16/9] bg-gray-200 overflow-hidden relative">
-          {episode.artUrl ? (
-            <img 
-              src={episode.artUrl} 
-              alt={episode.title}
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-200 to-gray-300">
-              <Headphones className="w-12 h-12 text-gray-400" />
-            </div>
-          )}
+    <Link href={`/episode/${episode.id}`}>
+      <div className="group flex gap-4 py-4 border-b border-gray-100 hover:bg-cream-50 transition-colors cursor-pointer px-2 -mx-2 rounded">
+        <div className="relative flex-shrink-0 w-16 h-16 rounded overflow-hidden bg-gray-100">
+          <img src={artwork} alt={episode.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" />
+          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+            <Play className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity fill-white" />
+          </div>
         </div>
-        
-        <div className="p-4">
-          <div className="flex items-center justify-between mb-3">
-            <Badge variant="secondary" className="text-xs font-mono bg-blue-100 text-blue-800 hover:bg-blue-100">
-              EPISODE
-            </Badge>
-            <div className="text-xs font-mono text-gray-500 flex items-center">
-              <Calendar className="w-3 h-3 mr-1" />
-              {new Date(episode.airDate).toLocaleDateString()}
-            </div>
+        <div className="flex-1 min-w-0 flex flex-col justify-center">
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="font-semibold text-charcoal-900 text-sm leading-tight line-clamp-1 group-hover:text-burnt-orange-500 transition-colors">
+              {episode.title}
+            </h3>
+            <span className="text-xs text-charcoal-400 font-mono whitespace-nowrap flex-shrink-0">
+              {new Date(episode.airDate || episode.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+            </span>
           </div>
-          
-          <h3 className="font-mono font-bold text-sm mb-2 line-clamp-2">{episode.title}</h3>
-          <p className="text-xs font-mono text-gray-600 mb-3 line-clamp-2">{episode.description}</p>
-          
-          <div className="text-xs font-mono text-gray-500 flex items-center">
-            <Clock className="w-3 h-3 mr-1" />
-            {Math.round(episode.duration / 60)} min
-          </div>
+          <p className="text-xs text-charcoal-500 mt-0.5">{episode.hostName || episode.host}</p>
+          {episode.duration ? (
+            <span className="flex items-center gap-1 text-xs text-charcoal-400 font-mono mt-1">
+              <Clock className="w-3 h-3" />
+              {formatDuration(episode.duration)}
+            </span>
+          ) : null}
         </div>
       </div>
     </Link>
-  );
-}
-
-// Content Section Component
-function ContentSection({ title, items, renderItem, emptyMessage }: {
-  title: string;
-  items: any[];
-  renderItem: (item: any) => JSX.Element;
-  emptyMessage: string;
-}) {
-  if (items.length === 0) return null;
-  
-  return (
-    <div className="mb-10">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-bold font-mono text-gray-900">{title}</h2>
-        <Badge variant="outline" className="font-mono text-xs">
-          {items.length}
-        </Badge>
-      </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {items.map(renderItem)}
-      </div>
-    </div>
   );
 }
 
@@ -76,7 +54,6 @@ export default function GenrePage() {
   const [, params] = useRoute<{ slug: string }>("/genre/:slug");
   const { slug } = params || { slug: "" };
 
-  // Fetch different content types
   const { data: mixes = [], isLoading: mixesLoading } = useQuery({
     queryKey: ["/api/mixes", { genreSlug: slug }],
     queryFn: async () => {
@@ -90,79 +67,98 @@ export default function GenrePage() {
     queryKey: ["/api/episodes", { genreSlug: slug }],
     queryFn: async () => {
       const r = await fetch(`/api/episodes?genre=${encodeURIComponent(slug)}`, { cache: "no-store" });
-      if (!r.ok) return []; // Episodes might not exist or have genre filtering
+      if (!r.ok) return [];
       return r.json();
     },
   });
 
   const isLoading = mixesLoading || episodesLoading;
   const totalItems = mixes.length + episodes.length;
-  const title = slug.replace(/-/g, " ").toUpperCase();
+  // Humanise the slug: "deep-house" → "Deep House"
+  const title = slug
+    .replace(/-/g, " ")
+    .replace(/\b\w/g, (c: string) => c.toUpperCase());
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10">
-      {/* Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-3xl font-bold font-mono text-navy">{title}</h1>
-          <div className="flex items-center space-x-4">
-            <Link href="/mixes" className="text-gray-500 hover:text-navy font-mono text-sm">
-              ← Back to Mixes
-            </Link>
+    <div className="min-h-screen bg-white text-charcoal-900">
+      <StickyRadioPlayer />
+      <Navigation />
+
+      <div className="max-w-5xl mx-auto px-4 pb-24">
+        {/* Header */}
+        <div className="pt-10 pb-8 border-b border-black">
+          <div className="flex items-center gap-3 mb-1">
+            <Radio className="w-5 h-5 text-burnt-orange-500" />
+            <span className="text-xs font-mono text-charcoal-400 uppercase tracking-widest">Genre</span>
           </div>
+          <h1 className="text-4xl font-bold font-mono text-charcoal-900 tracking-tight">{title}</h1>
+
+          {!isLoading && (
+            <div className="flex items-center gap-4 mt-3 text-sm text-charcoal-500 font-mono">
+              {mixes.length > 0 && (
+                <span className="flex items-center gap-1">
+                  <Music className="w-4 h-4" />
+                  {mixes.length} {mixes.length === 1 ? 'mix' : 'mixes'}
+                </span>
+              )}
+              {episodes.length > 0 && (
+                <span className="flex items-center gap-1">
+                  <Headphones className="w-4 h-4" />
+                  {episodes.length} {episodes.length === 1 ? 'episode' : 'episodes'}
+                </span>
+              )}
+            </div>
+          )}
         </div>
-        
+
         {isLoading ? (
-          <div className="font-mono text-gray-500">Loading…</div>
+          <div className="py-20 text-center text-charcoal-400 font-mono text-sm">Loading {title}…</div>
         ) : totalItems === 0 ? (
-          <div className="text-center py-12">
-            <Music className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-            <h3 className="font-mono text-lg text-gray-600 mb-2">Nothing here yet</h3>
-            <p className="font-mono text-sm text-gray-500 mb-6">
-              No {title.toLowerCase()} content has been submitted yet
+          <div className="py-20 text-center">
+            <Music className="w-12 h-12 text-charcoal-200 mx-auto mb-4" />
+            <p className="font-mono text-charcoal-500 text-sm mb-6">
+              No {title.toLowerCase()} content yet — be the first to submit
             </p>
             <Link href="/submit-mix">
-              <Button className="bg-navy hover:bg-navy-dark text-white font-mono">
-                Submit Content
+              <Button className="bg-burnt-orange-500 hover:bg-burnt-orange-600 text-white font-mono">
+                Submit a Mix
               </Button>
             </Link>
           </div>
         ) : (
-          <div className="flex items-center space-x-6 text-sm font-mono text-gray-600">
-            <div className="flex items-center">
-              <Music className="w-4 h-4 mr-1" />
-              {mixes.length} mixes
-            </div>
-            {episodes.length > 0 && (
-              <div className="flex items-center">
-                <Headphones className="w-4 h-4 mr-1" />
-                {episodes.length} episodes
+          <>
+            {/* Mixes section */}
+            {mixes.length > 0 && (
+              <div className="mt-8">
+                <div className="flex items-center justify-between mb-5">
+                  <h2 className="text-lg font-bold font-mono text-charcoal-900">Mixes</h2>
+                  <span className="text-xs font-mono text-charcoal-400">{mixes.length}</span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {mixes.map((mix: any) => (
+                    <PublicMixCard key={mix.id} mix={mix} />
+                  ))}
+                </div>
               </div>
             )}
-          </div>
+
+            {/* Episodes section */}
+            {episodes.length > 0 && (
+              <div className="mt-10">
+                <div className="flex items-center justify-between mb-3 pb-3 border-b border-charcoal-200">
+                  <h2 className="text-lg font-bold font-mono text-charcoal-900">Episodes</h2>
+                  <span className="text-xs font-mono text-charcoal-400">{episodes.length}</span>
+                </div>
+                <div>
+                  {episodes.map((ep: any) => (
+                    <EpisodeRow key={ep.id} episode={ep} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
-
-      {/* Content Sections */}
-      {!isLoading && totalItems > 0 && (
-        <>
-          {/* Community Mixes */}
-          <ContentSection 
-            title="Community Mixes"
-            items={mixes}
-            renderItem={(mix) => <PublicMixCard key={mix.id} mix={mix} />}
-            emptyMessage={`No ${title.toLowerCase()} mixes yet`}
-          />
-
-          {/* Episodes */}
-          <ContentSection 
-            title="Episodes & Shows"
-            items={episodes}
-            renderItem={(episode) => <EpisodeCard key={episode.id} episode={episode} />}
-            emptyMessage={`No ${title.toLowerCase()} episodes yet`}
-          />
-        </>
-      )}
     </div>
   );
 }

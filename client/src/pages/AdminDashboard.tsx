@@ -5,11 +5,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import AdminShell from "@/components/admin/AdminShell";
 import ActivityFeed, { ActivityItem } from "@/components/admin/ActivityFeed";
-import { 
-  Music, 
-  Users, 
-  PlayCircle, 
-  Radio, 
+import {
+  Music,
+  Users,
+  PlayCircle,
+  Radio,
   AlertTriangle,
   Upload,
   Disc,
@@ -17,7 +17,8 @@ import {
   TrendingUp,
   Clock,
   CheckCircle2,
-  Star
+  Star,
+  FileText
 } from "lucide-react";
 
 interface AdminStats {
@@ -47,14 +48,10 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
     refetchInterval: 30000,
   });
 
-  // Mock activity data for now (will be replaced with API)
-  const mockActivities: ActivityItem[] = [
-    { id: 1, type: 'mix_approved', description: 'approved mix', actor: currentUser, targetName: 'Deep House Session', createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-    { id: 2, type: 'episode_uploaded', description: 'uploaded episode', actor: currentUser, targetName: 'Weekly Show #42', createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-    { id: 3, type: 'application_approved', description: 'approved application from', actor: currentUser, targetName: 'DJ Pulse', createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
-    { id: 4, type: 'mix_featured', description: 'featured mix', actor: currentUser, targetName: 'Summer Vibes Mix', createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-    { id: 5, type: 'login', description: 'logged in', actor: currentUser, createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString() },
-  ];
+  const { data: activities = [] } = useQuery<ActivityItem[]>({
+    queryKey: ['/api/admin/activity'],
+    refetchInterval: 30000,
+  });
 
   return (
     <AdminShell
@@ -183,13 +180,23 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
                   </Button>
                 </Link>
                 <Link href="/admin/residents">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
                     data-testid="quick-action-manage-residents"
                   >
                     <Users className="w-5 h-5" />
                     <span className="text-xs font-medium">Residents</span>
+                  </Button>
+                </Link>
+                <Link href="/admin/editorial">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                    data-testid="quick-action-editorial"
+                  >
+                    <FileText className="w-5 h-5" />
+                    <span className="text-xs font-medium">Editorial</span>
                   </Button>
                 </Link>
               </div>
@@ -201,7 +208,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Headphones className="w-5 h-5 text-navy" />
+                  <Headphones className="w-5 h-5 text-charcoal-500" />
                   Episodes
                 </CardTitle>
               </CardHeader>
@@ -229,7 +236,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
-                  <Users className="w-5 h-5 text-navy" />
+                  <Users className="w-5 h-5 text-charcoal-500" />
                   Community
                 </CardTitle>
               </CardHeader>
@@ -259,7 +266,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-navy" />
+                <TrendingUp className="w-5 h-5 text-charcoal-500" />
                 System Status
               </CardTitle>
             </CardHeader>
@@ -287,7 +294,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
 
         {/* Right Column - Activity Feed */}
         <div className="space-y-6">
-          <ActivityFeed activities={mockActivities} maxItems={10} />
+          <ActivityFeed activities={activities} maxItems={10} />
 
           {/* Alerts Card */}
           {stats && stats.pendingMixReviews > 5 && (

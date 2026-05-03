@@ -410,6 +410,75 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real activity feed for admin dashboard
+  app.get('/api/admin/activity', requireAdmin, async (req, res) => {
+    try {
+      const [allMixes, allEpisodes, allAlbums] = await Promise.all([
+        storage.getMixSubmissions({ limit: 100 }),
+        storage.getEpisodes({ limit: 100 }),
+        storage.getAlbumSubmissions ? storage.getAlbumSubmissions({ limit: 100 }) : Promise.resolve([]),
+      ]);
+
+      const activities: Array<{
+        id: number; type: string; description: string;
+        actor: string; targetName: string; createdAt: string;
+      }> = [];
+
+      // Mix submissions
+      allMixes
+        .filter(m => m.submittedAt)
+        .forEach(m => {
+          const type = m.status === 'approved' || m.status === 'featured' ? 'mix_approved' : 'mix_submitted';
+          const description = m.status === 'featured' ? 'featured mix' : m.status === 'approved' ? 'approved mix' : 'received mix submission';
+          activities.push({
+            id: m.id,
+            type,
+            description,
+            actor: m.status === 'pending' ? (m.name || 'Unknown') : 'admin',
+            targetName: m.title || 'Untitled Mix',
+            createdAt: m.submittedAt!,
+          });
+        });
+
+      // Episode uploads
+      allEpisodes
+        .filter(e => e.airDate || (e as any).createdAt)
+        .forEach(e => {
+          activities.push({
+            id: e.id,
+            type: 'episode_uploaded',
+            description: 'uploaded episode',
+            actor: (e as any).hostName || 'Enamorado Radio',
+            targetName: e.title || 'Untitled Episode',
+            createdAt: e.airDate || (e as any).createdAt || new Date().toISOString(),
+          });
+        });
+
+      // Album submissions
+      (allAlbums as any[])
+        .filter((a: any) => a.submittedAt || a.createdAt)
+        .forEach((a: any) => {
+          const type = a.status === 'approved' ? 'mix_approved' : 'mix_submitted';
+          activities.push({
+            id: a.id + 10000,
+            type,
+            description: a.status === 'approved' ? 'approved album submission' : 'received album submission',
+            actor: a.status === 'approved' ? 'admin' : (a.submitterName || a.artist || 'Community'),
+            targetName: `${a.artist || ''} — ${a.title || 'Untitled Album'}`.trim().replace(/^— /, ''),
+            createdAt: a.submittedAt || a.createdAt || new Date().toISOString(),
+          });
+        });
+
+      // Sort newest first, take 20
+      activities.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      res.json(activities.slice(0, 20));
+    } catch (error) {
+      console.error('Error fetching admin activity:', error);
+      res.status(500).json({ error: 'Failed to fetch activity' });
+    }
+  });
+
   // Editor stats dashboard (accessible by editors and admins)
   app.get('/api/editor/stats', requireRole('editor'), async (req, res) => {
     try {
@@ -4196,6 +4265,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PUBLIC: Get published album picks
+  // PUBLIC: Community-approved album submissions (accepted suggestions, sorted by likes)
+  app.get('/api/albums/community', async (req, res) => {
+    try {
+      const all = await storage.getAlbumSuggestions({ status: 'accepted', limit: 100 });
+      // Attach like counts from content_likes if available
+      const withLikes = await Promise.all(all.map(async (s) => {
+        try {
+          const [row] = await db.select({ count: count() })
+            .from(contentLikesTable)
+            .where(and(
+              eq(contentLikesTable.entityType, 'submission'),
+              eq(contentLikesTable.entityId, s.id)
+            ));
+          return { ...s, likeCount: Number(row?.count ?? 0) };
+        } catch {
+          return { ...s, likeCount: 0 };
+        }
+      }));
+      // Sort by likes desc, then by accepted date desc
+      withLikes.sort((a, b) => b.likeCount - a.likeCount || new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+      res.json(withLikes);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch community albums' });
+    }
+  });
+
   app.get('/api/albums/published', async (req, res) => {
     try {
       const picks = await storage.getPublishedAlbumPicks();

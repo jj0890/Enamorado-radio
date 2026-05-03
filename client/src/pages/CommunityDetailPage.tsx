@@ -295,13 +295,36 @@ export default function CommunityDetailPage() {
                 );
               })()
             ) : oembedLoading ? (
-              <div className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse" />
+              <div className="aspect-square bg-gray-200 animate-pulse rounded-lg" />
             ) : oembed?.html ? (
-              <div 
+              <div
                 className="rounded-lg overflow-hidden shadow-lg"
                 dangerouslySetInnerHTML={{ __html: oembed.html }}
                 data-testid="oembed-player"
               />
+            ) : item.url && /\.(mp3|m4a|aac|ogg|wav|flac)(\?|$)/i.test(item.url) ? (
+              /* Direct audio file — HTML5 native player */
+              <div className="rounded-lg overflow-hidden shadow-lg bg-white">
+                {item.artworkUrl && (
+                  <img
+                    src={item.artworkUrl}
+                    alt={item.title}
+                    className="w-full aspect-square object-cover"
+                    data-testid="img-artwork"
+                  />
+                )}
+                <div className="p-4">
+                  <audio
+                    controls
+                    className="w-full"
+                    preload="metadata"
+                    data-testid="audio-player-native"
+                  >
+                    <source src={item.url} />
+                    Your browser does not support audio playback.
+                  </audio>
+                </div>
+              </div>
             ) : item.artworkUrl ? (
               <img
                 src={item.artworkUrl}
@@ -310,7 +333,7 @@ export default function CommunityDetailPage() {
                 data-testid="img-artwork"
               />
             ) : (
-              <div className="aspect-square bg-gradient-to-br from-navy to-navy-light flex items-center justify-center rounded-lg shadow-lg">
+              <div className="aspect-square bg-gradient-to-br from-charcoal-800 to-charcoal-900 flex items-center justify-center rounded-lg shadow-lg">
                 <span className="text-white/20 text-6xl font-serif">
                   {item.title.charAt(0)}
                 </span>

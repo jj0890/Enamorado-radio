@@ -88,8 +88,9 @@ function Router() {
       <Route path="/genre/:slug" component={GenrePage} />
       <Route path="/mixes" component={MixesLanding} />
 
-      {/* Unified submission landing page */}
+      {/* Unified submission landing page — /submit-editorial redirects here */}
       <Route path="/submit" component={UnifiedSubmit} />
+      <Route path="/submit-editorial">{() => <Redirect to="/submit" />}</Route>
       <Route path="/submit-mix" component={SubmitMix} />
       <Route path="/submit-playlist" component={SubmitPlaylist} />
       <Route path="/write-for-us" component={WriterSubmissionPage} />
