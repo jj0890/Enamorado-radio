@@ -5249,6 +5249,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // Strip contributors from content payload — saved separately to junction table
       const { contributors: contributorsData, ...contentData } = req.body;
+      // Editors cannot publish — only admins may set status to 'published'
+      if ((req as any).user?.role === 'editor' && contentData.status === 'published') {
+        return res.status(403).json({ error: 'Editors cannot publish content directly. Submit for review instead.' });
+      }
+      // Sanitize TipTap HTML body to strip XSS vectors while preserving markup
+      if (contentData.body && typeof contentData.body === 'string') {
+        const DOMPurify = (await import('isomorphic-dompurify')).default;
+        contentData.body = DOMPurify.sanitize(contentData.body, {
+          ALLOWED_TAGS: ['p','br','strong','em','u','s','h1','h2','h3','h4','h5','h6',
+            'ul','ol','li','blockquote','a','img','figure','figcaption','pre','code',
+            'table','thead','tbody','tr','th','td','hr','span','div','iframe'],
+          ALLOWED_ATTR: ['href','src','alt','title','class','target','rel','width','height',
+            'allowfullscreen','frameborder','allow'],
+          FORBID_TAGS: ['script','style','object','embed'],
+        });
+      }
       const newContent = await storage.createContent(contentData);
 
       if (Array.isArray(contributorsData) && contributorsData.length > 0) {
@@ -5277,6 +5293,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const contentId = parseInt(req.params.id);
       // Strip contributors from content payload — managed separately
       const { contributors: contributorsData, ...contentData } = req.body;
+      // Editors cannot transition to 'published' — admin-only gate
+      if ((req as any).user?.role === 'editor' && contentData.status === 'published') {
+        return res.status(403).json({ error: 'Editors cannot publish content directly. Submit for review instead.' });
+      }
+      // Sanitize TipTap HTML body
+      if (contentData.body && typeof contentData.body === 'string') {
+        const DOMPurify = (await import('isomorphic-dompurify')).default;
+        contentData.body = DOMPurify.sanitize(contentData.body, {
+          ALLOWED_TAGS: ['p','br','strong','em','u','s','h1','h2','h3','h4','h5','h6',
+            'ul','ol','li','blockquote','a','img','figure','figcaption','pre','code',
+            'table','thead','tbody','tr','th','td','hr','span','div','iframe'],
+          ALLOWED_ATTR: ['href','src','alt','title','class','target','rel','width','height',
+            'allowfullscreen','frameborder','allow'],
+          FORBID_TAGS: ['script','style','object','embed'],
+        });
+      }
       const updatedContent = await storage.updateContent(contentId, contentData);
       if (!updatedContent) {
         return res.status(404).json({ error: 'Content not found' });
@@ -5437,8 +5469,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Editorial index — active features joined with their published content
+  app.get('/api/features-with-content', async (req, res) => {
+    try {
+      const rows = await db
+        .select()
+        .from(featuresTable)
+        .leftJoin(content, and(
+          eq(featuresTable.entityType, 'content'),
+          sql`${featuresTable.entityId} = ${content.id}::text`
+        ))
+        .where(and(
+          eq(featuresTable.isActive, true),
+          eq(content.status, 'published')
+        ))
+        .orderBy(asc(featuresTable.position));
+
+      const result = rows.map((row: any) => ({
+        feature: row.editorial_features,
+        content: row.editorial_content,
+      }));
+
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching features with content:', error);
+      res.status(500).json({ error: 'Failed to fetch features with content' });
+    }
+  });
+
   app.post('/api/features', requireAdmin, async (req, res) => {
     try {
+      // Prevent duplicate hero slot
+      if (req.body.featureType === 'hero') {
+        const [existingHero] = await db
+          .select({ id: featuresTable.id })
+          .from(featuresTable)
+          .where(and(
+            eq(featuresTable.isActive, true),
+            eq(featuresTable.featureType, 'hero')
+          ))
+          .limit(1);
+        if (existingHero) {
+          return res.status(409).json({
+            error: 'A hero feature already exists. Demote the current hero before promoting a new one.',
+            existingId: existingHero.id,
+          });
+        }
+      }
       const feature = await storage.createFeature(req.body);
       res.json(feature);
     } catch (error) {

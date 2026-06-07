@@ -33,7 +33,7 @@ function ArticleTile({ content, feature }: { content: any; feature: any }) {
 
   return (
     <a
-      href={`/content/${content.slug}`}
+      href={`/editorial/${content.slug}`}
       className="group block"
       data-testid={`article-tile-${content.id}`}
     >

@@ -1481,6 +1481,7 @@ export type SubmissionTag = typeof submissionTags.$inferSelect;
 export type Feature = typeof features.$inferSelect;
 export type InsertFeature = z.infer<typeof insertFeatureSchema>;
 export type UpdateFeature = z.infer<typeof updateFeatureSchema>;
+export type FeatureWithContent = { feature: Feature; content: Content | null };
 export type Pitch = typeof pitches.$inferSelect;
 export type InsertPitch = z.infer<typeof insertPitchSchema>;
 export type UpdatePitch = z.infer<typeof updatePitchSchema>;

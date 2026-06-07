@@ -88,6 +88,7 @@
     "googleapis": "^160.0.0",
     "helmet": "^8.1.0",
     "input-otp": "^1.4.2",
+    "isomorphic-dompurify": "^3.16.0",
     "lucide-react": "^0.453.0",
     "memoizee": "^0.4.17",
     "memorystore": "^1.6.7",
