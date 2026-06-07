@@ -736,6 +736,17 @@ export const content = pgTable("editorial_content", {
   // Read time (auto-calculated based on word count)
   readTimeMinutes: integer("read_time_minutes"),
 
+  // Scheduled publishing — when set + status='scheduled', cron auto-publishes at this time
+  scheduledAt: timestamp("scheduled_at"),
+
+  // Preview token — random UUID; allows draft/scheduled content to be previewed via
+  // GET /api/content/:slug?preview=<token> without auth
+  previewToken: text("preview_token"),
+
+  // Review workflow — editors submit for review; admin approves/rejects
+  // Values: 'none' | 'pending' | 'approved' | 'rejected'
+  reviewStatus: text("review_status").default("none"),
+
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -1189,7 +1200,7 @@ export const insertContentSchema = createInsertSchema(content).omit({
   videoUrl: z.string().optional().refine(isValidYouTubeUrl, {
     message: "Please enter a valid YouTube URL"
   }),
-  status: z.enum(["draft", "published"]).default("draft"),
+  status: z.enum(["draft", "scheduled", "published"]).default("draft"),
   // Added "notes" and "picks_list" content types
   contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link", "notes", "picks_list"]).default("essay"),
   featuredRank: z.number().min(1).max(10).optional(),
@@ -1224,6 +1235,8 @@ export const insertContentSchema = createInsertSchema(content).omit({
   importSourceUrl: z.string().url().optional(),
   importSourceAuthor: z.string().optional(),
   readTimeMinutes: z.number().positive().optional(),
+  scheduledAt: z.string().datetime({ offset: true }).optional(), // ISO-8601 string from datetime-local input
+  reviewStatus: z.enum(["none", "pending", "approved", "rejected"]).optional(),
 });
 
 export const updateContentSchema = z.object({
@@ -1234,7 +1247,7 @@ export const updateContentSchema = z.object({
   authors: z.array(z.string()).optional(),
   coverImageUrl: z.string().optional(),
   videoUrl: z.string().optional().refine(isValidYouTubeUrl, { message: "Please enter a valid YouTube URL" }),
-  status: z.enum(["draft", "published"]).optional(),
+  status: z.enum(["draft", "scheduled", "published"]).optional(),
   contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link", "notes", "picks_list"]).optional(),
   featuredRank: z.number().min(1).max(10).optional(),
   isHero: z.boolean().optional(),
@@ -1259,6 +1272,8 @@ export const updateContentSchema = z.object({
   importSourceUrl: z.string().url().optional(),
   importSourceAuthor: z.string().optional(),
   readTimeMinutes: z.number().positive().optional(),
+  scheduledAt: z.string().datetime({ offset: true }).nullable().optional(),
+  reviewStatus: z.enum(["none", "pending", "approved", "rejected"]).optional(),
 });
 
 export const updateSubmissionStatusSchema = z.object({

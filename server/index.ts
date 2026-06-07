@@ -15,6 +15,9 @@ import fetch from 'node-fetch';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { validateAdminCredentials } from "./adminAuth";
+import { db } from "./db";
+import { content as contentTable } from "@shared/schema";
+import { and, lte, eq } from "drizzle-orm";
 
 const logger = pino();
 
@@ -321,6 +324,33 @@ validateAdminCredentials();
   } else {
     serveStatic(app);
   }
+
+  // ── Scheduled publishing cron (runs every 60 seconds) ────────────────────
+  // Publishes any content with status='scheduled' whose scheduledAt has passed.
+  async function publishScheduledContent() {
+    try {
+      const now = new Date();
+      const due = await db
+        .select({ id: contentTable.id, title: contentTable.title })
+        .from(contentTable)
+        .where(and(
+          eq(contentTable.status, 'scheduled'),
+          lte(contentTable.scheduledAt as any, now)
+        ));
+      for (const piece of due) {
+        await db.update(contentTable)
+          .set({ status: 'published', publishedAt: now, updatedAt: now })
+          .where(eq(contentTable.id, piece.id));
+        log(`📅 Auto-published scheduled piece: "${piece.title}" (id ${piece.id})`);
+      }
+    } catch (err) {
+      logger.error({ err }, 'Scheduled publish cron error');
+    }
+  }
+  // Run once at startup, then every 60 seconds
+  publishScheduledContent();
+  setInterval(publishScheduledContent, 60_000);
+  // ─────────────────────────────────────────────────────────────────────────
 
   // Serve the app on configured port (default 5000)
   // this serves both the API and the client.

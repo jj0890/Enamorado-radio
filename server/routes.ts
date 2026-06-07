@@ -5211,10 +5211,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Content not found' });
       }
 
-      // Only allow published content for non-admin users
+      // Allow preview via token — anyone with the token can view draft/scheduled content
+      const previewToken = req.query.preview as string | undefined;
+      const tokenValid = previewToken && content.previewToken && previewToken === content.previewToken;
+
+      // Only allow published content for non-admin users (unless preview token matches)
       const user = (req as any).user;
       const isAuthorized = user && (user.role === 'admin' || user.role === 'editor');
-      if (!isAuthorized && content.status !== 'published') {
+      if (!isAuthorized && !tokenValid && content.status !== 'published') {
         return res.status(404).json({ error: 'Content not found' });
       }
 
@@ -5313,6 +5317,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if ((req as any).user?.role === 'editor' && contentData.status === 'published') {
         return res.status(403).json({ error: 'Editors cannot publish content directly. Submit for review instead.' });
       }
+      // Scheduling logic: if scheduledAt is a future date, force status = 'scheduled'
+      if (contentData.scheduledAt) {
+        const schedAt = new Date(contentData.scheduledAt);
+        if (!isNaN(schedAt.getTime())) {
+          contentData.scheduledAt = schedAt;
+          if (schedAt > new Date()) {
+            contentData.status = 'scheduled';
+            contentData.publishedAt = null; // not published yet
+          } else {
+            // Past scheduledAt means publish immediately
+            contentData.status = 'published';
+            contentData.publishedAt = schedAt;
+          }
+        }
+      }
       // Sanitize TipTap HTML body
       if (contentData.body && typeof contentData.body === 'string') {
         const DOMPurify = (await import('isomorphic-dompurify')).default;
@@ -5362,6 +5381,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting content:', error);
       res.status(500).json({ error: 'Failed to delete content' });
+    }
+  });
+
+  // ── Editorial publishing workflow ────────────────────────────────────────
+
+  // Generate (or refresh) a preview token for a piece — admin/editor only
+  app.post('/api/content/:id/preview-token', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const contentId = parseInt(req.params.id);
+      const token = crypto.randomUUID();
+      const updated = await storage.updateContent(contentId, { previewToken: token } as any);
+      if (!updated) return res.status(404).json({ error: 'Content not found' });
+      res.json({ previewToken: token, previewUrl: `/editorial/${updated.slug}?preview=${token}` });
+    } catch (error) {
+      console.error('Error generating preview token:', error);
+      res.status(500).json({ error: 'Failed to generate preview token' });
+    }
+  });
+
+  // Editor submits piece for admin review
+  app.post('/api/content/:id/request-review', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const contentId = parseInt(req.params.id);
+      const updated = await storage.updateContent(contentId, { reviewStatus: 'pending' } as any);
+      if (!updated) return res.status(404).json({ error: 'Content not found' });
+      broadcast({ type: 'content_review_requested', data: { id: contentId, title: updated.title } });
+      res.json({ success: true, reviewStatus: 'pending' });
+    } catch (error) {
+      console.error('Error requesting review:', error);
+      res.status(500).json({ error: 'Failed to request review' });
+    }
+  });
+
+  // Admin approves or rejects — approve auto-publishes
+  app.post('/api/content/:id/review-decision', requireAdmin, async (req, res) => {
+    try {
+      const contentId = parseInt(req.params.id);
+      const { decision } = req.body; // 'approved' | 'rejected'
+      if (!['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ error: 'decision must be "approved" or "rejected"' });
+      }
+      const updates: any = { reviewStatus: decision };
+      if (decision === 'approved') {
+        updates.status = 'published';
+        updates.publishedAt = new Date();
+      }
+      const updated = await storage.updateContent(contentId, updates);
+      if (!updated) return res.status(404).json({ error: 'Content not found' });
+      broadcast({ type: 'content_review_decision', data: { id: contentId, decision } });
+      res.json(updated);
+    } catch (error) {
+      console.error('Error processing review decision:', error);
+      res.status(500).json({ error: 'Failed to process review decision' });
     }
   });
 

@@ -20,7 +20,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash2, Eye, ExternalLink, Video, PlayCircle, Search, FileText, Image, Music, Link as LinkIcon, SplitSquareVertical, Star, Crown } from "lucide-react";
+import { Plus, Edit, Trash2, Eye, ExternalLink, Video, PlayCircle, Search, FileText, Image, Music, Link as LinkIcon, SplitSquareVertical, Star, Crown, Clock, CheckCircle, XCircle } from "lucide-react";
 import { Link } from "wouter";
 import { isValidYouTubeUrl, extractYouTubeId, getYouTubeThumbnail, parseYouTubeUrl } from "@/lib/youtube-utils";
 import type { RawIssueRow } from "@shared/schema";
@@ -33,7 +33,8 @@ const contentFormSchema = z.object({
   authors: z.string().optional(),
   coverImageUrl: z.string().optional(),
   videoUrl: z.string().optional(),
-  status: z.enum(["draft", "published"]),
+  status: z.enum(["draft", "scheduled", "published"]),
+  scheduledAt: z.string().optional(),
   contentType: z.enum(["essay", "interview", "video_essay", "photoshoot", "playlist", "artPdf", "link"]),
   featuredRank: z.coerce.number().min(1).max(10).optional(),
   isHero: z.boolean(),
@@ -122,14 +123,17 @@ type Content = {
   authors: string[];
   coverImageUrl?: string;
   videoUrl?: string;
-  status: "draft" | "published";
+  status: "draft" | "scheduled" | "published";
   contentType: "essay" | "interview" | "video_essay" | "photoshoot" | "playlist" | "artPdf" | "link";
   featuredRank?: number;
   isHero: boolean;
   issueId?: number;
   publishedAt?: string;
+  scheduledAt?: string;
+  previewToken?: string;
+  reviewStatus?: "none" | "pending" | "approved" | "rejected";
   createdAt: string;
-  
+
   // Type-specific fields
   externalUrl?: string;
   galleryUrls?: string;
@@ -426,9 +430,27 @@ export default function AdminEditorial() {
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-2">
-                          <Badge variant={item.status === "published" ? "default" : "secondary"} data-testid={`badge-status-${item.id}`}>
+                          <Badge
+                            variant={
+                              item.status === "published" ? "default" :
+                              item.status === "scheduled" ? "outline" : "secondary"
+                            }
+                            className={item.status === "scheduled" ? "text-amber-600 border-amber-400" : ""}
+                            data-testid={`badge-status-${item.id}`}
+                          >
+                            {item.status === "scheduled" && <Clock className="w-3 h-3 mr-1 inline" />}
                             {item.status}
+                            {item.status === "scheduled" && item.scheduledAt && (
+                              <span className="ml-1 font-normal">
+                                · {new Date(item.scheduledAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+                              </span>
+                            )}
                           </Badge>
+                          {item.reviewStatus === "pending" && (
+                            <Badge variant="outline" className="text-blue-600 border-blue-400">
+                              Review pending
+                            </Badge>
+                          )}
                           <Badge variant="outline" data-testid={`badge-type-${item.id}`}>
                             {item.contentType.replace('_', ' ')}
                           </Badge>
@@ -471,6 +493,22 @@ export default function AdminEditorial() {
                           title="Quick review"
                         >
                           <Eye className="w-4 h-4" />
+                        </Button>
+                        {/* Preview in new tab — generates token on demand */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          title="Preview (shares draft link)"
+                          onClick={async () => {
+                            const r = await fetch(`/api/content/${item.id}/preview-token`, { method: 'POST' });
+                            if (r.ok) {
+                              const { previewUrl } = await r.json();
+                              window.open(previewUrl, '_blank');
+                            }
+                          }}
+                          data-testid={`button-preview-${item.id}`}
+                        >
+                          <ExternalLink className="w-4 h-4" />
                         </Button>
                         {item.videoUrl && (
                           <Button variant="outline" size="sm" asChild data-testid={`button-view-video-${item.id}`}>
@@ -582,11 +620,14 @@ function ContentForm({
       authors: content?.authors?.join(", ") || "",
       coverImageUrl: content?.coverImageUrl || "",
       videoUrl: content?.videoUrl || "",
-      status: content?.status || "draft",
+      status: (content?.status as any) || "draft",
       contentType: content?.contentType || "essay",
       featuredRank: content?.featuredRank || undefined,
       isHero: content?.isHero || false,
       issueId: content?.issueId || undefined,
+      scheduledAt: content?.scheduledAt
+        ? new Date(content.scheduledAt).toISOString().slice(0, 16)
+        : undefined,
     },
   });
 
@@ -1118,13 +1159,38 @@ function ContentForm({
                   </FormControl>
                   <SelectContent>
                     <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="published">Published</SelectItem>
+                    <SelectItem value="scheduled">Scheduled</SelectItem>
+                    <SelectItem value="published">Publish now</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
               </FormItem>
             )}
           />
+
+          {/* Schedule date/time — shown when status is 'scheduled' */}
+          {form.watch("status") === "scheduled" && (
+            <FormField
+              control={form.control}
+              name="scheduledAt"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="flex items-center gap-1">
+                    <Clock className="w-4 h-4" /> Publish at
+                  </FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="datetime-local"
+                      min={new Date().toISOString().slice(0, 16)}
+                      data-testid="input-scheduled-at"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
 
           <FormField
             control={form.control}
