@@ -22,7 +22,8 @@ export default function SubmitMix() {
     genre: "",
     about: "",
     url: "",
-    artUrl: ""
+    artUrl: "",
+    recommendedPlaylistUrl: ""
   });
 
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -42,6 +43,7 @@ export default function SubmitMix() {
         formDataBody.append('genre', data.genre);
         formDataBody.append('about', data.about || '');
         if (data.artUrl) formDataBody.append('artworkUrl', data.artUrl);
+        if (data.recommendedPlaylistUrl) formDataBody.append('recommendedPlaylistUrl', data.recommendedPlaylistUrl);
 
         const response = await fetch('/api/public/mixes/upload', {
           method: 'POST',
@@ -61,9 +63,12 @@ export default function SubmitMix() {
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(data),
+          body: JSON.stringify({
+            ...data,
+            ...(data.recommendedPlaylistUrl ? { recommendedPlaylistUrl: data.recommendedPlaylistUrl } : {})
+          }),
         });
-        
+
         if (!response.ok) {
           const errorData = await response.json();
           throw new Error(errorData.error || 'Submission failed');
@@ -582,6 +587,25 @@ export default function SubmitMix() {
               />
               <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
                 Optional — share anything you want listeners to know.
+              </div>
+            </div>
+          </div>
+
+            {/* Recommended Playlist (Optional) */}
+            <div className="mt-6">
+              <Label htmlFor="recommendedPlaylistUrl" className="text-sm font-mono text-gray-700 dark:text-gray-300 mb-2 block">
+                What are you listening to right now? (Optional)
+              </Label>
+              <Input
+                id="recommendedPlaylistUrl"
+                type="url"
+                value={formData.recommendedPlaylistUrl}
+                onChange={(e) => handleInputChange('recommendedPlaylistUrl', e.target.value)}
+                placeholder="Spotify, Apple Music, YouTube, or SoundCloud playlist URL"
+                className="font-mono border-gray-300 dark:border-gray-600 focus:border-navy dark:focus:border-navy"
+              />
+              <div className="mt-2 text-xs font-mono text-gray-500 dark:text-gray-400">
+                Share a public playlist — it'll show up on your contributor profile as "Recommended Listening."
               </div>
             </div>
           </div>

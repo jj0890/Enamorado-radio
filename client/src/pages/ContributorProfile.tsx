@@ -117,14 +117,25 @@ const roleLabels: Record<string, string> = {
   other: 'Contributor',
 };
 
+// Detect DSP from URL
+function detectPlatform(url: string): string {
+  if (url.includes('spotify.com')) return 'spotify';
+  if (url.includes('music.apple.com')) return 'apple';
+  if (url.includes('youtube.com') || url.includes('youtu.be')) return 'youtube';
+  if (url.includes('soundcloud.com')) return 'soundcloud';
+  if (url.includes('tidal.com')) return 'tidal';
+  return 'other';
+}
+
 // Playlist embed component
-function PlaylistEmbed({ url, platform }: { url: string; platform?: string }) {
-  const getEmbedUrl = () => {
+function PlaylistEmbed({ url, platform: explicitPlatform }: { url: string; platform?: string }) {
+  const platform = explicitPlatform || detectPlatform(url);
+
+  const getEmbedUrl = (): string | null => {
     if (!url) return null;
 
     // Spotify
-    if (url.includes('spotify.com') || platform === 'spotify') {
-      // Convert open.spotify.com/playlist/ID to embed format
+    if (platform === 'spotify') {
       const match = url.match(/playlist\/([a-zA-Z0-9]+)/);
       if (match) {
         return `https://open.spotify.com/embed/playlist/${match[1]}?utm_source=generator&theme=0`;
@@ -132,20 +143,43 @@ function PlaylistEmbed({ url, platform }: { url: string; platform?: string }) {
     }
 
     // Apple Music
-    if (url.includes('music.apple.com') || platform === 'apple') {
-      // Convert to embed format
+    if (platform === 'apple') {
       return url.replace('music.apple.com', 'embed.music.apple.com');
     }
 
+    // YouTube playlist (youtube.com/playlist?list=... or youtu.be share)
+    if (platform === 'youtube') {
+      const listMatch = url.match(/[?&]list=([^&]+)/);
+      if (listMatch) {
+        return `https://www.youtube.com/embed/videoseries?list=${listMatch[1]}&modestbranding=1&rel=0`;
+      }
+    }
+
     // SoundCloud
-    if (url.includes('soundcloud.com') || platform === 'soundcloud') {
-      return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23cc4a00&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false`;
+    if (platform === 'soundcloud') {
+      return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23cc4a00&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=true`;
+    }
+
+    // Tidal
+    if (platform === 'tidal') {
+      const idMatch = url.match(/playlist\/([a-z0-9-]+)/i);
+      if (idMatch) {
+        return `https://embed.tidal.com/playlists/${idMatch[1]}`;
+      }
     }
 
     return null;
   };
 
   const embedUrl = getEmbedUrl();
+
+  const embedHeight: Record<string, number> = {
+    spotify: 352,
+    youtube: 315,
+    apple: 175,
+    soundcloud: 300,
+    tidal: 315,
+  };
 
   if (!embedUrl) {
     return (
@@ -166,7 +200,7 @@ function PlaylistEmbed({ url, platform }: { url: string; platform?: string }) {
     <iframe
       src={embedUrl}
       width="100%"
-      height={platform === 'spotify' ? 352 : 166}
+      height={embedHeight[platform] ?? 200}
       frameBorder="0"
       allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
       loading="lazy"

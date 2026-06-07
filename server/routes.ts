@@ -1879,6 +1879,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
 
+      // Stash recommended playlist URL in metadata (submitted by contributor)
+      const recommendedPlaylistUrl = (req.body as any)?.recommendedPlaylistUrl;
+      if (recommendedPlaylistUrl) {
+        validatedData.metadata = {
+          ...(validatedData.metadata as object || {}),
+          recommendedPlaylistUrl,
+        };
+      }
+
       // Auto-provision contributor if handle is provided
       if ((req.body as any)?.handle) {
         try {
@@ -2074,6 +2083,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Simple status update to approved
       const updatedMix = await storage.updateMixSubmissionStatus(id, 'approved', 'Approved by admin');
+
+      // Auto-apply contributor's recommended playlist URL if they included one
+      const playlistUrl = (mix.metadata as any)?.recommendedPlaylistUrl;
+      if (playlistUrl && mix.contributorId) {
+        try {
+          const contributor = await storage.getContributorById(mix.contributorId);
+          if (contributor && !contributor.recommendedPlaylistUrl) {
+            let detectedPlatform: 'spotify' | 'apple' | 'youtube' | 'soundcloud' | 'other' = 'other';
+            if (playlistUrl.includes('spotify.com')) detectedPlatform = 'spotify';
+            else if (playlistUrl.includes('music.apple.com')) detectedPlatform = 'apple';
+            else if (playlistUrl.includes('youtube.com') || playlistUrl.includes('youtu.be')) detectedPlatform = 'youtube';
+            else if (playlistUrl.includes('soundcloud.com')) detectedPlatform = 'soundcloud';
+            await storage.updateContributor(mix.contributorId, {
+              recommendedPlaylistUrl: playlistUrl,
+              recommendedPlaylistPlatform: detectedPlatform,
+            });
+            console.log(`🎵 Playlist applied to contributor @${contributor.handle} (${detectedPlatform})`);
+          }
+        } catch (err) {
+          console.warn('Failed to apply playlist to contributor profile:', err);
+        }
+      }
 
       // AzuraCast integration
       try {
