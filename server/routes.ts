@@ -5259,9 +5259,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contentData.body = DOMPurify.sanitize(contentData.body, {
           ALLOWED_TAGS: ['p','br','strong','em','u','s','h1','h2','h3','h4','h5','h6',
             'ul','ol','li','blockquote','a','img','figure','figcaption','pre','code',
-            'table','thead','tbody','tr','th','td','hr','span','div','iframe'],
+            'table','thead','tbody','tr','th','td','hr','span','div','iframe',
+            'audio','source','video'],
           ALLOWED_ATTR: ['href','src','alt','title','class','target','rel','width','height',
-            'allowfullscreen','frameborder','allow'],
+            'allowfullscreen','frameborder','allow',
+            'controls','autoplay','loop','preload','type','muted','playsinline'],
           FORBID_TAGS: ['script','style','object','embed'],
         });
       }
@@ -5303,9 +5305,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contentData.body = DOMPurify.sanitize(contentData.body, {
           ALLOWED_TAGS: ['p','br','strong','em','u','s','h1','h2','h3','h4','h5','h6',
             'ul','ol','li','blockquote','a','img','figure','figcaption','pre','code',
-            'table','thead','tbody','tr','th','td','hr','span','div','iframe'],
+            'table','thead','tbody','tr','th','td','hr','span','div','iframe',
+            'audio','source','video'],
           ALLOWED_ATTR: ['href','src','alt','title','class','target','rel','width','height',
-            'allowfullscreen','frameborder','allow'],
+            'allowfullscreen','frameborder','allow',
+            'controls','autoplay','loop','preload','type','muted','playsinline'],
           FORBID_TAGS: ['script','style','object','embed'],
         });
       }
