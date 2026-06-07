@@ -1468,6 +1468,8 @@ export type InsertFeaturedStory = z.infer<typeof insertFeaturedStorySchema>;
 export type UpdateSubmissionStatus = z.infer<typeof updateSubmissionStatusSchema>;
 
 export type Issue = typeof issues.$inferSelect;
+/** @alias Issue — kept for legacy imports */
+export type RawIssueRow = Issue;
 export type InsertIssue = z.infer<typeof insertIssueSchema>;
 export type UpdateIssue = z.infer<typeof updateIssueSchema>;
 export type IssueContent = typeof issueContents.$inferSelect;

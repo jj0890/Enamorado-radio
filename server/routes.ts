@@ -5347,6 +5347,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // ── Editorial media upload ───────────────────────────────────────────────
+  // Accepts images (JPEG/PNG/WEBP/GIF) and audio (MP3/WAV/OGG) for editorial
+  // content. Files are saved to public/uploads/editorial/ and served as
+  // express.static at /uploads/editorial/:filename.
+  const editorialUpload = multer({
+    dest: '/tmp/uploads/',
+    limits: { fileSize: 50 * 1024 * 1024 }, // 50 MB overall; per-type cap enforced below
+    fileFilter: (_req, file, cb) => {
+      const allowed = [
+        'image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif',
+        'audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/ogg',
+      ];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Unsupported file type: ${file.mimetype}`));
+      }
+    },
+  });
+
+  app.post('/api/media/upload',
+    requireRole(['admin', 'editor']),
+    editorialUpload.single('file'),
+    async (req, res) => {
+      try {
+        if (!req.file) {
+          return res.status(400).json({ error: 'No file provided' });
+        }
+
+        const file = req.file;
+        const isImage = file.mimetype.startsWith('image/');
+        const isAudio = file.mimetype.startsWith('audio/');
+
+        // Per-type size caps: 10 MB images, 50 MB audio
+        const maxBytes = isImage ? 10 * 1024 * 1024 : 50 * 1024 * 1024;
+        if (file.size > maxBytes) {
+          fs.unlinkSync(file.path);
+          return res.status(413).json({
+            error: `File too large. Max ${isImage ? '10' : '50'} MB for ${isImage ? 'images' : 'audio'}.`,
+          });
+        }
+
+        // Extension — derive from originalname; fall back to mime subtype
+        const origExt = path.extname(file.originalname).toLowerCase().replace(/^\./, '');
+        const mimeExt = file.mimetype.split('/')[1]?.replace('mpeg', 'mp3') ?? 'bin';
+        const ext = origExt || mimeExt;
+
+        const subfolder = isAudio ? 'audio' : 'images';
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'editorial', subfolder);
+        if (!fs.existsSync(uploadDir)) {
+          fs.mkdirSync(uploadDir, { recursive: true });
+        }
+
+        const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const destPath = path.join(uploadDir, path.basename(filename));
+
+        fs.copyFileSync(file.path, destPath);
+        fs.unlinkSync(file.path);
+
+        const url = `/uploads/editorial/${subfolder}/${filename}`;
+        console.log(`📎 Media uploaded: ${url} (${Math.round(file.size / 1024)} KB)`);
+
+        res.json({ url, type: isAudio ? 'audio' : 'image', originalName: file.originalname });
+      } catch (error: any) {
+        console.error('Media upload error:', error);
+        // Clean up temp file on failure
+        if (req.file?.path && fs.existsSync(req.file.path)) {
+          fs.unlinkSync(req.file.path);
+        }
+        res.status(500).json({ error: error.message || 'Upload failed' });
+      }
+    }
+  );
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Magazine Issues
   app.get('/api/issues', async (req, res) => {
     try {

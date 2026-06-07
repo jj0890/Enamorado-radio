@@ -1,10 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Upload, X, ImagePlus } from "lucide-react";
 import type { RawIssueRow } from "@shared/schema";
 import ContributorPicker, { type ContributorAssignment } from "@/components/contributor-picker";
 
@@ -72,6 +73,56 @@ export default function SplitContentEditor({
   issues,
   generateSlug,
 }: SplitContentEditorProps) {
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
+  const coverFileRef = useRef<HTMLInputElement>(null);
+  const galleryFileRef = useRef<HTMLInputElement>(null);
+
+  /** Upload a file to /api/media/upload and return the URL */
+  async function uploadFile(file: File): Promise<string> {
+    const body = new FormData();
+    body.append("file", file);
+    const res = await fetch("/api/media/upload", { method: "POST", body });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `Upload failed (${res.status})`);
+    }
+    const data = await res.json();
+    return data.url as string;
+  }
+
+  async function handleCoverUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingCover(true);
+    try {
+      const url = await uploadFile(file);
+      handleChange("coverImageUrl", url);
+    } catch (err: any) {
+      alert(err.message || "Cover image upload failed");
+    } finally {
+      setUploadingCover(false);
+      if (coverFileRef.current) coverFileRef.current.value = "";
+    }
+  }
+
+  async function handleGalleryUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    setUploadingGallery(true);
+    try {
+      const urls = await Promise.all(files.map(uploadFile));
+      const existing = (formData.galleryUrls ?? "").trim();
+      const combined = [existing, ...urls].filter(Boolean).join("\n");
+      handleChange("galleryUrls", combined);
+    } catch (err: any) {
+      alert(err.message || "Gallery upload failed");
+    } finally {
+      setUploadingGallery(false);
+      if (galleryFileRef.current) galleryFileRef.current.value = "";
+    }
+  }
+
   const [formData, setFormData] = useState<ContentFormData>({
     title: content?.title || "",
     slug: content?.slug || "",
@@ -114,6 +165,12 @@ export default function SplitContentEditor({
   const handleChange = (field: keyof ContentFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
+
+  // Gallery URL list derived from textarea value
+  const galleryList = (formData.galleryUrls ?? "")
+    .split("\n")
+    .map((u) => u.trim())
+    .filter(Boolean);
 
   // Readable preview byline
   const bylineNames = formData.contributors
@@ -196,14 +253,132 @@ export default function SplitContentEditor({
               />
             </div>
 
+            {/* Cover image — URL or file upload */}
             <div>
-              <Label htmlFor="coverImageUrl">Cover Image URL</Label>
-              <Input
-                id="coverImageUrl"
-                value={formData.coverImageUrl}
-                onChange={(e) => handleChange("coverImageUrl", e.target.value)}
-              />
+              <Label htmlFor="coverImageUrl">Cover Image</Label>
+              <div className="flex gap-2 mt-1">
+                <Input
+                  id="coverImageUrl"
+                  placeholder="https://… or upload →"
+                  value={formData.coverImageUrl ?? ""}
+                  onChange={(e) => handleChange("coverImageUrl", e.target.value)}
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingCover}
+                  onClick={() => coverFileRef.current?.click()}
+                  className="shrink-0"
+                >
+                  {uploadingCover ? (
+                    <span className="text-xs">Uploading…</span>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-1" />
+                      Upload
+                    </>
+                  )}
+                </Button>
+                <input
+                  ref={coverFileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif"
+                  className="hidden"
+                  onChange={handleCoverUpload}
+                />
+              </div>
+              {formData.coverImageUrl && (
+                <div className="mt-2 relative w-32 h-20">
+                  <img
+                    src={formData.coverImageUrl}
+                    alt="Cover preview"
+                    className="w-full h-full object-cover rounded border"
+                    onError={(e) => (e.currentTarget.style.display = "none")}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleChange("coverImageUrl", "")}
+                    className="absolute -top-1.5 -right-1.5 bg-white rounded-full border p-0.5 text-gray-500 hover:text-red-500"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              )}
             </div>
+
+            {/* Gallery images — photoshoot type */}
+            {formData.contentType === "photoshoot" && (
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <Label>Gallery Images</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={uploadingGallery}
+                    onClick={() => galleryFileRef.current?.click()}
+                  >
+                    {uploadingGallery ? (
+                      <span className="text-xs">Uploading…</span>
+                    ) : (
+                      <>
+                        <ImagePlus className="w-4 h-4 mr-1" />
+                        Add Images
+                      </>
+                    )}
+                  </Button>
+                  <input
+                    ref={galleryFileRef}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    multiple
+                    className="hidden"
+                    onChange={handleGalleryUpload}
+                  />
+                </div>
+
+                {/* Thumbnail strip */}
+                {galleryList.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    {galleryList.map((url, i) => (
+                      <div key={i} className="relative w-20 h-14">
+                        <img
+                          src={url}
+                          alt={`Gallery ${i + 1}`}
+                          className="w-full h-full object-cover rounded border"
+                          onError={(e) => (e.currentTarget.style.display = "none")}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = galleryList.filter((_, j) => j !== i).join("\n");
+                            handleChange("galleryUrls", updated);
+                          }}
+                          className="absolute -top-1.5 -right-1.5 bg-white rounded-full border p-0.5 text-gray-500 hover:text-red-500"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Raw URL textarea — manual entry still supported */}
+                <Textarea
+                  id="galleryUrls"
+                  placeholder="One image URL per line"
+                  value={formData.galleryUrls ?? ""}
+                  onChange={(e) => handleChange("galleryUrls", e.target.value)}
+                  rows={4}
+                  className="font-mono text-xs"
+                />
+                <p className="text-xs text-gray-400 mt-1">
+                  {galleryList.length} image{galleryList.length !== 1 ? "s" : ""} · Upload or paste URLs above
+                </p>
+              </div>
+            )}
 
             <div>
               <Label htmlFor="status">Status</Label>
