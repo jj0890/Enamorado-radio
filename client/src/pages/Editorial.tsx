@@ -1,6 +1,7 @@
+import { useState, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
-import { BookOpen, Play, ArrowRight } from "lucide-react";
+import { BookOpen, Play, ArrowRight, Search, X } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import { FeatureWithContent } from "@shared/schema";
@@ -20,8 +21,23 @@ function typeLabel(contentType?: string) {
   return map[contentType ?? ""] ?? "Editorial";
 }
 
+const TYPE_FILTERS = [
+  { label: "All", value: "" },
+  { label: "Essay", value: "essay" },
+  { label: "Interview", value: "interview" },
+  { label: "Visual", value: "photoshoot" },
+  { label: "Video", value: "video_essay" },
+  { label: "Playlist", value: "playlist" },
+];
+
 // Single article tile — no shadows, just type label + title + excerpt
-function ArticleTile({ content, feature }: { content: any; feature: any }) {
+function ArticleTile({
+  content,
+  feature,
+}: {
+  content: any;
+  feature?: any;
+}) {
   const coverSrc =
     content.coverImageUrl ||
     (content.videoUrl && extractYouTubeId(content.videoUrl)
@@ -30,6 +46,11 @@ function ArticleTile({ content, feature }: { content: any; feature: any }) {
     content.gallery?.[0]?.src;
 
   const isHero = feature?.featureType === "hero";
+
+  // Contributor display — prefers contributors junction data, falls back to authors[]
+  const contributors: Array<{ handle?: string; name?: string }> =
+    content.contributors ?? [];
+  const authorNames: string[] = content.authors ?? [];
 
   return (
     <a
@@ -70,11 +91,31 @@ function ArticleTile({ content, feature }: { content: any; feature: any }) {
       {/* Meta */}
       <p className="text-xs font-mono tracking-widest uppercase text-burnt-orange-500 mb-2">
         {typeLabel(content.contentType)}
-        {content.authors?.length > 0 && (
+        {contributors.length > 0 ? (
           <span className="text-charcoal-400 normal-case tracking-normal font-normal">
-            {" "}— {content.authors.join(", ")}
+            {" "}—{" "}
+            {contributors.map((c, i) => (
+              <span key={i}>
+                {i > 0 && ", "}
+                {c.handle ? (
+                  <a
+                    href={`/contributors/${c.handle}`}
+                    className="hover:text-burnt-orange-500 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {c.name ?? c.handle}
+                  </a>
+                ) : (
+                  c.name ?? c.handle
+                )}
+              </span>
+            ))}
           </span>
-        )}
+        ) : authorNames.length > 0 ? (
+          <span className="text-charcoal-400 normal-case tracking-normal font-normal">
+            {" "}— {authorNames.join(", ")}
+          </span>
+        ) : null}
       </p>
 
       {/* Title */}
@@ -101,25 +142,59 @@ function ArticleTile({ content, feature }: { content: any; feature: any }) {
 }
 
 export default function Editorial() {
-  const { data: features = [], isLoading } = useQuery<FeatureWithContent[]>({
+  const [search, setSearch] = useState("");
+  const [activeSearch, setActiveSearch] = useState(""); // committed on submit
+  const [activeType, setActiveType] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const isFiltering = activeSearch !== "" || activeType !== "";
+
+  // Featured feed — shown when no filter is active
+  const { data: features = [], isLoading: loadingFeatured } = useQuery<
+    FeatureWithContent[]
+  >({
     queryKey: ["/api/features-with-content"],
+    enabled: !isFiltering,
   });
 
+  // Search/filter feed — shown when a search or type filter is active
+  const searchParams = new URLSearchParams();
+  if (activeSearch) searchParams.set("search", activeSearch);
+  if (activeType) searchParams.set("contentType", activeType);
+
+  const { data: searchResults = [], isLoading: loadingSearch } = useQuery<
+    any[]
+  >({
+    queryKey: ["/api/published-content", activeSearch, activeType],
+    queryFn: () =>
+      fetch(`/api/published-content?${searchParams}`).then((r) => r.json()),
+    enabled: isFiltering,
+  });
+
+  // Featured feed derived values
   const heroFeatures = features.filter(
     (f) => f.feature.featureType === "hero" && f.content
   );
   const mainFeatures = features.filter(
     (f) => f.feature.featureType === "main" && f.content
   );
-
   const heroItem = heroFeatures[0] ?? mainFeatures[0];
   const heroContent = heroItem?.content;
+  const gridItems = heroFeatures.length > 0 ? mainFeatures : mainFeatures.slice(1);
 
-  // Everything that isn't the hero goes in the grid
-  const gridItems =
-    heroFeatures.length > 0
-      ? mainFeatures
-      : mainFeatures.slice(1);
+  const isLoading = isFiltering ? loadingSearch : loadingFeatured;
+
+  function submitSearch(e: React.FormEvent) {
+    e.preventDefault();
+    setActiveSearch(search.trim());
+  }
+
+  function clearFilters() {
+    setSearch("");
+    setActiveSearch("");
+    setActiveType("");
+    inputRef.current?.focus();
+  }
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: "#FAF6F0" }}>
@@ -128,7 +203,7 @@ export default function Editorial() {
 
       <div className="max-w-5xl mx-auto px-4 pb-32">
         {/* ── Masthead ── */}
-        <div className="pt-12 pb-8">
+        <div className="pt-12 pb-6">
           <div className="border-t-2 border-charcoal-900 pt-4">
             <div className="flex items-baseline justify-between">
               <h1 className="font-serif text-5xl md:text-6xl text-charcoal-900 tracking-tight">
@@ -142,6 +217,58 @@ export default function Editorial() {
               Long-form writing, interviews, and commissioned features
             </p>
           </div>
+
+          {/* ── Search + type filter bar ── */}
+          <div className="mt-6 space-y-3">
+            <form onSubmit={submitSearch} className="flex gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal-400 pointer-events-none" />
+                <input
+                  ref={inputRef}
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search titles and excerpts…"
+                  className="w-full pl-9 pr-4 py-2 border border-charcoal-200 bg-white font-crimson text-charcoal-900 placeholder:text-charcoal-400 focus:outline-none focus:border-charcoal-900 text-sm"
+                />
+              </div>
+              <button
+                type="submit"
+                className="font-mono text-xs uppercase tracking-wider bg-charcoal-900 text-white px-4 py-2 hover:bg-burnt-orange-500 transition-colors"
+              >
+                Search
+              </button>
+              {isFiltering && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="font-mono text-xs uppercase tracking-wider border border-charcoal-300 text-charcoal-600 px-3 py-2 hover:border-charcoal-900 transition-colors flex items-center gap-1"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+              )}
+            </form>
+
+            {/* Content type pills */}
+            <div className="flex flex-wrap gap-2">
+              {TYPE_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  type="button"
+                  onClick={() => setActiveType(f.value)}
+                  className={`font-mono text-xs uppercase tracking-wider px-3 py-1 border transition-colors ${
+                    activeType === f.value
+                      ? "bg-charcoal-900 text-white border-charcoal-900"
+                      : "border-charcoal-300 text-charcoal-600 hover:border-charcoal-900"
+                  }`}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="border-b border-charcoal-300 mt-4" />
         </div>
 
@@ -149,8 +276,45 @@ export default function Editorial() {
           <div className="py-24 text-center font-crimson text-xl text-charcoal-400 italic">
             Loading…
           </div>
+        ) : isFiltering ? (
+          /* ── Search / filter results ── */
+          searchResults.length === 0 ? (
+            <div className="py-24 text-center max-w-lg mx-auto">
+              <div className="border-t border-b border-charcoal-300 py-12">
+                <p className="font-serif text-2xl text-charcoal-700 mb-3">
+                  Nothing found.
+                </p>
+                <p className="font-crimson text-lg text-charcoal-500 italic mb-6">
+                  Try a different search or{" "}
+                  <button
+                    type="button"
+                    onClick={clearFilters}
+                    className="underline hover:text-charcoal-900"
+                  >
+                    browse all pieces
+                  </button>
+                  .
+                </p>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <p className="font-mono text-xs text-charcoal-400 uppercase tracking-wider mb-8">
+                {searchResults.length} piece{searchResults.length !== 1 ? "s" : ""}
+                {activeSearch && ` matching "${activeSearch}"`}
+                {activeType && ` · ${typeLabel(activeType)}`}
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-14">
+                {searchResults.map((item) => (
+                  <div key={item.id} className="border-t border-charcoal-200 pt-8">
+                    <ArticleTile content={item} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )
         ) : features.length === 0 ? (
-          /* Empty state — editorial-tone, not a web-app error message */
+          /* ── Empty featured state ── */
           <div className="py-24 text-center max-w-lg mx-auto">
             <div className="border-t border-b border-charcoal-300 py-12">
               <p className="font-serif text-2xl text-charcoal-700 mb-3">
@@ -169,15 +333,14 @@ export default function Editorial() {
             </div>
           </div>
         ) : (
+          /* ── Featured feed ── */
           <>
-            {/* ── Hero article ── */}
             {heroContent && (
               <div className="mb-14 pb-14 border-b border-charcoal-200">
                 <ArticleTile content={heroContent} feature={heroItem?.feature} />
               </div>
             )}
 
-            {/* ── Article grid ── */}
             {gridItems.length > 0 && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-14">
                 {gridItems.map((f) => {
@@ -191,7 +354,7 @@ export default function Editorial() {
               </div>
             )}
 
-            {/* ── Contribute CTA ── inline, not a sidebar ── */}
+            {/* ── Contribute CTA ── */}
             <div className="mt-24 border-t-2 border-charcoal-900 pt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <p className="font-serif text-xl text-charcoal-900">

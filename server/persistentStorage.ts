@@ -62,9 +62,11 @@ import {
   InsertIssueContent,
   InsertPitch,
   InsertOpenCall,
+  tags,
+  contentTags,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, and, desc, asc } from "drizzle-orm";
+import { eq, and, desc, asc, ilike, or, inArray, sql } from "drizzle-orm";
 import { IStorage } from "./storage";
 import { backupManager } from "./backupManager";
 
@@ -1630,16 +1632,88 @@ export class FileStorage implements IStorage {
   // EDITORIAL CONTENT - DB-backed via Drizzle
   // ============================================
 
-  async getPublishedContent(filters?: { tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]> {
-    let result = await db.select().from(content)
-      .where(eq(content.status, 'published'))
-      .orderBy(desc(content.publishedAt));
-    if (filters?.tier) result = result.filter(c => c.tier === filters.tier);
-    if (filters?.contentType) result = result.filter(c => c.contentType === filters.contentType);
-    const offset = filters?.offset || 0;
-    if (offset) result = result.slice(offset);
-    if (filters?.limit) result = result.slice(0, filters.limit);
-    return result;
+  async getPublishedContent(filters?: {
+    tier?: string;
+    contentType?: string;
+    search?: string;
+    tag?: string;
+    limit?: number;
+    offset?: number;
+  }): Promise<Content[]> {
+    // Build WHERE conditions at DB level
+    const conditions: ReturnType<typeof eq>[] = [eq(content.status, 'published')];
+
+    if (filters?.contentType) {
+      conditions.push(eq(content.contentType, filters.contentType) as any);
+    }
+
+    if (filters?.search) {
+      const term = `%${filters.search}%`;
+      conditions.push(
+        or(
+          ilike(content.title, term),
+          ilike(content.excerpt, term)
+        ) as any
+      );
+    }
+
+    // Tag filter: resolve tag name → ids → filter via contentTags join
+    if (filters?.tag) {
+      const matchingTags = await db
+        .select({ id: tags.id })
+        .from(tags)
+        .where(ilike(tags.name, filters.tag));
+
+      if (matchingTags.length === 0) return [];
+
+      const tagIds = matchingTags.map(t => t.id);
+      const taggedContentIds = await db
+        .selectDistinct({ contentId: contentTags.contentId })
+        .from(contentTags)
+        .where(inArray(contentTags.tagId, tagIds));
+
+      if (taggedContentIds.length === 0) return [];
+
+      const ids = taggedContentIds.map(r => r.contentId).filter((id): id is number => id !== null);
+      conditions.push(inArray(content.id, ids) as any);
+    }
+
+    let query = db.select().from(content)
+      .where(and(...conditions))
+      .orderBy(desc(content.publishedAt)) as any;
+
+    if (filters?.tier) {
+      // Post-filter (tier is low-cardinality, not worth a subquery)
+      const result = await query;
+      const filtered = result.filter((c: Content) => c.tier === filters!.tier);
+      const off = filters?.offset || 0;
+      return filters?.limit ? filtered.slice(off, off + filters.limit) : filtered.slice(off);
+    }
+
+    if (filters?.offset) query = query.offset(filters.offset);
+    if (filters?.limit) query = query.limit(filters.limit);
+
+    return query;
+  }
+
+  /** Returns tags that are attached to at least one published editorial piece */
+  async getEditorialTags(): Promise<Array<{ id: number; name: string; count: number }>> {
+    const rows = await db
+      .select({
+        id: tags.id,
+        name: tags.name,
+        count: sql<number>`count(distinct ${contentTags.contentId})`,
+      })
+      .from(tags)
+      .innerJoin(contentTags, eq(contentTags.tagId, tags.id))
+      .innerJoin(content, and(
+        eq(content.id, contentTags.contentId),
+        eq(content.status, 'published')
+      ))
+      .groupBy(tags.id, tags.name)
+      .orderBy(desc(sql`count(distinct ${contentTags.contentId})`));
+
+    return rows.map(r => ({ ...r, count: Number(r.count) }));
   }
 
   async getAllContent(filters?: { status?: string; tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]> {

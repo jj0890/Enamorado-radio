@@ -5154,15 +5154,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Published editorial content - public
   app.get('/api/published-content', async (req, res) => {
     try {
-      const { contentType, featured } = req.query;
+      const { contentType, search, tag, limit, offset } = req.query;
       const content = await storage.getPublishedContent({
-        contentType: contentType as string,
-        featured: featured === 'true'
+        contentType: contentType as string | undefined,
+        search: search as string | undefined,
+        tag: tag as string | undefined,
+        limit: limit ? parseInt(limit as string) : undefined,
+        offset: offset ? parseInt(offset as string) : undefined,
       });
       res.json(content);
     } catch (error) {
       console.error('Error fetching published content:', error);
       res.status(500).json({ error: 'Failed to fetch published content' });
+    }
+  });
+
+  // Tags used by published editorial content — drives filter pills on /editorial
+  app.get('/api/editorial/tags', async (req, res) => {
+    try {
+      const tags = await storage.getEditorialTags();
+      res.json(tags);
+    } catch (error) {
+      console.error('Error fetching editorial tags:', error);
+      res.status(500).json({ error: 'Failed to fetch tags' });
     }
   });
 

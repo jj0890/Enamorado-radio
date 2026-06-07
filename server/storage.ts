@@ -190,7 +190,8 @@ export interface IStorage {
   getYearEndListWithItems(slug: string): Promise<(AlbumPick & { items: Array<AlbumPickItem & { album: AlbumSuggestion | null }> }) | null>;
 
   // Editorial Content - Magazine articles, essays, interviews
-  getPublishedContent(filters?: { tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]>;
+  getPublishedContent(filters?: { tier?: string; contentType?: string; search?: string; tag?: string; limit?: number; offset?: number }): Promise<Content[]>;
+  getEditorialTags(): Promise<Array<{ id: number; name: string; count: number }>>;
   getAllContent(filters?: { status?: string; tier?: string; contentType?: string; limit?: number; offset?: number }): Promise<Content[]>;
   getContentById(id: number): Promise<Content | undefined>;
   getContentBySlug(slug: string): Promise<Content | undefined>;
