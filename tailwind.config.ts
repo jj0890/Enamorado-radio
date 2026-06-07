@@ -8,6 +8,7 @@ export default {
       fontFamily: {
         mono: ["IBM Plex Mono", "monospace"],
         serif: ["Playfair Display", "serif"],
+        crimson: ["Crimson Text", "Crimson Pro", "Georgia", "serif"],
       },
       borderRadius: {
         lg: "var(--radius)",

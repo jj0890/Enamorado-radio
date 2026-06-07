@@ -45,6 +45,7 @@ import CommunityDetailPage from "./pages/CommunityDetailPage";
 import ContributorProfile from "./pages/ContributorProfile";
 import LatestPage from "./pages/LatestPage";
 import Editorial from "./pages/Editorial";
+import EditorialEntry from "./pages/EditorialEntry";
 import IssuePage from "./pages/IssuePage";
 import SubmissionPage from "./pages/SubmissionPage";
 import AdminEditorial from "./pages/AdminEditorial";
@@ -101,6 +102,7 @@ function Router() {
 
       {/* Editorial / Magazine routes */}
       <Route path="/editorial" component={Editorial} />
+      <Route path="/editorial/:slug" component={EditorialEntry} />
       <Route path="/issue/:slug" component={IssuePage} />
       <Route path="/content/:slug" component={SubmissionPage} />
       <Route path="/admin/editorial" component={AdminEditorial} />
