@@ -5426,6 +5426,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
   // ─────────────────────────────────────────────────────────────────────────
 
+  // ── Playlist validation ───────────────────────────────────────────────────
+  // POST /api/playlists/validate { url: string }
+  // Returns { isValid, platform, externalId, metadata } for Spotify, YouTube,
+  // and SoundCloud playlists/sets. Open to editors and admins.
+  app.post('/api/playlists/validate', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const { validatePlaylist } = await import('./services/playlistValidator');
+      const { url } = req.body;
+      if (!url || typeof url !== 'string') {
+        return res.status(400).json({ error: 'url is required' });
+      }
+      const result = await validatePlaylist(url.trim());
+      if (!result.isValid) {
+        return res.status(400).json({ error: result.error, platform: result.platform });
+      }
+      res.json(result);
+    } catch (error: any) {
+      console.error('Playlist validation error:', error);
+      res.status(500).json({ error: error.message || 'Validation failed' });
+    }
+  });
+  // ─────────────────────────────────────────────────────────────────────────
+
   // Magazine Issues
   app.get('/api/issues', async (req, res) => {
     try {
