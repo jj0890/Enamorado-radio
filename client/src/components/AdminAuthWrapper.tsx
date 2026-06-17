@@ -25,6 +25,9 @@ import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
 import ScheduleManagement from "@/pages/ScheduleManagement";
 import AdminSubmissions from "@/pages/AdminSubmissions";
+import AdminEditorial from "@/pages/AdminEditorial";
+import AdminEditorialEditor from "@/pages/AdminEditorialEditor";
+import AdminIssues from "@/pages/AdminIssues";
 import { useLocation, Link } from "wouter";
 import { ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -237,9 +240,17 @@ export default function AdminAuthWrapper() {
         return <AdminSettings onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/radio-ops':
         return <RadioOps />;
+      case '/admin/editorial':
+        return <AdminEditorial currentUser={authData.user || ""} userRole={authData.role === 'admin' ? 'admin' : 'editor'} onLogout={handleLogout} />;
+      case '/admin/issues':
+        return <AdminIssues />;
       case '/editor':
         return <EditorPortal />;
       default:
+        // Handle /admin/editorial/new and /admin/editorial/edit/:id subroutes
+        if (normalizedPath.startsWith('/admin/editorial/')) {
+          return <AdminEditorialEditor currentUser={authData.user || ""} userRole={authData.role === 'admin' ? 'admin' : 'editor'} onLogout={handleLogout} />;
+        }
         return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
     }
   };

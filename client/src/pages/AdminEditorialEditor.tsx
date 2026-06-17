@@ -1,8 +1,7 @@
-import { useState, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useLocation, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import AdminLayout from "@/components/admin-layout";
-import AdminLogin from "@/components/admin-login";
 import SplitContentEditor, { type ContentFormData } from "@/components/split-content-editor";
 import type { ContributorAssignment } from "@/components/contributor-picker";
 import type { RawIssueRow } from "@shared/schema";
@@ -53,8 +52,13 @@ type ContentPayload = Omit<ContentFormData, "galleryUrls"> & {
   }>;
 };
 
-export default function AdminEditorialEditor() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+interface AdminEditorialEditorProps {
+  currentUser?: string;
+  userRole?: 'admin' | 'editor';
+  onLogout?: () => void;
+}
+
+export default function AdminEditorialEditor({ currentUser, userRole, onLogout }: AdminEditorialEditorProps = {}) {
   const [isNewRoute] = useRoute("/admin/editorial/new");
   const [isEditRoute, editParams] = useRoute("/admin/editorial/edit/:id");
   const [, setLocation] = useLocation();
@@ -62,39 +66,25 @@ export default function AdminEditorialEditor() {
 
   const isEditMode = isEditRoute;
 
-  // Check authentication status
-  useEffect(() => {
-    fetch("/api/admin/whoami")
-      .then((r) => r.json())
-      .then((data) => {
-        setIsAuthenticated(data?.isAdmin || false);
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-      });
-  }, []);
-
   // Fetch issues for dropdown
   const { data: issues = [] } = useQuery<RawIssueRow[]>({
     queryKey: ["/api/issues"],
-    enabled: isAuthenticated === true,
   });
 
   // Fetch all content
   const { data: allContent = [], isLoading: isLoadingContent } = useQuery<Content[]>({
     queryKey: ["/api/content"],
-    enabled: isAuthenticated === true,
   });
 
-  // Find content being edited
+  // Find content being edited (coerce both to string — route params are always strings)
   const editingContent = isEditMode && editParams?.id
-    ? allContent.find((c) => c.id === editParams.id)
+    ? allContent.find((c) => String(c.id) === String(editParams.id))
     : null;
 
   // Fetch existing contributor assignments when editing
   const { data: existingContributors = [] } = useQuery<ContentContributorRow[]>({
     queryKey: [`/api/content/${editParams?.id}/contributors`],
-    enabled: isAuthenticated === true && isEditMode === true && !!editParams?.id,
+    enabled: isEditMode === true && !!editParams?.id,
   });
 
   // Map junction rows to the shape ContributorPicker uses.
@@ -162,24 +152,6 @@ export default function AdminEditorialEditor() {
       .replace(/\s+/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
-
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
-
-  // Loading state
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center">
-        <div className="text-neutral-600">Loading...</div>
-      </div>
-    );
-  }
-
-  // Auth gate
-  if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
-  }
 
   // Waiting for edit content to load
   if (isEditingButContentNotLoaded) {

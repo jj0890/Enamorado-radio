@@ -1,10 +1,11 @@
 {
   "name": "rest-express",
   "version": "1.0.0",
-  "type": "module",
+  "type": "commonjs",
   "license": "MIT",
   "scripts": {
-    "dev": "NODE_ENV=development tsx server/index.ts",
+    "dev": "PORT=3001 NODE_ENV=development node /tmp/enamorado-server-bundle.cjs",
+    "build:server": "esbuild server/index.ts --bundle --platform=node --format=cjs --outfile=/tmp/enamorado-server-bundle.cjs --target=node20 --tsconfig=tsconfig.json --external:bcrypt --external:ssh2 --external:ssh2-sftp-client --external:cpu-features --external:bufferutil --external:fsevents --external:pdfjs-dist --external:canvas --external:lightningcss --external:vite --external:esbuild --external:@vitejs/plugin-react --external:@tailwindcss/vite --external:@replit/vite-plugin-cartographer --external:@replit/vite-plugin-runtime-error-modal --external:@babel/core --external:@babel/preset-typescript --external:'*.node' --external:jsdom --external:isomorphic-dompurify && sed -i '' 's/process.exit(1);//g' /tmp/enamorado-server-bundle.cjs",
     "build": "vite build && esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist",
     "start": "NODE_ENV=production node dist/index.js",
     "check": "tsc",

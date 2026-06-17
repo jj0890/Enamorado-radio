@@ -20,11 +20,12 @@ import {
 
 export interface ActivityItem {
   id: number;
-  type: 'mix_approved' | 'mix_rejected' | 'mix_featured' | 'mix_deleted' | 
+  type: 'mix_approved' | 'mix_rejected' | 'mix_featured' | 'mix_deleted' |
         'episode_approved' | 'episode_rejected' | 'episode_uploaded' |
         'resident_created' | 'resident_updated' | 'resident_deleted' |
         'application_approved' | 'application_rejected' |
-        'schedule_updated' | 'settings_changed' | 'login' | 'logout';
+        'schedule_updated' | 'settings_changed' | 'login' | 'logout' |
+        'content_published' | 'content_draft' | 'mix_submitted';
   description: string;
   actor: string;
   targetId?: string | number;
@@ -50,6 +51,9 @@ const activityConfig: Record<string, { icon: React.ComponentType<{ className?: s
   settings_changed: { icon: Settings, color: "text-gray-600", bgColor: "bg-gray-100" },
   login: { icon: Shield, color: "text-green-600", bgColor: "bg-green-100" },
   logout: { icon: Shield, color: "text-gray-600", bgColor: "bg-gray-100" },
+  content_published: { icon: FileText, color: "text-green-600", bgColor: "bg-green-100" },
+  content_draft: { icon: FileText, color: "text-gray-500", bgColor: "bg-gray-100" },
+  mix_submitted: { icon: Music, color: "text-blue-600", bgColor: "bg-blue-100" },
 };
 
 interface ActivityFeedProps {

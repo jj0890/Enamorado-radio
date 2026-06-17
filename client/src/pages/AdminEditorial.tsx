@@ -5,8 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import AdminLayout, { SectionHeader } from "@/components/admin-layout";
-import AdminLogin from "@/components/admin-login";
+import AdminShell from "@/components/admin/AdminShell";
 import YouTubeEmbed from "@/components/youtube-embed";
 import ContentReviewDrawer from "@/components/content-review-drawer";
 import { QuickFeatureDialog } from "@/components/quick-feature-dialog";
@@ -162,8 +161,13 @@ const filterOptions = [
   { id: "video" as const, label: "Video", icon: Video },
 ];
 
-export default function AdminEditorial() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+interface AdminEditorialProps {
+  currentUser?: string;
+  userRole?: 'admin' | 'editor';
+  onLogout?: () => void;
+}
+
+export default function AdminEditorial({ currentUser = "admin", userRole = "admin", onLogout }: AdminEditorialProps) {
   const [editingContent, setEditingContent] = useState<Content | null>(null);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<FilterType>("all");
@@ -174,30 +178,14 @@ export default function AdminEditorial() {
   const [quickFeatureContent, setQuickFeatureContent] = useState<Content | null>(null);
   const { toast } = useToast();
 
-  // Check authentication status
-  useEffect(() => {
-    fetch("/api/admin/whoami")
-      .then(r => r.json())
-      .then(data => {
-        // User is authenticated if they have a role and it's not "viewer"
-        const isAuth = data?.username && data?.role && data.role !== "viewer";
-        setIsAuthenticated(!!isAuth);
-      })
-      .catch(() => {
-        setIsAuthenticated(false);
-      });
-  }, []);
-
   // Fetch content data
   const { data: content = [], isLoading } = useQuery<Content[]>({
     queryKey: ["/api/content"],
-    enabled: isAuthenticated === true,
   });
 
   // Fetch issues for dropdown
   const { data: issues = [] } = useQuery<RawIssueRow[]>({
     queryKey: ["/api/issues"],
-    enabled: isAuthenticated === true,
   });
 
   // Create content mutation
@@ -292,10 +280,6 @@ export default function AdminEditorial() {
       .replace(/^-|-$/g, '');
   };
 
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
-  };
-  
   // Map contentType to filter category
   const mapContentTypeToFilter = (contentType: string): FilterType => {
     switch (contentType) {
@@ -324,31 +308,21 @@ export default function AdminEditorial() {
     return matchesFilter && matchesSearch;
   });
 
-  // Show login if not authenticated
-  if (isAuthenticated === null) {
-    return (
-      <div className="min-h-screen bg-[#F8F6F3] flex items-center justify-center">
-        <div className="text-neutral-600">Loading...</div>
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) {
-    return <AdminLogin onLoginSuccess={handleLoginSuccess} />;
-  }
-
   return (
-    <AdminLayout>
+    <AdminShell
+      title="Editorial"
+      subtitle="Manage published pieces, drafts, and scheduled content"
+      currentUser={currentUser}
+      userRole={userRole}
+      onLogout={onLogout}
+    >
       <ContentReviewDrawer
         content={reviewDrawerContent}
         open={reviewDrawerOpen}
         onOpenChange={setReviewDrawerOpen}
       />
-      
-      <div className="pt-20 pb-16">
-        <div className="max-w-6xl mx-auto p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-3xl font-bold">Editorial Content Management</h1>
+
+      <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Link href="/admin/editorial/new">
                 <Button data-testid="button-create-content-split">
@@ -380,9 +354,9 @@ export default function AdminEditorial() {
               </Dialog>
             </div>
           </div>
-          
-          {/* Search and Filter Controls */}
-          <div className="mb-6 space-y-4">
+
+      {/* Search and Filter Controls */}
+      <div className="mb-6 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-neutral-400 w-4 h-4" />
               <Input
@@ -393,7 +367,7 @@ export default function AdminEditorial() {
                 data-testid="input-search"
               />
             </div>
-            
+
             <div className="flex flex-wrap gap-2">
               {filterOptions.map((filter) => {
                 const Icon = filter.icon;
@@ -414,7 +388,7 @@ export default function AdminEditorial() {
             </div>
           </div>
 
-          {isLoading ? (
+      {isLoading ? (
             <div className="text-neutral-600">Loading content...</div>
           ) : filteredContent.length === 0 ? (
             <div className="text-neutral-500">
@@ -467,6 +441,19 @@ export default function AdminEditorial() {
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
+                        {/* Live on site link */}
+                        {item.status === "published" && (
+                          <a
+                            href={`/content/${item.slug}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 rounded px-2 py-1 hover:bg-green-100 transition-colors"
+                            data-testid={`button-live-${item.id}`}
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+                            Live ↗
+                          </a>
+                        )}
                         {/* Quick feature button */}
                         <Button
                           variant="default"
@@ -580,8 +567,6 @@ export default function AdminEditorial() {
               ))}
             </div>
           )}
-        </div>
-      </div>
 
       <QuickFeatureDialog
         open={quickFeatureOpen}
@@ -590,7 +575,7 @@ export default function AdminEditorial() {
         contentTitle={quickFeatureContent?.title || ""}
         entityType="content"
       />
-    </AdminLayout>
+    </AdminShell>
   );
 }
 

@@ -35,6 +35,27 @@ interface AdminStats {
   totalEpisodes: number;
   publishedEpisodes: number;
   recentSubmissions: number;
+  publishedContent?: number;
+  draftContent?: number;
+  scheduledContent?: number;
+}
+
+function StreamStatusIndicator() {
+  const { data, isLoading } = useQuery<{ isLive?: boolean; listenerCount?: number }>({
+    queryKey: ['/api/stream-status'],
+    refetchInterval: 30000,
+    retry: false,
+  });
+  const online = data?.isLive;
+  return (
+    <div className={`text-center p-4 rounded-lg ${isLoading ? 'bg-gray-50' : online ? 'bg-green-50' : 'bg-red-50'}`}>
+      <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${isLoading ? 'bg-gray-300 animate-pulse' : online ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`}></div>
+      <p className={`text-sm font-medium ${isLoading ? 'text-gray-500' : online ? 'text-green-800' : 'text-red-800'}`}>Stream</p>
+      <p className={`text-xs ${isLoading ? 'text-gray-400' : online ? 'text-green-600' : 'text-red-600'}`}>
+        {isLoading ? 'Checking…' : online ? `Online${data?.listenerCount != null ? ` · ${data.listenerCount}` : ''}` : 'Offline'}
+      </p>
+    </div>
+  );
 }
 
 interface AdminDashboardProps {
@@ -204,7 +225,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
           </Card>
 
           {/* Overview Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg flex items-center gap-2">
@@ -226,6 +247,40 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
                     <Link href="/admin/episode-queue">
                       <Button variant="outline" size="sm" className="w-full">
                         Manage Episodes
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-charcoal-500" />
+                  Editorial
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Live on site</span>
+                    <span className="font-semibold text-green-600">{stats?.publishedContent ?? 0}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-500">Drafts</span>
+                    <span className="font-semibold text-gray-500">{stats?.draftContent ?? 0}</span>
+                  </div>
+                  {(stats?.scheduledContent ?? 0) > 0 && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Scheduled</span>
+                      <span className="font-semibold text-amber-600">{stats?.scheduledContent}</span>
+                    </div>
+                  )}
+                  <div className="pt-2 border-t">
+                    <Link href="/admin/editorial">
+                      <Button variant="outline" size="sm" className="w-full">
+                        Manage Editorial
                       </Button>
                     </Link>
                   </div>
@@ -262,7 +317,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
             </Card>
           </div>
 
-          {/* System Status */}
+          {/* System Status — derived from real stats fetch */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
@@ -272,20 +327,20 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-3 gap-4">
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2 animate-pulse"></div>
-                  <p className="text-sm font-medium text-green-800">Stream</p>
-                  <p className="text-xs text-green-600">Online</p>
+                {/* DB: if stats loaded without error, DB is reachable */}
+                <div className={`text-center p-4 rounded-lg ${stats ? 'bg-green-50' : isLoading ? 'bg-gray-50' : 'bg-red-50'}`}>
+                  <div className={`w-3 h-3 rounded-full mx-auto mb-2 ${stats ? 'bg-green-500' : isLoading ? 'bg-gray-300 animate-pulse' : 'bg-red-500'}`}></div>
+                  <p className={`text-sm font-medium ${stats ? 'text-green-800' : isLoading ? 'text-gray-500' : 'text-red-800'}`}>Database</p>
+                  <p className={`text-xs ${stats ? 'text-green-600' : isLoading ? 'text-gray-400' : 'text-red-600'}`}>
+                    {stats ? 'Connected' : isLoading ? 'Checking…' : 'Error'}
+                  </p>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2"></div>
-                  <p className="text-sm font-medium text-green-800">Database</p>
-                  <p className="text-xs text-green-600">Connected</p>
-                </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <div className="w-3 h-3 bg-green-500 rounded-full mx-auto mb-2"></div>
-                  <p className="text-sm font-medium text-green-800">AzuraCast</p>
-                  <p className="text-xs text-green-600">Connected</p>
+                {/* Stream: link to /api/stream/status if available, otherwise unknown */}
+                <StreamStatusIndicator />
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <div className="w-3 h-3 bg-gray-300 rounded-full mx-auto mb-2"></div>
+                  <p className="text-sm font-medium text-gray-600">AzuraCast</p>
+                  <p className="text-xs text-gray-400">See Radio Ops</p>
                 </div>
               </div>
             </CardContent>

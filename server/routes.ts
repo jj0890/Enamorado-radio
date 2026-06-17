@@ -7,7 +7,7 @@ import { azuracastService } from "./azuracastService";
 import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
-import { requireAdmin, loginAdmin, logoutAdmin, checkAuth } from "./adminAuth";
+import { requireAdmin, loginAdmin, logoutAdmin, checkAuth, whoamiAdmin } from "./adminAuth";
 import { requireResident, loginResident, logoutResident, checkResidentAuth } from "./residentAuth";
 import { requireRole } from "./roleAuth";
 import { musicbrainzService } from "./musicbrainzService";
@@ -102,6 +102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/login', loginAdmin);
   app.post('/api/admin/logout', logoutAdmin);
   app.get('/api/admin/auth', checkAuth);
+  app.get('/api/admin/whoami', whoamiAdmin);
   
   // =================
   // RESIDENT AUTHENTICATION ROUTES
@@ -300,8 +301,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // RADIO OPS PANEL - Broadcast Controls
   // =================
   
-  // Import AzuraCast Ops controller
-  const azuracastOps = await import('./azuracastOps');
+  // AzuraCast Ops controller
+  const azuracastOps = require('./azuracastOps');
   
   // Get live broadcast status
   app.get('/api/admin/radio/status', requireAdmin, async (req, res) => {
@@ -362,9 +363,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin stats dashboard
   app.get('/api/admin/stats', requireAdmin, async (req, res) => {
     try {
-      const allMixes = await storage.getMixSubmissions({ limit: 1000 });
-      const allEpisodes = await storage.getEpisodes({ limit: 1000 });
-      const allApplications = await storage.getResidentApplications({ limit: 1000 });
+      const [allMixes, allEpisodes, allApplications, allEditorial] = await Promise.all([
+        storage.getMixSubmissions({ limit: 1000 }),
+        storage.getEpisodes({ limit: 1000 }),
+        storage.getResidentApplications({ limit: 1000 }),
+        storage.getAllContent({ limit: 1000 }),
+      ]);
       
       // Get recent submissions from mix data (sorted by date)
       const recentSubmissionsArray = allMixes
@@ -401,6 +405,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         liveShows: 0,
         totalEpisodes: allEpisodes.length,
         publishedEpisodes: allEpisodes.filter(e => e.status === 'published' || e.status === 'live').length,
+        // Editorial content
+        publishedContent: allEditorial.filter(c => c.status === 'published').length,
+        draftContent: allEditorial.filter(c => c.status === 'draft').length,
+        scheduledContent: allEditorial.filter(c => c.status === 'scheduled').length,
       };
       
       res.json(stats);
@@ -413,10 +421,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Real activity feed for admin dashboard
   app.get('/api/admin/activity', requireAdmin, async (req, res) => {
     try {
-      const [allMixes, allEpisodes, allAlbums] = await Promise.all([
+      const [allMixes, allEpisodes, allAlbums, allEditorialContent] = await Promise.all([
         storage.getMixSubmissions({ limit: 100 }),
         storage.getEpisodes({ limit: 100 }),
         storage.getAlbumSubmissions ? storage.getAlbumSubmissions({ limit: 100 }) : Promise.resolve([]),
+        storage.getAllContent({ limit: 100 }),
       ]);
 
       const activities: Array<{
@@ -466,6 +475,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
             actor: a.status === 'approved' ? 'admin' : (a.submitterName || a.artist || 'Community'),
             targetName: `${a.artist || ''} — ${a.title || 'Untitled Album'}`.trim().replace(/^— /, ''),
             createdAt: a.submittedAt || a.createdAt || new Date().toISOString(),
+          });
+        });
+
+      // Editorial content publishes
+      (allEditorialContent as any[])
+        .filter((c: any) => c.publishedAt || c.createdAt)
+        .forEach((c: any) => {
+          activities.push({
+            id: c.id + 20000,
+            type: c.status === 'published' ? 'content_published' : 'content_draft',
+            description: c.status === 'published' ? 'published editorial' : 'saved draft',
+            actor: (c.authors && c.authors[0]) || 'admin',
+            targetName: c.title || 'Untitled',
+            createdAt: c.publishedAt || c.createdAt || new Date().toISOString(),
           });
         });
 
@@ -1809,7 +1832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const validatedData = insertMixSubmissionSchema.parse(req.body);
       
       // Import platform detection service
-      const { enrichMixSubmissionWithPlatform, setPlatformRoutingDefaults, logPlatformDetection } = await import('./platformDetectionService');
+      const { enrichMixSubmissionWithPlatform, setPlatformRoutingDefaults, logPlatformDetection } = require('./platformDetectionService');
 
       // Check URL field for direct MP3 links
       const allUrls = [
@@ -2345,9 +2368,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve downloaded audio files from temp directory
   app.get("/api/azuracast/downloaded-files", async (req, res) => {
     try {
-      const fs = await import('fs/promises');
-      const path = await import('path');
-      
+      const fs = require('fs/promises');
+
       const tempDir = '/home/runner/workspace/temp_audio';
       
       try {
@@ -2387,9 +2409,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve individual downloaded audio files
   app.get("/api/azuracast/download-file/:filename", async (req, res) => {
     try {
-      const path = await import('path');
-      const fs = await import('fs');
-      
       const filename = decodeURIComponent(req.params.filename);
       const filePath = path.join('/home/runner/workspace/temp_audio', filename);
       
@@ -2837,10 +2856,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const isMp3Url = !!(mix.url && /\.mp3(\?|$)/i.test(mix.url));
       if (newApprovalStatus && isMp3Url && !(mix as any).filePath) {
         try {
-          // Import fs and path dynamically
-          const fs = await import('fs');
-          const path = await import('path');
-
           // Ensure uploads directory exists
           const uploadsDir = path.resolve('./uploads');
           if (!fs.existsSync(uploadsDir)) {
@@ -2922,7 +2937,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If approving for the first time, try to populate art_url via oEmbed (for non-MP3 URLs)
       if (newApprovalStatus && !(mix as any).artUrl && mix.url && !isMp3Url) {
         try {
-          const { getOEmbedThumbSafe } = await import('./lib/oembed');
           const { artUrl } = await getOEmbedThumbSafe(mix.url);
           if (artUrl) {
             updates.artUrl = artUrl;
@@ -2969,7 +2983,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Optional: Auto-push to AzuraCast when featuring with MP3
       if (newFeaturedStatus && (mix as any).filePath) {
         try {
-          const { pushToAzuraCast } = await import('./lib/azuracast');
+          const { pushToAzuraCast } = require('./lib/azuracast');
           const fileName = (mix as any).fileName || `mix-${id}.mp3`;
           const result = await pushToAzuraCast(
             (mix as any).filePath, 
@@ -3002,7 +3016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'No MP3 file attached to this mix' });
       }
 
-      const { pushToAzuraCast } = await import('./lib/azuracast');
+      const { pushToAzuraCast } = require('./lib/azuracast');
       const fileName = (mix as any).fileName || `mix-${id}.mp3`;
       const result = await pushToAzuraCast((mix as any).filePath, fileName);
 
@@ -3025,8 +3039,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/route-mix/:id', requireAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const { mixRouter } = await import('./mixRouter');
-      
       console.log(`🎯 API: Routing mix ${id} with full download pipeline`);
       const result = await mixRouter.routeMix(id);
       
@@ -3725,8 +3737,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const data = validated.data;
 
-      // Import oEmbed resolver for metadata fetching
-      const { resolveOEmbed, detectPlatform } = await import('./lib/oembed-resolver');
+      const { resolveOEmbed, detectPlatform } = require('./lib/oembed-resolver');
       
       // Detect platform from URL
       const detectedPlatform = detectPlatform(data.playlistUrl);
@@ -4028,7 +4039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sync resident applications from Google Sheets (admin only)
   app.post('/api/resident-applications/sync', requireAdmin, async (req, res) => {
     try {
-      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      const { residentApplicationsSync } = require('./residentApplicationsSync');
       const { spreadsheetId, range = 'A:Z' } = req.body;
       
       if (!spreadsheetId) {
@@ -4057,7 +4068,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Start automatic sync (admin only)
   app.post('/api/resident-applications/sync/start', requireAdmin, async (req, res) => {
     try {
-      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      const { residentApplicationsSync } = require('./residentApplicationsSync');
       const { spreadsheetId, range = 'A:Z', interval = 15 } = req.body;
       
       if (!spreadsheetId) {
@@ -4084,7 +4095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Stop automatic sync (admin only)
   app.post('/api/resident-applications/sync/stop', requireAdmin, async (req, res) => {
     try {
-      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      const { residentApplicationsSync } = require('./residentApplicationsSync');
       
       residentApplicationsSync.stopAutoSync();
 
@@ -4101,7 +4112,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get sync status (admin only)
   app.get('/api/resident-applications/sync/status', requireAdmin, async (req, res) => {
     try {
-      const { residentApplicationsSync } = await import('./residentApplicationsSync');
+      const { residentApplicationsSync } = require('./residentApplicationsSync');
       
       const status = residentApplicationsSync.getSyncStatus();
 
@@ -5304,7 +5315,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // Sanitize TipTap HTML body to strip XSS vectors while preserving markup
       if (contentData.body && typeof contentData.body === 'string') {
-        const DOMPurify = (await import('isomorphic-dompurify')).default;
+        const DOMPurify = require('isomorphic-dompurify').default;
         contentData.body = DOMPurify.sanitize(contentData.body, {
           ALLOWED_TAGS: ['p','br','strong','em','u','s','h1','h2','h3','h4','h5','h6',
             'ul','ol','li','blockquote','a','img','figure','figcaption','pre','code',
@@ -5365,7 +5376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       // Sanitize TipTap HTML body
       if (contentData.body && typeof contentData.body === 'string') {
-        const DOMPurify = (await import('isomorphic-dompurify')).default;
+        const DOMPurify = require('isomorphic-dompurify').default;
         contentData.body = DOMPurify.sanitize(contentData.body, {
           ALLOWED_TAGS: ['p','br','strong','em','u','s','h1','h2','h3','h4','h5','h6',
             'ul','ol','li','blockquote','a','img','figure','figcaption','pre','code',
@@ -5549,7 +5560,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // and SoundCloud playlists/sets. Open to editors and admins.
   app.post('/api/playlists/validate', requireRole(['admin', 'editor']), async (req, res) => {
     try {
-      const { validatePlaylist } = await import('./services/playlistValidator');
+      const { validatePlaylist } = require('./services/playlistValidator');
       const { url } = req.body;
       if (!url || typeof url !== 'string') {
         return res.status(400).json({ error: 'url is required' });
