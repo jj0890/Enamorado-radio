@@ -608,7 +608,6 @@ export default function SubmitMix() {
                 Share a public playlist — it'll show up on your contributor profile as "Recommended Listening."
               </div>
             </div>
-          </div>
 
           {/* Submission Guidelines */}
           <div className="bg-blue-50 dark:bg-blue-950 border-2 border-blue-200 dark:border-blue-800 rounded-lg p-6">

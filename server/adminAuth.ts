@@ -143,6 +143,18 @@ export function logoutAdmin(_req: Request, res: Response) {
   res.json({ ok: true });
 }
 
+// Whoami — returns { username, role } shape expected by AdminEditorial
+export function whoamiAdmin(req: Request, res: Response) {
+  const token = req.cookies?.[ADMIN_COOKIE];
+  if (!token) return res.json({ username: null, role: null });
+  const session = verifySessionToken(token);
+  if (!session) {
+    res.clearCookie(ADMIN_COOKIE);
+    return res.json({ username: null, role: null });
+  }
+  res.json({ username: session.user, role: session.role });
+}
+
 // Check if user is already authenticated
 export function checkAuth(req: Request, res: Response) {
   const token = req.cookies?.[ADMIN_COOKIE];

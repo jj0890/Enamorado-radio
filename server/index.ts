@@ -316,11 +316,16 @@ validateAdminCredentials();
     throw err;
   });
 
-  // importantly only setup vite in development and after
-  // setting up all the other routes so the catch-all route
-  // doesn't interfere with the other routes
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
+  server.listen(port, "0.0.0.0", () => {
+    log(`🚀 Server running at http://localhost:${port}`);
+    log(`📻 Radio features ready`);
+    log(`📝 Magazine features ready`);
+  });
+
+  // Set up Vite without blocking — lets the event loop stay free for API requests
   if (app.get("env") === "development") {
-    await setupVite(app, server);
+    setupVite(app, server).catch(err => console.error("Vite setup error:", err));
   } else {
     serveStatic(app);
   }
@@ -351,13 +356,4 @@ validateAdminCredentials();
   publishScheduledContent();
   setInterval(publishScheduledContent, 60_000);
   // ─────────────────────────────────────────────────────────────────────────
-
-  // Serve the app on configured port (default 5000)
-  // this serves both the API and the client.
-  const port = process.env.PORT ? parseInt(process.env.PORT) : 5000;
-  server.listen(port, "0.0.0.0", () => {
-    log(`🚀 Server running at http://localhost:${port}`);
-    log(`📻 Radio features ready`);
-    log(`📝 Magazine features ready`);
-  });
 })();
