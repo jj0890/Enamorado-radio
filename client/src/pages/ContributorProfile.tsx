@@ -42,6 +42,15 @@ interface PhotoshootGalleryItem {
   credit?: string;
 }
 
+interface ProfileAlbum {
+  rank: number;
+  mbId: string;
+  title: string;
+  artist: string;
+  year?: string;
+  coverUrl: string | null;
+}
+
 // Enhanced contributor interface with all new schema fields
 interface ContributorWithSubmissions {
   id: number;
@@ -54,8 +63,13 @@ interface ContributorWithSubmissions {
   tagline?: string;
   location?: string;
   role?: string;
+  roleLabels?: string[];
+  links?: Array<{ label: string; url: string }>;
   avatarUrl?: string;
   websiteUrl?: string;
+
+  // Album taste
+  albums?: ProfileAlbum[];
 
   // Social (old + new)
   socialHandle?: string; // deprecated
@@ -481,6 +495,11 @@ export default function ContributorProfile() {
   const hasPhotoshoot = contributor.photoshootGallery && contributor.photoshootGallery.length > 0;
   const hasPlaylist = !!contributor.recommendedPlaylistUrl;
   const hasEditorial = contributor.submissions.editorial && contributor.submissions.editorial.length > 0;
+  const hasAlbums = (contributor.albums ?? []).length > 0;
+
+  const displayRoles: string[] = contributor.roleLabels && contributor.roleLabels.length > 0
+    ? contributor.roleLabels
+    : contributor.role ? [roleLabels[contributor.role] || contributor.role] : [];
 
   return (
     <div className="min-h-screen bg-cream-100 dark:bg-gray-950">
@@ -516,14 +535,19 @@ export default function ContributorProfile() {
 
           {/* Right: Profile info */}
           <div className="lg:w-3/5 flex flex-col justify-center">
-            {/* Role badge */}
-            {contributor.role && (
-              <Badge
-                variant="outline"
-                className="w-fit mb-3 font-accent text-xs uppercase tracking-wider border-burnt-orange-500 text-burnt-orange-600 dark:text-burnt-orange-400"
-              >
-                {roleLabels[contributor.role] || contributor.role}
-              </Badge>
+            {/* Role badges */}
+            {displayRoles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-3">
+                {displayRoles.map((r) => (
+                  <Badge
+                    key={r}
+                    variant="outline"
+                    className="font-accent text-xs uppercase tracking-wider border-burnt-orange-500 text-burnt-orange-600 dark:text-burnt-orange-400"
+                  >
+                    {r}
+                  </Badge>
+                ))}
+              </div>
             )}
 
             {/* Name */}
@@ -582,8 +606,61 @@ export default function ContributorProfile() {
                 {contributor.submissions.total} contribution{contributor.submissions.total !== 1 ? 's' : ''}
               </span>
             </div>
+
+            {/* Generic links (from profile setup) */}
+            {contributor.links && contributor.links.length > 0 && (
+              <div className="flex flex-wrap gap-3 mt-4">
+                {contributor.links.map((link, i) => (
+                  <a
+                    key={i}
+                    href={link.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-xs text-charcoal-600 dark:text-cream-400 hover:text-burnt-orange-500 dark:hover:text-burnt-orange-400 transition-colors underline underline-offset-2"
+                  >
+                    {link.label}
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                ))}
+              </div>
+            )}
           </div>
         </header>
+
+        {/* Top Albums Section */}
+        {hasAlbums && (
+          <section className="mb-16">
+            <h2 className="text-2xl font-display font-semibold text-charcoal-900 dark:text-cream-100 mb-6">
+              Top Albums
+            </h2>
+            <div className="grid grid-cols-5 gap-3">
+              {(contributor.albums ?? []).map((album) => (
+                <div key={album.rank} className="group">
+                  <div className="aspect-square bg-cream-200 dark:bg-gray-800 overflow-hidden mb-2">
+                    {album.coverUrl ? (
+                      <img
+                        src={album.coverUrl}
+                        alt={album.title}
+                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center p-2">
+                        <Music className="w-6 h-6 text-charcoal-400 dark:text-cream-500" />
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs font-medium leading-tight truncate text-charcoal-900 dark:text-cream-100">
+                    {album.title}
+                  </p>
+                  <p className="text-xs text-charcoal-500 dark:text-cream-400 truncate">
+                    {album.artist}
+                    {album.year ? ` · ${album.year}` : ""}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Recommended Playlist Section */}
         {hasPlaylist && (

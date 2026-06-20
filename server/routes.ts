@@ -43,8 +43,8 @@ import {
 import { ensureContributor, backfillContributorsFromFileStorage } from "./auto-provision-contributors";
 import { getOEmbedThumbSafe } from './lib/oembed';
 import { db } from "./db";
-import { contentContributors, content } from "@shared/schema";
-import { eq, and } from "drizzle-orm";
+import { contentContributors, content, contributors as contributorsTable, profileAlbums as profileAlbumsTable } from "@shared/schema";
+import { eq, and, lte, inArray } from "drizzle-orm";
 
 // ── Nina Protocol three-tier layer + Listener Likes ─────────────────────────
 // Aliased to avoid shadowing local variable names used in existing routes
@@ -4887,18 +4887,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // CONTRIBUTOR ROUTES
   // =================
 
-  // Get all contributors (public)
+  // Get all contributors (public) — returns roleLabels + albums for grid view
   app.get('/api/contributors', async (req, res) => {
     try {
-      const allContributors = await storage.getContributors();
-      res.json(allContributors);
+      const rows = await db
+        .select()
+        .from(contributorsTable)
+        .where(eq(contributorsTable.isPublic, true))
+        .orderBy(desc(contributorsTable.createdAt));
+      const ids = rows.map((r) => r.id);
+      const albums = ids.length
+        ? await db.select().from(profileAlbumsTable).where(inArray(profileAlbumsTable.contributorId, ids)).orderBy(profileAlbumsTable.rank)
+        : [];
+      const albumsByContributor = albums.reduce<Record<number, typeof albums>>((acc, a) => {
+        (acc[a.contributorId] ??= []).push(a);
+        return acc;
+      }, {});
+      res.json(rows.map((r) => ({ ...r, albums: albumsByContributor[r.id] ?? [] })));
     } catch (error) {
       console.error('Error fetching contributors:', error);
       res.status(500).json({ error: 'Failed to fetch contributors' });
     }
   });
 
-  // Get contributor by handle with their approved submissions (public)
+  // Check handle availability (public) — must be before /:handle wildcard
+  app.get('/api/contributors/check-handle', async (req, res) => {
+    const handle = String(req.query.handle ?? '').toLowerCase().trim();
+    if (!handle || !/^[a-z0-9-]{2,30}$/.test(handle)) {
+      return res.json({ available: false });
+    }
+    const [existing] = await db
+      .select({ id: contributorsTable.id })
+      .from(contributorsTable)
+      .where(eq(contributorsTable.handle, handle))
+      .limit(1);
+    res.json({ available: !existing });
+  });
+
+  // Get contributor by handle with their approved submissions + albums (public)
   app.get('/api/contributors/:handle', async (req, res) => {
     try {
       const contributor = await storage.getContributorByHandle(req.params.handle);
@@ -4968,8 +4994,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log('Note: contentContributors query skipped (table may not exist yet)');
       }
 
+      // Attach profile albums
+      const albums = await db
+        .select()
+        .from(profileAlbumsTable)
+        .where(eq(profileAlbumsTable.contributorId, contributor.id))
+        .orderBy(profileAlbumsTable.rank);
+
       res.json({
         ...contributor,
+        albums,
         submissions: {
           mixes,
           playlists,
@@ -5820,6 +5854,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: 'Failed to delete pitch' });
     }
   });
+
+  // ─── Profile System (mirrors Auth System design) ──────────────────────────
+
+  // Public contributor directory — all public profiles with top-3 album strip
+  // MusicBrainz album search proxy (public, rate-limited via MB's own limits)
+  app.get('/api/music/search', async (req, res) => {
+    const q = String(req.query.q ?? '').trim();
+    if (!q) return res.json([]);
+    try {
+      const mbRes = await fetch(
+        `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&fmt=json&limit=8`,
+        { headers: { 'User-Agent': 'EnamoradoRadio/1.0 (contact@enamoradoradio.com)', Accept: 'application/json' } }
+      );
+      if (!mbRes.ok) return res.json([]);
+      const data = await mbRes.json();
+      const releases = (data.releases ?? []).slice(0, 8).map((r: any) => ({
+        id: r.id,
+        title: r.title,
+        artist: r['artist-credit']?.[0]?.artist?.name ?? '',
+        year: r.date?.slice(0, 4) ?? null,
+        coverArtUrl: null as string | null,
+      }));
+
+      // Fetch cover art for the top result only to stay within rate limits
+      if (releases[0]) {
+        try {
+          const caRes = await fetch(
+            `https://coverartarchive.org/release/${releases[0].id}`,
+            { headers: { Accept: 'application/json' } }
+          );
+          if (caRes.ok) {
+            const ca = await caRes.json();
+            const front = ca.images?.find((i: any) => i.front);
+            if (front) releases[0].coverArtUrl = front.thumbnails?.['250'] ?? front.image;
+          }
+        } catch {}
+      }
+
+      res.json(releases);
+    } catch (err) {
+      console.error('Music search error:', err);
+      res.json([]);
+    }
+  });
+
+  // Get own contributor profile (resident-auth)
+  app.get('/api/profile', requireResident, async (req, res) => {
+    const session = (req as any).resident;
+    try {
+      const [contributor] = await db
+        .select()
+        .from(contributorsTable)
+        .where(eq(contributorsTable.residentId, session.residentId))
+        .limit(1);
+      if (!contributor) return res.status(404).json({ error: 'Profile not found' });
+      res.json(contributor);
+    } catch (err) {
+      console.error('GET /api/profile error:', err);
+      res.status(500).json({ error: 'Failed to fetch profile' });
+    }
+  });
+
+  // Update own contributor profile (resident-auth)
+  app.patch('/api/profile', requireResident, async (req, res) => {
+    const session = (req as any).resident;
+    const allowed = ['displayName', 'bio', 'tagline', 'location', 'roleLabels', 'links', 'avatarUrl', 'websiteUrl', 'socialLinks', 'isPublic'] as const;
+    const update: Record<string, unknown> = {};
+    for (const key of allowed) {
+      if (key in req.body) update[key] = req.body[key];
+    }
+
+    if (update.displayName !== undefined && typeof update.displayName !== 'string') {
+      return res.status(422).json({ error: 'displayName must be a string' });
+    }
+
+    try {
+      const [existing] = await db
+        .select({ id: contributorsTable.id, handle: contributorsTable.handle })
+        .from(contributorsTable)
+        .where(eq(contributorsTable.residentId, session.residentId))
+        .limit(1);
+
+      if (!existing) {
+        // Auto-create contributor profile for this resident
+        const resident = await storage.getResidentById(session.residentId);
+        if (!resident) return res.status(404).json({ error: 'Resident not found' });
+        const baseHandle = resident.username.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        const [created] = await db
+          .insert(contributorsTable)
+          .values({
+            handle: baseHandle,
+            displayName: resident.displayName,
+            email: resident.email ?? null,
+            isResident: true,
+            residentId: session.residentId,
+            ...update,
+          } as any)
+          .returning();
+        return res.json(created);
+      }
+
+      const [updated] = await db
+        .update(contributorsTable)
+        .set({ ...update, updatedAt: new Date() } as any)
+        .where(eq(contributorsTable.id, existing.id))
+        .returning();
+      res.json(updated);
+    } catch (err: any) {
+      if (err?.code === '23505') return res.status(409).json({ error: 'Handle already taken' });
+      console.error('PATCH /api/profile error:', err);
+      res.status(500).json({ error: 'Failed to update profile' });
+    }
+  });
+
+  // Get own top-5 albums (resident-auth)
+  app.get('/api/profile/albums', requireResident, async (req, res) => {
+    const session = (req as any).resident;
+    try {
+      const [contributor] = await db
+        .select({ id: contributorsTable.id })
+        .from(contributorsTable)
+        .where(eq(contributorsTable.residentId, session.residentId))
+        .limit(1);
+      if (!contributor) return res.json([]);
+      const albums = await db
+        .select()
+        .from(profileAlbumsTable)
+        .where(eq(profileAlbumsTable.contributorId, contributor.id))
+        .orderBy(profileAlbumsTable.rank);
+      res.json(albums);
+    } catch (err) {
+      console.error('GET /api/profile/albums error:', err);
+      res.status(500).json({ error: 'Failed to fetch albums' });
+    }
+  });
+
+  // Upsert one album slot (resident-auth)
+  app.put('/api/profile/albums', requireResident, async (req, res) => {
+    const session = (req as any).resident;
+    const { rank, mbId, title, artist, year, coverUrl } = req.body;
+    if (!rank || rank < 1 || rank > 5 || !mbId || !title || !artist) {
+      return res.status(422).json({ error: 'rank (1-5), mbId, title, artist are required' });
+    }
+    try {
+      const [contributor] = await db
+        .select({ id: contributorsTable.id })
+        .from(contributorsTable)
+        .where(eq(contributorsTable.residentId, session.residentId))
+        .limit(1);
+      if (!contributor) return res.status(404).json({ error: 'Profile not found — save your profile first' });
+
+      const [upserted] = await db
+        .insert(profileAlbumsTable)
+        .values({ contributorId: contributor.id, rank, mbId, title, artist, year: year ?? null, coverUrl: coverUrl ?? null })
+        .onConflictDoUpdate({
+          target: [profileAlbumsTable.contributorId, profileAlbumsTable.rank],
+          set: { mbId, title, artist, year: year ?? null, coverUrl: coverUrl ?? null, updatedAt: new Date() },
+        })
+        .returning();
+      res.json(upserted);
+    } catch (err) {
+      console.error('PUT /api/profile/albums error:', err);
+      res.status(500).json({ error: 'Failed to save album' });
+    }
+  });
+
+  // Clear one album slot (resident-auth)
+  app.delete('/api/profile/albums/:rank', requireResident, async (req, res) => {
+    const session = (req as any).resident;
+    const rank = parseInt(req.params.rank);
+    if (!rank || rank < 1 || rank > 5) return res.status(422).json({ error: 'rank must be 1-5' });
+    try {
+      const [contributor] = await db
+        .select({ id: contributorsTable.id })
+        .from(contributorsTable)
+        .where(eq(contributorsTable.residentId, session.residentId))
+        .limit(1);
+      if (!contributor) return res.json({ success: true });
+      await db
+        .delete(profileAlbumsTable)
+        .where(and(eq(profileAlbumsTable.contributorId, contributor.id), eq(profileAlbumsTable.rank, rank)));
+      res.json({ success: true });
+    } catch (err) {
+      console.error('DELETE /api/profile/albums error:', err);
+      res.status(500).json({ error: 'Failed to clear album' });
+    }
+  });
+
+  // ─────────────────────────────────────────────────────────────────────────────
 
   // Open Calls (themed submission drives)
   app.get('/api/open-calls', async (req, res) => {

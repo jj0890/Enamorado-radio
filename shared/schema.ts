@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, uniqueIndex, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, uniqueIndex, index, smallint, unique } from "drizzle-orm/pg-core";
 import { sql, relations } from 'drizzle-orm';
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -230,6 +230,12 @@ export const contributors = pgTable("contributors", {
   isResident: boolean("is_resident").default(false),
   residentId: integer("resident_id"),
 
+  // Multi-role labels (replaces single role string for profile display)
+  roleLabels: text("role_labels").array().default([]),
+
+  // Generic links array: [{label, url}] — replaces scattered websiteUrl + socialLinks
+  links: jsonb("links").$type<Array<{ label: string; url: string }>>(),
+
   // Visibility & featuring
   isPublic: boolean("is_public").default(true),
   isFeatured: boolean("is_featured").default(false),
@@ -238,6 +244,21 @@ export const contributors = pgTable("contributors", {
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
+
+// Top-5 albums per contributor (MusicBrainz-backed)
+export const profileAlbums = pgTable("profile_albums", {
+  id: serial("id").primaryKey(),
+  contributorId: integer("contributor_id").references(() => contributors.id, { onDelete: "cascade" }).notNull(),
+  rank: smallint("rank").notNull(), // 1–5
+  mbId: text("mb_id").notNull(),
+  title: text("title").notNull(),
+  artist: text("artist").notNull(),
+  year: text("year"),
+  coverUrl: text("cover_url"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+}, (t) => ({
+  uniqRank: unique().on(t.contributorId, t.rank),
+}));
 
 // ============================================
 // RADIO-SPECIFIC TABLES

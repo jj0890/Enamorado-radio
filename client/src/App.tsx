@@ -43,6 +43,8 @@ import ResidentsPage from "./pages/ResidentsPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityDetailPage from "./pages/CommunityDetailPage";
 import ContributorProfile from "./pages/ContributorProfile";
+import ContributorsPage from "./pages/ContributorsPage";
+import ProfileSetup from "./pages/ProfileSetup";
 import LatestPage from "./pages/LatestPage";
 import Editorial from "./pages/Editorial";
 import EditorialEntry from "./pages/EditorialEntry";
@@ -98,7 +100,9 @@ function Router() {
 
       <Route path="/community" component={CommunityPage} />
       <Route path="/community/:id" component={CommunityDetailPage} />
+      <Route path="/contributors" component={ContributorsPage} />
       <Route path="/contributors/:handle" component={ContributorProfile} />
+      <Route path="/profile/setup" component={ProfileSetup} />
 
       {/* Editorial / Magazine routes */}
       <Route path="/editorial" component={Editorial} />
