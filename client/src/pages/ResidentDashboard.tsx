@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info, Upload, FileAudio, Clock, CheckCircle, XCircle, CalendarCheck, Sparkles } from 'lucide-react';
+import { LogOut, Radio, Calendar, Key, Copy, Eye, EyeOff, PlayCircle, Info, Upload, FileAudio, Clock, CheckCircle, XCircle, CalendarCheck, Sparkles, UserCircle } from 'lucide-react';
 import { useState } from 'react';
 import { Link } from 'wouter';
 import type { Resident, Schedule } from '@shared/schema';
@@ -504,6 +504,33 @@ export default function ResidentDashboard({ onLogout, residentData }: ResidentDa
                   </Button>
                 </div>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Public Profile */}
+          <Card data-testid="card-public-profile">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCircle className="w-5 h-5" />
+                Your Public Profile
+              </CardTitle>
+              <CardDescription>
+                Set up your contributor page — bio, role, album taste, and links.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button asChild variant="outline" className="w-full" data-testid="button-edit-profile">
+                <Link href="/profile/setup">
+                  <UserCircle className="w-4 h-4 mr-2" />
+                  Edit Your Profile
+                </Link>
+              </Button>
+              <p className="text-xs text-gray-500 mt-3 text-center">
+                Visible at{' '}
+                <Link href="/contributors" className="underline hover:text-navy">
+                  enamoradoradio.com/contributors
+                </Link>
+              </p>
             </CardContent>
           </Card>
 

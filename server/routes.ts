@@ -4928,7 +4928,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/contributors/:handle', async (req, res) => {
     try {
       const contributor = await storage.getContributorByHandle(req.params.handle);
-      if (!contributor) {
+      if (!contributor || contributor.isPublic === false) {
         return res.status(404).json({ error: 'Contributor not found' });
       }
 
@@ -5940,11 +5940,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Auto-create contributor profile for this resident
         const resident = await storage.getResidentById(session.residentId);
         if (!resident) return res.status(404).json({ error: 'Resident not found' });
-        const baseHandle = resident.username.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+        const baseHandle = (update.handle as string | undefined)
+          ?? resident.username.toLowerCase().replace(/[^a-z0-9-]/g, '-');
+
+        // If a contributor row already exists for this handle but has no resident linked,
+        // claim it. Otherwise suffix until we find a free handle.
+        const [handleOwner] = await db
+          .select({ id: contributorsTable.id, residentId: contributorsTable.residentId })
+          .from(contributorsTable)
+          .where(eq(contributorsTable.handle, baseHandle))
+          .limit(1);
+
+        if (handleOwner && handleOwner.residentId === null) {
+          // Unclaimed contributor row — link it to this resident
+          const [claimed] = await db
+            .update(contributorsTable)
+            .set({ residentId: session.residentId, isResident: true, ...update, updatedAt: new Date() } as any)
+            .where(eq(contributorsTable.id, handleOwner.id))
+            .returning();
+          return res.json(claimed);
+        }
+
+        // Find a free handle by suffixing -2, -3, …
+        let handle = baseHandle;
+        if (handleOwner) {
+          for (let i = 2; i <= 99; i++) {
+            const candidate = `${baseHandle}-${i}`;
+            const [taken] = await db
+              .select({ id: contributorsTable.id })
+              .from(contributorsTable)
+              .where(eq(contributorsTable.handle, candidate))
+              .limit(1);
+            if (!taken) { handle = candidate; break; }
+          }
+        }
+
         const [created] = await db
           .insert(contributorsTable)
           .values({
-            handle: baseHandle,
+            handle,
             displayName: resident.displayName,
             email: resident.email ?? null,
             isResident: true,

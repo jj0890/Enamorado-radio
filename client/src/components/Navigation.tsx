@@ -111,6 +111,15 @@ export default function Navigation() {
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
                   <Link
+                    href="/contributors"
+                    className="cursor-pointer focus:bg-cream-100 focus:text-charcoal-900"
+                    data-testid="dropdown-item-contributors"
+                  >
+                    Contributors
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link
                     href="/genres"
                     className="cursor-pointer focus:bg-cream-100 focus:text-charcoal-900"
                     data-testid="dropdown-item-genres"
