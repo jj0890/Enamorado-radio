@@ -56,3 +56,22 @@ req.resident = session;
 ```
 
 The `sessionId` field added 2026-06-21 enables this without breaking existing sessions or changing the API surface.
+
+## Audit — 2026-06-21
+
+**Routes checked:** All profile and contributor routes in `server/routes.ts`.
+
+**Findings:**
+
+| Check | Result |
+|---|---|
+| Every `req.resident` read has `requireResident` in its middleware chain | ✅ 5/5 routes clean |
+| Every mutation resolves target by `session.residentId`, never user input | ✅ No parameter/body ID accepted |
+| HMAC verification wrapped in try/catch, returns null on any error | ✅ `timingSafeEqual` used, fails closed |
+| No handler imports auth primitives directly (cookies, HMAC) | ✅ Only `residentAuth.ts` touches them |
+| Public contributor routes (`GET /api/contributors`, `check-handle`) correctly open | ✅ Intentionally unauthenticated |
+| `GET /api/profile` with no cookie → 401 | ✅ |
+| `GET /api/profile` with tampered cookie (no valid HMAC) → 401 | ✅ |
+| `GET /api/contributors` with no cookie → 200 | ✅ |
+
+**Baseline confirmed.** No auth bypasses found. Single enforcement point verified.
