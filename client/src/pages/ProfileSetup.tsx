@@ -413,36 +413,39 @@ export default function ProfileSetup() {
           {/* Top 5 albums */}
           <div>
             <label className="block text-xs text-gray-500 uppercase tracking-widest mb-3">Top 5 albums</label>
-            <div className="grid grid-cols-5 gap-2">
+            <div className="grid grid-cols-5 gap-1">
               {slots.map((slot) => (
                 <div key={slot.rank}>
                   {slot.album ? (
-                    <div className="relative group">
-                      <div className="aspect-square bg-gray-100 border border-gray-200 overflow-hidden">
+                    <div className="relative group cursor-pointer" onClick={() => openSlot(slot.rank)}>
+                      <div className="aspect-square bg-[#1a1a1a] overflow-hidden">
                         {slot.album.coverUrl
                           ? <img src={slot.album.coverUrl} alt={slot.album.title} className="w-full h-full object-cover" />
-                          : <div className="w-full h-full flex items-center justify-center p-1">
-                              <span className="text-[9px] text-gray-400 text-center leading-tight">{slot.album.title}</span>
+                          : <div className="w-full h-full flex items-center justify-center">
+                              <Plus className="w-4 h-4 text-[#444]" />
                             </div>}
                       </div>
+                      {/* Title overlay on hover */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-1.5">
+                        <p className="text-[9px] text-white font-medium leading-tight truncate">{slot.album.title}</p>
+                        <p className="text-[8px] text-white/60 truncate">{slot.album.artist}</p>
+                      </div>
+                      {/* Clear button */}
                       <button
                         type="button"
-                        onClick={() => clearSlot(slot.rank)}
-                        className="absolute top-1 right-1 w-5 h-5 bg-black/70 text-white text-xs hidden group-hover:flex items-center justify-center"
+                        onClick={(e) => { e.stopPropagation(); clearSlot(slot.rank); }}
+                        className="absolute top-1 right-1 w-5 h-5 bg-black/70 text-white hidden group-hover:flex items-center justify-center"
                       >
                         <X className="w-3 h-3" />
                       </button>
-                      <p className="text-[9px] font-medium leading-tight truncate mt-1">{slot.album.title}</p>
-                      <p className="text-[9px] text-gray-400 truncate">{slot.album.artist}</p>
                     </div>
                   ) : (
                     <button
                       type="button"
                       onClick={() => openSlot(slot.rank)}
-                      className="w-full aspect-square border border-dashed border-gray-200 hover:border-gray-400 hover:bg-white transition-colors flex flex-col items-center justify-center gap-1"
+                      className="w-full aspect-square bg-[#1a1a1a] hover:bg-[#242424] transition-colors flex items-center justify-center"
                     >
-                      <Plus className="w-4 h-4 text-gray-300" />
-                      <span className="text-[9px] text-gray-400">{slot.rank}</span>
+                      <Plus className="w-4 h-4 text-[#444]" />
                     </button>
                   )}
                 </div>
@@ -451,25 +454,25 @@ export default function ProfileSetup() {
 
             {/* Album search panel */}
             {activeSlot !== null && (
-              <div className="mt-3 border border-gray-200 bg-white">
-                <div className="flex items-center border-b border-gray-100">
+              <div className="mt-1 border border-[#2a2a2a] bg-[#111]">
+                <div className="flex items-center border-b border-[#222]">
                   <input
                     ref={searchRef}
                     type="text"
                     value={query}
                     onChange={(e) => handleQueryChange(e.target.value)}
-                    placeholder={`Search for album #${activeSlot}…`}
-                    className="flex-1 bg-transparent px-4 py-3 text-sm focus:outline-none"
+                    placeholder="Search albums…"
+                    className="flex-1 bg-transparent px-4 py-3 text-sm text-white placeholder-[#555] focus:outline-none"
                   />
                   <button
                     type="button"
                     onClick={() => { setActiveSlot(null); setResults([]); }}
-                    className="px-4 py-3 text-xs text-gray-400 hover:text-gray-700 transition-colors"
+                    className="px-4 py-3 text-xs text-[#555] hover:text-[#999] transition-colors"
                   >
                     cancel
                   </button>
                 </div>
-                {searching && <p className="text-xs text-gray-400 px-4 py-3">Searching…</p>}
+                {searching && <p className="text-xs text-[#555] px-4 py-3">Searching…</p>}
                 {!searching && results.length > 0 && (
                   <ul>
                     {results.map((r) => (
@@ -477,14 +480,14 @@ export default function ProfileSetup() {
                         <button
                           type="button"
                           onClick={() => pickAlbum(r)}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                          className="w-full flex items-center gap-3 px-3 py-2 hover:bg-[#1a1a1a] transition-colors text-left"
                         >
                           {r.coverArtUrl
-                            ? <img src={r.coverArtUrl} alt={r.title} className="w-10 h-10 object-cover shrink-0 border border-gray-100" />
-                            : <div className="w-10 h-10 bg-gray-100 shrink-0 flex items-center justify-center"><span className="text-gray-300 text-xs">?</span></div>}
+                            ? <img src={r.coverArtUrl} alt={r.title} className="w-12 h-12 object-cover shrink-0" />
+                            : <div className="w-12 h-12 bg-[#222] shrink-0 flex items-center justify-center"><span className="text-[#444] text-xs">?</span></div>}
                           <div className="min-w-0">
-                            <p className="text-sm font-medium truncate">{r.title}</p>
-                            <p className="text-xs text-gray-400 truncate">{r.artist}{r.year ? ` · ${r.year}` : ""}</p>
+                            <p className="text-sm font-medium text-white truncate">{r.title}</p>
+                            <p className="text-xs text-[#666] truncate">{r.artist}{r.year ? ` · ${r.year}` : ""}</p>
                           </div>
                         </button>
                       </li>
@@ -492,7 +495,7 @@ export default function ProfileSetup() {
                   </ul>
                 )}
                 {!searching && query.trim() && results.length === 0 && (
-                  <p className="text-xs text-gray-400 px-4 py-3">No results found.</p>
+                  <p className="text-xs text-[#555] px-4 py-3">No results found.</p>
                 )}
               </div>
             )}
