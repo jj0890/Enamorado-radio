@@ -5873,41 +5873,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ─── Profile System (mirrors Auth System design) ──────────────────────────
 
   // Public contributor directory — all public profiles with top-3 album strip
-  // MusicBrainz album search proxy (public, rate-limited via MB's own limits)
+  // iTunes album search proxy — returns artwork for all results in a single call
   app.get('/api/music/search', async (req, res) => {
     const q = String(req.query.q ?? '').trim();
     if (!q) return res.json([]);
     try {
-      const mbRes = await fetch(
-        `https://musicbrainz.org/ws/2/release/?query=${encodeURIComponent(q)}&fmt=json&limit=8`,
-        { headers: { 'User-Agent': 'EnamoradoRadio/1.0 (contact@enamoradoradio.com)', Accept: 'application/json' } }
+      const itunesRes = await fetch(
+        `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=album&limit=12`,
+        { headers: { Accept: 'application/json' } }
       );
-      if (!mbRes.ok) return res.json([]);
-      const data = await mbRes.json();
-      const releases = (data.releases ?? []).slice(0, 8).map((r: any) => ({
-        id: r.id,
-        title: r.title,
-        artist: r['artist-credit']?.[0]?.artist?.name ?? '',
-        year: r.date?.slice(0, 4) ?? null,
-        coverArtUrl: null as string | null,
+      if (!itunesRes.ok) return res.json([]);
+      const data = await itunesRes.json();
+      const results = (data.results ?? []).slice(0, 8).map((r: any) => ({
+        id: String(r.collectionId),
+        title: r.collectionName,
+        artist: r.artistName,
+        year: r.releaseDate ? r.releaseDate.slice(0, 4) : null,
+        // Replace 100x100 thumbnail with 600x600 for crisp cover art
+        coverArtUrl: r.artworkUrl100
+          ? r.artworkUrl100.replace('100x100bb', '600x600bb')
+          : null,
       }));
-
-      // Fetch cover art for the top result only to stay within rate limits
-      if (releases[0]) {
-        try {
-          const caRes = await fetch(
-            `https://coverartarchive.org/release/${releases[0].id}`,
-            { headers: { Accept: 'application/json' } }
-          );
-          if (caRes.ok) {
-            const ca = await caRes.json();
-            const front = ca.images?.find((i: any) => i.front);
-            if (front) releases[0].coverArtUrl = front.thumbnails?.['250'] ?? front.image;
-          }
-        } catch {}
-      }
-
-      res.json(releases);
+      res.json(results);
     } catch (err) {
       console.error('Music search error:', err);
       res.json([]);
