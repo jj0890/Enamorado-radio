@@ -56,7 +56,7 @@ export default function ProfileSetup() {
 
   useEffect(() => {
     if (!authLoading && auth && !auth.authenticated) {
-      setLocation("/resident");
+      setLocation(`/resident?from=${encodeURIComponent(window.location.pathname)}`);
     }
   }, [auth, authLoading, setLocation]);
 

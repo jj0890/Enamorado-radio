@@ -57,6 +57,7 @@ interface ContributorWithSubmissions {
   handle: string;
   displayName: string;
   email?: string;
+  residentId?: number | null;
 
   // Profile info
   bio?: string;
@@ -425,6 +426,17 @@ export default function ContributorProfile() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: auth } = useQuery<{ authenticated: boolean; residentId?: number }>({
+    queryKey: ['/api/resident/auth'],
+    queryFn: () => fetch('/api/resident/auth').then(r => r.json()),
+    retry: false,
+  });
+
+  const isOwner =
+    auth?.authenticated &&
+    contributor?.residentId != null &&
+    auth.residentId === contributor.residentId;
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-cream-100 dark:bg-gray-950">
@@ -599,12 +611,23 @@ export default function ContributorProfile() {
                 websiteUrl={contributor.websiteUrl}
               />
 
-              <span
-                className="text-sm text-charcoal-500 dark:text-cream-400 font-mono"
-                data-testid="text-submission-count"
-              >
-                {contributor.submissions.total} contribution{contributor.submissions.total !== 1 ? 's' : ''}
-              </span>
+              <div className="flex items-center gap-4">
+                <span
+                  className="text-sm text-charcoal-500 dark:text-cream-400 font-mono"
+                  data-testid="text-submission-count"
+                >
+                  {contributor.submissions.total} contribution{contributor.submissions.total !== 1 ? 's' : ''}
+                </span>
+                {isOwner && (
+                  <Link
+                    href="/profile/setup"
+                    className="text-sm text-burnt-orange-500 hover:text-burnt-orange-600 dark:text-burnt-orange-400 dark:hover:text-burnt-orange-300 font-ui underline underline-offset-2 transition-colors"
+                    data-testid="link-edit-profile"
+                  >
+                    Edit profile
+                  </Link>
+                )}
+              </div>
             </div>
 
             {/* Generic links (from profile setup) */}

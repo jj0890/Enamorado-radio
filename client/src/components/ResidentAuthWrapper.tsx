@@ -14,7 +14,7 @@ interface ResidentAuthData {
 }
 
 export default function ResidentAuthWrapper() {
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const queryClient = useQueryClient();
   console.log('🏠 ResidentAuthWrapper loaded, location:', location);
 
@@ -28,6 +28,11 @@ export default function ResidentAuthWrapper() {
 
   const handleLogin = async () => {
     await refetch();
+    const params = new URLSearchParams(location.split('?')[1] || '');
+    const from = params.get('from');
+    if (from && from.startsWith('/') && !from.startsWith('/resident')) {
+      setLocation(from);
+    }
   };
 
   const handleLogout = async () => {
