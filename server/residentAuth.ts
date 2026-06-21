@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { createHmac, timingSafeEqual } from 'crypto';
+import { createHmac, timingSafeEqual, randomUUID } from 'crypto';
 import { IStorage } from './storage';
 
 const RESIDENT_COOKIE = 'radio_resident';
@@ -10,6 +10,7 @@ function createSessionToken(residentId: number, username: string): string {
   const payload = JSON.stringify({
     residentId,
     username,
+    sessionId: randomUUID(),
     exp: Date.now() + (24 * 60 * 60 * 1000) // 24 hours
   });
   const signature = createHmac('sha256', SESSION_SECRET)
@@ -19,7 +20,7 @@ function createSessionToken(residentId: number, username: string): string {
 }
 
 // Verify session token
-function verifySessionToken(token: string): { residentId: number; username: string; exp: number } | null {
+function verifySessionToken(token: string): { residentId: number; username: string; sessionId: string; exp: number } | null {
   try {
     const { payload, signature } = JSON.parse(Buffer.from(token, 'base64').toString());
     const expectedSignature = createHmac('sha256', SESSION_SECRET)

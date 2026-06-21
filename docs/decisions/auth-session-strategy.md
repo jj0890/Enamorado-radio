@@ -1,0 +1,58 @@
+# Auth Decision: HMAC-Signed Stateless Sessions
+
+**Date:** 2026-06-21  
+**Status:** Active
+
+## Decision
+
+Resident authentication uses HMAC-SHA256 signed cookies (`radio_resident`) with stateless verification. No Redis, no session database, no refresh tokens.
+
+Cookie payload: `{ residentId, username, sessionId, exp }`
+
+## Rationale
+
+**Blast radius of a stale session for Enamorado Radio is low.**
+
+A compromised or over-extended session allows: posting a song request, accessing the resident portal. It does not allow: modifying station programming, accessing financial or donor data, performing any action with legal implications, or escalating privileges beyond the authenticated resident's own account.
+
+At this blast radius, the complexity and infrastructure cost of stateful session management is not justified.
+
+## Properties
+
+- **Stateless** — no DB or cache lookup on every request. HMAC re-computed locally in microseconds.
+- **Isolated** — all auth logic lives in `server/residentAuth.ts`. Handlers read `req.resident` only; none import auth primitives directly.
+- **Migratable** — `sessionId` in the payload enables a future blacklist with a one-line middleware change. No existing-session breakage required at the infrastructure layer.
+
+## What this doesn't handle (accepted tradeoffs)
+
+- **No "log out everywhere"** — can't invalidate a specific session before its 24-hour expiry
+- **No mid-session revocation** — admin disabling an account takes effect at next login, not instantly
+- **No stolen-device kill switch** — user cannot invalidate a specific device's session
+
+These are acceptable given the blast radius above.
+
+## Migration triggers
+
+Re-evaluate this decision if residents gain the ability to:
+
+- Modify live station programming or scheduling
+- Access donor, financial, or subscriber information
+- Perform any action with legal or financial implications
+- Manage other residents' accounts
+
+At that point, add a `sessions` table (or Redis blacklist keyed on `sessionId`) and a single check in `requireResident`. The API surface does not change.
+
+## Migration path (when needed)
+
+```typescript
+// requireResident today — stateless
+const session = verifySessionToken(token);
+req.resident = session;
+
+// requireResident tomorrow — one line added
+const session = verifySessionToken(token);
+if (await sessionBlacklist.has(session.sessionId)) return res.status(401).json({ error: 'unauthorized' });
+req.resident = session;
+```
+
+The `sessionId` field added 2026-06-21 enables this without breaking existing sessions or changing the API surface.
