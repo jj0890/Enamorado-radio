@@ -13,7 +13,7 @@ Cookie payload: `{ residentId, username, sessionId, exp }`
 
 **Blast radius of a stale session for Enamorado Radio is low.**
 
-A compromised or over-extended session allows: posting a song request, accessing the resident portal. It does not allow: modifying station programming, accessing financial or donor data, performing any action with legal implications, or escalating privileges beyond the authenticated resident's own account.
+A compromised or over-extended session allows: posting a song request, accessing the resident portal, editing the resident's own public contributor profile (bio, avatar, links, album picks, visibility toggle). It does not allow: modifying station programming, accessing financial or donor data, performing any action with legal implications, or escalating privileges beyond the authenticated resident's own account.
 
 At this blast radius, the complexity and infrastructure cost of stateful session management is not justified.
 
