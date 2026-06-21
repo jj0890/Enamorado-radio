@@ -28,6 +28,7 @@ import AdminSubmissions from "@/pages/AdminSubmissions";
 import AdminEditorial from "@/pages/AdminEditorial";
 import AdminEditorialEditor from "@/pages/AdminEditorialEditor";
 import AdminIssues from "@/pages/AdminIssues";
+import AdminContributors from "@/pages/AdminContributors";
 import { useLocation, Link } from "wouter";
 import { ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,6 +43,7 @@ interface AdminAuthData {
 // Define admin-only routes (editors cannot access these)
 const ADMIN_ONLY_ROUTES = [
   '/admin/residents',
+  '/admin/contributors',
   '/admin/resident-applications',
   '/admin/settings',
   '/admin/azuracast',
@@ -230,6 +232,8 @@ export default function AdminAuthWrapper() {
         return <AdminResidentApplications onLogout={handleLogout} currentUser={authData.user || ""} userRole={authData?.role === 'admin' ? 'admin' : 'editor'} />;
       case '/admin/residents':
         return <AdminResidents onLogout={handleLogout} currentUser={authData.user || ""} />;
+      case '/admin/contributors':
+        return <AdminContributors onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/albums':
         return <AdminAlbums onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/hero-banners':

@@ -210,6 +210,16 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
                     <span className="text-xs font-medium">Residents</span>
                   </Button>
                 </Link>
+                <Link href="/admin/contributors">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                    data-testid="quick-action-contributors"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span className="text-xs font-medium">Contributors</span>
+                  </Button>
+                </Link>
                 <Link href="/admin/editorial">
                   <Button
                     variant="outline"

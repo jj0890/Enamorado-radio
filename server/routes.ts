@@ -5017,6 +5017,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create contributor (admin only)
+  app.post('/api/admin/contributors', requireAdmin, async (req, res) => {
+    try {
+      const validatedData = insertContributorSchema.parse(req.body);
+      const contributor = await storage.createContributor(validatedData);
+      res.status(201).json(contributor);
+    } catch (error: any) {
+      if (error?.code === '23505') {
+        return res.status(409).json({ error: 'Handle already taken' });
+      }
+      console.error('Error creating contributor:', error);
+      res.status(500).json({ error: 'Failed to create contributor' });
+    }
+  });
+
   // Update contributor (admin only)
   app.patch('/api/admin/contributors/:id', requireAdmin, async (req, res) => {
     try {

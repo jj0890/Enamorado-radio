@@ -81,6 +81,7 @@ const adminNavSections: NavSection[] = [
     items: [
       { href: "/admin/resident-applications", label: "Applications", icon: FileText },
       { href: "/admin/residents", label: "Residents", icon: Users },
+      { href: "/admin/contributors", label: "Contributors", icon: Users },
       { href: "/admin/queue", label: "Request Queue", icon: ListMusic },
     ]
   },

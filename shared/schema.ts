@@ -240,6 +240,9 @@ export const contributors = pgTable("contributors", {
   isPublic: boolean("is_public").default(true),
   isFeatured: boolean("is_featured").default(false),
 
+  // Option B readiness: claim token lets a non-resident contributor self-link later
+  claimToken: text("claim_token").unique(),
+
   // Timestamps
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
