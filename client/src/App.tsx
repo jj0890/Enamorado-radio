@@ -55,6 +55,8 @@ import AdminEditorialEditor from "./pages/AdminEditorialEditor";
 import AdminIssues from "./pages/AdminIssues";
 import UnifiedSubmit from "./pages/UnifiedSubmit";
 import WriterSubmissionPage from "./pages/WriterSubmissionPage";
+import ArchivePage from "./pages/ArchivePage";
+import AdminMediaLibrary from "./pages/AdminMediaLibrary";
 import { Toaster } from "@/components/ui/toaster";
 
 function Router() {
@@ -90,6 +92,7 @@ function Router() {
       <Route path="/genres" component={GenreDiscovery} />
       <Route path="/genre/:slug" component={GenrePage} />
       <Route path="/mixes" component={MixesLanding} />
+      <Route path="/archive" component={ArchivePage} />
 
       {/* Unified submission landing page — /submit-editorial redirects here */}
       <Route path="/submit" component={UnifiedSubmit} />
@@ -112,6 +115,7 @@ function Router() {
       <Route path="/admin/editorial" component={AdminEditorial} />
       <Route path="/admin/editorial/:id" component={AdminEditorialEditor} />
       <Route path="/admin/issues" component={AdminIssues} />
+      <Route path="/admin/media" component={AdminMediaLibrary} />
 
       <Route path="/about" component={AboutPage} />
       <Route path="/residents" component={ResidentsPage} />

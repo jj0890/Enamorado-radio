@@ -1775,7 +1775,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Pragma': 'no-cache',
         'Expires': '0'
       });
-      const { status = 'approved', genre, limit, offset } = req.query;
+      const { status = 'approved', genre, q, limit, offset } = req.query;
 
       // Fetch mixes with timestamp-based filtering
       let mixes = await storage.getMixSubmissions({
@@ -1786,7 +1786,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter by status - include featured mixes when requesting approved
       if (status === 'approved') {
-        mixes = mixes.filter(mix => 
+        mixes = mixes.filter(mix =>
           mix.status === 'approved' || mix.status === 'featured'
         );
       } else if (status !== 'all') {
@@ -1795,8 +1795,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Filter by genre if provided (case-insensitive)
       if (genre) {
-        mixes = mixes.filter(mix => 
+        mixes = mixes.filter(mix =>
           mix.genre && mix.genre.toLowerCase().includes((genre as string).toLowerCase())
+        );
+      }
+
+      // Full-text search across title, contributor name, and genre
+      if (q) {
+        const term = (q as string).toLowerCase().trim();
+        mixes = mixes.filter(mix =>
+          (mix.title && mix.title.toLowerCase().includes(term)) ||
+          (mix.genre && mix.genre.toLowerCase().includes(term)) ||
+          ((mix as any).submitterName && (mix as any).submitterName.toLowerCase().includes(term)) ||
+          ((mix as any).contributorName && (mix as any).contributorName.toLowerCase().includes(term)) ||
+          ((mix as any).description && (mix as any).description.toLowerCase().includes(term))
         );
       }
 
@@ -2729,16 +2741,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         error: 'Failed to connect to AzuraCast',
         message: error instanceof Error ? error.message : 'Unknown error'
       });
-    }
-  });
-
-  // Get AzuraCast now playing info
-  app.get('/api/azuracast/nowplaying', async (req, res) => {
-    try {
-      const nowPlaying = await azuracastService.getNowPlaying();
-      res.json(nowPlaying || {});
-    } catch (error) {
-      res.status(500).json({ error: 'Failed to get now playing info' });
     }
   });
 
@@ -4307,12 +4309,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // PUBLIC: Get published album picks
-  // PUBLIC: Community-approved album submissions (accepted suggestions, sorted by likes)
+  // PUBLIC: Community album submissions (pending + accepted), sorted by listener likes
+  // Excludes suggestions already featured in a published editorial pick
   app.get('/api/albums/community', async (req, res) => {
     try {
-      const all = await storage.getAlbumSuggestions({ status: 'accepted', limit: 100 });
-      // Attach like counts from content_likes if available
-      const withLikes = await Promise.all(all.map(async (s) => {
+      const sessionKey = (req.cookies as any)?.enamorado_lsid ?? null;
+      const all = await storage.getAlbumSuggestions({ limit: 100 });
+
+      // Get suggestion IDs already featured in published editorial picks
+      const publishedPicks = await storage.getPublishedAlbumPicks();
+      const pickItemArrays = await Promise.all(
+        publishedPicks.map((p: any) => storage.getAlbumPickItems(p.id))
+      );
+      const featuredIds = new Set(
+        pickItemArrays.flat().map((item: any) => item.suggestionId)
+      );
+
+      const visible = all.filter((s: any) =>
+        (s.status === 'pending' || s.status === 'accepted') && !featuredIds.has(s.id)
+      );
+
+      const withLikes = await Promise.all(visible.map(async (s: any) => {
         try {
           const [row] = await db.select({ count: count() })
             .from(contentLikesTable)
@@ -4320,13 +4337,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
               eq(contentLikesTable.entityType, 'submission'),
               eq(contentLikesTable.entityId, s.id)
             ));
-          return { ...s, likeCount: Number(row?.count ?? 0) };
+          const likeCount = Number(row?.count ?? 0);
+
+          let liked = false;
+          if (sessionKey) {
+            const [likedRow] = await db.select({ id: contentLikesTable.id })
+              .from(contentLikesTable)
+              .where(and(
+                eq(contentLikesTable.entityType, 'submission'),
+                eq(contentLikesTable.entityId, s.id),
+                eq(contentLikesTable.sessionKey, sessionKey)
+              ));
+            liked = !!likedRow;
+          }
+
+          return { ...s, likeCount, liked };
         } catch {
-          return { ...s, likeCount: 0 };
+          return { ...s, likeCount: 0, liked: false };
         }
       }));
-      // Sort by likes desc, then by accepted date desc
-      withLikes.sort((a, b) => b.likeCount - a.likeCount || new Date(b.updatedAt || 0).getTime() - new Date(a.updatedAt || 0).getTime());
+
+      // Sort by likes desc, then newest first
+      withLikes.sort((a: any, b: any) =>
+        b.likeCount - a.likeCount ||
+        new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
+      );
       res.json(withLikes);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch community albums' });
@@ -5601,7 +5636,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     }
   );
-  // ─────────────────────────────────────────────────────────────────────────
+  // List all uploaded media assets (images + audio)
+  app.get('/api/admin/media', requireRole(['admin', 'editor']), async (req, res) => {
+    try {
+      const uploadBase = path.join(process.cwd(), 'public', 'uploads', 'editorial');
+      const subdirs = ['images', 'audio'];
+      const assets: { url: string; filename: string; type: 'image' | 'audio'; size: number; uploadedAt: string }[] = [];
+
+      for (const sub of subdirs) {
+        const dir = path.join(uploadBase, sub);
+        if (!fs.existsSync(dir)) continue;
+        const files = fs.readdirSync(dir).filter(f => !f.startsWith('.'));
+        for (const file of files) {
+          const stat = fs.statSync(path.join(dir, file));
+          assets.push({
+            url: `/uploads/editorial/${sub}/${file}`,
+            filename: file,
+            type: sub === 'audio' ? 'audio' : 'image',
+            size: stat.size,
+            uploadedAt: stat.birthtime.toISOString(),
+          });
+        }
+      }
+
+      assets.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+      res.json(assets);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message || 'Failed to list media' });
+    }
+  });
 
   // ── Playlist validation ───────────────────────────────────────────────────
   // POST /api/playlists/validate { url: string }
@@ -5873,32 +5936,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ─── Profile System (mirrors Auth System design) ──────────────────────────
 
   // Public contributor directory — all public profiles with top-3 album strip
-  // iTunes album search proxy — returns artwork for all results in a single call
+  // Album search: iTunes + Discogs in parallel, merged and deduplicated
   app.get('/api/music/search', async (req, res) => {
     const q = String(req.query.q ?? '').trim();
     if (!q) return res.json([]);
-    try {
-      const itunesRes = await fetch(
+
+    const discogsToken = process.env.DISCOGS_TOKEN;
+
+    const [itunesResults, discogsResults] = await Promise.all([
+      // iTunes — best art, mainstream catalog
+      fetch(
         `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&media=music&entity=album&limit=12`,
         { headers: { Accept: 'application/json' } }
-      );
-      if (!itunesRes.ok) return res.json([]);
-      const data = await itunesRes.json();
-      const results = (data.results ?? []).slice(0, 8).map((r: any) => ({
-        id: String(r.collectionId),
-        title: r.collectionName,
-        artist: r.artistName,
-        year: r.releaseDate ? r.releaseDate.slice(0, 4) : null,
-        // Replace 100x100 thumbnail with 600x600 for crisp cover art
-        coverArtUrl: r.artworkUrl100
-          ? r.artworkUrl100.replace('100x100bb', '600x600bb')
-          : null,
-      }));
-      res.json(results);
-    } catch (err) {
-      console.error('Music search error:', err);
-      res.json([]);
-    }
+      )
+        .then(r => r.ok ? r.json() : { results: [] })
+        .then((data: any) =>
+          (data.results ?? []).slice(0, 6).map((r: any) => ({
+            id: String(r.collectionId),
+            title: (r.collectionName ?? '') as string,
+            artist: (r.artistName ?? '') as string,
+            year: r.releaseDate ? (r.releaseDate as string).slice(0, 4) : null,
+            coverArtUrl: r.artworkUrl100
+              ? (r.artworkUrl100 as string).replace('100x100bb', '600x600bb')
+              : null,
+            source: 'itunes',
+          }))
+        )
+        .catch(() => [] as any[]),
+
+      // Discogs — underground, vinyl, Bandcamp-era releases
+      discogsToken
+        ? fetch(
+            `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=master&per_page=12`,
+            {
+              headers: {
+                'User-Agent': 'EnamoradoRadio/1.0 (contact@enamoradoradio.com)',
+                'Authorization': `Discogs token=${discogsToken}`,
+              },
+            }
+          )
+            .then(r => r.ok ? r.json() : { results: [] })
+            .then((data: any) =>
+              (data.results ?? [])
+                .filter((r: any) => r.cover_image && !(r.cover_image as string).endsWith('spacer.gif'))
+                .slice(0, 8)
+                .map((r: any) => {
+                  const parts = ((r.title ?? '') as string).split(' - ');
+                  return {
+                    id: `discogs-${r.master_id || r.id}`,
+                    title: parts.length > 1 ? parts.slice(1).join(' - ') : parts[0],
+                    artist: parts.length > 1 ? parts[0] : '',
+                    year: r.year ?? null,
+                    coverArtUrl: (r.cover_image || r.thumb) ?? null,
+                    source: 'discogs',
+                  };
+                })
+            )
+            .catch(() => [] as any[])
+        : Promise.resolve([] as any[]),
+    ]);
+
+    // Merge: iTunes first, then Discogs entries not already covered by iTunes
+    // Strip Discogs disambiguation suffixes like " (2)", " (3)" before comparing
+    const normalizeArtist = (a: string) =>
+      a.toLowerCase().trim().replace(/\s*\(\d+\)$/, '');
+    const seen = new Set(
+      itunesResults.map((r: any) =>
+        `${(r.title as string).toLowerCase().trim()}::${normalizeArtist(r.artist as string)}`
+      )
+    );
+    const uniqueDiscogs = discogsResults.filter((r: any) => {
+      const key = `${(r.title as string).toLowerCase().trim()}::${normalizeArtist(r.artist as string)}`;
+      return !seen.has(key);
+    });
+
+    res.json([...itunesResults, ...uniqueDiscogs].slice(0, 12));
   });
 
   // Get own contributor profile (resident-auth)

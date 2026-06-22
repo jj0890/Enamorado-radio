@@ -75,11 +75,67 @@ const genreCategories = {
 
   'Classic / Foundational': [
     { slug: 'disco', name: 'Disco', description: 'Classic and nu-disco' },
+    { slug: 'cosmic-disco', name: 'Cosmic Disco', description: 'Italo and cosmic-influenced disco' },
+    { slug: 'italo', name: 'Italo', description: 'Italian disco and Italo-house' },
     { slug: 'jazz', name: 'Jazz', description: 'Jazz and jazz fusion' },
+    { slug: 'soul-jazz', name: 'Soul Jazz', description: 'Hard bop and soul-influenced jazz' },
+    { slug: 'spiritual-jazz', name: 'Spiritual Jazz', description: 'Free and spiritual jazz traditions' },
     { slug: 'reggae', name: 'Reggae', description: 'Reggae and dub' },
+    { slug: 'rocksteady', name: 'Rocksteady', description: 'Jamaican rocksteady' },
+    { slug: 'folk', name: 'Folk', description: 'Folk and singer-songwriter' },
+    { slug: 'krautrock', name: 'Krautrock', description: 'German kosmische and krautrock' },
+    { slug: 'kosmische', name: 'Kosmische', description: 'Cosmic, meditative German electronic' },
+    { slug: 'prog-rock', name: 'Prog Rock', description: 'Progressive and art rock' },
+    { slug: 'psychedelic-rock', name: 'Psychedelic Rock', description: 'Psychedelic rock and garage' },
     { slug: 'rock', name: 'Rock', description: 'Rock and alternative' },
     { slug: 'indie', name: 'Indie', description: 'Independent and alternative' },
     { slug: 'punk', name: 'Punk', description: 'Punk rock and hardcore' },
+    { slug: 'bossa-nova', name: 'Bossa Nova', description: 'Brazilian bossa nova and MPB' },
+  ],
+
+  'Experimental / Electronic': [
+    { slug: 'drone', name: 'Drone', description: 'Drone music and sustained tonality' },
+    { slug: 'dark-ambient', name: 'Dark Ambient', description: 'Dark, atmospheric electronic soundscapes' },
+    { slug: 'musique-concrete', name: 'Musique Concrète', description: 'Tape music and found-sound composition' },
+    { slug: 'fourth-world', name: 'Fourth World', description: 'Jon Hassell-inspired global-ambient fusion' },
+    { slug: 'library', name: 'Library Music', description: 'Functional and production library music' },
+    { slug: 'minimal-synth', name: 'Minimal Synth', description: 'Stripped-back analogue synth music' },
+    { slug: 'new-wave', name: 'New Wave', description: 'New wave and synth-pop' },
+    { slug: 'no-wave', name: 'No Wave', description: 'Anti-music and NYC no wave' },
+    { slug: 'art-rock', name: 'Art Rock', description: 'Art rock and avant-pop' },
+    { slug: 'noise-rock', name: 'Noise Rock', description: 'Guitar-noise and abrasive rock' },
+  ],
+
+  'Global Sounds': [
+    { slug: 'electro-shaabi', name: 'Electro Shaabi', description: 'Egyptian street electronic music' },
+    { slug: 'soca', name: 'Soca', description: 'Trinidadian soca and calypso' },
+    { slug: 'bashment', name: 'Bashment', description: 'Jamaican dancehall bashment' },
+  ],
+
+  'Hip-Hop Variants': [
+    { slug: 'chopped-screwed', name: 'Chopped & Screwed', description: 'DJ Screw-style slowed remixes' },
+    { slug: 'dirty-south', name: 'Dirty South', description: 'Southern rap and crunk' },
+    { slug: 'uk-drill', name: 'UK Drill', description: 'UK drill and road rap' },
+    { slug: 'gangsta-rap', name: 'Gangsta Rap', description: 'Gangsta rap and West Coast hip-hop' },
+  ],
+
+  'Electronic Sub-Genres': [
+    { slug: 'broken-beat', name: 'Broken Beat', description: 'UK broken beat and nu-jazz' },
+    { slug: 'dub-techno', name: 'Dub Techno', description: 'Echoing, dubbed-out techno' },
+    { slug: 'detroit-house', name: 'Detroit House', description: 'Soulful Detroit-style house' },
+    { slug: 'leftfield-house', name: 'Leftfield House', description: 'Experimental and genre-bending house' },
+    { slug: 'leftfield-techno', name: 'Leftfield Techno', description: 'Avant-garde and experimental techno' },
+  ],
+
+  'Moods': [
+    { slug: 'mood-late-night', name: 'Late Night', description: 'After hours, introspective listening' },
+    { slug: 'mood-dancefloor', name: 'Dancefloor', description: 'Built for the club and the crowd' },
+    { slug: 'mood-peak-time', name: 'Peak Time', description: 'High-energy peak floor selections' },
+    { slug: 'mood-lean-back', name: 'Lean Back', description: 'Easy listening, home sessions' },
+    { slug: 'mood-deep-cuts', name: 'Deep Cuts', description: 'Collectors and rarities focus' },
+    { slug: 'mood-instrumental', name: 'Instrumental', description: 'No vocals, music only' },
+    { slug: 'mood-feel-good', name: 'Feel Good', description: 'Uplifting and joyful selections' },
+    { slug: 'mood-slow-burn', name: 'Slow Burn', description: 'Meditative, unhurried pacing' },
   ],
 };
 

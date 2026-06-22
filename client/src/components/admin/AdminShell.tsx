@@ -29,7 +29,8 @@ import {
   AlertTriangle,
   FileText,
   Headphones,
-  BarChart3
+  BarChart3,
+  FolderOpen
 } from "lucide-react";
 
 export interface NavSection {
@@ -65,6 +66,7 @@ const adminNavSections: NavSection[] = [
       { href: "/admin/editorial", label: "Editorial", icon: FileText },
       { href: "/admin/hero-banners", label: "Hero Banners", icon: Image },
       { href: "/admin/playlist-submissions", label: "Playlists", icon: ListMusic },
+      { href: "/admin/media", label: "Media Library", icon: FolderOpen },
     ]
   },
   {

@@ -10,7 +10,13 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  ExternalLink
+  ChevronDown,
+  ExternalLink,
+  ScrollText,
+  Mic,
+  Feather,
+  Newspaper,
+  Star,
 } from 'lucide-react';
 import {
   SiInstagram,
@@ -411,6 +417,50 @@ function SocialLinksDisplay({
   );
 }
 
+// Maps DB contentType values to display labels and icons
+const CONTENT_TYPE_CONFIG: Record<string, { label: string; Icon: React.ComponentType<{ className?: string }> }> = {
+  review:    { label: 'Reviews',    Icon: Star },
+  essay:     { label: 'Essays',     Icon: ScrollText },
+  interview: { label: 'Interviews', Icon: Mic },
+  poem:      { label: 'Poems',      Icon: Feather },
+  feature:   { label: 'Features',   Icon: Newspaper },
+  article:   { label: 'Articles',   Icon: FileText },
+};
+
+// Paginated grid wrapper — manages local show-more state
+function ContentGrid<T>({
+  items,
+  renderItem,
+  columns = 'grid-cols-2 md:grid-cols-3 lg:grid-cols-4',
+  pageSize = 8,
+}: {
+  items: T[];
+  renderItem: (item: T, idx: number) => React.ReactNode;
+  columns?: string;
+  pageSize?: number;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const visible = expanded ? items : items.slice(0, pageSize);
+  const hiddenCount = items.length - pageSize;
+
+  return (
+    <div>
+      <div className={`grid ${columns} gap-4`}>
+        {visible.map((item, idx) => renderItem(item, idx))}
+      </div>
+      {items.length > pageSize && (
+        <button
+          onClick={() => setExpanded(e => !e)}
+          className="mt-5 flex items-center gap-1.5 text-xs font-accent uppercase tracking-wider text-charcoal-500 dark:text-cream-400 hover:text-burnt-orange-500 dark:hover:text-burnt-orange-400 transition-colors"
+        >
+          <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`} />
+          {expanded ? 'Show fewer' : `Show ${hiddenCount} more`}
+        </button>
+      )}
+    </div>
+  );
+}
+
 export default function ContributorProfile() {
   const [, params] = useRoute('/contributors/:handle');
   const handle = params?.handle;
@@ -493,8 +543,8 @@ export default function ContributorProfile() {
     );
   }
 
-  const getArtwork = (item: any): string => {
-    return item.artwork_url || item.artUrl || item.artworkUrl || '/placeholder-artwork.jpg';
+  const getArtwork = (item: any): string | null => {
+    return item.artwork_url || item.artUrl || item.artworkUrl || null;
   };
 
   const initials = contributor.displayName
@@ -656,30 +706,37 @@ export default function ContributorProfile() {
             <h2 className="text-2xl font-display font-semibold text-charcoal-900 dark:text-cream-100 mb-6">
               Top Albums
             </h2>
-            <div className="grid grid-cols-5 gap-3">
+            <div className="grid grid-cols-5 gap-1">
               {(contributor.albums ?? []).map((album) => (
-                <div key={album.rank} className="group">
-                  <div className="aspect-square bg-cream-200 dark:bg-gray-800 overflow-hidden mb-2">
-                    {album.coverUrl ? (
-                      <img
-                        src={album.coverUrl}
-                        alt={album.title}
-                        className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center p-2">
-                        <Music className="w-6 h-6 text-charcoal-400 dark:text-cream-500" />
-                      </div>
-                    )}
+                <a
+                  key={album.rank}
+                  href={`https://music.apple.com/search?term=${encodeURIComponent(`${album.title} ${album.artist}`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="group relative aspect-square bg-charcoal-900 dark:bg-gray-950 overflow-hidden block"
+                  title={`${album.title} — ${album.artist}`}
+                >
+                  {album.coverUrl ? (
+                    <img
+                      src={album.coverUrl}
+                      alt={album.title}
+                      className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Music className="w-8 h-8 text-charcoal-600 dark:text-cream-500/30" />
+                    </div>
+                  )}
+                  {/* Hover overlay — three-level editorial hierarchy */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                    <p className="font-body text-[13px] font-semibold text-white leading-tight line-clamp-2">
+                      {album.title}
+                    </p>
+                    <p className="font-accent text-[10px] tracking-wide text-white/60 mt-0.5 truncate uppercase">
+                      {album.artist}{album.year ? ` · ${album.year}` : ''}
+                    </p>
                   </div>
-                  <p className="text-xs font-medium leading-tight truncate text-charcoal-900 dark:text-cream-100">
-                    {album.title}
-                  </p>
-                  <p className="text-xs text-charcoal-500 dark:text-cream-400 truncate">
-                    {album.artist}
-                    {album.year ? ` · ${album.year}` : ""}
-                  </p>
-                </div>
+                </a>
               ))}
             </div>
           </section>
@@ -710,48 +767,67 @@ export default function ContributorProfile() {
           </div>
         ) : (
           <div className="space-y-16">
-            {/* Editorial Content (future: from contentContributors junction) */}
-            {hasEditorial && (
-              <section>
-                <h2 className="flex items-center gap-3 text-2xl font-display font-semibold text-charcoal-900 dark:text-cream-100 mb-6">
-                  <FileText className="w-6 h-6 text-burnt-orange-500" />
-                  Writing & Features
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {contributor.submissions.editorial!.map(piece => (
-                    <Link
-                      key={piece.id}
-                      href={`/editorial/${piece.slug}`}
-                      className="group block bg-white dark:bg-gray-900 rounded-lg overflow-hidden border border-cream-300 dark:border-gray-800 hover:border-burnt-orange-500 dark:hover:border-burnt-orange-500 transition-all hover:shadow-lg"
-                      data-testid={`card-editorial-${piece.id}`}
-                    >
-                      {piece.coverImageUrl && (
-                        <div className="aspect-[16/9] overflow-hidden">
-                          <img
-                            src={piece.coverImageUrl}
-                            alt={piece.title}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          />
-                        </div>
+            {/* Editorial — split by content type, each gets its own paginated section */}
+            {hasEditorial && (() => {
+              const byType = contributor.submissions.editorial!.reduce<Record<string, typeof contributor.submissions.editorial>>((acc, piece) => {
+                const key = piece.contentType || 'article';
+                if (!acc[key]) acc[key] = [];
+                acc[key]!.push(piece);
+                return acc;
+              }, {});
+
+              return Object.entries(byType).map(([type, pieces]) => {
+                const cfg = CONTENT_TYPE_CONFIG[type] ?? { label: type.replace(/_/g, ' '), Icon: FileText };
+                const { label, Icon } = cfg;
+                return (
+                  <section key={type}>
+                    <h2 className="flex items-center gap-3 text-2xl font-display font-semibold text-charcoal-900 dark:text-cream-100 mb-6">
+                      <Icon className="w-6 h-6 text-burnt-orange-500" />
+                      {label}
+                    </h2>
+                    <ContentGrid
+                      items={pieces!}
+                      pageSize={4}
+                      columns="grid-cols-2 md:grid-cols-3 lg:grid-cols-4"
+                      renderItem={(piece) => (
+                        <Link
+                          key={piece.id}
+                          href={`/editorial/${piece.slug}`}
+                          className="group relative block aspect-[3/4] bg-charcoal-900 dark:bg-gray-950 overflow-hidden"
+                          data-testid={`card-editorial-${piece.id}`}
+                        >
+                          {piece.coverImageUrl ? (
+                            <img
+                              src={piece.coverImageUrl}
+                              alt={piece.title}
+                              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-105"
+                            />
+                          ) : (
+                            /* Typographic placeholder — title as cover */
+                            <div className="w-full h-full flex flex-col justify-end p-4 bg-gradient-to-br from-charcoal-800 to-charcoal-900 dark:from-gray-800 dark:to-gray-950">
+                              <p className="font-display text-base font-semibold text-white leading-snug line-clamp-4">
+                                {piece.title}
+                              </p>
+                            </div>
+                          )}
+                          {/* Hover overlay */}
+                          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                            <p className="font-body text-[13px] font-semibold text-white leading-tight line-clamp-3">
+                              {piece.title}
+                            </p>
+                            {piece.publishedAt && (
+                              <p className="font-mono text-[10px] text-white/55 mt-1">
+                                {new Date(piece.publishedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short' })}
+                              </p>
+                            )}
+                          </div>
+                        </Link>
                       )}
-                      <div className="p-5">
-                        <span className="text-xs font-accent uppercase tracking-wider text-burnt-orange-500 mb-2 block">
-                          {piece.contentType.replace('_', ' ')}
-                        </span>
-                        <h3 className="text-lg font-display font-semibold text-charcoal-900 dark:text-cream-100 group-hover:text-burnt-orange-600 dark:group-hover:text-burnt-orange-400 transition-colors mb-2">
-                          {piece.title}
-                        </h3>
-                        {piece.excerpt && (
-                          <p className="text-sm text-charcoal-600 dark:text-cream-400 font-body line-clamp-2">
-                            {piece.excerpt}
-                          </p>
-                        )}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </section>
-            )}
+                    />
+                  </section>
+                );
+              });
+            })()}
 
             {/* Mixes */}
             {contributor.submissions.mixes.length > 0 && (
@@ -760,30 +836,39 @@ export default function ContributorProfile() {
                   <Music className="w-6 h-6 text-burnt-orange-500" />
                   Mixes
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {contributor.submissions.mixes.map(mix => (
-                    <Link
-                      key={mix.id}
-                      href={`/community/${mix.id}`}
-                      className="group block"
-                      data-testid={`card-mix-${mix.id}`}
-                    >
-                      <div className="aspect-square bg-cream-200 dark:bg-gray-800 mb-3 overflow-hidden rounded-lg">
-                        <img
-                          src={getArtwork(mix)}
-                          alt={mix.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <h3 className="font-ui font-medium text-charcoal-900 dark:text-cream-100 truncate group-hover:text-burnt-orange-500 dark:group-hover:text-burnt-orange-400 transition-colors">
-                        {mix.title}
-                      </h3>
-                      <p className="text-sm text-charcoal-500 dark:text-cream-400 font-mono">
-                        {mix.genre}
-                      </p>
-                    </Link>
-                  ))}
-                </div>
+                <ContentGrid
+                  items={contributor.submissions.mixes}
+                  pageSize={8}
+                  renderItem={(mix) => {
+                    const artwork = getArtwork(mix);
+                    return (
+                      <Link
+                        key={mix.id}
+                        href={`/community/${mix.id}`}
+                        className="group block"
+                        data-testid={`card-mix-${mix.id}`}
+                      >
+                        <div className="aspect-square bg-charcoal-900 mb-3 overflow-hidden rounded-lg flex items-center justify-center">
+                          {artwork ? (
+                            <img
+                              src={artwork}
+                              alt={mix.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <Music className="w-8 h-8 text-charcoal-600" />
+                          )}
+                        </div>
+                        <h3 className="font-ui font-medium text-charcoal-900 dark:text-cream-100 truncate group-hover:text-burnt-orange-500 dark:group-hover:text-burnt-orange-400 transition-colors">
+                          {mix.title}
+                        </h3>
+                        <p className="text-sm text-charcoal-500 dark:text-cream-400 font-mono">
+                          {mix.genre}
+                        </p>
+                      </Link>
+                    );
+                  }}
+                />
               </section>
             )}
 
@@ -794,30 +879,39 @@ export default function ContributorProfile() {
                   <ListMusic className="w-6 h-6 text-burnt-orange-500" />
                   Playlists
                 </h2>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                  {contributor.submissions.playlists.map(playlist => (
-                    <Link
-                      key={playlist.id}
-                      href={`/community/${playlist.id}`}
-                      className="group block"
-                      data-testid={`card-playlist-${playlist.id}`}
-                    >
-                      <div className="aspect-square bg-cream-200 dark:bg-gray-800 mb-3 overflow-hidden rounded-lg">
-                        <img
-                          src={getArtwork(playlist)}
-                          alt={playlist.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                        />
-                      </div>
-                      <h3 className="font-ui font-medium text-charcoal-900 dark:text-cream-100 truncate group-hover:text-burnt-orange-500 dark:group-hover:text-burnt-orange-400 transition-colors">
-                        {playlist.title}
-                      </h3>
-                      <p className="text-sm text-charcoal-500 dark:text-cream-400 font-mono">
-                        Playlist
-                      </p>
-                    </Link>
-                  ))}
-                </div>
+                <ContentGrid
+                  items={contributor.submissions.playlists}
+                  pageSize={8}
+                  renderItem={(playlist) => {
+                    const artwork = getArtwork(playlist);
+                    return (
+                      <Link
+                        key={playlist.id}
+                        href={`/community/${playlist.id}`}
+                        className="group block"
+                        data-testid={`card-playlist-${playlist.id}`}
+                      >
+                        <div className="aspect-square bg-charcoal-900 mb-3 overflow-hidden rounded-lg flex items-center justify-center">
+                          {artwork ? (
+                            <img
+                              src={artwork}
+                              alt={playlist.title}
+                              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            />
+                          ) : (
+                            <ListMusic className="w-8 h-8 text-charcoal-600" />
+                          )}
+                        </div>
+                        <h3 className="font-ui font-medium text-charcoal-900 dark:text-cream-100 truncate group-hover:text-burnt-orange-500 dark:group-hover:text-burnt-orange-400 transition-colors">
+                          {playlist.title}
+                        </h3>
+                        <p className="text-sm text-charcoal-500 dark:text-cream-400 font-mono">
+                          Playlist
+                        </p>
+                      </Link>
+                    );
+                  }}
+                />
               </section>
             )}
           </div>

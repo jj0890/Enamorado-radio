@@ -1,4 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -40,12 +41,17 @@ interface CommunityAlbum {
   releaseYear?: number;
   coverArtUrl?: string;
   spotifyUrl?: string;
-  submitterName?: string;
+  suggestedBy?: string;
   reason?: string;
   likeCount: number;
+  liked: boolean;
+  status: 'pending' | 'accepted' | 'rejected';
 }
 
 export default function AlbumsPage() {
+  const queryClient = useQueryClient();
+  const [pendingLikes, setPendingLikes] = useState<Set<number>>(new Set());
+
   const { data: picks = [], isLoading, error } = useQuery<AlbumPick[]>({
     queryKey: ["/api/albums/published"],
     queryFn: async () => {
@@ -61,6 +67,33 @@ export default function AlbumsPage() {
       const res = await fetch("/api/albums/community");
       if (!res.ok) return [];
       return res.json();
+    },
+  });
+
+  const likeMutation = useMutation({
+    mutationFn: async (albumId: number) => {
+      const res = await fetch(`/api/likes/submission/${albumId}`, { method: "POST" });
+      if (!res.ok) throw new Error("Failed to like");
+      return res.json() as Promise<{ liked: boolean; count: number }>;
+    },
+    onMutate: (albumId) => {
+      setPendingLikes((prev) => new Set(prev).add(albumId));
+      const prev = queryClient.getQueryData<CommunityAlbum[]>(["/api/albums/community"]);
+      queryClient.setQueryData<CommunityAlbum[]>(["/api/albums/community"], (old = []) =>
+        old.map((a) =>
+          a.id === albumId
+            ? { ...a, liked: !a.liked, likeCount: a.liked ? a.likeCount - 1 : a.likeCount + 1 }
+            : a
+        )
+      );
+      return { prev };
+    },
+    onError: (_err, _albumId, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["/api/albums/community"], ctx.prev);
+    },
+    onSettled: (_data, _err, albumId) => {
+      setPendingLikes((prev) => { const s = new Set(prev); s.delete(albumId); return s; });
+      queryClient.invalidateQueries({ queryKey: ["/api/albums/community"] });
     },
   });
 
@@ -179,62 +212,63 @@ export default function AlbumsPage() {
               <div className="space-y-8">
                 {/* Latest Pick Featured */}
                 {latestPickDetails && (
-                  <Card className="border border-charcoal-200" data-testid="featured-pick">
-                    <CardHeader className="pb-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-mono">{latestPickDetails.title}</CardTitle>
-                        <Badge variant="outline" className="font-mono text-xs border-charcoal-300">
-                          {latestPickDetails.month}
-                        </Badge>
-                      </div>
-                      {latestPickDetails.description && (
-                        <p className="text-charcoal-500 font-mono text-xs mt-1">{latestPickDetails.description}</p>
-                      )}
-                    </CardHeader>
-                    <CardContent>
-                      <div className="grid grid-cols-2 gap-3">
-                        {latestPickDetails.items.slice(0, 4).map((item) => (
-                          <div key={item.id} className="group relative" data-testid={`album-item-${item.album.id}`}>
-                            <div className="absolute -top-2 -left-2 z-10 bg-charcoal-900 text-white w-6 h-6 rounded-full flex items-center justify-center font-bold font-mono text-xs">
-                              {item.rank}
-                            </div>
-                            {item.album.spotifyUrl ? (
-                              <a href={item.album.spotifyUrl} target="_blank" rel="noopener noreferrer"
-                                className="block border border-charcoal-100 rounded overflow-hidden bg-white hover:shadow-md transition-shadow"
-                                data-testid={`link-spotify-album-${item.album.id}`}
-                              >
-                                {item.album.coverArtUrl ? (
-                                  <img src={item.album.coverArtUrl} alt={item.album.title} className="w-full aspect-square object-cover" />
-                                ) : (
-                                  <div className="w-full aspect-square bg-cream-100 flex items-center justify-center">
-                                    <Disc className="w-8 h-8 text-charcoal-300" />
-                                  </div>
-                                )}
-                                <div className="p-2">
-                                  <div className="font-mono font-semibold text-xs truncate">{item.album.title}</div>
-                                  <div className="text-xs text-charcoal-500 font-mono truncate">{item.album.artist}</div>
-                                </div>
-                              </a>
+                  <div data-testid="featured-pick">
+                    <div className="flex items-center justify-between mb-3">
+                      <p className="font-display font-semibold text-charcoal-900 text-base">{latestPickDetails.title}</p>
+                      <span className="font-mono text-xs text-charcoal-400">{latestPickDetails.month}</span>
+                    </div>
+                    {latestPickDetails.description && (
+                      <p className="font-body text-sm text-charcoal-600 mb-4 leading-relaxed">{latestPickDetails.description}</p>
+                    )}
+                    <div className="grid grid-cols-2 gap-1">
+                      {latestPickDetails.items.slice(0, 4).map((item) => {
+                        const href = item.album.spotifyUrl
+                          ?? `https://music.apple.com/search?term=${encodeURIComponent(`${item.album.title} ${item.album.artist}`)}`;
+                        return (
+                          <a
+                            key={item.id}
+                            href={href}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="group relative block aspect-square bg-charcoal-900 overflow-hidden"
+                            data-testid={`album-item-${item.album.id}`}
+                          >
+                            {item.album.coverArtUrl ? (
+                              <img
+                                src={item.album.coverArtUrl}
+                                alt={item.album.title}
+                                className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300 group-hover:scale-105"
+                              />
                             ) : (
-                              <div className="border border-charcoal-100 rounded overflow-hidden bg-white">
-                                {item.album.coverArtUrl ? (
-                                  <img src={item.album.coverArtUrl} alt={item.album.title} className="w-full aspect-square object-cover" />
-                                ) : (
-                                  <div className="w-full aspect-square bg-cream-100 flex items-center justify-center">
-                                    <Disc className="w-8 h-8 text-charcoal-300" />
-                                  </div>
-                                )}
-                                <div className="p-2">
-                                  <div className="font-mono font-semibold text-xs truncate">{item.album.title}</div>
-                                  <div className="text-xs text-charcoal-500 font-mono truncate">{item.album.artist}</div>
-                                </div>
+                              <div className="w-full h-full flex flex-col justify-end p-3 bg-gradient-to-br from-charcoal-800 to-charcoal-900">
+                                <p className="font-display text-sm font-semibold text-white leading-snug line-clamp-3">
+                                  {item.album.title}
+                                </p>
                               </div>
                             )}
-                          </div>
-                        ))}
-                      </div>
-                    </CardContent>
-                  </Card>
+                            {/* Rank — always visible, top-left */}
+                            <span className="absolute top-2 left-2 font-mono text-[11px] text-white/60 tabular-nums z-10">
+                              {String(item.rank).padStart(2, '0')}
+                            </span>
+                            {/* Hover overlay */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex flex-col justify-end p-3">
+                              <p className="font-body text-[13px] font-semibold text-white leading-tight line-clamp-2">
+                                {item.album.title}
+                              </p>
+                              <p className="font-accent text-[10px] tracking-wide text-white/60 mt-0.5 uppercase truncate">
+                                {item.album.artist}{item.album.releaseYear ? ` · ${item.album.releaseYear}` : ''}
+                              </p>
+                              {item.blurb && (
+                                <p className="font-body text-[11px] text-white/50 mt-1.5 line-clamp-2 italic">
+                                  {item.blurb}
+                                </p>
+                              )}
+                            </div>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  </div>
                 )}
 
                 {/* Previous Picks */}
@@ -287,12 +321,12 @@ export default function AlbumsPage() {
                     </div>
 
                     {/* Art */}
-                    <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-cream-100">
+                    <div className="w-12 h-12 flex-shrink-0 rounded overflow-hidden bg-charcoal-900">
                       {album.coverArtUrl ? (
                         <img src={album.coverArtUrl} alt={album.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <Disc className="w-5 h-5 text-charcoal-300" />
+                          <Disc className="w-5 h-5 text-charcoal-600" />
                         </div>
                       )}
                     </div>
@@ -306,14 +340,30 @@ export default function AlbumsPage() {
                       {album.releaseYear && (
                         <div className="text-xs text-charcoal-400 font-mono">{album.releaseYear}</div>
                       )}
+                      {album.status === 'pending' && (
+                        <span className="inline-block mt-0.5 text-[10px] font-mono uppercase tracking-wider text-charcoal-400 border border-charcoal-200 rounded px-1 py-px">
+                          Under Review
+                        </span>
+                      )}
                     </div>
 
-                    {/* Like count + Spotify */}
+                    {/* Like button + Spotify */}
                     <div className="flex flex-col items-end gap-1 flex-shrink-0">
-                      <div className="flex items-center gap-1 text-xs font-mono text-burnt-orange-500">
-                        <Heart className="w-3 h-3 fill-burnt-orange-500" />
+                      <button
+                        onClick={() => likeMutation.mutate(album.id)}
+                        disabled={pendingLikes.has(album.id)}
+                        className={`flex items-center gap-1 text-xs font-mono transition-colors ${
+                          album.liked
+                            ? 'text-burnt-orange-500'
+                            : 'text-charcoal-400 hover:text-burnt-orange-500'
+                        }`}
+                        aria-label={album.liked ? 'Unlike' : 'Like'}
+                      >
+                        <Heart
+                          className={`w-3 h-3 transition-all ${album.liked ? 'fill-burnt-orange-500' : ''}`}
+                        />
                         {album.likeCount}
-                      </div>
+                      </button>
                       {album.spotifyUrl && (
                         <a
                           href={album.spotifyUrl}
