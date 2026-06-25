@@ -1798,8 +1798,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Serialize with consistent format
       const serializedMixes = mixes.map(serializeMix);
 
-      console.log(`GET /api/mixes - Found ${serializedMixes.length} mixes with status: ${status}, genre: ${genre || 'undefined'}`);
-      res.json(serializedMixes);
+      // Attach like counts + per-session liked flag in a single batch query
+      const sessionKey = (req.cookies as any)?.enamorado_lsid as string | undefined;
+      const mixIds = serializedMixes.map((m: any) => m.id).filter(Boolean);
+      let likeRows: { entityId: number; count: number }[] = [];
+      let likedIds = new Set<number>();
+      if (mixIds.length > 0) {
+        likeRows = await db.select({
+          entityId: contentLikesTable.entityId,
+          count: count(),
+        })
+          .from(contentLikesTable)
+          .where(and(
+            eq(contentLikesTable.entityType, 'mix'),
+            inArray(contentLikesTable.entityId, mixIds),
+          ))
+          .groupBy(contentLikesTable.entityId);
+
+        if (sessionKey) {
+          const likedRows = await db.select({ entityId: contentLikesTable.entityId })
+            .from(contentLikesTable)
+            .where(and(
+              eq(contentLikesTable.entityType, 'mix'),
+              inArray(contentLikesTable.entityId, mixIds),
+              eq(contentLikesTable.sessionKey, sessionKey),
+            ));
+          likedIds = new Set(likedRows.map(r => r.entityId));
+        }
+      }
+      const likeCountMap = new Map(likeRows.map(r => [r.entityId, Number(r.count)]));
+      const withLikes = serializedMixes.map((m: any) => ({
+        ...m,
+        likeCount: likeCountMap.get(m.id) ?? 0,
+        liked: likedIds.has(m.id),
+      }));
+
+      console.log(`GET /api/mixes - Found ${withLikes.length} mixes with status: ${status}, genre: ${genre || 'undefined'}`);
+      res.json(withLikes);
     } catch (error) {
       console.error('Error fetching mixes:', error);
       res.status(500).json({ error: 'Failed to fetch mixes' });
@@ -4227,6 +4262,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(withLikes);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch community albums' });
+    }
+  });
+
+  // Generic like toggle — entityType: 'submission' | 'mix'
+  // Uses enamorado_lsid cookie for anonymous session tracking
+  app.post('/api/likes/:entityType/:entityId', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      if (!['submission', 'mix'].includes(entityType)) {
+        return res.status(400).json({ error: 'Invalid entityType' });
+      }
+      const idNum = parseInt(entityId);
+      if (isNaN(idNum)) return res.status(400).json({ error: 'Invalid entityId' });
+
+      // Get or mint a session cookie
+      let sessionKey = (req.cookies as any)?.enamorado_lsid as string | undefined;
+      if (!sessionKey) {
+        sessionKey = crypto.randomUUID();
+        res.cookie('enamorado_lsid', sessionKey, {
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        });
+      }
+
+      // Check existing like
+      const [existing] = await db.select({ id: contentLikesTable.id })
+        .from(contentLikesTable)
+        .where(and(
+          eq(contentLikesTable.entityType, entityType),
+          eq(contentLikesTable.entityId, idNum),
+          eq(contentLikesTable.sessionKey, sessionKey),
+        ));
+
+      let liked: boolean;
+      if (existing) {
+        await db.delete(contentLikesTable).where(eq(contentLikesTable.id, existing.id));
+        liked = false;
+      } else {
+        await db.insert(contentLikesTable).values({ entityType, entityId: idNum, sessionKey });
+        liked = true;
+      }
+
+      const [row] = await db.select({ count: count() })
+        .from(contentLikesTable)
+        .where(and(
+          eq(contentLikesTable.entityType, entityType),
+          eq(contentLikesTable.entityId, idNum),
+        ));
+
+      res.json({ liked, count: Number(row?.count ?? 0) });
+    } catch (error) {
+      console.error('[Like Toggle]', error);
+      res.status(500).json({ error: 'Failed to toggle like' });
     }
   });
 
