@@ -43,7 +43,7 @@ import {
 import { ensureContributor, backfillContributorsFromFileStorage } from "./auto-provision-contributors";
 import { getOEmbedThumbSafe } from './lib/oembed';
 import { db } from "./db";
-import { contentContributors, content, contributors as contributorsTable, profileAlbums as profileAlbumsTable } from "@shared/schema";
+import { contentContributors, content, contributors as contributorsTable, profileAlbums as profileAlbumsTable, genres as genresTable } from "@shared/schema";
 import { eq, and, lte, inArray } from "drizzle-orm";
 
 // ── Nina Protocol three-tier layer + Listener Likes ─────────────────────────
@@ -1733,10 +1733,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       const { status = 'approved', genre, q, limit, offset } = req.query;
 
+      // Resolve genre slug to canonical name so "cosmic-disco" matches "Cosmic Disco"
+      let genreName: string | undefined;
+      if (genre) {
+        const [genreRow] = await db.select({ name: genresTable.name })
+          .from(genresTable)
+          .where(eq(genresTable.slug, genre as string))
+          .limit(1)
+          .catch(() => []);
+        genreName = genreRow?.name ?? (genre as string).replace(/-/g, ' ');
+      }
+
       // Fetch mixes with timestamp-based filtering
       let mixes = await storage.getMixSubmissions({
-        status: status === 'approved' ? undefined : status as string, // Get all mixes if requesting approved (we'll filter below)
-        genre: genre as string,
+        status: status === 'approved' ? undefined : status as string,
         limit: limit ? parseInt(limit as string) : undefined
       });
 
@@ -1749,10 +1759,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         mixes = mixes.filter(mix => mix.status === status);
       }
 
-      // Filter by genre if provided (case-insensitive)
-      if (genre) {
+      // Filter by genre — match resolved name against free-text genre field
+      if (genreName) {
+        const term = genreName.toLowerCase();
         mixes = mixes.filter(mix =>
-          mix.genre && mix.genre.toLowerCase().includes((genre as string).toLowerCase())
+          mix.genre && mix.genre.toLowerCase().includes(term)
         );
       }
 
@@ -2577,51 +2588,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get genres with content counts for discovery
-  app.get('/api/genres', async (req, res) => {
-    try {
-      const episodes = await storage.getEpisodes();
-      const mixes = await storage.getMixSubmissions({ status: 'approved' }); // Only approved content
-      const featuredMixes = await storage.getMixSubmissions({ status: 'featured' });
-      const allMixes = [...mixes, ...featuredMixes];
-
-      const genreCounts = new Map<string, { mixCount: number, episodeCount: number, total: number }>();
-
-      // Count mixes by genre
-      allMixes.forEach(mix => {
-        if (mix.genre) {
-          const genre = mix.genre;
-          const current = genreCounts.get(genre) || { mixCount: 0, episodeCount: 0, total: 0 };
-          current.mixCount += 1;
-          current.total = current.mixCount + current.episodeCount;
-          genreCounts.set(genre, current);
-        }
-      });
-
-      // Count episodes by genre
-      episodes.forEach(episode => {
-        if (episode.genre) {
-          const genre = episode.genre;
-          const current = genreCounts.get(genre) || { mixCount: 0, episodeCount: 0, total: 0 };
-          current.episodeCount += 1;
-          current.total = current.mixCount + current.episodeCount;
-          genreCounts.set(genre, current);
-        }
-      });
-
-      // Convert to array and sort by total count
-      const genres = Array.from(genreCounts.entries()).map(([name, counts]) => ({
-        name,
-        slug: name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
-        ...counts
-      })).sort((a, b) => b.total - a.total);
-
-      res.json(genres);
-    } catch (error) {
-      console.error('Error fetching genres:', error);
-      res.status(500).json({ error: 'Failed to fetch genres' });
-    }
-  });
+  // GET /api/genres — handled by registerGenreRoutes (genreRoutes.ts)
 
   // Initialize featured mixes from SoundCloud URLs
   const initFeaturedMixes = async () => {

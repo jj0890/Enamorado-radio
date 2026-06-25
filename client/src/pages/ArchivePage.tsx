@@ -89,7 +89,9 @@ export default function ArchivePage() {
     queryFn: async () => {
       const r = await fetch("/api/genres");
       if (!r.ok) return { all: [], byCategory: {} };
-      return r.json();
+      const json = await r.json();
+      // genreRoutes wraps in { ok, data } — unwrap if present
+      return json.data ?? json;
     },
     staleTime: 5 * 60 * 1000,
   });
