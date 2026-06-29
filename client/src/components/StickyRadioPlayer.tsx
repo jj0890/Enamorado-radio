@@ -2,7 +2,7 @@ import { useEffect, useState, useRef } from 'react';
 import { useAudio } from '@/providers/AudioProvider';
 import AudioProgressBar from '@/components/AudioProgressBar';
 import { audioController } from '@/lib/audioController';
-import { Volume2, VolumeX, ChevronUp, ChevronDown } from 'lucide-react';
+import { Volume2, VolumeX, ChevronUp, ChevronDown, Play, Pause, Radio } from 'lucide-react';
 
 // HTTPS-safe proxy URLs (routes through our server)
 const STREAM_URL = '/stream.mp3'; // Proxied stream
@@ -36,6 +36,8 @@ export default function StickyRadioPlayer() {
     title: 'Enamorado Radio',
     subtitle: 'Click to tune in'
   });
+  const [isActuallyLive, setIsActuallyLive] = useState(false);
+  const [streamerName, setStreamerName] = useState<string | null>(null);
   const [liveArtwork, setLiveArtwork] = useState<string | null>(null);
   const [previousArtwork, setPreviousArtwork] = useState<string | null>(null);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
@@ -104,11 +106,14 @@ export default function StickyRadioPlayer() {
         displayTitle = track;
       }
       
-      const isLive = data.live?.is_live;
+      const isLive = data.live?.is_live ?? false;
+      const djName = data.live?.streamer_name || null;
       const subtitle = isLive
-        ? `LIVE • ${data.live?.streamer_name || 'On Air'}`
+        ? `${djName || 'On Air'}`
         : track === 'Station Offline' ? 'Station Offline' : '';
 
+      setIsActuallyLive(isLive);
+      setStreamerName(djName);
       setLiveNowPlaying({ title: displayTitle, subtitle });
       console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
       
@@ -186,130 +191,136 @@ export default function StickyRadioPlayer() {
     }
   }, [showVolumePopover]);
 
+  const displayArtwork = artwork || previousArtwork;
+
   return (
     <>
-      {/* Bottom sticky player - Translucent NTS-style with collapse toggle */}
-      <div 
+      <div
         data-sticky-player
         data-testid="sticky-radio-player"
-        className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 dark:bg-black/90 backdrop-blur-lg text-white border-t border-white/10 transition-transform duration-300 ease-in-out"
-        style={{ 
-          backdropFilter: 'blur(10px)',
-          transform: isCollapsed ? 'translateY(calc(100% - 40px))' : 'translateY(0)'
+        className="fixed bottom-0 left-0 right-0 z-50 text-white border-t border-white/10 transition-transform duration-300 ease-in-out"
+        style={{
+          background: 'rgba(10, 10, 10, 0.96)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          transform: isCollapsed ? 'translateY(calc(100% - 40px))' : 'translateY(0)',
         }}
       >
-        {/* Collapse/Expand Toggle Tab */}
+        {/* Collapse tab */}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           data-testid="button-player-toggle"
-          className="absolute -top-6 left-1/2 -translate-x-1/2 bg-black/90 backdrop-blur-lg border border-white/10 border-b-0 rounded-t-lg px-4 py-1 flex items-center gap-2 hover:bg-white/10 transition-colors"
-          title={isCollapsed ? 'Expand player' : 'Collapse player'}
+          className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[rgba(10,10,10,0.96)] border border-white/10 border-b-0 rounded-t-md px-5 py-0.5 flex items-center gap-1.5 hover:bg-white/10 transition-colors"
         >
-          {isCollapsed ? (
-            <ChevronUp className="w-4 h-4" />
-          ) : (
-            <ChevronDown className="w-4 h-4" />
-          )}
+          {isCollapsed ? <ChevronUp className="w-3.5 h-3.5 text-white/50" /> : <ChevronDown className="w-3.5 h-3.5 text-white/50" />}
         </button>
 
-        {/* Collapsed Mini Bar - Always visible at top */}
-        <div 
-          className={`flex items-center h-10 px-2 md:px-4 gap-2 md:gap-3 border-b border-white/5 ${isCollapsed ? '' : 'hidden'}`}
-        >
+        {/* Collapsed mini bar */}
+        <div className={`flex items-center h-10 px-3 gap-3 ${isCollapsed ? '' : 'hidden'}`}>
           <button
             onClick={handleToggle}
             data-testid="button-mini-play-pause"
-            className="w-8 h-8 bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 rounded text-sm"
-            title={isPlaying ? 'Pause' : 'Play'}
+            className="w-7 h-7 flex items-center justify-center text-white hover:text-white/70 transition-colors flex-shrink-0"
           >
-            {isPlaying ? '⏸' : '▶'}
+            {isPlaying ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white" />}
           </button>
-          <div className="flex-1 min-w-0">
-            <div className="text-xs font-medium truncate">
-              {nowPlaying.title}
+
+          {displayArtwork && (
+            <div className="w-6 h-6 flex-shrink-0 overflow-hidden">
+              <img src={displayArtwork} alt="" className="w-full h-full object-cover" />
             </div>
+          )}
+
+          <div className="flex-1 min-w-0">
+            <span className="text-xs font-medium truncate">{nowPlaying.title}</span>
           </div>
-          {isPlaying && (
-            <div className="flex items-center gap-1 text-green-400">
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-[10px] font-mono uppercase">Live</span>
+
+          {isActuallyLive && (
+            <div className="flex items-center gap-1.5 flex-shrink-0">
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="text-[10px] font-mono uppercase tracking-wider text-red-400">Live</span>
             </div>
           )}
         </div>
 
-        {/* Full Player - Hidden when collapsed */}
+        {/* Full player */}
         <div className={isCollapsed ? 'hidden' : ''}>
-          <div className="flex items-center h-16 px-2 md:px-4 gap-2 md:gap-4">
-            {/* Play/Pause Button */}
-            <button
-              onClick={handleToggle}
-              data-testid="button-sticky-play-pause"
-              className="w-10 h-10 md:w-12 md:h-12 bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 rounded"
-              title={isPlaying ? 'Pause' : 'Play'}
-            >
-              {isPlaying ? '⏸' : '▶'}
-            </button>
+          <div className="flex items-center h-[68px] px-3 md:px-5 gap-3 md:gap-4">
 
-            {/* Now Playing Info with Artwork */}
-            <div className="flex-1 flex items-center gap-2 min-w-0">
-              {/* Album Artwork - hidden on mobile */}
-              {(artwork || previousArtwork) && (
-                <div className="hidden md:block w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative">
+            {/* Artwork */}
+            <div className="w-10 h-10 flex-shrink-0 overflow-hidden bg-white/5 relative">
+              {displayArtwork ? (
+                <>
                   {previousArtwork && previousArtwork !== artwork && (
-                    <img 
-                      src={previousArtwork} 
-                      alt="Previous artwork" 
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
+                    <img src={previousArtwork} alt="" className="absolute inset-0 w-full h-full object-cover" />
                   )}
-                  {artwork && (
-                    <img 
-                      src={artwork} 
-                      alt="Album artwork" 
-                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                      onError={() => setLiveArtwork(null)}
-                      onLoad={() => setPreviousArtwork(null)}
-                    />
+                  <img
+                    src={displayArtwork}
+                    alt=""
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                    onError={() => setLiveArtwork(null)}
+                    onLoad={() => setPreviousArtwork(null)}
+                  />
+                </>
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Radio className="w-4 h-4 text-white/20" />
+                </div>
+              )}
+            </div>
+
+            {/* Track info */}
+            <div className="flex-1 min-w-0">
+              {/* LIVE badge + DJ name row */}
+              {isActuallyLive && (
+                <div className="flex items-center gap-1.5 mb-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Live</span>
+                  {streamerName && (
+                    <span className="text-[10px] font-mono text-white/40">· {streamerName}</span>
                   )}
                 </div>
               )}
-              
-              {/* Track Info - Truncated */}
-              <div className="min-w-0 flex-1">
-                <div className="text-xs md:text-sm font-medium truncate">
-                  {nowPlaying.title}
-                </div>
-                {nowPlaying.subtitle && (
-                  <div className="text-[10px] md:text-xs text-gray-400 truncate">
-                    {nowPlaying.subtitle}
-                  </div>
-                )}
+              <div className="text-sm font-medium truncate leading-tight">
+                {nowPlaying.title}
               </div>
+              {!isActuallyLive && nowPlaying.subtitle && (
+                <div className="text-[11px] text-white/40 truncate mt-0.5">
+                  {nowPlaying.subtitle}
+                </div>
+              )}
             </div>
 
-            {/* Volume Control Popover - hidden on mobile */}
+            {/* Play/Pause */}
+            <button
+              onClick={handleToggle}
+              data-testid="button-sticky-play-pause"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition-colors flex-shrink-0"
+            >
+              {isPlaying
+                ? <Pause className="w-4 h-4 fill-black" />
+                : <Play className="w-4 h-4 fill-black translate-x-px" />
+              }
+            </button>
+
+            {/* Volume — desktop only */}
             <div className="hidden md:block relative flex-shrink-0" ref={volumePopoverRef}>
               <button
                 onClick={() => setShowVolumePopover(!showVolumePopover)}
                 data-testid="button-volume-toggle"
-                className="w-10 h-10 flex items-center justify-center hover:bg-white/10 transition-colors rounded"
-                title="Volume"
+                className="w-9 h-9 flex items-center justify-center hover:bg-white/10 transition-colors rounded-full text-white/50 hover:text-white"
               >
-                {volume === 0 ? (
-                  <VolumeX className="w-5 h-5" />
-                ) : (
-                  <Volume2 className="w-5 h-5" />
-                )}
+                {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
-              
+
               {showVolumePopover && (
-                <div 
-                  className="absolute bottom-12 right-0 bg-neutral-900 rounded-xl p-3 shadow-lg border border-white/10 flex flex-col items-center"
+                <div
+                  className="absolute bottom-12 right-0 bg-[#1a1a1a] rounded-xl p-3 shadow-2xl border border-white/10 flex flex-col items-center"
                   data-testid="volume-popover"
                   style={{ width: '48px' }}
                 >
-                  <div className="text-xs text-gray-400 font-mono mb-2">
-                    {Math.round(volume * 100)}%
+                  <div className="text-[10px] text-white/40 font-mono mb-2">
+                    {Math.round(volume * 100)}
                   </div>
                   <input
                     type="range"
@@ -325,8 +336,8 @@ export default function StickyRadioPlayer() {
                       writingMode: 'bt-lr',
                       WebkitAppearance: 'slider-vertical',
                       width: '8px',
-                      height: '100px',
-                      background: `linear-gradient(to top, white ${volume * 100}%, #4b5563 ${volume * 100}%)`
+                      height: '80px',
+                      background: `linear-gradient(to top, white ${volume * 100}%, #333 ${volume * 100}%)`
                     }}
                   />
                 </div>
@@ -334,16 +345,14 @@ export default function StickyRadioPlayer() {
             </div>
           </div>
 
-          {/* Progress Bar Row - Always visible for better UX */}
-          <div className="px-4 pb-2">
-            {/* Episodes are seekable, live streams are not */}
+          {/* Progress bar */}
+          <div className="px-3 md:px-5 pb-2">
             <AudioProgressBar seekable={!!isPlayingEpisode} />
           </div>
         </div>
       </div>
 
-      {/* Spacer for fixed bottom bar - adjusts based on collapsed state */}
-      <div className={isCollapsed ? 'h-10' : 'h-20'} />
+      <div className={isCollapsed ? 'h-10' : 'h-[88px]'} />
     </>
   );
 }

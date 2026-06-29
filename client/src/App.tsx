@@ -7,7 +7,6 @@ import MobileRadio from "./pages/MobileRadio";
 import RadioLanding from "./pages/RadioLanding";
 
 // ResidentApplication removed - now redirects to Google Form via Express route
-import ScheduleAdmin from "./pages/ScheduleAdmin";
 import Schedule from "./pages/Schedule";
 
 import EditorialWorkflow from "./pages/EditorialWorkflow";
@@ -20,7 +19,6 @@ import EpisodesBrowser from "./pages/EpisodesBrowser";
 import EpisodeView from "./pages/EpisodeView";
 import Guides from "./pages/Guides";
 import GuideDetail from "./pages/GuideDetail";
-import AlbumsOfTheMonth from "./pages/AlbumsOfTheMonth";
 import AlbumsPage from "./pages/AlbumsPage";
 import Top10AlbumsPage from "./pages/Top10AlbumsPage";
 import SubmitAlbum from "./pages/SubmitAlbum";
@@ -28,14 +26,6 @@ import GenrePage from "./pages/GenrePage";
 import MixesLanding from "./pages/MixesLanding";
 import SubmitMix from "./pages/SubmitMix";
 import SubmitPlaylist from "./pages/SubmitPlaylist";
-import AdminQueue from "./pages/AdminQueue";
-import AzuraCastAdmin from "./pages/AzuraCastAdmin";
-import AdminMixRouting from "./pages/AdminMixRouting";
-import AdminEpisodeUpload from "./pages/AdminEpisodeUpload";
-import AdminBackups from "./pages/AdminBackups";
-import AdminResidentApplications from "./pages/AdminResidentApplications";
-import MixUploadToAzuraCast from "./components/MixUploadToAzuraCast";
-import AzuraCastMixManager from "./components/AzuraCastMixManager";
 import StickyRadioPlayer from "./components/StickyRadioPlayer";
 import GenreDiscovery from "./pages/GenreDiscovery";
 import AboutPage from "./pages/AboutPage";

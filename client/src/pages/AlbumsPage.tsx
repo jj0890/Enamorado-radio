@@ -3,8 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Disc, ChevronRight, Sparkles, Heart } from "lucide-react";
+import { Calendar, Disc, ChevronRight, Sparkles, Heart, Star } from "lucide-react";
 import Navigation from "@/components/Navigation";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 
@@ -46,11 +45,70 @@ interface CommunityAlbum {
   likeCount: number;
   liked: boolean;
   status: 'pending' | 'accepted' | 'rejected';
+  avgRating: number | null;
+  myRating: number | null;
+}
+
+// ── StarRating (musicboard.app pattern: 10-point, half-star display) ──────────
+function StarRating({
+  value,
+  myRating,
+  onRate,
+  pending,
+}: {
+  value: number | null;
+  myRating: number | null;
+  onRate: (v: number) => void;
+  pending?: boolean;
+}) {
+  const [hovered, setHovered] = useState<number | null>(null);
+  const display = hovered ?? myRating ?? value ?? 0;
+
+  return (
+    <div className="flex items-center gap-0.5" onMouseLeave={() => setHovered(null)}>
+      {Array.from({ length: 5 }, (_, i) => {
+        const full = (i + 1) * 2;
+        const half = full - 1;
+        const filled = display >= full ? "full" : display >= half ? "half" : "empty";
+        return (
+          <span key={i} className="relative w-4 h-4 flex-shrink-0">
+            {/* Left half — rates odd (half-star) */}
+            <span
+              className="absolute left-0 top-0 w-1/2 h-full cursor-pointer z-10"
+              onMouseEnter={() => setHovered(half)}
+              onClick={() => !pending && onRate(half)}
+            />
+            {/* Right half — rates even (full star) */}
+            <span
+              className="absolute right-0 top-0 w-1/2 h-full cursor-pointer z-10"
+              onMouseEnter={() => setHovered(full)}
+              onClick={() => !pending && onRate(full)}
+            />
+            <Star
+              className={`w-4 h-4 transition-colors ${
+                filled === "full"
+                  ? "fill-burnt-orange-500 text-burnt-orange-500"
+                  : filled === "half"
+                  ? "fill-burnt-orange-200 text-burnt-orange-500"
+                  : "text-charcoal-200"
+              }`}
+            />
+          </span>
+        );
+      })}
+      {value !== null && (
+        <span className="ml-1 font-mono text-[10px] text-charcoal-400 tabular-nums">
+          {(value / 2).toFixed(1)}
+        </span>
+      )}
+    </div>
+  );
 }
 
 export default function AlbumsPage() {
   const queryClient = useQueryClient();
   const [pendingLikes, setPendingLikes] = useState<Set<number>>(new Set());
+  const [pendingRatings, setPendingRatings] = useState<Set<number>>(new Set());
 
   const { data: picks = [], isLoading, error } = useQuery<AlbumPick[]>({
     queryKey: ["/api/albums/published"],
@@ -94,6 +152,37 @@ export default function AlbumsPage() {
     onSettled: (_data, _err, albumId) => {
       setPendingLikes((prev) => { const s = new Set(prev); s.delete(albumId); return s; });
       queryClient.invalidateQueries({ queryKey: ["/api/albums/community"] });
+    },
+  });
+
+  const rateMutation = useMutation({
+    mutationFn: async ({ albumId, value }: { albumId: number; value: number }) => {
+      const res = await fetch(`/api/ratings/submission/${albumId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ value }),
+      });
+      if (!res.ok) throw new Error("Failed to rate");
+      return res.json() as Promise<{ myRating: number; avgRating: number }>;
+    },
+    onMutate: ({ albumId, value }) => {
+      setPendingRatings((prev) => new Set(prev).add(albumId));
+      const prev = queryClient.getQueryData<CommunityAlbum[]>(["/api/albums/community"]);
+      queryClient.setQueryData<CommunityAlbum[]>(["/api/albums/community"], (old = []) =>
+        old.map((a) => a.id === albumId ? { ...a, myRating: value } : a)
+      );
+      return { prev };
+    },
+    onError: (_err, _vars, ctx) => {
+      if (ctx?.prev) queryClient.setQueryData(["/api/albums/community"], ctx.prev);
+    },
+    onSuccess: (data, { albumId }) => {
+      queryClient.setQueryData<CommunityAlbum[]>(["/api/albums/community"], (old = []) =>
+        old.map((a) => a.id === albumId ? { ...a, myRating: data.myRating, avgRating: data.avgRating } : a)
+      );
+    },
+    onSettled: (_data, _err, { albumId }) => {
+      setPendingRatings((prev) => { const s = new Set(prev); s.delete(albumId); return s; });
     },
   });
 
@@ -347,8 +436,8 @@ export default function AlbumsPage() {
                       )}
                     </div>
 
-                    {/* Like button + Spotify */}
-                    <div className="flex flex-col items-end gap-1 flex-shrink-0">
+                    {/* Like + Rating + Spotify */}
+                    <div className="flex flex-col items-end gap-1.5 flex-shrink-0">
                       <button
                         onClick={() => likeMutation.mutate(album.id)}
                         disabled={pendingLikes.has(album.id)}
@@ -364,6 +453,12 @@ export default function AlbumsPage() {
                         />
                         {album.likeCount}
                       </button>
+                      <StarRating
+                        value={album.avgRating}
+                        myRating={album.myRating}
+                        pending={pendingRatings.has(album.id)}
+                        onRate={(v) => rateMutation.mutate({ albumId: album.id, value: v })}
+                      />
                       {album.spotifyUrl && (
                         <a
                           href={album.spotifyUrl}

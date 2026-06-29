@@ -28,11 +28,11 @@ export default function AzuraCastAdmin() {
     refetchInterval: 30000
   });
 
-  // Get now playing from AzuraCast
+  // Get now playing — station-specific object with live + now_playing fields
   const { data: nowPlaying } = useQuery({
-    queryKey: ['/api/azuracast/nowplaying'],
-    queryFn: () => fetch('/api/azuracast/nowplaying').then(res => res.json()),
-    refetchInterval: 15000
+    queryKey: ['/api/nowplaying'],
+    queryFn: () => fetch('/api/nowplaying').then(res => res.json()),
+    refetchInterval: 10000
   });
 
   // Get downloaded files
@@ -116,13 +116,23 @@ export default function AzuraCastAdmin() {
         {/* Now Playing */}
         {nowPlaying && (
           <div className="mb-8 p-4 bg-white rounded-lg border">
-            <h2 className="text-xl font-semibold mb-4">Now Playing</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Now Playing</h2>
+              {nowPlaying.live?.is_live && (
+                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-full px-3 py-1">
+                  <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                  <span className="text-sm font-mono font-semibold text-red-600 uppercase tracking-wide">
+                    Live — {nowPlaying.live.streamer_name || 'On Air'}
+                  </span>
+                </div>
+              )}
+            </div>
             <div className="flex items-center gap-3">
               {nowPlaying.now_playing?.song?.art && (
-                <img 
-                  src={nowPlaying.now_playing.song.art} 
+                <img
+                  src={nowPlaying.now_playing.song.art}
                   alt="Now playing"
-                  className="w-16 h-16 rounded object-cover"
+                  className="w-16 h-16 rounded object-cover flex-shrink-0"
                 />
               )}
               <div>
@@ -130,10 +140,10 @@ export default function AzuraCastAdmin() {
                   {nowPlaying.now_playing?.song?.title || 'Station Offline'}
                 </h3>
                 <p className="text-gray-600">
-                  {nowPlaying.now_playing?.song?.artist || 'No artist'}
+                  {nowPlaying.now_playing?.song?.artist || ''}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {nowPlaying.listeners?.current || 0} listeners
+                  {nowPlaying.listeners?.current ?? 0} listener{nowPlaying.listeners?.current !== 1 ? 's' : ''}
                 </p>
               </div>
             </div>

@@ -16,12 +16,17 @@
   --cream-300: hsl(38, 20%, 88%);     /* #E8E4DD - Subtle sections */
   --cream-400: hsl(36, 15%, 82%);     /* #D8D3CB - Muted borders */
 
-  /* Warm Dark Tones (for text & accents) */
+  /* Warm Dark Tones (for text & accents) — complete 100-950 scale */
+  --charcoal-950: hsl(30, 12%, 10%);  /* Near-black warm */
   --charcoal-900: hsl(30, 10%, 15%);  /* #28221C - Darkest text */
   --charcoal-800: hsl(30, 8%, 22%);   /* #3A3530 - Headings */
   --charcoal-700: hsl(30, 6%, 32%);   /* #524D47 - Body text */
   --charcoal-600: hsl(30, 5%, 45%);   /* #76716A - Muted text */
   --charcoal-500: hsl(30, 4%, 60%);   /* #9A9691 - Disabled states */
+  --charcoal-400: hsl(30, 3%, 70%);   /* Lighter muted */
+  --charcoal-300: hsl(30, 3%, 80%);   /* Very light */
+  --charcoal-200: hsl(30, 3%, 88%);   /* Subtle borders/dividers */
+  --charcoal-100: hsl(30, 2%, 94%);   /* Near-white warm */
 
   /* --- ACCENT COLORS --- */
   /* Burnt Orange - Primary Accent */
@@ -107,6 +112,48 @@
   --chart-3: var(--olive-500);
   --chart-4: var(--charcoal-600);
   --chart-5: var(--cream-400);
+
+  /* --- COLOR OPACITY VARIANTS (musicboard.app 19-variant system) ---
+   * Named: --{color}-{alpha} where alpha is opacity percentage (05=5%, 10=10%, etc.)
+   * Use in: inline styles, CSS utilities, or component CSS.
+   * Not auto-available via Tailwind class syntax — use style={{ color: 'var(--burnt-orange-500-20)' }}
+   */
+
+  /* Burnt Orange opacity variants */
+  --burnt-orange-500-05: hsl(20, 100%, 40%, 0.05);
+  --burnt-orange-500-10: hsl(20, 100%, 40%, 0.10);
+  --burnt-orange-500-15: hsl(20, 100%, 40%, 0.15);
+  --burnt-orange-500-20: hsl(20, 100%, 40%, 0.20);
+  --burnt-orange-500-30: hsl(20, 100%, 40%, 0.30);
+  --burnt-orange-500-40: hsl(20, 100%, 40%, 0.40);
+  --burnt-orange-500-50: hsl(20, 100%, 40%, 0.50);
+  --burnt-orange-500-60: hsl(20, 100%, 40%, 0.60);
+  --burnt-orange-500-70: hsl(20, 100%, 40%, 0.70);
+  --burnt-orange-500-80: hsl(20, 100%, 40%, 0.80);
+  --burnt-orange-500-90: hsl(20, 100%, 40%, 0.90);
+
+  /* Charcoal opacity variants */
+  --charcoal-900-05: hsl(30, 10%, 15%, 0.05);
+  --charcoal-900-10: hsl(30, 10%, 15%, 0.10);
+  --charcoal-900-20: hsl(30, 10%, 15%, 0.20);
+  --charcoal-900-30: hsl(30, 10%, 15%, 0.30);
+  --charcoal-900-40: hsl(30, 10%, 15%, 0.40);
+  --charcoal-900-50: hsl(30, 10%, 15%, 0.50);
+  --charcoal-900-60: hsl(30, 10%, 15%, 0.60);
+  --charcoal-900-70: hsl(30, 10%, 15%, 0.70);
+  --charcoal-900-80: hsl(30, 10%, 15%, 0.80);
+  --charcoal-900-90: hsl(30, 10%, 15%, 0.90);
+
+  /* Cream opacity variants (for overlay backgrounds) */
+  --cream-50-80:  hsl(42, 35%, 99%, 0.80);
+  --cream-50-90:  hsl(42, 35%, 99%, 0.90);
+  --cream-50-95:  hsl(42, 35%, 99%, 0.95);
+  --cream-100-80: hsl(42, 30%, 97%, 0.80);
+  --cream-100-90: hsl(42, 30%, 97%, 0.90);
+
+  /* Tile accent (runtime — set via JS: style["--tile-accent"] = color) */
+  --tile-accent: var(--burnt-orange-500);
+  --tile-accent-text: hsl(0, 0%, 100%);
 
   /* --- SIDEBAR --- */
   --sidebar-background: var(--cream-50);

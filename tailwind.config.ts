@@ -26,11 +26,16 @@ export default {
           400: "var(--cream-400)",
         },
         charcoal: {
+          100: "var(--charcoal-100)",
+          200: "var(--charcoal-200)",
+          300: "var(--charcoal-300)",
+          400: "var(--charcoal-400)",
           500: "var(--charcoal-500)",
           600: "var(--charcoal-600)",
           700: "var(--charcoal-700)",
           800: "var(--charcoal-800)",
           900: "var(--charcoal-900)",
+          950: "var(--charcoal-950)",
         },
         'burnt-orange': {
           100: "var(--burnt-orange-100)",

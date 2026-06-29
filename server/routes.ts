@@ -60,6 +60,7 @@ import {
   contentLikes as contentLikesTable,
   submissions as submissionsTable,
   settings as settingsTable,
+  albumVotes as albumVotesTable,
 } from "@shared/schema";
 import { desc, asc, sql, gt, lt, count } from "drizzle-orm";
 // ─────────────────────────────────────────────────────────────────────────────
@@ -806,11 +807,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     upstream.end();
   });
 
-  // Proxy the nowplaying JSON
-  app.get('/nowplaying', async (req, res) => {
+  // Proxy the nowplaying JSON — station-specific (returns single object with live + now_playing)
+  const proxyNowPlaying = async (req: any, res: any) => {
     try {
-      const response = await fetch(`${AZ_BASE}${NOWPLAYING_PATH}`, { 
-        headers: { 'Accept': 'application/json' } 
+      const response = await fetch(`${AZ_BASE}${NOWPLAYING_PATH}`, {
+        headers: { 'Accept': 'application/json' }
       });
       const data = await response.json();
       res.set('Cache-Control', 'no-store');
@@ -820,7 +821,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error('Nowplaying proxy error:', error);
       res.status(502).json({ error: 'nowplaying failed' });
     }
-  });
+  };
+
+  app.get('/nowplaying', proxyNowPlaying);
 
   // =================
   // ADMIN UPLOAD API - Complete AzuraCast Integration
@@ -1731,7 +1734,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         'Pragma': 'no-cache',
         'Expires': '0'
       });
-      const { status = 'approved', genre, q, limit, offset } = req.query;
+      const { status = 'approved', genre, q, limit, offset, sort } = req.query;
 
       // Resolve genre slug to canonical name so "cosmic-disco" matches "Cosmic Disco"
       let genreName: string | undefined;
@@ -1832,6 +1835,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         likeCount: likeCountMap.get(m.id) ?? 0,
         liked: likedIds.has(m.id),
       }));
+
+      if (sort === 'popular') {
+        withLikes.sort((a: any, b: any) =>
+          (b.likeCount ?? 0) - (a.likeCount ?? 0) ||
+          new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()
+        );
+      }
 
       console.log(`GET /api/mixes - Found ${withLikes.length} mixes with status: ${status}, genre: ${genre || 'undefined'}`);
       res.json(withLikes);
@@ -4213,53 +4223,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sessionKey = (req.cookies as any)?.enamorado_lsid ?? null;
       const all = await storage.getAlbumSuggestions({ limit: 100 });
 
-      // Get suggestion IDs already featured in published editorial picks
       const publishedPicks = await storage.getPublishedAlbumPicks();
       const pickItemArrays = await Promise.all(
         publishedPicks.map((p: any) => storage.getAlbumPickItems(p.id))
       );
-      const featuredIds = new Set(
-        pickItemArrays.flat().map((item: any) => item.suggestionId)
-      );
+      const featuredIds = new Set(pickItemArrays.flat().map((item: any) => item.suggestionId));
 
       const visible = all.filter((s: any) =>
         (s.status === 'pending' || s.status === 'accepted') && !featuredIds.has(s.id)
       );
 
-      const withLikes = await Promise.all(visible.map(async (s: any) => {
-        try {
-          const [row] = await db.select({ count: count() })
+      const visibleIds = visible.map((s: any) => s.id).filter(Boolean);
+
+      // Batch all DB queries up-front (no N+1)
+      const likeCountMap = new Map<number, number>();
+      const likedSet = new Set<number>();
+      const avgRatingMap = new Map<number, number | null>();
+      const myRatingMap = new Map<number, number>();
+
+      if (visibleIds.length > 0) {
+        const [likeRows, avgRows] = await Promise.all([
+          db.select({ entityId: contentLikesTable.entityId, c: count() })
             .from(contentLikesTable)
             .where(and(
               eq(contentLikesTable.entityType, 'submission'),
-              eq(contentLikesTable.entityId, s.id)
-            ));
-          const likeCount = Number(row?.count ?? 0);
+              inArray(contentLikesTable.entityId, visibleIds)
+            ))
+            .groupBy(contentLikesTable.entityId),
+          db.select({
+            suggestionId: albumVotesTable.suggestionId,
+            avg: sql<string>`ROUND(AVG(${albumVotesTable.value})::numeric, 1)`,
+          })
+            .from(albumVotesTable)
+            .where(inArray(albumVotesTable.suggestionId, visibleIds))
+            .groupBy(albumVotesTable.suggestionId),
+        ]);
 
-          let liked = false;
-          if (sessionKey) {
-            const [likedRow] = await db.select({ id: contentLikesTable.id })
+        for (const r of likeRows) likeCountMap.set(r.entityId, Number(r.c));
+        for (const r of avgRows) avgRatingMap.set(r.suggestionId, r.avg ? parseFloat(r.avg) : null);
+
+        if (sessionKey) {
+          const [likedRows, myRatingRows] = await Promise.all([
+            db.select({ entityId: contentLikesTable.entityId })
               .from(contentLikesTable)
               .where(and(
                 eq(contentLikesTable.entityType, 'submission'),
-                eq(contentLikesTable.entityId, s.id),
+                inArray(contentLikesTable.entityId, visibleIds),
                 eq(contentLikesTable.sessionKey, sessionKey)
-              ));
-            liked = !!likedRow;
+              )),
+            db.select({ suggestionId: albumVotesTable.suggestionId, value: albumVotesTable.value })
+              .from(albumVotesTable)
+              .where(and(
+                inArray(albumVotesTable.suggestionId, visibleIds),
+                eq(albumVotesTable.voterUsername, sessionKey)
+              ))
+              .orderBy(desc(albumVotesTable.createdAt)),
+          ]);
+          for (const r of likedRows) likedSet.add(r.entityId);
+          for (const r of myRatingRows) {
+            if (!myRatingMap.has(r.suggestionId)) myRatingMap.set(r.suggestionId, r.value);
           }
-
-          return { ...s, likeCount, liked };
-        } catch {
-          return { ...s, likeCount: 0, liked: false };
         }
+      }
+
+      const result = visible.map((s: any) => ({
+        ...s,
+        likeCount: likeCountMap.get(s.id) ?? 0,
+        liked: likedSet.has(s.id),
+        avgRating: avgRatingMap.get(s.id) ?? null,
+        myRating: myRatingMap.get(s.id) ?? null,
       }));
 
-      // Sort by likes desc, then newest first
-      withLikes.sort((a: any, b: any) =>
+      result.sort((a: any, b: any) =>
         b.likeCount - a.likeCount ||
         new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime()
       );
-      res.json(withLikes);
+
+      res.json(result);
     } catch (error) {
       res.status(500).json({ error: 'Failed to fetch community albums' });
     }
@@ -4316,6 +4356,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('[Like Toggle]', error);
       res.status(500).json({ error: 'Failed to toggle like' });
+    }
+  });
+
+  // Star rating for album submissions (1-10 internal, half-star = 0.5 display)
+  app.post('/api/ratings/submission/:id', async (req, res) => {
+    try {
+      const suggestionId = parseInt(req.params.id);
+      if (isNaN(suggestionId)) return res.status(400).json({ error: 'Invalid id' });
+
+      const numValue = parseInt(req.body?.value);
+      if (isNaN(numValue) || numValue < 1 || numValue > 10) {
+        return res.status(400).json({ error: 'value must be 1-10' });
+      }
+
+      let sessionKey = (req.cookies as any)?.enamorado_lsid as string | undefined;
+      if (!sessionKey) {
+        sessionKey = crypto.randomUUID();
+        res.cookie('enamorado_lsid', sessionKey, {
+          httpOnly: true,
+          sameSite: 'lax',
+          maxAge: 365 * 24 * 60 * 60 * 1000,
+        });
+      }
+
+      const [existing] = await db.select({ id: albumVotesTable.id })
+        .from(albumVotesTable)
+        .where(and(
+          eq(albumVotesTable.suggestionId, suggestionId),
+          eq(albumVotesTable.voterUsername, sessionKey)
+        ))
+        .limit(1);
+
+      if (existing) {
+        await db.update(albumVotesTable)
+          .set({ value: numValue })
+          .where(eq(albumVotesTable.id, existing.id));
+      } else {
+        await db.insert(albumVotesTable).values({ suggestionId, voterUsername: sessionKey, value: numValue });
+      }
+
+      const [row] = await db.select({
+        avg: sql<string>`ROUND(AVG(${albumVotesTable.value})::numeric, 1)`,
+      })
+        .from(albumVotesTable)
+        .where(eq(albumVotesTable.suggestionId, suggestionId));
+
+      res.json({ myRating: numValue, avgRating: row?.avg ? parseFloat(row.avg) : numValue });
+    } catch (error) {
+      console.error('[Rating]', error);
+      res.status(500).json({ error: 'Failed to save rating' });
     }
   });
 
@@ -6288,6 +6378,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // ============================================================
   // CONTENT API v1 — removed (no client callers; use /api/mixes, /api/episodes, /api/contributors)
   // ============================================================
+
+  // ── Cover image upload ─────────────────────────────────────────────────────
+  // Used by AdminEditorial cover image picker. Accepts field name "image",
+  // saves to public/uploads/editorial/images/, returns { url }.
+  const coverImageUpload = multer({
+    dest: '/tmp/uploads/',
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+    fileFilter: (_req, file, cb) => {
+      const allowed = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif'];
+      if (allowed.includes(file.mimetype)) {
+        cb(null, true);
+      } else {
+        cb(new Error(`Unsupported file type: ${file.mimetype}`));
+      }
+    },
+  });
+
+  app.post('/api/upload-image',
+    requireRole(['admin', 'editor']),
+    coverImageUpload.single('image'),
+    async (req, res) => {
+      try {
+        if (!req.file) return res.status(400).json({ error: 'No image provided' });
+
+        const file = req.file;
+        const origExt = path.extname(file.originalname).toLowerCase().replace(/^\./, '');
+        const mimeExt = file.mimetype.split('/')[1] ?? 'jpg';
+        const ext = origExt || mimeExt;
+
+        const uploadDir = path.join(process.cwd(), 'public', 'uploads', 'editorial', 'images');
+        if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
+
+        const filename = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const destPath = path.join(uploadDir, filename);
+
+        fs.copyFileSync(file.path, destPath);
+        fs.unlinkSync(file.path);
+
+        const url = `/uploads/editorial/images/${filename}`;
+        console.log(`🖼️  Cover image uploaded: ${url}`);
+        res.json({ url });
+      } catch (error: any) {
+        if (req.file?.path && fs.existsSync(req.file.path)) fs.unlinkSync(req.file.path);
+        res.status(500).json({ error: error.message || 'Upload failed' });
+      }
+    }
+  );
 
   return httpServer;
 }
