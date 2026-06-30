@@ -5,9 +5,9 @@ import { audioController } from '@/lib/audioController';
 import { Volume2, VolumeX, ChevronUp, ChevronDown, Play, Pause, Radio } from 'lucide-react';
 
 // HTTPS-safe proxy URLs (routes through our server)
-const STREAM_URL = '/stream.mp3'; // Proxied stream
-const NOWPLAYING_URL = '/api/nowplaying'; // Proxied now playing
-const ARTWORK_URL = '/api/artwork'; // Spotify artwork
+const STREAM_URL = '/stream.mp3';
+const NOWPLAYING_URL = '/api/nowplaying';
+const ARTWORK_URL = '/api/artwork';
 
 interface NowPlayingData {
   now_playing?: {
@@ -23,18 +23,17 @@ interface NowPlayingData {
 }
 
 export default function StickyRadioPlayer() {
-  // Use shared audio context
   const { state, actions } = useAudio();
   const isPlaying = state.status === 'playing';
   const volume = state.volume;
-  
-  // Check if we're playing episode content (not live stream)
+
   const isPlayingEpisode = state.src && !state.src.includes('stream.mp3') && state.isLive === false;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [liveNowPlaying, setLiveNowPlaying] = useState({
     title: 'Enamorado Radio',
-    subtitle: 'Click to tune in'
+    subtitle: 'Click to tune in',
   });
   const [isActuallyLive, setIsActuallyLive] = useState(false);
   const [streamerName, setStreamerName] = useState<string | null>(null);
@@ -42,21 +41,22 @@ export default function StickyRadioPlayer() {
   const [previousArtwork, setPreviousArtwork] = useState<string | null>(null);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
   const volumePopoverRef = useRef<HTMLDivElement>(null);
-  
-  // Use episode metadata if playing an episode, otherwise use live data
-  const nowPlaying = isPlayingEpisode 
-    ? { 
-        title: state.title || 'Episode', 
-        subtitle: state.artist || '' 
-      }
-    : liveNowPlaying;
-  
-  const artwork = isPlayingEpisode ? (state.artwork || null) : liveArtwork;
 
-  // Play/Pause toggle
+  const nowPlaying = isPlayingEpisode
+    ? { title: state.title || 'Episode', subtitle: state.artist || '' }
+    : liveNowPlaying;
+
+  const artwork = isPlayingEpisode ? (state.artwork || null) : liveArtwork;
+  const displayArtwork = artwork || previousArtwork;
+
+  // Lock body scroll when expanded
+  useEffect(() => {
+    document.body.style.overflow = isExpanded ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isExpanded]);
+
   const handleToggle = async () => {
     console.log('🎵 StickyPlayer handleToggle called, isPlaying:', isPlaying);
-    
     if (isPlaying) {
       actions.pause();
     } else {
@@ -74,23 +74,18 @@ export default function StickyRadioPlayer() {
     }
   };
 
-  // Volume control
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     actions.setVolume(newVolume);
     console.log('🔊 StickyPlayer volume set to:', newVolume);
   };
 
-  // Poll AzuraCast for now playing info
   const pollNowPlaying = async () => {
     try {
       console.log('📡 StickyPlayer polling now playing...');
       const response = await fetch(NOWPLAYING_URL, { cache: 'no-store' });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-      }
-      
+      if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
       const data: NowPlayingData = await response.json();
       console.log('📡 StickyPlayer now playing response:', data);
 
@@ -98,14 +93,13 @@ export default function StickyRadioPlayer() {
       const artist = song.artist || '';
       const track = song.title || 'Live Stream';
 
-      // Enhanced title mapping for uploaded episodes
       let displayTitle = 'Enamorado Radio';
       if (artist && track && track !== 'Station Offline') {
         displayTitle = `${artist} — ${track}`;
       } else if (track && track !== 'Station Offline' && track !== 'Live Stream') {
         displayTitle = track;
       }
-      
+
       const isLive = data.live?.is_live ?? false;
       const djName = data.live?.streamer_name || null;
       const subtitle = isLive
@@ -116,33 +110,24 @@ export default function StickyRadioPlayer() {
       setStreamerName(djName);
       setLiveNowPlaying({ title: displayTitle, subtitle });
       console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
-      
-      // Fetch artwork if we have artist and title
+
       if (artist && track && track !== 'Station Offline' && track !== 'Live Stream') {
-        // Create cache key from artist + track
         const cacheKey = `${artist}::${track}`;
-        
-        // Check cache first
         const cachedArtwork = audioController.getCachedArtwork(cacheKey);
         if (cachedArtwork) {
           console.log('🎨 StickyPlayer using cached artwork:', cachedArtwork);
           setPreviousArtwork(artwork);
           setLiveArtwork(cachedArtwork);
         } else {
-          // Fetch from API
           try {
             const artworkResponse = await fetch(
               `${ARTWORK_URL}?artist=${encodeURIComponent(artist)}&title=${encodeURIComponent(track)}`,
               { cache: 'no-store' }
             );
-            
             if (artworkResponse.ok) {
               const artworkData = await artworkResponse.json();
               if (artworkData.artwork) {
-                // Cache the artwork for future use
                 audioController.cacheArtwork(cacheKey, artworkData.artwork);
-                
-                // Keep previous artwork until new one loads to prevent flicker
                 setPreviousArtwork(artwork);
                 setLiveArtwork(artworkData.artwork);
                 console.log('🎨 StickyPlayer artwork fetched and cached:', artworkData.artwork);
@@ -152,7 +137,6 @@ export default function StickyRadioPlayer() {
             }
           } catch (artworkError) {
             console.error('❌ StickyPlayer artwork fetch error:', artworkError);
-            // Keep previous artwork on error to prevent flicker
           }
         }
       } else if (!artwork) {
@@ -161,40 +145,160 @@ export default function StickyRadioPlayer() {
       }
     } catch (error) {
       console.error('❌ StickyPlayer NowPlaying fetch error:', error);
-      setLiveNowPlaying({ 
-        title: 'Enamorado Radio', 
-        subtitle: 'Connection Error' 
-      });
+      setLiveNowPlaying({ title: 'Enamorado Radio', subtitle: 'Connection Error' });
     }
   };
 
-  // Initialize polling
   useEffect(() => {
-    // Initial poll and set up interval
     pollNowPlaying();
-    const interval = setInterval(pollNowPlaying, 10000); // Poll every 10 seconds
-    
+    const interval = setInterval(pollNowPlaying, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Close volume popover when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (volumePopoverRef.current && !volumePopoverRef.current.contains(event.target as Node)) {
         setShowVolumePopover(false);
       }
     };
-
     if (showVolumePopover) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
   }, [showVolumePopover]);
 
-  const displayArtwork = artwork || previousArtwork;
-
   return (
     <>
+      {/* ── Full-screen expanded player ── */}
+      {isExpanded && (
+        <div
+          className="fixed inset-0 z-[60] flex flex-col overflow-hidden"
+          style={{ background: '#0a0a0a', paddingTop: 'env(safe-area-inset-top)' }}
+        >
+          {/* Blurred artwork backdrop */}
+          {displayArtwork && (
+            <>
+              <div
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage: `url(${displayArtwork})`,
+                  backgroundSize: 'cover',
+                  backgroundPosition: 'center',
+                  transform: 'scale(1.15)',
+                  filter: 'blur(60px) brightness(0.2) saturate(1.8)',
+                }}
+              />
+              <div className="absolute inset-0 bg-black/40 pointer-events-none" />
+            </>
+          )}
+
+          {/* Content */}
+          <div className="relative flex flex-col h-full">
+
+            {/* Header row */}
+            <div className="flex items-center justify-center px-5 pt-5 pb-2">
+              <button
+                onClick={() => setIsExpanded(false)}
+                className="absolute left-4 w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+              >
+                <ChevronDown className="w-5 h-5 text-white/40" />
+              </button>
+              <span className="text-[11px] font-mono uppercase tracking-widest text-white/30 select-none">
+                Enamorado Radio
+              </span>
+            </div>
+
+            {/* Artwork */}
+            <div className="flex-1 flex items-center justify-center px-10 py-4 min-h-0">
+              <div
+                className="aspect-square rounded-2xl overflow-hidden"
+                style={{
+                  width: 'min(72vw, 320px)',
+                  boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+                  flexShrink: 0,
+                }}
+              >
+                {displayArtwork ? (
+                  <img src={displayArtwork} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="w-full h-full bg-white/5 flex items-center justify-center">
+                    <Radio className="w-16 h-16 text-white/10" />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Track info */}
+            <div className="px-8 pb-4">
+              {isActuallyLive && (
+                <div className="flex items-center gap-1.5 mb-2">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Live</span>
+                  {streamerName && (
+                    <span className="text-[10px] font-mono text-white/30">· {streamerName}</span>
+                  )}
+                </div>
+              )}
+              <div className="text-[22px] font-semibold text-white leading-tight truncate">
+                {nowPlaying.title}
+              </div>
+              {nowPlaying.subtitle && (
+                <div className="text-base text-white/45 mt-0.5 truncate">
+                  {nowPlaying.subtitle}
+                </div>
+              )}
+            </div>
+
+            {/* Episode seek bar */}
+            {isPlayingEpisode && (
+              <div className="px-8 mb-2">
+                <AudioProgressBar seekable />
+              </div>
+            )}
+
+            {/* Controls */}
+            <div
+              className="px-8"
+              style={{ paddingBottom: 'max(2.5rem, env(safe-area-inset-bottom))' }}
+            >
+              {/* Play / Pause */}
+              <div className="flex items-center justify-center mb-8">
+                <button
+                  onClick={handleToggle}
+                  className="w-[68px] h-[68px] rounded-full bg-white flex items-center justify-center hover:bg-white/90 active:scale-95 transition-all duration-100"
+                >
+                  {isPlaying
+                    ? <Pause className="w-7 h-7 fill-black text-black" />
+                    : <Play className="w-7 h-7 fill-black text-black translate-x-0.5" />
+                  }
+                </button>
+              </div>
+
+              {/* Volume row */}
+              <div className="flex items-center gap-3">
+                <VolumeX className="w-4 h-4 text-white/25 flex-shrink-0" />
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  value={volume}
+                  onChange={handleVolumeChange}
+                  className="flex-1 h-1 rounded-full appearance-none"
+                  style={{
+                    background: `linear-gradient(to right, rgba(255,255,255,0.85) ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`,
+                    accentColor: 'white',
+                  }}
+                />
+                <Volume2 className="w-4 h-4 text-white/25 flex-shrink-0" />
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
+
+      {/* ── Sticky mini bar ── */}
       <div
         data-sticky-player
         data-testid="sticky-radio-player"
@@ -212,7 +316,10 @@ export default function StickyRadioPlayer() {
           data-testid="button-player-toggle"
           className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[rgba(10,10,10,0.96)] border border-white/10 border-b-0 rounded-t-md px-5 py-0.5 flex items-center gap-1.5 hover:bg-white/10 transition-colors"
         >
-          {isCollapsed ? <ChevronUp className="w-3.5 h-3.5 text-white/50" /> : <ChevronDown className="w-3.5 h-3.5 text-white/50" />}
+          {isCollapsed
+            ? <ChevronUp className="w-3.5 h-3.5 text-white/50" />
+            : <ChevronDown className="w-3.5 h-3.5 text-white/50" />
+          }
         </button>
 
         {/* Collapsed mini bar */}
@@ -243,55 +350,60 @@ export default function StickyRadioPlayer() {
           )}
         </div>
 
-        {/* Full player */}
+        {/* Full player bar */}
         <div className={isCollapsed ? 'hidden' : ''}>
           <div className="flex items-center h-[68px] px-3 md:px-5 gap-3 md:gap-4">
 
-            {/* Artwork */}
-            <div className="w-10 h-10 flex-shrink-0 overflow-hidden bg-white/5 relative">
-              {displayArtwork ? (
-                <>
-                  {previousArtwork && previousArtwork !== artwork && (
-                    <img src={previousArtwork} alt="" className="absolute inset-0 w-full h-full object-cover" />
-                  )}
-                  <img
-                    src={displayArtwork}
-                    alt=""
-                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                    onError={() => setLiveArtwork(null)}
-                    onLoad={() => setPreviousArtwork(null)}
-                  />
-                </>
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Radio className="w-4 h-4 text-white/20" />
-                </div>
-              )}
-            </div>
-
-            {/* Track info */}
-            <div className="flex-1 min-w-0">
-              {/* LIVE badge + DJ name row */}
-              {isActuallyLive && (
-                <div className="flex items-center gap-1.5 mb-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
-                  <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Live</span>
-                  {streamerName && (
-                    <span className="text-[10px] font-mono text-white/40">· {streamerName}</span>
-                  )}
-                </div>
-              )}
-              <div className="text-sm font-medium truncate leading-tight">
-                {nowPlaying.title}
+            {/* Artwork + track info — tap anywhere here to expand */}
+            <button
+              className="flex items-center gap-3 flex-1 min-w-0 text-left"
+              onClick={() => setIsExpanded(true)}
+            >
+              {/* Artwork thumbnail */}
+              <div className="w-10 h-10 flex-shrink-0 overflow-hidden bg-white/5 relative">
+                {displayArtwork ? (
+                  <>
+                    {previousArtwork && previousArtwork !== artwork && (
+                      <img src={previousArtwork} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                    )}
+                    <img
+                      src={displayArtwork}
+                      alt=""
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                      onError={() => setLiveArtwork(null)}
+                      onLoad={() => setPreviousArtwork(null)}
+                    />
+                  </>
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Radio className="w-4 h-4 text-white/20" />
+                  </div>
+                )}
               </div>
-              {!isActuallyLive && nowPlaying.subtitle && (
-                <div className="text-[11px] text-white/40 truncate mt-0.5">
-                  {nowPlaying.subtitle}
-                </div>
-              )}
-            </div>
 
-            {/* Play/Pause */}
+              {/* Track info */}
+              <div className="flex-1 min-w-0">
+                {isActuallyLive && (
+                  <div className="flex items-center gap-1.5 mb-0.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                    <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Live</span>
+                    {streamerName && (
+                      <span className="text-[10px] font-mono text-white/40">· {streamerName}</span>
+                    )}
+                  </div>
+                )}
+                <div className="text-sm font-medium truncate leading-tight">
+                  {nowPlaying.title}
+                </div>
+                {!isActuallyLive && nowPlaying.subtitle && (
+                  <div className="text-[11px] text-white/40 truncate mt-0.5">
+                    {nowPlaying.subtitle}
+                  </div>
+                )}
+              </div>
+            </button>
+
+            {/* Play/Pause — separate from expand tap */}
             <button
               onClick={handleToggle}
               data-testid="button-sticky-play-pause"
