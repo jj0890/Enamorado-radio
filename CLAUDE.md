@@ -156,6 +156,59 @@ merged-enamorado/
 #### Dark Mode
 All components support dark mode via Tailwind's `dark:` prefix.
 
+### UI/Design Standards
+
+#### Decision Priority (for any UI change)
+1. **User Needs** — Does this serve the task? Is it completable?
+2. **Accessibility** — POUR: Perceivable, Operable, Understandable, Robust
+3. **Consistency** — Follows established tokens and patterns
+4. **Aesthetics** — Visually intentional, never decorative for its own sake
+5. **Developer Experience** — Maintainable and composable
+
+Never sacrifice a higher-priority concern for a lower one. Beautiful but inaccessible = broken. Consistent but confusing = wrong pattern.
+
+#### Token Architecture (3-Tier)
+- **Primitive** — Raw values: the `burnt-orange`, `charcoal`, `cream`, `navy` palette entries
+- **Semantic** — Purpose aliases: `action.primary`, `surface.page`, `text.secondary`
+- **Component** — Scoped to one element: `button-bg-primary`, `player-surface`
+
+Never hardcode hex values or magic px sizes in component code. Reference Tailwind tokens or CSS custom properties. One theme change should cascade everywhere.
+
+#### Contrast Requirements (WCAG 2.2 AA — measure, never approximate)
+- Normal text (< 24px): **4.5:1 minimum**
+- Large text (≥ 24px) / headings: **3:1 minimum**
+- UI components, icons, borders conveying meaning: **3:1 minimum**
+- Focus indicators: **3:1 minimum**
+
+#### Component States (mandatory for every interactive element)
+Every button, input, link, and player control must define:
+**Default → Hover → Focus → Active → Disabled**
+
+Loading and Error states are required for any async action. The StickyRadioPlayer play/pause is a primary action — it must pass all 5 states.
+
+#### Touch Targets
+- Primary actions (play/pause, submit, CTA): **44×44px minimum**
+- Secondary actions: **24×24px minimum** (WCAG 2.5.8)
+- The sticky player's 68px play button is the reference standard — hold all primary controls to this bar.
+
+#### Motion Rules
+- UI transitions: **100–300ms**. Never exceed 500ms.
+- Entrances use `ease-out`. Exits use `ease-in`. State changes use `ease-in-out`.
+- Every animation must respect `prefers-reduced-motion` — swap for a fade or instant transition.
+- This includes the CarPlay expanded player backdrop blur and the artwork crossfade.
+
+#### Progressive Disclosure (admin UI)
+- Primary actions are always visible
+- Secondary actions are one interaction away (menu, expand, popover)
+- Advanced options sit behind an explicit disclosure control
+- Empty states must explain value AND guide to first action — never bare "No data"
+
+#### Voice & Tone for UI Copy
+- **Labels**: Verb-first, concise. "Save changes" not "Click here to save your changes".
+- **Errors**: What happened → why → how to fix. "Password must be 8+ characters — add numbers or symbols." not "Error: Invalid input".
+- **Empty states**: Explain value, then guide. "No mixes yet. Be the first to submit one." not "Nothing here".
+- Matches the editorial voice: warm, direct, non-corporate. Never condescending.
+
 ### Content Architecture
 
 #### Content Tiers

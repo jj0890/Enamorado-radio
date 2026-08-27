@@ -9,15 +9,15 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs/promises';
 import cookieParser from 'cookie-parser';
-import { uploadViaSftp, rescanLibrary, ensurePlaylist, addMediaToPlaylist, createSchedule, getNowPlaying } from './azuracastHelpers';
+import { uploadViaSftp, rescanLibrary, ensurePlaylist, addMediaToPlaylist, createSchedule } from './azuracastHelpers';
 // @ts-ignore - No type definitions available
 import fetch from 'node-fetch';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { validateAdminCredentials } from "./adminAuth";
 import { db } from "./db";
-import { content as contentTable } from "@shared/schema";
-import { and, lte, eq } from "drizzle-orm";
+import { content as contentTable, currentPlayback as currentPlaybackTable, streamStatus as streamStatusTable } from "@shared/schema";
+import { and, lte, eq, desc } from "drizzle-orm";
 
 const logger = pino();
 
@@ -182,25 +182,66 @@ app.post('/api/mix/schedule', async (req, res) => {
   }
 });
 
-// Proxy AzuraCast now playing data
+async function buildNowPlayingResponse() {
+  // Try Icecast if configured (future: when new server is up)
+  const icecastUrl = process.env.ICECAST_URL;
+  if (icecastUrl) {
+    try {
+      const r = await fetch(`${icecastUrl}/status-json.xsl`);
+      if (r.ok) {
+        const ice = await r.json() as any;
+        const src = ice?.icestats?.source;
+        if (src) {
+          return {
+            now_playing: { song: { artist: src.artist || '', title: src.title || 'Live Stream' } },
+            live: { is_live: false, streamer_name: null },
+          };
+        }
+      }
+    } catch { /* fall through to DB */ }
+  }
+
+  // Read from DB — currentPlayback written by admin or future hub
+  const [[playback], [status]] = await Promise.all([
+    db.select().from(currentPlaybackTable).orderBy(desc(currentPlaybackTable.startTime)).limit(1),
+    db.select().from(streamStatusTable).limit(1),
+  ]);
+
+  return {
+    now_playing: {
+      song: {
+        artist: playback?.artist || '',
+        title: playback?.title || 'Station Offline',
+      },
+    },
+    live: {
+      is_live: status?.isLive ?? false,
+      streamer_name: status?.currentShow ?? null,
+    },
+  };
+}
+
 app.get('/api/nowplaying', async (_req, res) => {
   try {
-    const data = await getNowPlaying();
-    res.json(data);
+    res.json(await buildNowPlayingResponse());
   } catch (err) {
     logger.error({ err }, 'Failed to fetch now playing data');
-    res.status(500).json({ ok: false, error: 'Failed to fetch now playing data' });
+    res.json({
+      now_playing: { song: { artist: '', title: 'Station Offline' } },
+      live: { is_live: false, streamer_name: null },
+    });
   }
 });
 
-// Legacy endpoint for existing player
 app.get('/api/now', async (_req, res) => {
   try {
-    const data = await getNowPlaying();
-    res.json(data);
+    res.json(await buildNowPlayingResponse());
   } catch (err) {
     logger.error({ err }, 'Failed to fetch now playing data');
-    res.status(500).json({ ok: false, error: 'Failed to fetch now playing data' });
+    res.json({
+      now_playing: { song: { artist: '', title: 'Station Offline' } },
+      live: { is_live: false, streamer_name: null },
+    });
   }
 });
 

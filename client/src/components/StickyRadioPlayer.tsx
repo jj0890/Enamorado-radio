@@ -40,6 +40,7 @@ export default function StickyRadioPlayer() {
   const [liveArtwork, setLiveArtwork] = useState<string | null>(null);
   const [previousArtwork, setPreviousArtwork] = useState<string | null>(null);
   const [showVolumePopover, setShowVolumePopover] = useState(false);
+  const [playError, setPlayError] = useState<string | null>(null);
   const volumePopoverRef = useRef<HTMLDivElement>(null);
 
   const nowPlaying = isPlayingEpisode
@@ -55,21 +56,37 @@ export default function StickyRadioPlayer() {
     return () => { document.body.style.overflow = ''; };
   }, [isExpanded]);
 
+  // MediaSession API — populates lock screen / CarPlay / Android Auto
+  useEffect(() => {
+    if (!('mediaSession' in navigator)) return;
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: nowPlaying.title,
+      artist: streamerName || 'Enamorado Radio',
+      album: 'Enamorado Radio',
+      artwork: displayArtwork
+        ? [{ src: displayArtwork, sizes: '512x512', type: 'image/jpeg' }]
+        : [],
+    });
+    navigator.mediaSession.playbackState = isPlaying ? 'playing' : 'paused';
+    navigator.mediaSession.setActionHandler('play', () => {
+      actions.play(STREAM_URL, { title: nowPlaying.title, isLive: true });
+    });
+    navigator.mediaSession.setActionHandler('pause', () => { actions.pause(); });
+  }, [isPlaying, nowPlaying.title, streamerName, displayArtwork]);
+
   const handleToggle = async () => {
-    console.log('🎵 StickyPlayer handleToggle called, isPlaying:', isPlaying);
     if (isPlaying) {
       actions.pause();
     } else {
       try {
-        console.log('🎵 StickyPlayer attempting to play audio...');
         await actions.play(STREAM_URL, {
           title: nowPlaying.title,
           isLive: nowPlaying.subtitle.includes('LIVE'),
         });
-        console.log('✅ StickyPlayer audio playing successfully');
+        setPlayError(null);
       } catch (error) {
-        console.error('❌ StickyPlayer audio play failed:', error);
-        alert('Failed to start audio: ' + (error as Error).message);
+        console.error('StickyPlayer audio play failed:', error);
+        setPlayError('Unable to connect to stream. Try again.');
       }
     }
   };
@@ -77,17 +94,14 @@ export default function StickyRadioPlayer() {
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newVolume = parseFloat(e.target.value);
     actions.setVolume(newVolume);
-    console.log('🔊 StickyPlayer volume set to:', newVolume);
   };
 
   const pollNowPlaying = async () => {
     try {
-      console.log('📡 StickyPlayer polling now playing...');
       const response = await fetch(NOWPLAYING_URL, { cache: 'no-store' });
       if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
 
       const data: NowPlayingData = await response.json();
-      console.log('📡 StickyPlayer now playing response:', data);
 
       const song = data.now_playing?.song || {};
       const artist = song.artist || '';
@@ -109,13 +123,11 @@ export default function StickyRadioPlayer() {
       setIsActuallyLive(isLive);
       setStreamerName(djName);
       setLiveNowPlaying({ title: displayTitle, subtitle });
-      console.log('✅ StickyPlayer metadata updated:', { title: displayTitle, subtitle });
 
       if (artist && track && track !== 'Station Offline' && track !== 'Live Stream') {
         const cacheKey = `${artist}::${track}`;
         const cachedArtwork = audioController.getCachedArtwork(cacheKey);
         if (cachedArtwork) {
-          console.log('🎨 StickyPlayer using cached artwork:', cachedArtwork);
           setPreviousArtwork(artwork);
           setLiveArtwork(cachedArtwork);
         } else {
@@ -130,13 +142,12 @@ export default function StickyRadioPlayer() {
                 audioController.cacheArtwork(cacheKey, artworkData.artwork);
                 setPreviousArtwork(artwork);
                 setLiveArtwork(artworkData.artwork);
-                console.log('🎨 StickyPlayer artwork fetched and cached:', artworkData.artwork);
               } else if (!artwork) {
                 setLiveArtwork(null);
               }
             }
           } catch (artworkError) {
-            console.error('❌ StickyPlayer artwork fetch error:', artworkError);
+            console.error('StickyPlayer artwork fetch error:', artworkError);
           }
         }
       } else if (!artwork) {
@@ -144,7 +155,7 @@ export default function StickyRadioPlayer() {
         setPreviousArtwork(null);
       }
     } catch (error) {
-      console.error('❌ StickyPlayer NowPlaying fetch error:', error);
+      console.error('StickyPlayer NowPlaying fetch error:', error);
       setLiveNowPlaying({ title: 'Enamorado Radio', subtitle: 'Connection Error' });
     }
   };
@@ -173,7 +184,7 @@ export default function StickyRadioPlayer() {
       {isExpanded && (
         <div
           className="fixed inset-0 z-[60] flex flex-col overflow-hidden"
-          style={{ background: '#0a0a0a', paddingTop: 'env(safe-area-inset-top)' }}
+          style={{ background: 'var(--player-bg)', paddingTop: 'env(safe-area-inset-top)' }}
         >
           {/* Blurred artwork backdrop */}
           {displayArtwork && (
@@ -199,7 +210,8 @@ export default function StickyRadioPlayer() {
             <div className="flex items-center justify-center px-5 pt-5 pb-2">
               <button
                 onClick={() => setIsExpanded(false)}
-                className="absolute left-4 w-9 h-9 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors"
+                aria-label="Close player"
+                className="absolute left-4 w-11 h-11 flex items-center justify-center rounded-full hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
                 <ChevronDown className="w-5 h-5 text-white/40" />
               </button>
@@ -232,7 +244,7 @@ export default function StickyRadioPlayer() {
             <div className="px-8 pb-4">
               {isActuallyLive && (
                 <div className="flex items-center gap-1.5 mb-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 motion-safe:animate-pulse flex-shrink-0" />
                   <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Live</span>
                   {streamerName && (
                     <span className="text-[10px] font-mono text-white/30">· {streamerName}</span>
@@ -265,7 +277,8 @@ export default function StickyRadioPlayer() {
               <div className="flex items-center justify-center mb-8">
                 <button
                   onClick={handleToggle}
-                  className="w-[68px] h-[68px] rounded-full bg-white flex items-center justify-center hover:bg-white/90 active:scale-95 transition-all duration-100"
+                  aria-label={isPlaying ? "Pause" : "Play"}
+                  className="w-[68px] h-[68px] rounded-full bg-white flex items-center justify-center hover:bg-white/90 active:scale-95 transition-all duration-100 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
                 >
                   {isPlaying
                     ? <Pause className="w-7 h-7 fill-black text-black" />
@@ -314,7 +327,8 @@ export default function StickyRadioPlayer() {
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
           data-testid="button-player-toggle"
-          className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[rgba(10,10,10,0.96)] border border-white/10 border-b-0 rounded-t-md px-5 py-0.5 flex items-center gap-1.5 hover:bg-white/10 transition-colors"
+          aria-label={isCollapsed ? "Expand player" : "Collapse player"}
+          className="absolute -top-5 left-1/2 -translate-x-1/2 bg-[rgba(10,10,10,0.96)] border border-white/10 border-b-0 rounded-t-md px-5 py-0.5 min-h-[44px] flex items-center gap-1.5 hover:bg-white/10 transition-colors focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
         >
           {isCollapsed
             ? <ChevronUp className="w-3.5 h-3.5 text-white/50" />
@@ -327,7 +341,8 @@ export default function StickyRadioPlayer() {
           <button
             onClick={handleToggle}
             data-testid="button-mini-play-pause"
-            className="w-7 h-7 flex items-center justify-center text-white hover:text-white/70 transition-colors flex-shrink-0"
+            aria-label={isPlaying ? "Pause" : "Play"}
+            className="w-11 h-11 flex items-center justify-center text-white hover:text-white/70 transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
           >
             {isPlaying ? <Pause className="w-4 h-4 fill-white" /> : <Play className="w-4 h-4 fill-white" />}
           </button>
@@ -344,7 +359,7 @@ export default function StickyRadioPlayer() {
 
           {isActuallyLive && (
             <div className="flex items-center gap-1.5 flex-shrink-0">
-              <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-red-500 motion-safe:animate-pulse" />
               <span className="text-[10px] font-mono uppercase tracking-wider text-red-400">Live</span>
             </div>
           )}
@@ -356,7 +371,8 @@ export default function StickyRadioPlayer() {
 
             {/* Artwork + track info — tap anywhere here to expand */}
             <button
-              className="flex items-center gap-3 flex-1 min-w-0 text-left"
+              className="flex items-center gap-3 flex-1 min-w-0 text-left focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
+              aria-label={`Open full player — ${nowPlaying.title}`}
               onClick={() => setIsExpanded(true)}
             >
               {/* Artwork thumbnail */}
@@ -369,7 +385,7 @@ export default function StickyRadioPlayer() {
                     <img
                       src={displayArtwork}
                       alt=""
-                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-200 motion-safe:duration-300"
                       onError={() => setLiveArtwork(null)}
                       onLoad={() => setPreviousArtwork(null)}
                     />
@@ -385,7 +401,7 @@ export default function StickyRadioPlayer() {
               <div className="flex-1 min-w-0">
                 {isActuallyLive && (
                   <div className="flex items-center gap-1.5 mb-0.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse flex-shrink-0" />
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 motion-safe:animate-pulse flex-shrink-0" />
                     <span className="text-[10px] font-mono uppercase tracking-widest text-red-400">Live</span>
                     {streamerName && (
                       <span className="text-[10px] font-mono text-white/40">· {streamerName}</span>
@@ -407,7 +423,8 @@ export default function StickyRadioPlayer() {
             <button
               onClick={handleToggle}
               data-testid="button-sticky-play-pause"
-              className="w-9 h-9 flex items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition-colors flex-shrink-0"
+              aria-label={isPlaying ? "Pause" : "Play"}
+              className="w-11 h-11 flex items-center justify-center rounded-full bg-white text-black hover:bg-white/90 transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
             >
               {isPlaying
                 ? <Pause className="w-4 h-4 fill-black" />
@@ -420,14 +437,15 @@ export default function StickyRadioPlayer() {
               <button
                 onClick={() => setShowVolumePopover(!showVolumePopover)}
                 data-testid="button-volume-toggle"
-                className="w-9 h-9 flex items-center justify-center hover:bg-white/10 transition-colors rounded-full text-white/50 hover:text-white"
+                aria-label="Volume"
+                className="w-11 h-11 flex items-center justify-center hover:bg-white/10 transition-colors rounded-full text-white/50 hover:text-white focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-black"
               >
                 {volume === 0 ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
               </button>
 
               {showVolumePopover && (
                 <div
-                  className="absolute bottom-12 right-0 bg-[#1a1a1a] rounded-xl p-3 shadow-2xl border border-white/10 flex flex-col items-center"
+                  className="absolute bottom-12 right-0 bg-charcoal-950 rounded-xl p-3 shadow-2xl border border-white/10 flex flex-col items-center"
                   data-testid="volume-popover"
                   style={{ width: '48px' }}
                 >
@@ -449,13 +467,18 @@ export default function StickyRadioPlayer() {
                       WebkitAppearance: 'slider-vertical',
                       width: '8px',
                       height: '80px',
-                      background: `linear-gradient(to top, white ${volume * 100}%, #333 ${volume * 100}%)`
+                      background: `linear-gradient(to top, white ${volume * 100}%, rgba(255,255,255,0.15) ${volume * 100}%)`
                     }}
                   />
                 </div>
               )}
             </div>
           </div>
+
+          {/* Play error */}
+          {playError && (
+            <p role="alert" className="text-red-400 text-xs px-3 md:px-5 pb-1">{playError}</p>
+          )}
 
           {/* Progress bar */}
           <div className="px-3 md:px-5 pb-2">

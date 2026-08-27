@@ -60,7 +60,7 @@ const ADMIN_ONLY_ROUTES = [
 // Access Denied component for non-admins trying to access admin-only pages
 function AccessDenied({ role, onLogout }: { role?: string; onLogout: () => void }) {
   return (
-    <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center p-6">
+    <div className="min-h-screen bg-cream-50 flex items-center justify-center p-6">
       <Card className="max-w-md">
         <CardHeader>
           <div className="flex items-center gap-3 mb-2">
@@ -139,10 +139,10 @@ export default function AdminAuthWrapper() {
   // Loading state - show spinner while checking auth
   if (isLoading || isFetching) {
     return (
-      <div className="min-h-screen bg-[#FEFCF9] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-navy border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 font-mono">Checking authentication...</p>
+      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+        <div role="status" aria-live="polite" className="text-center">
+          <div className="w-8 h-8 border-2 border-charcoal-800 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-charcoal-600 font-mono">Checking authentication...</p>
         </div>
       </div>
     );
@@ -199,7 +199,7 @@ export default function AdminAuthWrapper() {
         return <ScheduleManagement />;
       case '/admin/azuracast-upload':
         return (
-          <div className="min-h-screen bg-[#FEFCF9] p-6">
+          <div className="min-h-screen bg-cream-50 p-6">
             <div className="max-w-4xl mx-auto">
               <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
                 AZURACAST UPLOAD
@@ -210,7 +210,7 @@ export default function AdminAuthWrapper() {
         );
       case '/admin/mix-manager':
         return (
-          <div className="min-h-screen bg-[#FEFCF9] p-6">
+          <div className="min-h-screen bg-cream-50 p-6">
             <div className="max-w-6xl mx-auto">
               <h1 className="text-3xl font-bold mb-8 font-mono text-navy">
                 MIX MANAGER - Upload, Publish & Schedule

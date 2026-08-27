@@ -234,6 +234,10 @@
   box-shadow: 0 4px 12px rgba(204, 74, 0, 0.3);
 }
 
+.btn-primary:active { transform: scale(0.98); }
+.btn-primary:disabled,
+.btn-primary[disabled] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
 .btn-primary:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
@@ -253,6 +257,10 @@
   color: white;
 }
 
+.btn-secondary:active { transform: scale(0.98); }
+.btn-secondary:disabled,
+.btn-secondary[disabled] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
+
 .btn-secondary:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
@@ -271,6 +279,10 @@
   color: var(--burnt-orange-500);
   background: var(--cream-200);
 }
+
+.btn-ghost:active { transform: scale(0.98); }
+.btn-ghost:disabled,
+.btn-ghost[disabled] { opacity: 0.45; cursor: not-allowed; pointer-events: none; }
 
 /* Form Inputs */
 .input-standard {
@@ -383,6 +395,12 @@ a:hover {
   }
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .live-indicator {
+    animation: none;
+  }
+}
+
 /* Tags */
 .tag-editorial {
   background: var(--editorial-tag);
@@ -438,4 +456,13 @@ a:hover {
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--burnt-orange-500);
+}
+
+/* --- REDUCED MOTION --- */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

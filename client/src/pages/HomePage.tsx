@@ -41,7 +41,7 @@ export default function Home() {
 
 
   // --- DATA: Fresh mixes (unified endpoint for consistency) ---
-  const { data: freshMixes = [] } = useQuery({
+  const { data: freshMixes = [], isLoading: mixesLoading, isError: mixesError } = useQuery({
     queryKey: ["/api/community", { type: 'mix', limit: 12 }],
     queryFn: async () => {
       const r = await fetch("/api/community?type=mix&limit=12&sort=recent", { cache: "no-store" });
@@ -52,7 +52,7 @@ export default function Home() {
   });
 
   // --- DATA: Fresh playlists ---
-  const { data: freshPlaylists = [] } = useQuery({
+  const { data: freshPlaylists = [], isLoading: playlistsLoading, isError: playlistsError } = useQuery({
     queryKey: ["/api/community", { type: 'playlist', limit: 6 }],
     queryFn: async () => {
       const r = await fetch("/api/community?type=playlist&limit=6&sort=recent", { cache: "no-store" });
@@ -63,7 +63,7 @@ export default function Home() {
   });
 
   // --- DATA: All published episodes ---
-  const { data: allEpisodes = [] } = useQuery({
+  const { data: allEpisodes = [], isLoading: episodesLoading, isError: episodesError } = useQuery({
     queryKey: ["/api/episodes"],
     queryFn: async () => {
       const r = await fetch("/api/episodes");
@@ -131,6 +131,9 @@ export default function Home() {
     }
   }, [freshMixes, allEpisodes, freshPlaylists, contentFilter]);
 
+  const isContentLoading = mixesLoading || episodesLoading || playlistsLoading;
+  const isContentError = mixesError || episodesError || playlistsError;
+
   // --- DATA: Upcoming schedule ---
   const { data: upcomingShows = [] } = useQuery({
     queryKey: ["/api/schedule", { upcoming: true }],
@@ -196,7 +199,7 @@ export default function Home() {
   const featuredAlbum = getFeaturedAlbum();
 
   return (
-    <div className="min-h-screen bg-white text-charcoal-900">
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation />
       <main className="pb-28">
         {/* HERO - Live Show Card */}
@@ -258,18 +261,18 @@ export default function Home() {
         )}
 
         {/* Latest From the Community - Blended Feed */}
-        {blendedContent.length > 0 && (
-          <section id="latest" className="py-12 mt-8 scroll-mt-24">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-5xl font-bold font-serif text-charcoal-900">
-                Latest from the Community
-              </h2>
-            </div>
+        <section id="latest" className="py-12 mt-8 scroll-mt-24">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-5xl font-bold font-serif text-charcoal-900">
+              Latest from the Community
+            </h2>
+          </div>
 
             {/* Filter Tabs */}
-            <div className="flex items-center gap-2 mb-6">
+            <div role="group" aria-label="Filter content by type" className="flex items-center gap-2 mb-6">
               <button
                 onClick={() => setContentFilter('all')}
+                aria-pressed={contentFilter === 'all'}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'all'
                     ? 'bg-charcoal-900 text-white border-charcoal-900'
@@ -281,6 +284,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setContentFilter('mixes')}
+                aria-pressed={contentFilter === 'mixes'}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'mixes'
                     ? 'bg-charcoal-900 text-white border-charcoal-900'
@@ -292,6 +296,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setContentFilter('episodes')}
+                aria-pressed={contentFilter === 'episodes'}
                 className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
                   contentFilter === 'episodes'
                     ? 'bg-charcoal-900 text-white border-charcoal-900'
@@ -303,35 +308,73 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Featured Hero - Show first featured item prominently */}
-            {blendedContent[0]?.isFeatured && (
-              <FeaturedHero item={blendedContent[0]} />
+            {/* Loading skeletons */}
+            {isContentLoading && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="animate-pulse bg-cream-200 dark:bg-charcoal-800 rounded h-48 w-full" />
+                ))}
+              </div>
             )}
 
-            {/* Section Break + Header */}
-            <div className="pt-10 pb-6">
-              <h2 className="text-2xl md:text-3xl font-bold font-mono text-charcoal-900">
-                Latest from the Community
-              </h2>
-              <p className="text-charcoal-500 text-sm mt-2">
-                Recent mixes, episodes, and playlists from our contributors
-              </p>
-            </div>
+            {/* Error state */}
+            {!isContentLoading && isContentError && (
+              <div className="py-8">
+                <p className="text-charcoal-500">Could not load content — try refreshing.</p>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="mt-3 px-4 py-2 font-mono text-sm border border-charcoal-300 rounded hover:border-charcoal-900 transition-colors"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
 
-            {/* Regular Grid - Skip first if it was featured */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-              {blendedContent
-                .slice(blendedContent[0]?.isFeatured ? 1 : 0)
-                .map((item: any) => (
-                  <ContentCard 
-                    key={`${item.type}-${item.id}`} 
-                    content={{ ...item, isFeatured: false }} 
-                    type={item.type} 
-                  />
-                ))}
-            </div>
+            {/* Content */}
+            {!isContentLoading && !isContentError && (
+              <>
+                {/* Featured Hero - Show first featured item prominently */}
+                {blendedContent[0]?.isFeatured && (
+                  <FeaturedHero item={blendedContent[0]} />
+                )}
+
+                {/* Section Break + Sub-header */}
+                <div className="pt-10 pb-6">
+                  <h3 className="text-2xl md:text-3xl font-bold font-mono text-charcoal-900">
+                    Recent Uploads
+                  </h3>
+                  <p className="text-charcoal-500 text-sm mt-2">
+                    Recent mixes, episodes, and playlists from our contributors
+                  </p>
+                </div>
+
+                {/* Empty state */}
+                {blendedContent.length === 0 && (
+                  <div className="py-12 text-center">
+                    <p className="text-charcoal-500 mb-3">
+                      No {contentFilter === 'all' ? 'content' : contentFilter} yet.
+                    </p>
+                    <p className="text-charcoal-400 text-sm">Be the first to contribute.</p>
+                  </div>
+                )}
+
+                {/* Regular Grid - Skip first if it was featured */}
+                {blendedContent.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
+                    {blendedContent
+                      .slice(blendedContent[0]?.isFeatured ? 1 : 0)
+                      .map((item: any) => (
+                        <ContentCard
+                          key={`${item.type}-${item.id}`}
+                          content={{ ...item, isFeatured: false }}
+                          type={item.type}
+                        />
+                      ))}
+                  </div>
+                )}
+              </>
+            )}
           </section>
-        )}
 
         {/* About Section with CTA */}
         <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-charcoal-200 py-12">
@@ -377,7 +420,7 @@ export default function Home() {
               href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-white border-2 border-black p-8 hover:bg-cream-50 transition-colors block focus-visible:ring-2 focus-visible:ring-burnt-orange-500 focus-visible:ring-offset-2"
+              className="bg-white border-2 border-black p-8 hover:bg-cream-50 transition-colors group block focus-visible:ring-2 focus-visible:ring-burnt-orange-500 focus-visible:ring-offset-2"
             >
               <div className="text-center">
                 <h3 className="text-xl font-bold mb-3 font-mono text-charcoal-900">Community Programming Applications</h3>
@@ -427,8 +470,8 @@ export default function Home() {
                         data-testid={`img-featured-album-${featuredAlbum.album.id}`}
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-200 border-2 border-black flex items-center justify-center">
-                        <Music className="w-16 h-16 text-gray-400" />
+                      <div className="w-full h-full bg-cream-300 dark:bg-charcoal-700 border-2 border-black flex items-center justify-center">
+                        <Music className="w-16 h-16 text-charcoal-400 dark:text-charcoal-500" />
                       </div>
                     )}
                   </div>
