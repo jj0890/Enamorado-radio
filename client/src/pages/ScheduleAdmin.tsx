@@ -56,8 +56,21 @@ interface MixSubmission {
   approvedBy?: string;
 }
 
+interface ZineSubmission {
+  id: number;
+  title: string;
+  subtitle?: string;
+  authorName: string;
+  authorEmail: string;
+  contentType: string;
+  category: string;
+  content?: string;
+  status: 'pending' | 'approved' | 'rejected' | 'published';
+  submittedAt: string;
+}
+
 export default function ScheduleAdmin() {
-  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'resident-applications' | 'mix-submissions' | 'song-submissions' | 'analytics'>('mix-submissions');
+  const [activeSection, setActiveSection] = useState<'add-show' | 'manage-shows' | 'dj-submissions' | 'resident-applications' | 'mix-submissions' | 'song-submissions' | 'analytics' | 'zine-submissions'>('mix-submissions');
   const queryClient = useQueryClient();
   const [showForm, setShowForm] = useState({
     title: '',
@@ -73,12 +86,12 @@ export default function ScheduleAdmin() {
   const [shows] = useState<Show[]>([]);
 
   // Fetch DJ submissions
-  const { data: djSubmissions = [], isLoading: djSubmissionsLoading } = useQuery({
+  const { data: djSubmissions = [], isLoading: djSubmissionsLoading } = useQuery<DJSubmission[]>({
     queryKey: ['/api/dj-submissions'],
   });
 
   // Fetch Mix submissions for management
-  const { data: mixSubmissions = [], isLoading: mixSubmissionsLoading } = useQuery({
+  const { data: mixSubmissions = [], isLoading: mixSubmissionsLoading } = useQuery<MixSubmission[]>({
     queryKey: ['/api/admin/mix-submissions'],
   });
 
@@ -88,8 +101,22 @@ export default function ScheduleAdmin() {
 
 
   // Fetch Resident applications
-  const { data: residentApplications = [], isLoading: residentApplicationsLoading } = useQuery({
+  const { data: residentApplications = [], isLoading: residentApplicationsLoading } = useQuery<any[]>({
     queryKey: ['/api/resident-applications'],
+  });
+
+  // Zine submissions — reuse mix submissions data as placeholder
+  const zineSubmissions: ZineSubmission[] = [];
+  const zineSubmissionsLoading = false;
+
+  // Update Zine submission status (stub)
+  const updateZineSubmissionStatus = useMutation({
+    mutationFn: async ({ id, status }: { id: number; status: string }) => {
+      return await apiRequest('PATCH', `/api/zine-submissions/${id}/status`, { status });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/zine-submissions'] });
+    },
   });
 
   // Update DJ submission status

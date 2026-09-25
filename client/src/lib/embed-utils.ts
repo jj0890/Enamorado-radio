@@ -1,3 +1,49 @@
+// ── magazine-mockup-4 compatible exports ──────────────────────────────────────
+
+export interface EmbedData {
+  provider: 'spotify' | 'soundcloud' | 'youtube' | 'apple-music' | 'link';
+  embedUrl: string;
+  height: number;
+  title?: string;
+}
+
+/** Returns embed configuration for a given URL */
+export function getEmbed(url: string): EmbedData | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    if (u.host.includes('open.spotify.com')) {
+      const path = u.pathname.split('/').slice(1).join('/');
+      return { provider: 'spotify', embedUrl: `https://open.spotify.com/embed/${path}?utm_source=generator&theme=0`, height: 500 };
+    }
+    if (u.host.includes('soundcloud.com')) {
+      return { provider: 'soundcloud', embedUrl: `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&visual=true&show_artwork=true&auto_play=false&hide_related=true&show_comments=false`, height: 500 };
+    }
+    if (u.host.includes('youtube.com') || u.host.includes('youtu.be')) {
+      const videoId = u.host.includes('youtu.be') ? u.pathname.slice(1) : (u.searchParams.get('v') || '');
+      if (!videoId) return null;
+      return { provider: 'youtube', embedUrl: `https://www.youtube.com/embed/${videoId}`, height: 315 };
+    }
+    if (u.host.includes('music.apple.com')) {
+      return { provider: 'apple-music', embedUrl: url.replace('music.apple.com', 'embed.music.apple.com'), height: 500 };
+    }
+    return { provider: 'link', embedUrl: url, height: 200 };
+  } catch {
+    return null;
+  }
+}
+
+/** Pick the best platform URL from a links map */
+export function extractPlatformUrl(
+  links?: { spotify?: string; appleMusic?: string; soundcloud?: string; youtube?: string },
+  externalUrl?: string
+): string | null {
+  if (!links && !externalUrl) return null;
+  return links?.spotify ?? links?.youtube ?? links?.appleMusic ?? links?.soundcloud ?? externalUrl ?? null;
+}
+
+// ── webplayer-design-3 native exports ────────────────────────────────────────
+
 export type PlaylistPlatform = 'spotify' | 'apple-music' | 'apple_music' | 'soundcloud' | 'youtube' | 'mixcloud' | 'unknown';
 
 export function detectPlaylistPlatform(url: string): PlaylistPlatform {

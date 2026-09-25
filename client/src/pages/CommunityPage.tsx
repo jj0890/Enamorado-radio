@@ -1,16 +1,27 @@
+/**
+ * Community feed page.
+ * Layout: editorial, Substack-inspired.
+ *   – Hero card (first item, full-width horizontal)
+ *   – 3-col grid for the rest
+ *   – Submissions invite strip between sections
+ *   – Chronological "Latest" list at the bottom
+ */
+
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Search, Star } from 'lucide-react';
+import { Search, ArrowRight } from 'lucide-react';
+import { Link } from 'wouter';
 import Navigation from '@/components/Navigation';
 import ContentCard from '@/components/ContentCard';
+import LatestContentList from '@/components/editorial/LatestContentList';
 import { ContentItem } from '@shared/schema';
 
 type ContentType = 'all' | 'mix' | 'episode' | 'playlist';
 
-const filterOptions: { value: ContentType; label: string }[] = [
-  { value: 'all', label: 'All' },
-  { value: 'mix', label: 'Mixes' },
-  { value: 'episode', label: 'Episodes' },
+const FILTERS: { value: ContentType; label: string }[] = [
+  { value: 'all',      label: 'All' },
+  { value: 'mix',      label: 'Mixes' },
+  { value: 'episode',  label: 'Episodes' },
   { value: 'playlist', label: 'Playlists' },
 ];
 
@@ -18,160 +29,216 @@ export default function CommunityPage() {
   const [activeFilter, setActiveFilter] = useState<ContentType>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Fetch community content with filters
   const { data: allContent = [], isLoading } = useQuery<ContentItem[]>({
     queryKey: ['/api/community', activeFilter, searchQuery],
     queryFn: async () => {
-      const params = new URLSearchParams({
-        type: activeFilter,
-        limit: '48',
-        sort: 'recent',
-      });
-      
-      if (searchQuery.trim()) {
-        params.append('search', searchQuery.trim());
-      }
-
-      const response = await fetch(`/api/community?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch community content');
-      return response.json();
+      const params = new URLSearchParams({ type: activeFilter, limit: '48', sort: 'recent' });
+      if (searchQuery.trim()) params.append('search', searchQuery.trim());
+      const res = await fetch(`/api/community?${params}`);
+      if (!res.ok) throw new Error('Failed to fetch community content');
+      return res.json();
     },
     refetchOnWindowFocus: false,
   });
 
-  // Separate featured (Staff Picks) from regular content
   const staffPicks = allContent.filter(item => item.isFeatured);
   const freshContent = allContent.filter(item => !item.isFeatured);
-  
-  // When searching, show all results together (don't split)
   const isSearching = searchQuery.trim().length > 0;
 
+  // First fresh item gets the hero treatment; rest go into the grid
+  const [heroItem, ...gridItems] = freshContent;
+
   return (
-    <div className="min-h-screen bg-cream dark:bg-gray-950">
+    <div className="min-h-screen bg-background">
       <Navigation />
-      
-      <main className="container mx-auto px-4 py-8 md:py-12">
-        {/* Header */}
-        <div className="mb-8 md:mb-12">
-          <h1 className="text-4xl md:text-5xl font-serif text-gray-900 dark:text-white mb-4">
+
+      <main className="max-w-5xl mx-auto px-4 py-12">
+
+        {/* ── Page header ─────────────────────────────────────────── */}
+        <div className="mb-10 border-b border-paper-border pb-8">
+          <p className="font-mono text-xs uppercase tracking-widest text-ink-muted mb-2">
             Community
+          </p>
+          <h1
+            className="font-display font-black uppercase text-foreground leading-none"
+            style={{ fontSize: 'clamp(2.5rem, 6vw, 4rem)' }}
+          >
+            From the feed
           </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl">
-            Discover mixes, episodes, and editorial content from our community of music lovers and creators.
+          <p className="font-body text-sm text-ink-muted mt-3 max-w-lg">
+            Mixes, playlists, writing, and art submitted by the community.
+            Have something to share?{' '}
+            <Link href="/submit" className="text-olive hover:underline">Add it here →</Link>
           </p>
         </div>
 
-        {/* Filter Tabs */}
-        <div className="mb-6 flex flex-wrap gap-2">
-          {filterOptions.map(({ value, label }) => (
-            <button
-              key={value}
-              onClick={() => setActiveFilter(value)}
-              className={`px-4 py-2 font-mono text-sm transition-colors ${
-                activeFilter === value
-                  ? 'bg-navy text-white dark:bg-navy-light dark:text-gray-900'
-                  : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
-              data-testid={`filter-${value}`}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        {/* ── Filters + search ────────────────────────────────────── */}
+        <div className="flex flex-col sm:flex-row gap-4 mb-10">
+          {/* Type filters */}
+          <div className="flex gap-0 border border-paper-border">
+            {FILTERS.map(({ value, label }) => (
+              <button
+                key={value}
+                onClick={() => setActiveFilter(value)}
+                className={[
+                  'px-4 py-2 font-mono text-xs uppercase tracking-widest transition-colors',
+                  activeFilter === value
+                    ? 'bg-foreground text-background'
+                    : 'text-ink-muted hover:text-foreground',
+                ].join(' ')}
+                data-testid={`filter-${value}`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
 
-        {/* Search Bar */}
-        <div className="mb-8">
-          <div className="relative max-w-md">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-ink-faint" />
             <input
               type="text"
-              placeholder="Search by title, artist, or description..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-navy dark:focus:ring-navy-light"
+              className="w-full pl-9 pr-4 py-2 bg-background border border-paper-border font-body text-sm text-foreground placeholder-ink-faint focus:outline-none focus:border-ink/40"
               data-testid="input-search"
             />
           </div>
         </div>
 
-        {/* Content Sections */}
-        {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {Array.from({ length: 12 }).map((_, i) => (
-              <div
-                key={i}
-                className="aspect-square bg-gray-200 dark:bg-gray-800 animate-pulse rounded-xl"
-              />
-            ))}
-          </div>
-        ) : allContent.length === 0 ? (
-          <div className="text-center py-16">
-            <p className="text-xl text-gray-600 dark:text-gray-400 mb-2">
-              No content found
-            </p>
-            <p className="text-sm text-gray-500 dark:text-gray-500">
-              {searchQuery ? 'Try adjusting your search or filters' : 'Check back soon for new content'}
-            </p>
-          </div>
-        ) : isSearching ? (
-          // Search results - show all together without sections
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {allContent.map((item) => (
-              <ContentCard key={`${item.type}-${item.id}`} content={item} />
-            ))}
-          </div>
-        ) : (
-          <div className="space-y-12">
-            {/* Staff Picks Section - Only show if there are featured items */}
-            {staffPicks.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <div className="flex items-center gap-2 bg-navy/10 dark:bg-navy/20 px-4 py-2 rounded-lg">
-                    <Star className="w-4 h-4 text-navy dark:text-navy-light fill-current" />
-                    <h2 className="text-lg font-bold font-mono text-navy dark:text-navy-light">
-                      Staff Picks
-                    </h2>
-                  </div>
-                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {staffPicks.slice(0, 4).map((item) => (
-                    <ContentCard 
-                      key={`${item.type}-${item.id}`} 
-                      content={item} 
-                      showFeaturedBadge={true}
-                    />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* Fresh from Community Section */}
-            {freshContent.length > 0 && (
-              <section>
-                <div className="flex items-center gap-3 mb-6">
-                  <h2 className="text-lg font-bold font-mono text-gray-900 dark:text-white">
-                    Fresh from the Community
-                  </h2>
-                  <div className="flex-1 h-px bg-gray-200 dark:bg-gray-800" />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {freshContent.map((item) => (
-                    <ContentCard key={`${item.type}-${item.id}`} content={item} />
-                  ))}
-                </div>
-              </section>
-            )}
+        {/* ── Loading skeleton ────────────────────────────────────── */}
+        {isLoading && (
+          <div className="space-y-8">
+            <div className="h-64 bg-paper-cool animate-pulse" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="aspect-[3/2] bg-paper-cool animate-pulse" />
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Results Count */}
-        {!isLoading && allContent.length > 0 && (
-          <div className="mt-8 text-center">
-            <p className="text-sm font-mono text-gray-600 dark:text-gray-400">
-              Showing {allContent.length} {allContent.length === 1 ? 'item' : 'items'}
-              {staffPicks.length > 0 && !isSearching && ` (${staffPicks.length} staff pick${staffPicks.length !== 1 ? 's' : ''})`}
+        {/* ── Empty state ─────────────────────────────────────────── */}
+        {!isLoading && allContent.length === 0 && (
+          <div className="py-24 text-center border border-paper-border">
+            <p className="font-display font-black uppercase text-foreground text-2xl mb-3">
+              Nothing here yet
             </p>
+            <p className="font-body text-sm text-ink-muted mb-6">
+              {searchQuery ? 'Try different keywords or clear the filter.' : 'Be the first to share something.'}
+            </p>
+            <Link
+              href="/submit"
+              className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest bg-foreground text-background px-5 py-2 hover:bg-olive transition-colors"
+            >
+              Submit something <ArrowRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
+        )}
+
+        {/* ── Search results ──────────────────────────────────────── */}
+        {!isLoading && isSearching && allContent.length > 0 && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {allContent.map(item => (
+              <ContentCard key={`${item.type}-${item.id}`} content={item} />
+            ))}
+          </div>
+        )}
+
+        {/* ── Normal feed ─────────────────────────────────────────── */}
+        {!isLoading && !isSearching && allContent.length > 0 && (
+          <div className="space-y-14">
+
+            {/* Staff Picks — only if present */}
+            {staffPicks.length > 0 && (
+              <section>
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="font-mono text-xs uppercase tracking-widest text-ink-muted">Staff picks</span>
+                  <div className="flex-1 h-px bg-paper-border" />
+                </div>
+                {/* Hero for first staff pick */}
+                {staffPicks[0] && (
+                  <div className="mb-6">
+                    <ContentCard content={staffPicks[0]} showFeaturedBadge hero />
+                  </div>
+                )}
+                {staffPicks.length > 1 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {staffPicks.slice(1, 4).map(item => (
+                      <ContentCard key={`${item.type}-${item.id}`} content={item} showFeaturedBadge />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Fresh from the community */}
+            {freshContent.length > 0 && (
+              <section>
+                <div className="flex items-center gap-4 mb-6">
+                  <span className="font-mono text-xs uppercase tracking-widest text-ink-muted">
+                    Fresh from the community
+                  </span>
+                  <div className="flex-1 h-px bg-paper-border" />
+                </div>
+
+                {/* Hero — first item */}
+                {heroItem && (
+                  <div className="mb-6">
+                    <ContentCard content={heroItem} hero />
+                  </div>
+                )}
+
+                {/* Grid — the rest */}
+                {gridItems.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {gridItems.slice(0, 8).map(item => (
+                      <ContentCard key={`${item.type}-${item.id}`} content={item} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* ── Submissions invite strip ─────────────────────── */}
+            <div className="border border-paper-border bg-background">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6 p-8">
+                <div className="flex-1">
+                  <p className="font-mono text-[10px] uppercase tracking-widest text-ink-faint mb-2">
+                    Open to all
+                  </p>
+                  <p
+                    className="font-display font-black uppercase text-foreground leading-tight"
+                    style={{ fontSize: 'clamp(1.4rem, 3vw, 2rem)' }}
+                  >
+                    Share something with the feed
+                  </p>
+                  <p className="font-body text-sm text-ink-muted mt-2 max-w-md">
+                    Mixes, playlists, a song you've been playing on repeat, a poem, artwork —
+                    anything that feels like Enamorado. We review everything.
+                  </p>
+                </div>
+                <Link
+                  href="/submit"
+                  className="shrink-0 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest bg-foreground text-background px-6 py-3 hover:bg-olive transition-colors"
+                >
+                  Submit <ArrowRight className="w-3.5 h-3.5" />
+                </Link>
+              </div>
+            </div>
+
+            {/* ── Latest chronological list ────────────────────── */}
+            <section>
+              <div className="flex items-center gap-4 mb-6">
+                <span className="font-mono text-xs uppercase tracking-widest text-ink-muted">Latest</span>
+                <div className="flex-1 h-px bg-paper-border" />
+              </div>
+              <LatestContentList
+                limit={20}
+                contentTypes={activeFilter === 'all' ? undefined : [activeFilter]}
+              />
+            </section>
           </div>
         )}
       </main>

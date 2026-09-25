@@ -6,8 +6,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Radio, Clock, CheckCircle, AlertCircle, RefreshCw, Wifi, HardDrive, Radio as RadioIcon } from 'lucide-react';
+import { Upload, Radio, Clock, CheckCircle, AlertCircle, RefreshCw, Wifi, HardDrive, Radio as RadioIcon, Plus, Trash2 } from 'lucide-react';
 import AdminShell from '@/components/admin/AdminShell';
+
+interface TrackEntry {
+  timestamp: string; // MM:SS
+  artist: string;
+  title: string;
+}
+
+function timestampToSeconds(ts: string): number {
+  const parts = ts.split(':').map(Number);
+  if (parts.length === 2) return (parts[0] || 0) * 60 + (parts[1] || 0);
+  if (parts.length === 3) return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+  return 0;
+}
 
 type UploadStage = 'idle' | 'uploading' | 'connecting' | 'transferring' | 'rescanning' | 'completed' | 'failed';
 
@@ -22,7 +35,13 @@ export default function AdminEpisodeUpload({ onLogout, currentUser = "admin", us
   const [uploadProgress, setUploadProgress] = useState<string>('');
   const [uploadStage, setUploadStage] = useState<UploadStage>('idle');
   const [uploadError, setUploadError] = useState<{ message: string; retryable: boolean; episodeId?: number } | null>(null);
-  
+  const [tracks, setTracks] = useState<TrackEntry[]>([{ timestamp: '', artist: '', title: '' }]);
+
+  const addTrack = () => setTracks(prev => [...prev, { timestamp: '', artist: '', title: '' }]);
+  const removeTrack = (i: number) => setTracks(prev => prev.filter((_, idx) => idx !== i));
+  const updateTrack = (i: number, field: keyof TrackEntry, value: string) =>
+    setTracks(prev => prev.map((t, idx) => idx === i ? { ...t, [field]: value } : t));
+
   const [formData, setFormData] = useState({
     title: '',
     showSlug: '',
@@ -107,6 +126,7 @@ export default function AdminEpisodeUpload({ onLogout, currentUser = "admin", us
           scheduleImmediate: false,
           scheduledTime: ''
         });
+        setTracks([{ timestamp: '', artist: '', title: '' }]);
         
         // Clear file inputs
         const audioInput = document.getElementById('audioFile') as HTMLInputElement;
@@ -178,6 +198,18 @@ export default function AdminEpisodeUpload({ onLogout, currentUser = "admin", us
     data.append('featureOnHome', formData.featureOnHome.toString());
     data.append('artworkUrl', formData.artworkUrl);
     data.append('showId', '1'); // Default show ID
+
+    // Serialize tracklist — only include rows with at least artist or title
+    const filledTracks = tracks
+      .filter(t => t.artist.trim() || t.title.trim())
+      .map(t => ({
+        timestamp: timestampToSeconds(t.timestamp),
+        artist: t.artist.trim(),
+        title: t.title.trim(),
+      }));
+    if (filledTracks.length > 0) {
+      data.append('tracklist', JSON.stringify(filledTracks));
+    }
 
     setUploadProgress('Starting upload...');
     uploadMutation.mutate(data);
@@ -328,6 +360,69 @@ export default function AdminEpisodeUpload({ onLogout, currentUser = "admin", us
                     />
                     <p className="text-xs text-gray-500 mt-1">Separate tags with commas</p>
                   </div>
+                </div>
+
+                {/* SECTION: Tracklist */}
+                <div className="space-y-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-mono uppercase text-sm font-semibold text-gray-700 tracking-wide">
+                      Tracklist
+                    </h3>
+                    <span className="text-xs text-gray-400 font-mono">optional</span>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    Format: MM:SS — clicking a row in the public player will seek to that timestamp.
+                  </p>
+
+                  {/* Column headers */}
+                  <div className="grid grid-cols-[72px_1fr_1fr_28px] gap-2 items-center">
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Time</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Artist</span>
+                    <span className="font-mono text-[10px] uppercase tracking-widest text-gray-400">Track Title</span>
+                    <span />
+                  </div>
+
+                  <div className="space-y-2">
+                    {tracks.map((track, i) => (
+                      <div key={i} className="grid grid-cols-[72px_1fr_1fr_28px] gap-2 items-center">
+                        <Input
+                          value={track.timestamp}
+                          onChange={e => updateTrack(i, 'timestamp', e.target.value)}
+                          placeholder="00:00"
+                          className="font-mono text-sm h-8 px-2"
+                        />
+                        <Input
+                          value={track.artist}
+                          onChange={e => updateTrack(i, 'artist', e.target.value)}
+                          placeholder="Artist name"
+                          className="text-sm h-8 px-2"
+                        />
+                        <Input
+                          value={track.title}
+                          onChange={e => updateTrack(i, 'title', e.target.value)}
+                          placeholder="Track title"
+                          className="text-sm h-8 px-2"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeTrack(i)}
+                          disabled={tracks.length === 1}
+                          className="text-gray-400 hover:text-red-500 disabled:opacity-20 transition-colors"
+                          aria-label="Remove track"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={addTrack}
+                    className="flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-gray-500 hover:text-gray-800 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" /> Add Track
+                  </button>
                 </div>
 
                 {/* SECTION: Artwork */}

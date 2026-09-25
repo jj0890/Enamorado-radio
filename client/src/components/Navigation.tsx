@@ -1,177 +1,154 @@
+import { useState } from "react";
 import { Link, useLocation } from "wouter";
-import { ChevronDown } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import ThemeToggle from "./ThemeToggle";
-import { FEATURES } from "@/config/features";
+import { Menu, X } from "lucide-react";
+
+const NAV_LINKS = [
+  { href: "/radio",      label: "Radio"     },
+  { href: "/editorial",  label: "Editorial" },
+  { href: "/spotlight",  label: "Spotlight" },
+  { href: "/community",  label: "Community" },
+  { href: "/guides",     label: "Guides"    },
+  { href: "/residents",  label: "Residents" },
+] as const;
 
 export default function Navigation() {
   const [location] = useLocation();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isActive = (path: string) => {
-    if (path === "/" && location === "/") return true;
-    if (path !== "/" && location.startsWith(path)) return true;
-    return false;
-  };
-
-  const navLinkClass = (path: string) => {
-    const base = "font-mono text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2";
-    return isActive(path)
-      ? `${base} text-navy font-bold`
-      : `${base} text-gray-600 dark:text-gray-400 hover:text-navy`;
-  };
+  const isActive = (href: string) =>
+    href === "/" ? location === "/" : location.startsWith(href);
 
   return (
-    <header className="border-b border-black dark:border-gray-800 bg-white dark:bg-black sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
-          <Link 
-            href="/" 
-            className="text-2xl font-bold tracking-tight font-mono text-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-            data-testid="link-nav-logo"
-          >
-            Enamorado
-          </Link>
+    <>
+      <header
+        className="sticky top-0 z-50 border-b border-paper-border bg-paper dark:bg-[var(--card)] dark:border-[var(--border)]"
+        style={{ transition: "background var(--duration-base) var(--ease-default)" }}
+      >
+        <div className="max-w-site mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between h-12">
 
-          <nav className="flex items-center space-x-6">
-            <Link 
-              href="/" 
-              className={navLinkClass("/")}
-              data-testid="link-nav-home"
-            >
-              Home
-            </Link>
-
-            <Link 
-              href="/latest" 
-              className={navLinkClass("/latest")}
-              data-testid="link-nav-latest"
-            >
-              Latest
-            </Link>
-
-            <Link 
-              href="/community" 
-              className={navLinkClass("/community")}
-              data-testid="link-nav-community"
-            >
-              Community
-            </Link>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-navy transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                data-testid="dropdown-nav-explore"
+            {/* ── Logo ── */}
+            <Link href="/" className="flex items-center shrink-0">
+              <img
+                src="/logo.png"
+                alt="Enamorado Radio"
+                className="h-8 w-auto object-contain"
+                onError={(e) => {
+                  // Fallback to wordmark if logo file isn't present yet
+                  const el = e.currentTarget;
+                  el.style.display = "none";
+                  el.nextElementSibling?.removeAttribute("style");
+                }}
+              />
+              <span
+                style={{ display: "none" }}
+                className="font-display font-800 text-xl tracking-wider uppercase text-foreground hover:text-olive transition-colors"
               >
-                Explore
-                <ChevronDown className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-white dark:bg-black border-black dark:border-gray-800 font-mono"
-              >
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/episodes" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-episodes"
-                  >
-                    Episodes
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/mixes" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-mixes"
-                  >
-                    Mixes
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/albums" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-albums"
-                  >
-                    Albums of the Month
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <a 
-                    href="https://replit.com/@jarradjones7/Magazine-Mockup"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy flex items-center gap-2"
-                    data-testid="dropdown-item-editorial"
-                  >
-                    Editorial
-                    <span className="text-xs text-gray-400">↗</span>
-                  </a>
-                </DropdownMenuItem>
-                {FEATURES.SCHEDULE && (
-                  <DropdownMenuItem asChild>
-                    <Link 
-                      href="/schedule" 
-                      className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                      data-testid="dropdown-item-schedule"
-                    >
-                      Schedule
-                    </Link>
-                  </DropdownMenuItem>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                Enamorado
+              </span>
+            </Link>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger 
-                className="font-mono text-sm text-gray-600 dark:text-gray-400 hover:text-navy transition-colors inline-flex items-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-                data-testid="dropdown-nav-submit"
+            {/* ── Desktop nav ── */}
+            <nav className="hidden md:flex items-center gap-6" aria-label="Main navigation">
+              {NAV_LINKS.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={[
+                    "font-mono text-xs uppercase tracking-widest transition-colors",
+                    isActive(href)
+                      ? "text-olive font-semibold"
+                      : "text-ink-muted hover:text-foreground",
+                  ].join(" ")}
+                >
+                  {label}
+                </Link>
+              ))}
+            </nav>
+
+            {/* ── Right: Live dot + Submit CTA + Mobile toggle ── */}
+            <div className="flex items-center gap-3">
+              {/* Live indicator */}
+              <Link
+                href="/radio"
+                className="hidden sm:flex items-center gap-1.5 font-mono text-xs uppercase tracking-widest text-ink-muted hover:text-foreground transition-colors"
+              >
+                <span
+                  className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--live-dot)] animate-live-pulse"
+                  aria-label="Live"
+                />
+                Live
+              </Link>
+
+              {/* Submit CTA */}
+              <Link
+                href="/submit"
+                className="hidden sm:inline-flex items-center px-3 py-1 font-mono text-xs uppercase tracking-widest rounded border border-olive text-olive hover:bg-[var(--olive-subtle)] transition-colors"
               >
                 Submit
-                <ChevronDown className="w-4 h-4" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent 
-                align="start" 
-                className="bg-white dark:bg-black border-black dark:border-gray-800 font-mono"
+              </Link>
+
+              {/* Mobile toggle */}
+              <button
+                className="md:hidden p-1 text-ink-muted hover:text-foreground transition-colors"
+                onClick={() => setMobileOpen((v) => !v)}
+                aria-label={mobileOpen ? "Close menu" : "Open menu"}
+                aria-expanded={mobileOpen}
               >
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/submit-mix" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-submit-mix"
-                  >
-                    Submit a Mix
-                  </Link>
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link 
-                    href="/submit-playlist" 
-                    className="cursor-pointer focus:bg-gray-100 dark:focus:bg-gray-900 focus:text-navy"
-                    data-testid="dropdown-item-submit-playlist"
-                  >
-                    Submit a Playlist
-                  </Link>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            <Link 
-              href="/about" 
-              className={navLinkClass("/about")}
-              data-testid="link-nav-about"
-            >
-              About
-            </Link>
-
-            <ThemeToggle />
-          </nav>
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* ── Mobile drawer ── */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 z-40 bg-background"
+          onClick={() => setMobileOpen(false)}
+        >
+          <div
+            className="absolute top-12 inset-x-0 border-b border-paper-border bg-background px-6 py-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <nav className="flex flex-col gap-6" aria-label="Mobile navigation">
+              {NAV_LINKS.map(({ href, label }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className={[
+                    "font-display font-600 text-3xl uppercase tracking-wide transition-colors",
+                    isActive(href) ? "text-olive" : "text-foreground hover:text-olive",
+                  ].join(" ")}
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {label}
+                </Link>
+              ))}
+
+              {/* Mobile live + submit */}
+              <div className="pt-4 border-t border-paper-border flex flex-col gap-3">
+                <Link
+                  href="/radio"
+                  className="flex items-center gap-2 font-mono text-sm uppercase tracking-widest text-ink-muted"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--live-dot)] animate-live-pulse" />
+                  Live Radio
+                </Link>
+                <Link
+                  href="/submit"
+                  className="inline-flex items-center justify-center px-4 py-2 font-mono text-sm uppercase tracking-widest rounded border border-olive text-olive hover:bg-[var(--olive-subtle)] transition-colors"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  Submit
+                </Link>
+              </div>
+            </nav>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

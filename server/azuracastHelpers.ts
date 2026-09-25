@@ -1,5 +1,6 @@
 import axios from 'axios';
-// @ts-ignore - No type definitions available\nimport SftpClient from 'ssh2-sftp-client';
+// @ts-ignore - No type definitions available
+import SftpClient from 'ssh2-sftp-client';
 
 const base = process.env.AZURACAST_BASE_URL;
 const apiKey = process.env.AZURACAST_API_KEY;

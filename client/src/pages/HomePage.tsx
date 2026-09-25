@@ -1,22 +1,20 @@
 import { useState, useEffect, useMemo } from "react";
 import { Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { Music } from "lucide-react";
-import LiveShowCard from "@/components/LiveShowCard";
-
-// Components (use your alias/paths; adjust if different)
-import RadioStreamPlayer from "@/components/RadioStreamPlayer";
-import HeroStation from "@/components/HeroStation";
+import { Music, ArrowRight, Pause, Play } from "lucide-react";
 import { FeaturedMixCard } from "@/components/FeaturedMixCard";
 import PublicMixCard from "@/components/PublicMixCard";
 import ContentCard from "@/components/ContentCard";
 import FeaturedHero from "@/components/FeaturedHero";
 import Navigation from "@/components/Navigation";
-
-// Optional util (only needed if your FeaturedMixCard wants it)
+import { useAudio } from "@/providers/AudioProvider";
 import { getTrackThumbnail } from "@/utils/soundcloud";
 
-// Updated to match server response format
+interface NowPlayingData {
+  now_playing?: { song?: { title?: string; artist?: string; art?: string } };
+  live?: { is_live?: boolean; streamer_name?: string };
+}
+
 interface FeaturedSubmission {
   id: number;
   name: string;
@@ -30,19 +28,55 @@ interface FeaturedSubmission {
   featureOnSite?: boolean;
 }
 
+const FILTER_OPTIONS = [
+  { value: "all",      label: "All"      },
+  { value: "mixes",    label: "Mixes"    },
+  { value: "episodes", label: "Episodes" },
+] as const;
+
+type FilterValue = typeof FILTER_OPTIONS[number]["value"];
+
 export default function Home() {
   const [trackThumbnails, setTrackThumbnails] = useState<Record<number, string>>({});
-  const [contentFilter, setContentFilter] = useState<'all' | 'mixes' | 'episodes'>('all');
+  const [contentFilter, setContentFilter] = useState<FilterValue>("all");
 
-  // --- DATA: Featured DJ submissions (for big centered feature) ---
+  const { state: audioState, actions: audioActions } = useAudio();
+  const isPlaying = audioState.status === 'playing';
+
+  const { data: nowPlaying } = useQuery<NowPlayingData>({
+    queryKey: ['/api/nowplaying'],
+    refetchInterval: 10000,
+  });
+
+  const isLive = nowPlaying?.live?.is_live ?? false;
+  const streamerName = nowPlaying?.live?.streamer_name ?? '';
+  const nowTitle = nowPlaying?.now_playing?.song?.title ?? '';
+  const nowArtist = nowPlaying?.now_playing?.song?.artist ?? '';
+
+  const heroTrackLine = isLive && streamerName
+    ? streamerName
+    : nowTitle && nowArtist
+      ? `${nowTitle} — ${nowArtist}`
+      : 'San Antonio · Live Stream';
+
+  const handleHeroPlay = async () => {
+    if (isPlaying) {
+      audioActions.pause();
+    } else {
+      await audioActions.play('/stream.mp3', {
+        title: isLive ? streamerName : nowTitle || 'Enamorado Radio',
+        artist: isLive ? 'Live' : nowArtist,
+        isLive,
+      });
+    }
+  };
+
   const { data: featuredSubmissions = [] } = useQuery<FeaturedSubmission[]>({
     queryKey: ["/api/public/mixes/featured"],
   });
 
-
-  // --- DATA: Fresh mixes (unified endpoint for consistency) ---
   const { data: freshMixes = [] } = useQuery({
-    queryKey: ["/api/community", { type: 'mix', limit: 12 }],
+    queryKey: ["/api/community", { type: "mix", limit: 12 }],
     queryFn: async () => {
       const r = await fetch("/api/community?type=mix&limit=12&sort=recent", { cache: "no-store" });
       if (!r.ok) throw new Error("Failed to fetch mixes");
@@ -51,9 +85,8 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // --- DATA: Fresh playlists ---
   const { data: freshPlaylists = [] } = useQuery({
-    queryKey: ["/api/community", { type: 'playlist', limit: 6 }],
+    queryKey: ["/api/community", { type: "playlist", limit: 6 }],
     queryFn: async () => {
       const r = await fetch("/api/community?type=playlist&limit=6&sort=recent", { cache: "no-store" });
       if (!r.ok) throw new Error("Failed to fetch playlists");
@@ -62,76 +95,17 @@ export default function Home() {
     refetchOnWindowFocus: false,
   });
 
-  // --- DATA: All published episodes ---
   const { data: allEpisodes = [] } = useQuery({
     queryKey: ["/api/episodes"],
     queryFn: async () => {
       const r = await fetch("/api/episodes");
       if (!r.ok) throw new Error("Failed to fetch episodes");
       const episodes = await r.json();
-      return episodes.filter((e: any) => e.status === 'published');
+      return episodes.filter((e: any) => e.status === "published");
     },
     refetchOnWindowFocus: false,
   });
 
-  // --- BLENDED FEED: Combine mixes, episodes, and playlists ---
-  const blendedContent = useMemo(() => {
-    const mixesWithType = freshMixes.map((mix: any) => ({
-      ...mix,
-      type: 'mix' as const,
-      dateForSorting: new Date(mix.submittedAt || mix.date || 0).getTime(),
-      isFeatured: mix.featureOnSite || false,
-    }));
-
-    const episodesWithType = allEpisodes.map((episode: any) => ({
-      ...episode,
-      type: 'episode' as const,
-      dateForSorting: new Date(episode.airDate || 0).getTime(),
-      isFeatured: episode.isFeatured || false,
-    }));
-
-    const playlistsWithType = freshPlaylists.map((playlist: any) => ({
-      ...playlist,
-      type: 'playlist' as const,
-      dateForSorting: new Date(playlist.submittedAt || playlist.date || 0).getTime(),
-      isFeatured: playlist.isFeatured || false,
-    }));
-
-    // Combine all items
-    const combined = [...mixesWithType, ...episodesWithType, ...playlistsWithType];
-
-    // Separate and sort featured items
-    const allFeatured = combined
-      .filter(item => item.isFeatured)
-      .sort((a, b) => b.dateForSorting - a.dateForSorting);
-
-    // Keep first 2 featured with styling, demote rest to regular cards
-    const topFeaturedItems = allFeatured.slice(0, 2);
-    const demotedFeaturedItems = allFeatured.slice(2).map(item => ({
-      ...item,
-      isFeatured: false, // Remove featured styling but keep in feed
-    }));
-
-    // Sort non-featured items
-    const nonFeaturedItems = combined
-      .filter(item => !item.isFeatured)
-      .sort((a, b) => b.dateForSorting - a.dateForSorting);
-
-    // Combine: top 2 featured first, then demoted featured, then non-featured
-    const sorted = [...topFeaturedItems, ...demotedFeaturedItems, ...nonFeaturedItems];
-
-    // Apply filter
-    if (contentFilter === 'mixes') {
-      return sorted.filter(item => item.type === 'mix').slice(0, 12);
-    } else if (contentFilter === 'episodes') {
-      return sorted.filter(item => item.type === 'episode').slice(0, 12);
-    } else {
-      // Show all content
-      return sorted.slice(0, 12);
-    }
-  }, [freshMixes, allEpisodes, freshPlaylists, contentFilter]);
-
-  // --- DATA: Upcoming schedule ---
   const { data: upcomingShows = [] } = useQuery({
     queryKey: ["/api/schedule", { upcoming: true }],
     queryFn: async () => {
@@ -139,32 +113,48 @@ export default function Home() {
       if (!r.ok) throw new Error("Failed to fetch schedule");
       return r.json();
     },
-    refetchInterval: 60000, // Refresh every minute
+    refetchInterval: 60000,
   });
 
-  // --- DATA: Current month's album pick for featured section ---
   const getCurrentMonth = () => {
     const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    return `${year}-${month}`;
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
   };
 
   const { data: currentMonthPick } = useQuery({
     queryKey: ["/api/albums/published", getCurrentMonth()],
     queryFn: async () => {
-      const currentMonth = getCurrentMonth();
-      const r = await fetch(`/api/albums/published/${currentMonth}`);
-      if (!r.ok) {
-        if (r.status === 404) return null; // No pick for current month
-        throw new Error("Failed to fetch current month pick");
-      }
+      const r = await fetch(`/api/albums/published/${getCurrentMonth()}`);
+      if (!r.ok) return null;
       return r.json();
     },
     refetchOnWindowFocus: false,
   });
 
-  // If your FeaturedMixCard wants thumbnails (SoundCloud/Mixcloud helpers)
+  const blendedContent = useMemo(() => {
+    const withType = (arr: any[], type: string) =>
+      arr.map((item) => ({
+        ...item,
+        type,
+        dateForSorting: new Date(item.submittedAt || item.airDate || item.date || 0).getTime(),
+        isFeatured: item.featureOnSite || item.isFeatured || false,
+      }));
+
+    const combined = [
+      ...withType(freshMixes, "mix"),
+      ...withType(allEpisodes, "episode"),
+      ...withType(freshPlaylists, "playlist"),
+    ];
+
+    const featured = combined.filter((i) => i.isFeatured).sort((a, b) => b.dateForSorting - a.dateForSorting);
+    const rest = combined.filter((i) => !i.isFeatured).sort((a, b) => b.dateForSorting - a.dateForSorting);
+    const sorted = [...featured.slice(0, 2), ...featured.slice(2).map((i) => ({ ...i, isFeatured: false })), ...rest];
+
+    if (contentFilter === "mixes")    return sorted.filter((i) => i.type === "mix").slice(0, 12);
+    if (contentFilter === "episodes") return sorted.filter((i) => i.type === "episode").slice(0, 12);
+    return sorted.slice(0, 12);
+  }, [freshMixes, allEpisodes, freshPlaylists, contentFilter]);
+
   useEffect(() => {
     if (!featuredSubmissions.length) return;
     (async () => {
@@ -173,9 +163,7 @@ export default function Home() {
         try {
           const t = await getTrackThumbnail(sub);
           if (t) thumbs[sub.id] = t;
-        } catch (err) {
-          console.warn("thumbnail error", sub.id, err);
-        }
+        } catch {}
       }
       setTrackThumbnails(thumbs);
     })();
@@ -183,301 +171,387 @@ export default function Home() {
 
   const featuredSubmission = featuredSubmissions[0];
 
-  // Rotate featured album based on day of month
-  const getFeaturedAlbum = () => {
-    if (!currentMonthPick || !currentMonthPick.items || currentMonthPick.items.length === 0) {
-      return null;
-    }
-    const dayOfMonth = new Date().getDate();
-    const index = (dayOfMonth - 1) % currentMonthPick.items.length;
-    return currentMonthPick.items[index];
-  };
+  // Editorial content for homepage strip
+  const { data: editorialItems = [] } = useQuery({
+    queryKey: ["/api/published-content", "homepage"],
+    queryFn: async () => {
+      const [pubRes, promRes] = await Promise.all([
+        fetch("/api/published-content"),
+        fetch("/api/editorial-promoted"),
+      ]);
+      const pub = pubRes.ok ? await pubRes.json() : [];
+      const prom = promRes.ok ? await promRes.json() : [];
+      const seen = new Set();
+      return [...pub, ...prom].filter((item: any) => {
+        if (seen.has(item.id)) return false;
+        seen.add(item.id);
+        return true;
+      }).slice(0, 4);
+    },
+    refetchOnWindowFocus: false,
+  });
 
-  const featuredAlbum = getFeaturedAlbum();
+  const featuredAlbum = (() => {
+    if (!currentMonthPick?.items?.length) return null;
+    const idx = (new Date().getDate() - 1) % currentMonthPick.items.length;
+    return currentMonthPick.items[idx];
+  })();
 
   return (
-    <div className="min-h-screen bg-[#FAFAFA] dark:bg-black text-black dark:text-white transition-colors">
+    <div className="min-h-screen bg-background text-foreground">
       <Navigation />
-      <main className="pb-28">
-        {/* HERO - Live Show Card */}
-        <LiveShowCard />
 
-        <div className="px-4 max-w-7xl mx-auto">
-        {/* Upcoming Shows Widget */}
-        {upcomingShows.length > 0 && (
-          <section className="py-8 mt-8 bg-cream dark:bg-gray-900 -mx-4 px-4">
-            <div className="max-w-7xl mx-auto">
-              <h2 className="text-3xl font-bold font-serif text-gray-900 dark:text-white mb-6">
-                Coming Up Next
-              </h2>
-              <div className="grid gap-4 md:grid-cols-3">
+      <main className="pb-32">
+
+        {/* ── HERO ─────────────────────────────────────────────────── */}
+        <section className="bg-[#090909] border-b border-paper-border py-16 sm:py-24 flex flex-col items-center text-center">
+          {/* Eyebrow */}
+          <div className="flex items-center gap-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/30 mb-7">
+            <span className="w-8 h-px bg-white/10" />
+            San Antonio · Independent Radio
+            <span className="w-8 h-px bg-white/10" />
+          </div>
+
+          {/* Wordmark */}
+          <h1
+            className="font-display font-black uppercase text-white leading-[0.9] tracking-[-0.02em]"
+            style={{ fontSize: 'clamp(56px, 11vw, 120px)' }}
+          >
+            Enamorado<br />
+            <span className="text-blue">Radio</span>
+          </h1>
+
+          {/* Sub */}
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/30 mt-2 mb-12">
+            Community-powered · Always on
+          </p>
+
+          {/* Live player card */}
+          <div className="w-full max-w-lg bg-[#13141A] border border-[#25272E] px-6 py-5 flex items-center gap-5 text-left mx-4">
+            <button
+              onClick={handleHeroPlay}
+              aria-label={isPlaying ? 'Pause' : 'Play live radio'}
+              className="w-11 h-11 rounded-full bg-blue flex items-center justify-center flex-shrink-0 hover:bg-blue-dark transition-colors"
+            >
+              {isPlaying
+                ? <Pause className="w-4 h-4 text-white fill-white" />
+                : <Play  className="w-4 h-4 text-white fill-white ml-[2px]" />
+              }
+            </button>
+
+            <div className="flex-1 min-w-0">
+              <div className="font-display font-black uppercase text-[13px] tracking-[0.04em] text-white">
+                Enamorado Radio
+              </div>
+              <div className="font-mono text-[10px] text-white/40 mt-0.5 truncate tracking-[0.04em]">
+                {heroTrackLine}
+              </div>
+            </div>
+
+            <div className="flex flex-col items-end gap-2.5 flex-shrink-0">
+              <div className="font-mono text-[9px] uppercase tracking-[0.14em] text-[var(--live-dot)] flex items-center gap-1.5">
+                <span className="w-[5px] h-[5px] rounded-full bg-[var(--live-dot)] animate-live-pulse" />
+                On Air
+              </div>
+              {isPlaying && (
+                <div className="flex items-center gap-[2px] h-5">
+                  {[6, 14, 20, 10, 16, 7, 12].map((h, i) => (
+                    <div
+                      key={i}
+                      className="w-[2px] bg-blue rounded-[1px] hero-wave-bar"
+                      style={{
+                        height: h,
+                        animationDelay: `${[0, 0.12, 0.04, 0.2, 0.08, 0.25, 0.16][i]}s`,
+                      }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </section>
+
+        <div className="max-w-site mx-auto px-4 sm:px-6">
+
+          {/* ── FEATURED MIX ─────────────────────────────────────────── */}
+          {featuredSubmission && (
+            <section className="py-10 border-b border-paper-border">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display font-700 text-2xl uppercase tracking-wide text-foreground">
+                  Featured
+                </h2>
+                <Link href="/mixes" className="font-mono text-xs uppercase tracking-widest text-ink-muted hover:text-blue transition-colors flex items-center gap-1">
+                  All Mixes <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <FeaturedMixCard
+                mix={featuredSubmission}
+              />
+            </section>
+          )}
+
+          {/* ── UPCOMING SHOWS ───────────────────────────────────────── */}
+          {upcomingShows.length > 0 && (
+            <section className="py-10 border-b border-paper-border">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display font-700 text-2xl uppercase tracking-wide text-foreground">
+                  Coming Up
+                </h2>
+                <Link href="/schedule" className="font-mono text-xs uppercase tracking-widest text-ink-muted hover:text-blue transition-colors flex items-center gap-1">
+                  Full Schedule <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-3">
                 {upcomingShows.map((show: any) => {
-                  // Defensive: handle both scheduledAt and scheduledAirDate
                   const scheduledTime = show.scheduledAt ?? show.scheduledAirDate;
                   if (!scheduledTime) return null;
-                  
                   const scheduledDate = new Date(scheduledTime);
                   const now = new Date();
                   const isToday = scheduledDate.toDateString() === now.toDateString();
-                  const timeString = scheduledDate.toLocaleTimeString('en-US', { 
-                    hour: 'numeric', 
-                    minute: '2-digit',
-                    hour12: true 
-                  });
-                  const dateString = isToday ? 'Today' : scheduledDate.toLocaleDateString('en-US', { 
-                    month: 'short', 
-                    day: 'numeric' 
-                  });
-                  
-                  // Defensive: handle both hostName and residentName
-                  const displayName = show.hostName ?? show.residentName ?? 'Resident DJ';
-                  
+                  const timeStr = scheduledDate.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", hour12: true });
+                  const dateStr = isToday ? "Today" : scheduledDate.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+                  const name = show.hostName ?? show.residentName ?? "Resident DJ";
                   return (
-                    <div 
+                    <div
                       key={show.id}
-                      className="bg-white dark:bg-black border-2 border-black dark:border-gray-700 p-5 hover:border-navy dark:hover:border-navy transition-all"
-                      data-testid={`upcoming-show-${show.id}`}
+                      className="border border-paper-border p-4 hover:border-blue transition-colors"
                     >
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="bg-navy text-white px-3 py-1 text-xs font-mono font-bold">
-                          {dateString} • {timeString}
-                        </div>
-                      </div>
-                      <h3 className="text-lg font-bold font-mono mb-2 text-gray-900 dark:text-white">
+                      <p className="font-mono text-xs uppercase tracking-widest text-blue mb-2">
+                        {dateStr} · {timeStr}
+                      </p>
+                      <h3 className="font-display font-600 text-xl uppercase leading-tight text-foreground mb-1">
                         {show.title}
                       </h3>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 font-mono">
-                        {displayName}
-                      </p>
+                      <p className="font-mono text-xs text-ink-muted">{name}</p>
                     </div>
                   );
                 })}
               </div>
-            </div>
-          </section>
-        )}
+            </section>
+          )}
 
-        {/* Latest From the Community - Blended Feed */}
-        {blendedContent.length > 0 && (
-          <section id="latest" className="py-12 mt-8 scroll-mt-24">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-5xl font-bold font-serif text-gray-900 dark:text-white">
-                Latest from the Community
+          {/* ── COMMUNITY FEED ───────────────────────────────────────── */}
+          {blendedContent.length > 0 && (
+            <section className="py-10 border-b border-paper-border">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display font-700 text-2xl uppercase tracking-wide text-foreground">
+                  Community
+                </h2>
+                <div className="flex items-center gap-1">
+                  {FILTER_OPTIONS.map(({ value, label }) => (
+                    <button
+                      key={value}
+                      onClick={() => setContentFilter(value)}
+                      className={[
+                        "font-mono text-xs uppercase tracking-widest px-3 py-1 border transition-colors",
+                        contentFilter === value
+                          ? "border-blue bg-blue text-white"
+                          : "border-paper-border text-ink-muted hover:border-blue hover:text-foreground",
+                      ].join(" ")}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {blendedContent[0]?.isFeatured && (
+                <div className="mb-8">
+                  <FeaturedHero item={blendedContent[0]} />
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {blendedContent
+                  .slice(blendedContent[0]?.isFeatured ? 1 : 0)
+                  .map((item: any) => (
+                    <ContentCard
+                      key={`${item.type}-${item.id}`}
+                      content={{ ...item, isFeatured: false }}
+                      type={item.type}
+                    />
+                  ))}
+              </div>
+
+              <div className="mt-8 text-center">
+                <Link
+                  href="/community"
+                  className="inline-flex items-center gap-2 font-mono text-xs uppercase tracking-widest text-ink-muted hover:text-blue transition-colors border border-paper-border hover:border-blue px-6 py-3"
+                >
+                  Browse All Community Content <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+            </section>
+          )}
+
+          {/* ── EDITORIAL STRIP ──────────────────────────────────────── */}
+          <section className="py-10 border-b border-paper-border">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="font-display font-700 text-2xl uppercase tracking-wide text-foreground">
+                Editorial
               </h2>
+              <Link href="/editorial" className="font-mono text-xs uppercase tracking-widest text-ink-muted hover:text-blue transition-colors flex items-center gap-1">
+                All Stories <ArrowRight className="w-3 h-3" />
+              </Link>
             </div>
 
-            {/* Filter Tabs */}
-            <div className="flex items-center gap-2 mb-6">
-              <button
-                onClick={() => setContentFilter('all')}
-                className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
-                  contentFilter === 'all'
-                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
-                data-testid="filter-all"
-              >
-                All
-              </button>
-              <button
-                onClick={() => setContentFilter('mixes')}
-                className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
-                  contentFilter === 'mixes'
-                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
-                data-testid="filter-mixes"
-              >
-                Mixes
-              </button>
-              <button
-                onClick={() => setContentFilter('episodes')}
-                className={`px-4 py-2 rounded font-mono text-sm transition-all border ${
-                  contentFilter === 'episodes'
-                    ? 'bg-navy dark:bg-navy text-white dark:text-white border-navy'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-300 dark:border-gray-700 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
-                data-testid="filter-episodes"
-              >
-                Episodes
-              </button>
-            </div>
-
-            {/* Featured Hero - Show first featured item prominently */}
-            {blendedContent[0]?.isFeatured && (
-              <FeaturedHero item={blendedContent[0]} />
-            )}
-
-            {/* Section Break + Header */}
-            <div className="pt-10 pb-6">
-              <h2 className="text-2xl md:text-3xl font-bold font-mono text-gray-900 dark:text-white">
-                Latest from the Community
-              </h2>
-              <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mt-2">
-                Recent mixes, episodes, and playlists from our contributors
-              </p>
-            </div>
-
-            {/* Regular Grid - Skip first if it was featured */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-              {blendedContent
-                .slice(blendedContent[0]?.isFeatured ? 1 : 0)
-                .map((item: any) => (
-                  <ContentCard 
-                    key={`${item.type}-${item.id}`} 
-                    content={{ ...item, isFeatured: false }} 
-                    type={item.type} 
-                  />
-                ))}
-            </div>
-          </section>
-        )}
-
-        {/* About Section with CTA */}
-        <section className="max-w-3xl mx-auto my-16 text-center border-t border-b border-gray-200 dark:border-gray-800 py-12">
-          <h3 className="font-serif text-3xl text-gray-900 dark:text-white mb-4">About Enamorado Radio</h3>
-          <p className="text-gray-700 dark:text-gray-300 font-mono text-lg mb-6 leading-relaxed">
-            Listener-driven internet radio from San Antonio. We feature community mixes, community programming, and themed shows—all dedicated to the music we are enamored with.
-          </p>
-          <Link 
-            href="/submit-mix" 
-            className="inline-block bg-navy text-white px-6 py-3 font-mono hover:bg-navy-dark transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-            data-testid="button-submit-mix-cta"
-          >
-            Submit a Mix →
-          </Link>
-        </section>
-
-        {/* Explore tiles (from your “clean” page) */}
-        <section className="mb-16">
-          <div className="text-center pt-16 pb-8 mb-8">
-            <h2 className="text-4xl font-bold mb-4 font-serif text-gray-900 dark:text-white">Explore</h2>
-            <p className="text-xl text-gray-600 dark:text-gray-400 max-w-3xl mx-auto font-mono">
-              Discover curated content, join our community, and contribute to the station
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link
-              href="/albums"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-            >
-              <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Albums of the Month</h3>
-                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
-                  Hand-selected favorites from our editorial team.
-                </p>
-                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
-                  Explore Picks →
-                </div>
-              </div>
-            </Link>
-
-            <a
-              href="https://docs.google.com/forms/d/e/1FAIpQLSemchUyWBCIvq953jVKTp8kbpOJU1DM9DtMt_Pe-s0F6lKuPw/viewform?usp=header"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-            >
-              <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Community Programming Applications</h3>
-                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
-                  Apply for a regular slot and become part of our programming lineup.
-                </p>
-                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
-                  Apply for Season 1 →
-                </div>
-              </div>
-            </a>
-
-            <Link
-              href="/submit-mix"
-              className="bg-white border-2 border-black p-8 hover:bg-gray-50 transition-colors group cursor-pointer block focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-            >
-              <div className="text-center">
-                <h3 className="text-xl font-bold mb-3 font-mono text-gray-900 dark:text-white">Submit a Mix</h3>
-                <p className="text-gray-600 dark:text-gray-400 font-mono text-sm mb-4">
-                  Share your DJ mixes with our community.
-                </p>
-                <div className="text-navy font-mono text-sm group-hover:text-red-600 transition-colors">
-                  Submit Mix →
-                </div>
-              </div>
-            </Link>
-          </div>
-        </section>
-
-        {/* Featured Album from Albums of the Month */}
-        {featuredAlbum && currentMonthPick && (
-          <section className="mb-16">
-            <Link 
-              href="/albums" 
-              className="block group"
-              data-testid="link-featured-album"
-            >
-              <div className="bg-gradient-to-br from-gray-50 to-white border-2 border-black p-8 md:p-12 hover:border-navy transition-all duration-300">
-                <div className="flex flex-col md:flex-row gap-8 items-center">
-                  {/* Album Artwork */}
-                  <div className="w-full md:w-64 h-64 flex-shrink-0">
-                    {featuredAlbum.album.coverArtUrl ? (
-                      <img
-                        src={featuredAlbum.album.coverArtUrl}
-                        alt={`${featuredAlbum.album.title} by ${featuredAlbum.album.artist}`}
-                        className="w-full h-full object-cover border-2 border-black shadow-lg"
-                        data-testid={`img-featured-album-${featuredAlbum.album.id}`}
-                      />
-                    ) : (
-                      <div className="w-full h-full bg-gray-200 border-2 border-black flex items-center justify-center">
-                        <Music className="w-16 h-16 text-gray-400" />
+            {editorialItems.length > 0 ? (
+              /* Real editorial content — pi.fyi grid style */
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+                {editorialItems.map((item: any) => {
+                  const LABEL_MAP: Record<string, string> = {
+                    writing: "Essay", art: "Visual", playlist: "Playlist",
+                    video_essay: "Video Essay", interview: "Interview",
+                    photoshoot: "Photoshoot", essay: "Essay",
+                  };
+                  const label = LABEL_MAP[item.contentType || item.kind] ?? (item.kind || "Editorial");
+                  const dateStr = item.submittedAt
+                    ? new Date(item.submittedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                    : "";
+                  return (
+                    <Link key={item.id} href={`/entry/${item.id}?from=editorials`}>
+                      <div className="group border border-paper-border hover:border-blue transition-colors cursor-pointer flex flex-col h-full">
+                        {/* Thumbnail */}
+                        <div className="aspect-[4/3] overflow-hidden bg-paper-cool shrink-0">
+                          {item.thumbnail ? (
+                            <img
+                              src={item.thumbnail}
+                              alt={item.title}
+                              className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-paper-warm flex items-center justify-center">
+                              <span className="font-mono text-xs uppercase tracking-widest text-ink-faint">No Image</span>
+                            </div>
+                          )}
+                        </div>
+                        {/* Body */}
+                        <div className="p-4 flex flex-col flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="font-mono text-xs uppercase tracking-widest text-blue">{label}</span>
+                            {dateStr && (
+                              <span className="font-mono text-xs text-ink-faint">{dateStr}</span>
+                            )}
+                          </div>
+                          <h3 className="font-display font-black uppercase text-lg leading-none text-foreground group-hover:text-blue transition-colors mb-2">
+                            {item.title}
+                          </h3>
+                          {item.description && (
+                            <p className="font-serif italic text-ink-muted text-sm leading-relaxed line-clamp-2 flex-1"
+                              style={{ fontSize: "0.9rem" }}>
+                              {item.description}
+                            </p>
+                          )}
+                          <p className="font-mono text-xs uppercase tracking-widest text-ink-faint mt-3">
+                            {item.authorName || item.authorHandle || ""}
+                          </p>
+                        </div>
                       </div>
-                    )}
-                  </div>
-
-                  {/* Album Info */}
-                  <div className="flex-1 text-center md:text-left">
-                    <div className="inline-block bg-navy text-white px-3 py-1 text-xs font-mono mb-4">
-                      From Albums of the Month
-                    </div>
-                    <h3 className="text-3xl md:text-4xl font-bold mb-2 font-mono group-hover:text-navy transition-colors" data-testid="text-featured-album-title">
-                      {featuredAlbum.album.title}
-                    </h3>
-                    <p className="text-xl text-gray-600 mb-4 font-mono" data-testid="text-featured-album-artist">
-                      {featuredAlbum.album.artist}
-                      {featuredAlbum.album.releaseYear && ` (${featuredAlbum.album.releaseYear})`}
-                    </p>
-                    {featuredAlbum.album.reason && (
-                      <p className="text-gray-700 mb-4 font-mono italic max-w-2xl" data-testid="text-featured-album-reason">
-                        "{featuredAlbum.album.reason}"
-                      </p>
-                    )}
-                    <div className="flex flex-col sm:flex-row items-center justify-center md:justify-start gap-4">
-                      <span className="inline-block bg-black text-white px-4 py-2 text-sm font-mono">
-                        #{featuredAlbum.rank} in {currentMonthPick.title}
-                      </span>
-                      {featuredAlbum.album.spotifyUrl && (
-                        <a
-                          href={featuredAlbum.album.spotifyUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-block bg-green-500 text-white px-4 py-2 text-sm font-mono hover:bg-green-600 transition-colors"
-                          onClick={(e) => e.stopPropagation()}
-                          data-testid="button-spotify-featured"
-                        >
-                          🎵 Listen on Spotify
-                        </a>
-                      )}
-                      <span className="text-navy font-mono text-sm group-hover:underline">
-                        View All Picks →
-                      </span>
-                    </div>
-                  </div>
-                </div>
+                    </Link>
+                  );
+                })}
               </div>
-            </Link>
+            ) : (
+              /* Placeholder tiles when no editorial content yet */
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+                {[
+                  { type: "Photoshoots", desc: "Visual features from our community" },
+                  { type: "Essays",      desc: "Cultural writing and criticism" },
+                  { type: "Interviews",  desc: "Conversations with artists and creators" },
+                ].map(({ type, desc }) => (
+                  <Link
+                    key={type}
+                    href={`/editorial?type=${type.toLowerCase()}`}
+                    className="group border border-paper-border p-6 hover:border-blue transition-colors"
+                  >
+                    <p className="font-mono text-xs uppercase tracking-widest text-blue mb-2">{type}</p>
+                    <h3 className="font-display font-700 text-3xl uppercase leading-none text-foreground group-hover:text-blue transition-colors mb-3">
+                      Browse<br />{type}
+                    </h3>
+                    <p className="font-serif italic text-ink-muted text-sm leading-relaxed">{desc}</p>
+                  </Link>
+                ))}
+              </div>
+            )}
           </section>
-        )}
-        </div>
 
+          {/* ── EXPLORE TILES ────────────────────────────────────────── */}
+          <section className="py-10 border-b border-paper-border">
+            <h2 className="font-display font-700 text-2xl uppercase tracking-wide text-foreground mb-6">
+              Explore
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              {[
+                { href: "/albums",         label: "Albums of\nthe Month",    meta: "Monthly picks" },
+                { href: "/spotlight",      label: "Spotlight\nFeatures",     meta: "People & music" },
+                { href: "/submit-mix",     label: "Submit\na Mix",           meta: "Open now" },
+                { href: "/residents",      label: "Residents\n& DJs",        meta: "Our roster" },
+              ].map(({ href, label, meta }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="group border border-paper-border p-5 hover:border-blue hover:bg-blue-bg transition-colors"
+                >
+                  <p className="font-mono text-xs uppercase tracking-widest text-ink-muted mb-3">{meta}</p>
+                  <h3
+                    className="font-display font-700 uppercase leading-tight text-foreground group-hover:text-blue transition-colors whitespace-pre-line"
+                    style={{ fontSize: "1.5rem" }}
+                  >
+                    {label}
+                  </h3>
+                  <ArrowRight className="w-4 h-4 mt-3 text-ink-faint group-hover:text-blue transition-colors" />
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* ── ALBUM OF THE MONTH ───────────────────────────────────── */}
+          {featuredAlbum && currentMonthPick && (
+            <section className="py-10">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="font-display font-700 text-2xl uppercase tracking-wide text-foreground">
+                  Album of the Month
+                </h2>
+                <Link href="/albums" className="font-mono text-xs uppercase tracking-widest text-ink-muted hover:text-blue transition-colors flex items-center gap-1">
+                  All Picks <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
+              <Link href="/albums" className="group flex gap-6 items-center border border-paper-border p-6 hover:border-blue transition-colors">
+                <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-paper-cool border border-paper-border overflow-hidden">
+                  {featuredAlbum.album.coverArtUrl ? (
+                    <img
+                      src={featuredAlbum.album.coverArtUrl}
+                      alt={`${featuredAlbum.album.title} by ${featuredAlbum.album.artist}`}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Music className="w-8 h-8 text-ink-faint" />
+                    </div>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-mono text-xs uppercase tracking-widest text-blue mb-1">
+                    #{featuredAlbum.rank} · {currentMonthPick.title}
+                  </p>
+                  <h3 className="font-display font-700 text-3xl sm:text-4xl uppercase leading-none text-foreground group-hover:text-blue transition-colors truncate">
+                    {featuredAlbum.album.title}
+                  </h3>
+                  <p className="font-mono text-sm text-ink-muted mt-1">
+                    {featuredAlbum.album.artist}
+                    {featuredAlbum.album.releaseYear && ` · ${featuredAlbum.album.releaseYear}`}
+                  </p>
+                  {featuredAlbum.album.reason && (
+                    <p className="font-mono text-xs text-ink-muted mt-2 italic line-clamp-2">
+                      "{featuredAlbum.album.reason}"
+                    </p>
+                  )}
+                </div>
+              </Link>
+            </section>
+          )}
+
+        </div>
       </main>
     </div>
   );

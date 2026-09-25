@@ -29,7 +29,8 @@ import {
   AlertTriangle,
   FileText,
   Headphones,
-  BarChart3
+  BarChart3,
+  Sparkles
 } from "lucide-react";
 
 export interface NavSection {
@@ -56,6 +57,15 @@ const adminNavSections: NavSection[] = [
     ]
   },
   {
+    title: "Editorial Production",
+    defaultOpen: true,
+    items: [
+      { href: "/admin/editorial/projects", label: "Projects", icon: FileText },
+      { href: "/admin/editorial/content-mapper", label: "Content Mapper", icon: Sparkles },
+      { href: "/admin/editorial/media-library", label: "Media Library", icon: Image },
+    ]
+  },
+  {
     title: "Content",
     defaultOpen: true,
     items: [
@@ -64,6 +74,7 @@ const adminNavSections: NavSection[] = [
       { href: "/admin/albums", label: "Albums", icon: Disc },
       { href: "/admin/hero-banners", label: "Hero Banners", icon: Image },
       { href: "/admin/playlist-submissions", label: "Playlists", icon: ListMusic },
+      { href: "/admin/content-curator", label: "Content Curator", icon: Sparkles },
     ]
   },
   {
@@ -240,14 +251,14 @@ export default function AdminShell({
         </div>
         <div className="flex gap-2">
           <Link href="/" className="flex-1">
-            <Button variant="outline" size="sm" className="w-full text-xs bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white">
+            <Button variant="outline" size="sm" className="w-full text-xs bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white" data-testid="button-back-to-home">
               <ArrowLeft className="w-3 h-3 mr-1" />
-              Site
+              Home
             </Button>
           </Link>
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => logoutMutation.mutate()}
             disabled={logoutMutation.isPending}
             className="flex-1 text-xs bg-transparent border-gray-700 text-gray-300 hover:bg-gray-800 hover:text-white"

@@ -23,7 +23,14 @@ import EditorPortal from "@/pages/EditorPortal";
 import MixUploadToAzuraCast from "@/components/MixUploadToAzuraCast";
 import AzuraCastMixManager from "@/components/AzuraCastMixManager";
 import EditorialWorkflow from "@/pages/EditorialWorkflow";
+import AdminCommunity from "@/pages/AdminCommunity";
 import ScheduleManagement from "@/pages/ScheduleManagement";
+import AdminContentCurator from "@/pages/AdminContentCurator";
+import EditorialProjects from "@/pages/admin/EditorialProjects";
+import EditorialProjectEditor from "@/pages/admin/EditorialProjectEditor";
+import EditorialContentMapper from "@/pages/admin/EditorialContentMapper";
+import EditorialMediaLibrary from "@/pages/admin/EditorialMediaLibrary";
+import AdminMagazineSubmissions from "@/pages/magazine-admin-submissions";
 import { useLocation, Link } from "wouter";
 import { ShieldAlert } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -174,6 +181,8 @@ export default function AdminAuthWrapper() {
     }
     
     switch (normalizedPath) {
+      case '/admin/community':
+        return <AdminCommunity />;
       case '/admin/mix-submissions':
         return <AdminMixSubmissions />; // Use dedicated mix submissions component
       case '/admin/submissions':
@@ -229,14 +238,28 @@ export default function AdminAuthWrapper() {
       case '/admin/hero-banners':
         return <HeroBannersAdmin />;
       case '/admin/playlist-submissions':
-        return <PlaylistSubmissionsAdmin />;
+        return <PlaylistSubmissionsAdmin currentUser={authData.user || ""} onLogout={handleLogout} />;
       case '/admin/settings':
         return <AdminSettings onLogout={handleLogout} currentUser={authData.user || ""} />;
       case '/admin/radio-ops':
         return <RadioOps />;
+      case '/admin/content-curator':
+        return <AdminContentCurator />;
+      case '/admin/magazine-submissions':
+        return <AdminMagazineSubmissions />;
+      case '/admin/editorial/projects':
+        return <EditorialProjects />;
+      case '/admin/editorial/content-mapper':
+        return <EditorialContentMapper />;
+      case '/admin/editorial/media-library':
+        return <EditorialMediaLibrary />;
       case '/editor':
         return <EditorPortal />;
       default:
+        // Check if it's an editorial project editor route (dynamic ID)
+        if (normalizedPath.startsWith('/admin/editorial/projects/')) {
+          return <EditorialProjectEditor />;
+        }
         return <AdminDashboard onLogout={handleLogout} currentUser={authData.user || ""} />;
     }
   };

@@ -41,11 +41,11 @@ export default function AdminQueue() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: queuedSongs = [], isLoading } = useQuery({
+  const { data: queuedSongs = [], isLoading } = useQuery<QueuedSong[]>({
     queryKey: ['/api/admin/queue'],
   });
 
-  const { data: currentlyPlaying } = useQuery({
+  const { data: currentlyPlaying } = useQuery<QueuedSong | null>({
     queryKey: ['/api/admin/currently-playing'],
     refetchInterval: 5000, // Update every 5 seconds
   });

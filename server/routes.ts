@@ -7,7 +7,9 @@ import { azuracastService } from "./azuracastService";
 import { mixRouter } from "./mixRouter";
 import { azuraCastManager } from "./azuracastManager";
 import { oembedService } from "./oembedProxy";
-import { requireAdmin, loginAdmin, logoutAdmin, checkAuth } from "./adminAuth";
+import { requireAdmin, loginAdmin, logoutAdmin, checkAuth, whoamiHandler } from "./adminAuth";
+import { signupHandler, loginHandler, logoutHandler, meHandler } from "./userAuth";
+import userRoutes from "./userRoutes";
 import { requireResident, loginResident, logoutResident, checkResidentAuth } from "./residentAuth";
 import { requireRole } from "./roleAuth";
 import { musicbrainzService } from "./musicbrainzService";
@@ -18,6 +20,8 @@ import { z } from "zod";
 import http from "http";
 import multer from "multer";
 import { sanitizeText, sanitizeUrl, sanitizeFilename } from "./sanitization";
+import { registerEditorialRoutes } from "./editorialRouter";
+import { registerMagazineRoutes } from "./magazineRoutes";
 import path from "path";
 import fs from "fs";
 import mimeTypes from "mime-types";
@@ -49,7 +53,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Initialize AzuraCast service with storage for streamer management
-  await azuracastService.initializeWithStorage(storage);
+  // Non-blocking: don't hang server startup if AzuraCast is unreachable
+  azuracastService.initializeWithStorage(storage).catch((err: Error) => {
+    console.warn('[AzuraCast] Initialization failed (non-fatal):', err.message);
+  });
 
   // WebSocket server for real-time updates
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
@@ -79,6 +86,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/admin/login', loginAdmin);
   app.post('/api/admin/logout', logoutAdmin);
   app.get('/api/admin/auth', checkAuth);
+  app.get('/api/admin/whoami', whoamiHandler); // magazine admin pages use this path
+
+  // Public user auth
+  app.post('/api/auth/signup', signupHandler);
+  app.post('/api/auth/login', loginHandler);
+  app.post('/api/auth/logout', logoutHandler);
+  app.get('/api/auth/me', meHandler);
+
+  // Public user routes (profile, albums, contributions, public profiles, admin moderation)
+  app.use('/api/user', userRoutes);
+  app.use('/api/profiles', userRoutes); // /api/profiles/:handle → public view
   
   // =================
   // RESIDENT AUTHENTICATION ROUTES
@@ -735,11 +753,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     upstream.end();
   });
 
-  // Proxy the nowplaying JSON
+  // Proxy the nowplaying JSON (legacy - kept for compatibility)
   app.get('/nowplaying', async (req, res) => {
     try {
-      const response = await fetch(`${AZ_BASE}${NOWPLAYING_PATH}`, { 
-        headers: { 'Accept': 'application/json' } 
+      const response = await fetch(`${AZ_BASE}${NOWPLAYING_PATH}`, {
+        headers: { 'Accept': 'application/json' }
       });
       const data = await response.json();
       res.set('Cache-Control', 'no-store');
@@ -748,6 +766,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Nowplaying proxy error:', error);
       res.status(502).json({ error: 'nowplaying failed' });
+    }
+  });
+
+  // Enhanced nowplaying endpoint - enriched with all AzuraCast metadata
+  app.get('/api/nowplaying-enhanced', async (req, res) => {
+    try {
+      const response = await fetch(`${AZ_BASE}${NOWPLAYING_PATH}`, {
+        headers: { 'Accept': 'application/json' }
+      });
+      const raw = await response.json();
+
+      const song = raw.now_playing?.song || {};
+      const playedAt = raw.now_playing?.played_at || 0;
+      const duration = raw.now_playing?.duration || 0;
+      const now = Math.floor(Date.now() / 1000);
+      const elapsed = duration > 0
+        ? Math.max(0, Math.min(now - playedAt, duration))
+        : 0;
+
+      // Enrich and structure the response
+      const enriched = {
+        track: {
+          artist: song.artist || '',
+          title: song.title || '',
+          album: song.album || '',
+          genre: song.genre || '',
+          artwork: song.art || '',
+          text: song.text || '' // Full "Artist - Title" string
+        },
+        timing: {
+          duration,
+          elapsed,
+          playedAt: playedAt * 1000, // Convert to milliseconds
+          remaining: Math.max(0, duration - elapsed)
+        },
+        context: {
+          playlist: raw.now_playing?.playlist || '',
+          isRequest: raw.now_playing?.is_request || false,
+          shId: raw.now_playing?.sh_id || null
+        },
+        live: {
+          isLive: raw.live?.is_live || false,
+          streamerName: raw.live?.streamer_name || '',
+          broadcastStart: raw.live?.broadcast_start || null
+        },
+        listeners: {
+          current: raw.listeners?.current || 0,
+          total: raw.listeners?.total || 0,
+          unique: raw.listeners?.unique || 0
+        },
+        history: (raw.song_history || []).slice(0, 10).map((h: any) => ({
+          artist: h.song?.artist || '',
+          title: h.song?.title || '',
+          album: h.song?.album || '',
+          artwork: h.song?.art || '',
+          playedAt: h.played_at * 1000,
+          duration: h.duration || 0,
+          playlist: h.playlist || ''
+        })),
+        upNext: raw.playing_next ? {
+          artist: raw.playing_next.song?.artist || '',
+          title: raw.playing_next.song?.title || '',
+          album: raw.playing_next.song?.album || '',
+          artwork: raw.playing_next.song?.art || '',
+          scheduledAt: raw.playing_next.played_at * 1000,
+          duration: raw.playing_next.duration || 0,
+          playlist: raw.playing_next.playlist || ''
+        } : null,
+        station: {
+          name: raw.station?.name || 'Enamorado Radio',
+          description: raw.station?.description || '',
+          listenUrl: raw.station?.listen_url || ''
+        }
+      };
+
+      res.set('Cache-Control', 'no-store');
+      res.set('Access-Control-Allow-Origin', '*');
+      res.json(enriched);
+
+    } catch (error) {
+      console.error('Enhanced nowplaying error:', error);
+      res.status(502).json({ error: 'Failed to fetch enhanced now playing data' });
     }
   });
 
@@ -790,14 +890,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const audioFile = files.audioFile[0];
       const artworkFile = files.artworkFile?.[0];
 
-      const { 
-        title, 
-        showId, 
-        showSlug, 
-        airDate, 
-        tags, 
-        featureOnHome = false, 
-        artworkUrl 
+      const {
+        title,
+        showId,
+        showSlug,
+        airDate,
+        tags,
+        featureOnHome = false,
+        artworkUrl,
+        tracklist
       } = req.body;
 
       console.log(`🎵 Processing upload: ${title} for show ${showSlug}`);
@@ -847,6 +948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         audioUrl: '',
         artworkUrl: finalArtworkUrl,
         tags: tags ? tags.split(',').map((t: string) => t.trim()) : [],
+        tracklist: tracklist || null,
         status: 'uploading',
         isFeatured: featureOnHome === 'true' || featureOnHome === true || featureOnHome === 'on'
       });
@@ -886,12 +988,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         res.json({
           success: true,
-          episode: await storage.getEpisodeById(episode.id), // Return updated episode
+          episode: await storage.getEpisodeById(episode.id),
           azuraFilePath: uploadResult.azuraFilePath,
           message: 'Episode uploaded successfully'
         });
+      } else if (uploadResult.errorType === 'sftp_connection' || uploadResult.errorType === 'network') {
+        // AzuraCast unreachable — save episode locally so work isn't lost
+        console.warn(`⚠️ AzuraCast unreachable, saving episode ${episode.id} as pending_sync`);
+        await storage.updateEpisode(episode.id, {
+          status: 'pending_sync',
+          audioUrl: audioFile.path // keep local temp path until droplet is back
+        });
+        res.json({
+          success: true,
+          episode: await storage.getEpisodeById(episode.id),
+          warning: 'AzuraCast is unreachable — episode saved locally and will sync when your server is back online.',
+          pendingSync: true,
+        });
       } else {
-        // Update episode with error status
+        // Other upload failure
         await storage.updateEpisode(episode.id, {
           status: 'failed'
         });
@@ -3555,8 +3670,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           url: playlist.playlistUrl,
           platform: playlist.platform || null,
           tags: playlist.tags || null,
-          embedUrl: playlist.embedUrl || null,
-          oembedMetadata: playlist.oembedMetadata || null,
+          embedUrl: (playlist as any).embedUrl || null,
+          oembedMetadata: (playlist as any).oembedMetadata || null,
           submittedAt: playlist.submittedAt,
           createdAt: playlist.submittedAt,
           isFeatured: playlist.status === 'featured',
@@ -3639,10 +3754,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Auto-provision contributor if handle is provided
       let contributorId: number | null = null;
       let normalizedHandle: string | null = null;
-      if (data.handle) {
+      if ((data as any).handle) {
         try {
           const contributor = await ensureContributor({
-            handle: data.handle,
+            handle: (data as any).handle,
             displayName: data.curatorName,
           });
           contributorId = contributor.id;
@@ -3732,7 +3847,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const playlist = await storage.updatePlaylistSubmission(id, {
         status: 'rejected',
         rejectionReason: reason || null,
-        reviewedAt: new Date().toISOString(),
+        reviewedAt: new Date(),
         reviewedBy: (req as any).user || 'editor',
       });
       
@@ -4885,18 +5000,159 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/admin/settings/:key', requireAdmin, async (req, res) => {
     try {
       await storage.deleteSetting(req.params.key);
-      
+
       // Re-initialize AzuraCast service if AzuraCast settings were deleted
       if (req.params.key.startsWith('azuracast_')) {
         await azuracastService.initializeWithStorage(storage);
       }
-      
+
       res.json({ success: true });
     } catch (error) {
       console.error('Error deleting setting:', error);
       res.status(500).json({ error: 'Failed to delete setting' });
     }
   });
+
+  // Route community content to AzuraCast
+  app.post('/api/admin/route-to-azuracast', requireAdmin, async (req, res) => {
+    try {
+      const { contentId, contentType, config } = req.body;
+
+      if (!contentId || !contentType || !config) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+
+      const { targetPlaylist, schedule, priority } = config;
+
+      // Get content details based on type
+      let contentItem: any;
+      let audioUrl: string | null = null;
+      let contentTitle: string = '';
+
+      switch (contentType) {
+        case 'mix':
+          contentItem = await storage.getMixSubmissionById(contentId);
+          if (!contentItem) {
+            return res.status(404).json({ error: 'Mix not found' });
+          }
+          audioUrl = contentItem.url;
+          contentTitle = contentItem.title;
+          break;
+
+        case 'playlist':
+          contentItem = await storage.getPlaylistSubmission(contentId);
+          if (!contentItem) {
+            return res.status(404).json({ error: 'Playlist not found' });
+          }
+          // For playlists, we need to fetch individual tracks
+          // This would require integration with Spotify/Apple Music APIs
+          return res.status(501).json({
+            error: 'Playlist routing not yet implemented',
+            message: 'Individual track extraction from playlists needs API integration'
+          });
+
+        case 'album':
+          contentItem = await storage.getAlbumSuggestion(contentId);
+          if (!contentItem) {
+            return res.status(404).json({ error: 'Album not found' });
+          }
+          // For albums, same as playlists - need track extraction
+          return res.status(501).json({
+            error: 'Album routing not yet implemented',
+            message: 'Individual track extraction from albums needs API integration'
+          });
+
+        default:
+          return res.status(400).json({ error: 'Invalid content type' });
+      }
+
+      // For mixes, use existing upload infrastructure
+      if (contentType === 'mix' && audioUrl) {
+        // Download the mix file
+        const response = await fetch(audioUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to download mix: ${response.statusText}`);
+        }
+
+        const buffer = Buffer.from(await response.arrayBuffer());
+        const tempPath = `/tmp/mix_${contentId}_${Date.now()}.mp3`;
+        fs.writeFileSync(tempPath, buffer);
+
+        // Upload to AzuraCast
+        const filename = sanitizeFilename(`${contentTitle}.mp3`);
+        await azuracastIntegration.uploadFile(tempPath, filename);
+
+        // Rescan library
+        await rescanLibrary();
+
+        // Add to playlist
+        const playlistName = `show__${targetPlaylist}`;
+        const azuraIntegrationAny = azuracastIntegration as any;
+        const playlist = await azuraIntegrationAny.ensurePlaylist(playlistName);
+        await azuraIntegrationAny.addMediaToPlaylist(playlist.id, [filename]);
+
+        // Create schedule if requested
+        if (schedule?.enabled) {
+          await azuraIntegrationAny.createSchedule(
+            playlist.id,
+            schedule.days,
+            schedule.startTime,
+            schedule.endTime,
+            true // loopOnce
+          );
+        }
+
+        // Update mix record with routing info
+        await storage.updateMixRoutingStatus(contentId, {
+          azuraFilePath: filename,
+          uploadedAt: new Date(),
+          rescannedAt: new Date(),
+          playlistLinkedAt: new Date(),
+          // azuraPlaylistName is not a schema field — store in azuraPlaylistId as a note
+          azuraPlaylistId: playlistName ? String(playlistName) : null,
+        });
+
+        // Clean up temp file
+        fs.unlinkSync(tempPath);
+
+        res.json({
+          success: true,
+          message: 'Content routed to AzuraCast successfully',
+          playlist: playlistName,
+          filename
+        });
+      } else {
+        res.status(400).json({ error: 'No audio URL available for this content' });
+      }
+    } catch (error) {
+      console.error('Error routing content to AzuraCast:', error);
+      res.status(500).json({
+        error: 'Failed to route content',
+        message: error instanceof Error ? error.message : 'Unknown error'
+      });
+    }
+  });
+
+  // Get AzuraCast playlists (for dropdown in admin)
+  app.get('/api/azuracast/playlists', requireAdmin, async (req, res) => {
+    try {
+      const playlists = await (azuracastIntegration as any).getPlaylists();
+      res.json(playlists);
+    } catch (error) {
+      console.error('Error fetching AzuraCast playlists:', error);
+      res.status(500).json({ error: 'Failed to fetch playlists' });
+    }
+  });
+
+  // =================
+  // EDITORIAL PRODUCTION ROUTES
+  // =================
+  registerEditorialRoutes(app);
+
+  // =================
+  // MAGAZINE ROUTES (editorial CMS + issues + open calls + pitches)
+  // =================
+  registerMagazineRoutes(app);
 
   return httpServer;
 }

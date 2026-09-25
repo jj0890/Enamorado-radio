@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { ExternalLink, Music2, Heart, Share2 } from "lucide-react";
-import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube, SiMixcloud } from "react-icons/si";
+import { PlatformIcon } from "@/components/PlatformIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -31,24 +31,11 @@ interface PlaylistTemplateProps {
   showEmbed?: boolean;
 }
 
-function PlatformIcon({ platform, className }: { platform: PlaylistPlatform; className?: string }) {
-  const iconClass = className || "w-5 h-5";
-  
-  switch (platform) {
-    case 'spotify':
-      return <SiSpotify className={iconClass} style={{ color: getPlatformColor('spotify') }} />;
-    case 'soundcloud':
-      return <SiSoundcloud className={iconClass} style={{ color: getPlatformColor('soundcloud') }} />;
-    case 'apple-music':
-    case 'apple_music':
-      return <SiApplemusic className={iconClass} style={{ color: getPlatformColor('apple-music') }} />;
-    case 'youtube':
-      return <SiYoutube className={iconClass} style={{ color: getPlatformColor('youtube') }} />;
-    case 'mixcloud':
-      return <SiMixcloud className={iconClass} style={{ color: getPlatformColor('mixcloud') }} />;
-    default:
-      return <Music2 className={iconClass} />;
-  }
+function PlatformIconLocal({ platform, className }: { platform: PlaylistPlatform; className?: string }) {
+  // Parse size from Tailwind class (e.g. "w-5 h-5" → 20, "w-8 h-8" → 32)
+  const sizeMatch = className?.match(/w-(\d+)/);
+  const size = sizeMatch ? parseInt(sizeMatch[1]) * 4 : 20;
+  return <PlatformIcon platform={platform} size={size} branded className={className} />;
 }
 
 export default function PlaylistTemplate({
@@ -107,17 +94,17 @@ export default function PlaylistTemplate({
         
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <Badge 
-              variant="secondary" 
+            <Badge
+              variant="secondary"
               className="text-xs flex items-center gap-1"
-              style={{ 
+              style={{
                 backgroundColor: `${getPlatformColor(platform)}20`,
                 color: getPlatformColor(platform),
                 borderColor: getPlatformColor(platform),
               }}
               data-testid="platform-badge"
             >
-              <PlatformIcon platform={platform} className="w-3 h-3" />
+              <PlatformIconLocal platform={platform} className="w-3 h-3" />
               {getPlatformDisplayName(platform)}
             </Badge>
           </div>
@@ -200,7 +187,7 @@ export default function PlaylistTemplate({
           {!embedLoaded && !embedError && (
             <div className="absolute inset-0 flex items-center justify-center bg-muted">
               <div className="flex flex-col items-center gap-2">
-                <PlatformIcon platform={platform} className="w-8 h-8 animate-pulse" />
+                <PlatformIconLocal platform={platform} className="w-8 h-8 animate-pulse" />
                 <span className="text-sm text-muted-foreground">Loading embed...</span>
               </div>
             </div>
@@ -246,7 +233,7 @@ export default function PlaylistTemplate({
           className="relative rounded-lg overflow-hidden bg-muted p-8 text-center"
           data-testid="embed-fallback"
         >
-          <PlatformIcon platform={platform} className="w-12 h-12 mx-auto mb-4" />
+          <PlatformIconLocal platform={platform} className="w-12 h-12 mx-auto mb-4" />
           <p className="text-muted-foreground mb-4">
             This playlist can't be embedded directly.
           </p>
@@ -292,19 +279,19 @@ export function PlaylistCard({
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <PlatformIcon platform={platform} className="w-12 h-12 text-muted-foreground" />
+            <PlatformIconLocal platform={platform} className="w-12 h-12 text-muted-foreground" />
           </div>
         )}
         
         <div className="absolute top-2 right-2">
-          <Badge 
+          <Badge
             className="text-xs flex items-center gap-1"
-            style={{ 
+            style={{
               backgroundColor: getPlatformColor(platform),
               color: 'white',
             }}
           >
-            <PlatformIcon platform={platform} className="w-3 h-3" />
+            <PlatformIconLocal platform={platform} className="w-3 h-3" />
           </Badge>
         </div>
       </div>

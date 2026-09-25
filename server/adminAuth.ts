@@ -146,16 +146,38 @@ export function logoutAdmin(_req: Request, res: Response) {
 // Check if user is already authenticated
 export function checkAuth(req: Request, res: Response) {
   const token = req.cookies?.[ADMIN_COOKIE];
-  
+
   if (!token) {
     return res.json({ authenticated: false });
   }
-  
+
   const session = verifySessionToken(token);
   if (!session) {
     res.clearCookie(ADMIN_COOKIE);
     return res.json({ authenticated: false });
   }
-  
+
   res.json({ authenticated: true, user: session.user, role: session.role });
+}
+
+// Whoami endpoint — returns { isAdmin, role } shape expected by magazine admin pages
+// These pages check: data?.isAdmin || data?.role === "editor"
+export function whoamiHandler(req: Request, res: Response) {
+  const token = req.cookies?.[ADMIN_COOKIE];
+
+  if (!token) {
+    return res.json({ isAdmin: false, role: null });
+  }
+
+  const session = verifySessionToken(token);
+  if (!session) {
+    res.clearCookie(ADMIN_COOKIE);
+    return res.json({ isAdmin: false, role: null });
+  }
+
+  res.json({
+    isAdmin: session.role === 'admin',
+    role: session.role,
+    user: session.user,
+  });
 }

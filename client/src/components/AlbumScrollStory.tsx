@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronUp, Share2, Music, ExternalLink, X, Play, ArrowLeft } from "lucide-react";
-import { SiSpotify, SiApplemusic, SiBandcamp } from "react-icons/si";
+import { PlatformIcon } from "@/components/PlatformIcon";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
@@ -326,7 +326,7 @@ function AlbumPanel({
                 className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                 data-testid={`link-spotify-${album.rank}`}
               >
-                <SiSpotify className="w-5 h-5 text-white" />
+                <PlatformIcon platform="spotify" size={20} className="text-white" />
               </a>
             )}
             {album.appleMusicUrl && (
@@ -337,7 +337,7 @@ function AlbumPanel({
                 className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                 data-testid={`link-apple-${album.rank}`}
               >
-                <SiApplemusic className="w-5 h-5 text-white" />
+                <PlatformIcon platform="apple-music" size={20} className="text-white" />
               </a>
             )}
             {album.bandcampUrl && (
@@ -348,7 +348,7 @@ function AlbumPanel({
                 className="p-3 bg-white/10 hover:bg-white/20 rounded-full transition-colors"
                 data-testid={`link-bandcamp-${album.rank}`}
               >
-                <SiBandcamp className="w-5 h-5 text-white" />
+                <PlatformIcon platform="bandcamp" size={20} className="text-white" />
               </a>
             )}
             <button

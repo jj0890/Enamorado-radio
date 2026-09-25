@@ -124,6 +124,72 @@ export interface IStorage {
   getContributorByHandle(handle: string): Promise<Contributor | undefined>;
   createContributor(contributor: InsertContributor): Promise<Contributor>;
   updateContributor(id: number, updates: Partial<Contributor>): Promise<Contributor | undefined>;
+
+  // Alias convenience methods (used in routes.ts)
+  getPlaylistSubmission(id: number): Promise<PlaylistSubmission | undefined>;
+  getAlbumSuggestion(id: number): Promise<any | undefined>;
+  updateMixRoutingStatus(id: number, updates: Partial<MixSubmission>): Promise<MixSubmission>;
+
+  // Episode Submissions - Resident-submitted episodes
+  getEpisodeSubmissions(filters?: { status?: string; residentId?: number; limit?: number }): Promise<any[]>;
+  getEpisodeSubmissionById(id: number): Promise<any | undefined>;
+  createEpisodeSubmission(submission: any): Promise<any>;
+  updateEpisodeSubmission(id: number, updates: any): Promise<any>;
+  deleteEpisodeSubmission(id: number): Promise<void>;
+
+  // Album of the Month
+  getAlbumSuggestions(filters?: { status?: string; limit?: number }): Promise<any[]>;
+  getAlbumSuggestionById(id: number): Promise<any | undefined>;
+  createAlbumSuggestion(data: any, mbData?: any, spotifyUrl?: string): Promise<any>;
+  updateAlbumSuggestion(id: number, updates: any): Promise<any>;
+  acceptAlbumSuggestion(id: number, reviewedBy: string): Promise<any>;
+  rejectAlbumSuggestion(id: number, reviewedBy: string): Promise<any>;
+  deleteAlbumSuggestion(id: number): Promise<void>;
+  voteOnAlbumSuggestion(suggestionId: number, voterUsername: string, value: 1 | -1): Promise<any>;
+  getAlbumVotesForSuggestion(suggestionId: number): Promise<any[]>;
+  getAlbumSuggestionsWithVotes(): Promise<any[]>;
+  createAlbumPick(data: any): Promise<any>;
+  getAlbumPickByMonth(month: string): Promise<any | undefined>;
+  getAlbumPickById(id: number): Promise<any | undefined>;
+  getAlbumPickItemById(id: number): Promise<any | undefined>;
+  getPublishedAlbumPicks(): Promise<any[]>;
+  getDraftAlbumPicks(): Promise<any[]>;
+  addAlbumToPickDraft(data: any): Promise<any>;
+  getAlbumPickItems(pickId: number): Promise<any[]>;
+  updateAlbumPickItem(id: number, updates: any): Promise<any>;
+  deleteAlbumPickItem(id: number): Promise<void>;
+  publishAlbumPick(pickId: number): Promise<any>;
+  deleteAlbumPick(pickId: number): Promise<void>;
+  getPublishedAlbumPickWithItems(month: string): Promise<any | null>;
+  addAlbumSuggestionNote(data: any): Promise<any>;
+  getAlbumSuggestionNotes(suggestionId: number): Promise<any[]>;
+  updateAlbumPick(id: number, updates: any): Promise<any>;
+
+  // Year-End Lists
+  getYearEndLists(): Promise<any[]>;
+  getYearEndListBySlug(slug: string): Promise<any | undefined>;
+  getYearEndListWithItems(slug: string): Promise<any | null>;
+
+  // Radio stream service methods
+  getApprovedSongSubmissions(): Promise<any[]>;
+  addTrackLike(data: any): Promise<any>;
+
+  // Track metadata service methods
+  getTrackMetadata(filename: string): Promise<any | undefined>;
+  saveTrackMetadata(data: any): Promise<any>;
+  updateTrackMetadata(filename: string, updates: any): Promise<any>;
+
+  // Radio Service methods
+  getCurrentProgramState(): Promise<any | undefined>;
+  updateProgramState(state: any): Promise<any>;
+  getLiveShow(id: number): Promise<any | undefined>;
+  getAllLiveShows(): Promise<any[]>;
+  updateLiveShowStatus(id: number, isLive: boolean): Promise<void>;
+  getRadioRotationTrack(trackId: string): Promise<any | undefined>;
+  getApprovedRotationTracks(): Promise<any[]>;
+  incrementRotationPlayCount(trackId: string): Promise<void>;
+  createRadioRotationTrack(data: any): Promise<any>;
+  updateRotationTrackStatus(trackId: string, status: string, approvedBy: string, inRotation: boolean): Promise<void>;
 }
 
 // In-Memory Implementation
@@ -177,6 +243,7 @@ class MemStorage implements IStorage {
       tags: episode.tags || null,
       isLive: episode.isLive ?? false,
       isFeatured: episode.isFeatured ?? false,
+      tracklist: episode.tracklist ?? null,
     };
     this.episodes.push(newEpisode);
     return newEpisode;
@@ -337,6 +404,8 @@ class MemStorage implements IStorage {
       rescannedAt: submission.rescannedAt || null,
       playlistLinkedAt: submission.playlistLinkedAt || null,
       createdAt: submission.createdAt || new Date(),
+      handle: (submission as any).handle ?? null,
+      contributorId: (submission as any).contributorId ?? null,
     };
     this.mixSubmissions.push(newSubmission);
     return newSubmission;
@@ -596,6 +665,8 @@ class MemStorage implements IStorage {
       showDescription: resident.showDescription || null,
       genres: resident.genres || null,
       socialLinks: resident.socialLinks || null,
+      azuracastStreamerId: null,
+      azuracastAutoCreated: false,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -703,8 +774,108 @@ class MemStorage implements IStorage {
       this.settings.splice(index, 1);
     }
   }
+
+  // Shows - stub (not used in MemStorage)
+  async getShows(): Promise<Show[]> { return []; }
+  async getShowById(_id: number): Promise<Show | undefined> { return undefined; }
+  async getShowBySlug(_slug: string): Promise<Show | undefined> { return undefined; }
+  async createShow(_show: InsertShow): Promise<Show> { throw new Error('Not implemented'); }
+  async updateShow(_id: number, _show: Partial<Show>): Promise<Show> { throw new Error('Not implemented'); }
+  async deleteShow(_id: number): Promise<void> { }
+
+  // Hero Banners - stubs
+  async getHeroBanners(): Promise<HeroBanner[]> { return []; }
+  async getActiveBanner(): Promise<HeroBanner | undefined> { return undefined; }
+  async getHeroBannerById(_id: number): Promise<HeroBanner | undefined> { return undefined; }
+  async createHeroBanner(_banner: InsertHeroBanner): Promise<HeroBanner> { throw new Error('Not implemented'); }
+  async updateHeroBanner(_id: number, _banner: Partial<HeroBanner>): Promise<HeroBanner> { throw new Error('Not implemented'); }
+  async deleteHeroBanner(_id: number): Promise<void> { }
+  async setActiveBanner(_id: number): Promise<HeroBanner> { throw new Error('Not implemented'); }
+
+  // Playlist Submissions - stubs
+  async getPlaylistSubmissions(): Promise<PlaylistSubmission[]> { return []; }
+  async getPlaylistSubmissionById(_id: number): Promise<PlaylistSubmission | undefined> { return undefined; }
+  async createPlaylistSubmission(_submission: InsertPlaylistSubmission): Promise<PlaylistSubmission> { throw new Error('Not implemented'); }
+  async updatePlaylistSubmissionStatus(_id: number, _status: string, _notes?: string): Promise<PlaylistSubmission> { throw new Error('Not implemented'); }
+  async updatePlaylistSubmission(_id: number, _updates: Partial<PlaylistSubmission>): Promise<PlaylistSubmission> { throw new Error('Not implemented'); }
+  async togglePlaylistFeature(_id: number): Promise<PlaylistSubmission> { throw new Error('Not implemented'); }
+  async togglePlaylistApproval(_id: number): Promise<PlaylistSubmission> { throw new Error('Not implemented'); }
+  async likePlaylistSubmission(_id: number): Promise<PlaylistSubmission> { throw new Error('Not implemented'); }
+  async deletePlaylistSubmission(_id: number): Promise<void> { }
+
+  // Contributors - stubs
+  async getContributors(): Promise<Contributor[]> { return []; }
+  async getContributorById(_id: number): Promise<Contributor | undefined> { return undefined; }
+  async getContributorByHandle(_handle: string): Promise<Contributor | undefined> { return undefined; }
+  async createContributor(_contributor: InsertContributor): Promise<Contributor> { throw new Error('Not implemented'); }
+  async updateContributor(_id: number, _updates: Partial<Contributor>): Promise<Contributor | undefined> { return undefined; }
+
+  // Alias convenience methods - stubs
+  async getPlaylistSubmission(_id: number): Promise<PlaylistSubmission | undefined> { return undefined; }
+  async getAlbumSuggestion(_id: number): Promise<any | undefined> { return undefined; }
+  async updateMixRoutingStatus(_id: number, _updates: Partial<MixSubmission>): Promise<MixSubmission> { throw new Error('Not implemented'); }
+
+  // Episode Submissions - stubs
+  async getEpisodeSubmissions(): Promise<any[]> { return []; }
+  async getEpisodeSubmissionById(_id: number): Promise<any | undefined> { return undefined; }
+  async createEpisodeSubmission(_submission: any): Promise<any> { throw new Error('Not implemented'); }
+  async updateEpisodeSubmission(_id: number, _updates: any): Promise<any> { throw new Error('Not implemented'); }
+  async deleteEpisodeSubmission(_id: number): Promise<void> { }
+
+  // Album of the Month - stubs
+  async getAlbumSuggestions(): Promise<any[]> { return []; }
+  async getAlbumSuggestionById(_id: number): Promise<any | undefined> { return undefined; }
+  async createAlbumSuggestion(_data: any): Promise<any> { throw new Error('Not implemented'); }
+  async updateAlbumSuggestion(_id: number, _updates: any): Promise<any> { throw new Error('Not implemented'); }
+  async acceptAlbumSuggestion(_id: number, _reviewedBy: string): Promise<any> { throw new Error('Not implemented'); }
+  async rejectAlbumSuggestion(_id: number, _reviewedBy: string): Promise<any> { throw new Error('Not implemented'); }
+  async deleteAlbumSuggestion(_id: number): Promise<void> { }
+  async voteOnAlbumSuggestion(_suggestionId: number, _voterUsername: string, _value: 1 | -1): Promise<any> { throw new Error('Not implemented'); }
+  async getAlbumVotesForSuggestion(_suggestionId: number): Promise<any[]> { return []; }
+  async getAlbumSuggestionsWithVotes(): Promise<any[]> { return []; }
+  async createAlbumPick(_data: any): Promise<any> { throw new Error('Not implemented'); }
+  async getAlbumPickByMonth(_month: string): Promise<any | undefined> { return undefined; }
+  async getAlbumPickById(_id: number): Promise<any | undefined> { return undefined; }
+  async getAlbumPickItemById(_id: number): Promise<any | undefined> { return undefined; }
+  async getPublishedAlbumPicks(): Promise<any[]> { return []; }
+  async getDraftAlbumPicks(): Promise<any[]> { return []; }
+  async addAlbumToPickDraft(_data: any): Promise<any> { throw new Error('Not implemented'); }
+  async getAlbumPickItems(_pickId: number): Promise<any[]> { return []; }
+  async updateAlbumPickItem(_id: number, _updates: any): Promise<any> { throw new Error('Not implemented'); }
+  async deleteAlbumPickItem(_id: number): Promise<void> { }
+  async publishAlbumPick(_pickId: number): Promise<any> { throw new Error('Not implemented'); }
+  async deleteAlbumPick(_pickId: number): Promise<void> { }
+  async getPublishedAlbumPickWithItems(_month: string): Promise<any | null> { return null; }
+  async addAlbumSuggestionNote(_data: any): Promise<any> { throw new Error('Not implemented'); }
+  async getAlbumSuggestionNotes(_suggestionId: number): Promise<any[]> { return []; }
+  async updateAlbumPick(_id: number, _updates: any): Promise<any> { throw new Error('Not implemented'); }
+
+  // Year-End Lists - stubs
+  async getYearEndLists(): Promise<any[]> { return []; }
+  async getYearEndListBySlug(_slug: string): Promise<any | undefined> { return undefined; }
+  async getYearEndListWithItems(_slug: string): Promise<any | null> { return null; }
+
+  // Radio stream service - stubs
+  async getApprovedSongSubmissions(): Promise<any[]> { return []; }
+  async addTrackLike(_data: any): Promise<any> { return {}; }
+
+  // Track metadata service - stubs
+  async getTrackMetadata(_filename: string): Promise<any | undefined> { return undefined; }
+  async saveTrackMetadata(_data: any): Promise<any> { return {}; }
+  async updateTrackMetadata(_filename: string, _updates: any): Promise<any> { return {}; }
+
+  // Radio Service - stubs
+  async getCurrentProgramState(): Promise<any | undefined> { return undefined; }
+  async updateProgramState(_state: any): Promise<any> { return {}; }
+  async getLiveShow(_id: number): Promise<any | undefined> { return undefined; }
+  async getAllLiveShows(): Promise<any[]> { return []; }
+  async updateLiveShowStatus(_id: number, _isLive: boolean): Promise<void> { }
+  async getRadioRotationTrack(_trackId: string): Promise<any | undefined> { return undefined; }
+  async getApprovedRotationTracks(): Promise<any[]> { return []; }
+  async incrementRotationPlayCount(_trackId: string): Promise<void> { }
+  async createRadioRotationTrack(_data: any): Promise<any> { throw new Error('Not implemented'); }
+  async updateRotationTrackStatus(_trackId: string, _status: string, _approvedBy: string, _inRotation: boolean): Promise<void> { }
 }
 
-import { FileStorage } from './persistentStorage';
-
-export const storage = new FileStorage();
+// Storage is now DB-backed via DrizzleStorage (extends FileStorage as fallback)
+export { storage } from './dbStorage';

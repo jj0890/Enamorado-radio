@@ -33,9 +33,9 @@ export default function EpisodesBrowser() {
     return matchesSearch && matchesSeries;
   });
 
-  const uniqueSeries = [...new Set(episodes.map(ep => ep.seriesTitle).filter(Boolean))];
+  const uniqueSeries = Array.from(new Set(episodes.map(ep => ep.seriesTitle).filter(Boolean))) as string[];
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',

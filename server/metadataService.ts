@@ -19,6 +19,7 @@ export interface TrackMetadata {
     soundcloud?: string;
     bandcamp?: string;
     youtube?: string;
+    mixcloud?: string;
   };
 }
 
@@ -272,12 +273,7 @@ class MetadataService {
         trackId,
         title: data.title,
         artist: data.author_name || 'Unknown Artist',
-        album: null,
-        duration: null,
-        imageUrl: imageUrl || null,
-        previewUrl: null,
-        releaseDate: null,
-        popularity: null,
+        imageUrl: imageUrl || undefined,
         genres: [],
         externalUrls: {
           mixcloud: trackUrl,
@@ -372,12 +368,3 @@ class MetadataService {
 }
 
 export const metadataService = new MetadataService();
-
-// Test the service with your Spotify URL
-if (process.env.NODE_ENV === 'development') {
-  // Demonstrate with your exact URL
-  const testUrl = "https://open.spotify.com/track/4hAPiyiwGAlIKP53qfmDuN?si=7d5b5385b0ac4654";
-  setTimeout(async () => {
-    await metadataService.demonstrateSpotifyExtraction(testUrl);
-  }, 1000);
-}

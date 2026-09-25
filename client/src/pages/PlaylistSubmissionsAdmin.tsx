@@ -25,7 +25,7 @@ import {
   CheckCircle,
   ListMusic,
 } from "lucide-react";
-import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube } from "react-icons/si";
+import { PlatformIcon } from "@/components/PlatformIcon";
 import { useState } from "react";
 import AdminShell from "@/components/admin/AdminShell";
 import DataTable, { StatusBadge, DateCell, TruncatedText, type Column, type RowAction } from "@/components/admin/DataTable";
@@ -52,39 +52,22 @@ interface PlaylistSubmissionsAdminProps {
   onLogout: () => void;
 }
 
+const PLATFORM_META: Record<string, { label: string; bg: string }> = {
+  spotify:     { label: 'Spotify',     bg: 'bg-green-600' },
+  apple_music: { label: 'Apple Music', bg: 'bg-pink-600'  },
+  soundcloud:  { label: 'SoundCloud',  bg: 'bg-orange-500'},
+  youtube:     { label: 'YouTube',     bg: 'bg-red-600'   },
+};
+
 function PlatformBadge({ platform }: { platform: string }) {
-  switch (platform) {
-    case 'spotify':
-      return (
-        <Badge className="bg-green-600 text-white flex items-center gap-1">
-          <SiSpotify className="w-3 h-3" />
-          Spotify
-        </Badge>
-      );
-    case 'apple_music':
-      return (
-        <Badge className="bg-pink-600 text-white flex items-center gap-1">
-          <SiApplemusic className="w-3 h-3" />
-          Apple Music
-        </Badge>
-      );
-    case 'soundcloud':
-      return (
-        <Badge className="bg-orange-500 text-white flex items-center gap-1">
-          <SiSoundcloud className="w-3 h-3" />
-          SoundCloud
-        </Badge>
-      );
-    case 'youtube':
-      return (
-        <Badge className="bg-red-600 text-white flex items-center gap-1">
-          <SiYoutube className="w-3 h-3" />
-          YouTube
-        </Badge>
-      );
-    default:
-      return <Badge variant="secondary">{platform}</Badge>;
-  }
+  const meta = PLATFORM_META[platform];
+  if (!meta) return <Badge variant="secondary">{platform}</Badge>;
+  return (
+    <Badge className={`${meta.bg} text-white flex items-center gap-1`}>
+      <PlatformIcon platform={platform} size={12} />
+      {meta.label}
+    </Badge>
+  );
 }
 
 export default function PlaylistSubmissionsAdmin({ currentUser, onLogout }: PlaylistSubmissionsAdminProps) {

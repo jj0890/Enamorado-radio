@@ -4,6 +4,21 @@ export type Filterable = {
   [key: string]: any;
 };
 
+export type Mix = Filterable & {
+  id: number;
+  title: string;
+  name: string;   // Artist / submitter name
+  url: string;
+  status?: string | null;
+  artwork_url?: string | null;
+  coverUrl?: string | null;
+  artUrl?: string | null;
+  platform?: string | null;
+  about?: string | null;
+  approved?: boolean | null;
+  featured?: boolean | null;
+};
+
 const normalize = (s: string): string =>
   s
     .toLowerCase()

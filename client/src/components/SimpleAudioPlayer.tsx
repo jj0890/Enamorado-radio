@@ -14,13 +14,13 @@ export function SimpleAudioPlayer({ className = '' }: SimpleAudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Get current track info from AzuraCast
-  const { data: currentTrack } = useQuery({
+  const { data: currentTrack } = useQuery<{ url: string; title: string; artist: string; artwork: string } | null>({
     queryKey: ['/api/current-playback'],
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 
   // Get stream URL from AzuraCast
-  const { data: streamInfo } = useQuery({
+  const { data: streamInfo } = useQuery<{ url: string } | null>({
     queryKey: ['/api/stream-status'],
     refetchInterval: 60000, // Check every minute
   });

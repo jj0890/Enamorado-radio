@@ -57,11 +57,7 @@ export default function MixUpload() {
 
   const uploadMixMutation = useMutation({
     mutationFn: async (data: any) => {
-      return apiRequest('/api/mix-uploads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
+      return apiRequest('POST', '/api/mix-uploads', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/mix-uploads'] });
@@ -83,11 +79,7 @@ export default function MixUpload() {
 
   const createTrackMutation = useMutation({
     mutationFn: async ({ mixId, track }: { mixId: number; track: TrackData }) => {
-      return apiRequest(`/api/mix-uploads/${mixId}/tracklist`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(track),
-      });
+      return apiRequest('POST', `/api/mix-uploads/${mixId}/tracklist`, track);
     },
   });
 
@@ -176,8 +168,9 @@ export default function MixUpload() {
 
     try {
       // First upload the mix
-      const mixResult = await uploadMixMutation.mutateAsync(mixData);
-      
+      const mixResponse = await uploadMixMutation.mutateAsync(mixData);
+      const mixResult = await (mixResponse as Response).json() as { id: number };
+
       // Then upload all tracks
       for (const track of tracks) {
         await createTrackMutation.mutateAsync({

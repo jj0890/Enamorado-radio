@@ -456,8 +456,150 @@ export const streamStatus = pgTable("stream_status", {
   lastChecked: timestamp("last_checked").defaultNow(),
 });
 
+// Editorial Production Tables
+// ============================
+
+// Editorial Projects - Magazine-style content with workflow
+export const editorialProjects = pgTable("editorial_projects", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  type: text("type").notNull(), // photoshoot, interview, essay, community-spotlight
+  // status: planning → in-progress → copy-edit → ready → published → featured
+  status: text("status").notNull().default("planning"),
+  description: text("description"),
+  content: text("content"), // HTML from rich text editor
+  coverImage: text("cover_image"),
+  images: text("images").array(), // Gallery images (for photoshoots)
+  layoutStyle: text("layout_style"), // vertical-scroll, grid, masonry, coverflow
+
+  // SEO / publishing
+  slug: text("slug"), // clean URL (auto-generated from title, editable)
+  metaTitle: text("meta_title"), // SEO title override
+  metaDescription: text("meta_description"), // SEO meta description
+  ogImage: text("og_image"), // Open Graph image (can differ from coverImage)
+  scheduledAt: timestamp("scheduled_at"), // future publish datetime
+  license: text("license").default("all-rights-reserved"), // CC BY, CC BY-NC, all-rights-reserved
+
+  // Analytics
+  readingTime: integer("reading_time"), // minutes — auto-calculated server-side
+  wordCount: integer("word_count"), // auto-calculated server-side
+  viewCount: integer("view_count").default(0),
+
+  // Interview-specific
+  interviewee: text("interviewee"),
+  intervieweeRole: text("interviewee_role"),
+  intervieweeImage: text("interviewee_image"),
+
+  // Essay-specific
+  author: text("author"),
+  authorBio: text("author_bio"),
+  authorImage: text("author_image"),
+  coAuthors: text("co_authors").array(), // additional bylines
+
+  // External link support (for Substack, Medium, etc.)
+  externalUrl: text("external_url"),
+  externalType: text("external_type"), // substack, medium, other
+
+  // Featured embed (SoundCloud, Spotify, Bandcamp, YouTube)
+  featuredEmbed: jsonb("featured_embed"), // {type, url, title, artist, artwork, scraped}
+
+  // Workflow
+  assignedTo: text("assigned_to"),
+  dueDate: timestamp("due_date"),
+  tags: text("tags").array(),
+
+  // Copy editing
+  copyEditedBy: text("copy_edited_by"),
+  copyEditedAt: timestamp("copy_edited_at"),
+
+  // Internal admin-only fields (never exposed to public frontend)
+  editorialNotes: text("editorial_notes"),
+  factChecked: boolean("fact_checked").default(false),
+  legalCleared: boolean("legal_cleared").default(false),
+
+  // Related content (array of editorial_project IDs)
+  relatedProjectIds: integer("related_project_ids").array(),
+
+  // Related music content — [{type:'mix'|'episode'|'album', id, title, coverImage?}]
+  relatedMedia: jsonb("related_media"),
+
+  // Per-image captions and alt text: { [imageUrl]: { caption, altText } }
+  imageCaptions: jsonb("image_captions"),
+
+  // Credits (for photoshoots)
+  credits: jsonb("credits"), // {photographer, stylist, mua, wardrobe, location}
+
+  // Spotlight loop (no FK — avoids forward-reference issues)
+  sourceSubmissionId: integer("source_submission_id"),
+  magazineContentId: integer("magazine_content_id"),
+
+  // Metadata
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  publishedAt: timestamp("published_at"),
+});
+
+// Editorial revision history — one row per save
+export const editorialRevisions = pgTable("editorial_revisions", {
+  id: serial("id").primaryKey(),
+  projectId: integer("project_id").notNull(),
+  label: text("label"), // "Auto-save", "Before publish", or manual label
+  content: text("content"), // HTML snapshot
+  formSnapshot: jsonb("form_snapshot"), // full project form state at save time
+  savedBy: text("saved_by"),
+  savedAt: timestamp("saved_at").defaultNow(),
+});
+
+// Editorial Media Library - Centralized asset management
+export const editorialMedia = pgTable("editorial_media", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  url: text("url").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  type: text("type").notNull(), // image, video
+  size: integer("size"), // bytes
+  caption: text("caption"),
+  altText: text("alt_text"),
+  projectId: integer("project_id"), // optional link to a project
+  uploadedAt: timestamp("uploaded_at").defaultNow(),
+  uploadedBy: text("uploaded_by"),
+  tags: text("tags").array(),
+});
+
+// Content Mapping - Visual homepage slot assignments
+export const contentMapping = pgTable("content_mapping", {
+  id: serial("id").primaryKey(),
+  slotId: text("slot_id").notNull().unique(), // editorial-hero, radio-hero, featured-editorial-1, etc.
+  contentType: text("content_type"), // photoshoot, interview, essay, episode, mix
+  contentId: integer("content_id"),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  updatedBy: text("updated_by"),
+});
+
 // Insert Schemas
 // =============
+
+export const insertEditorialProjectSchema = createInsertSchema(editorialProjects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  publishedAt: true,
+});
+
+export const insertEditorialRevisionSchema = createInsertSchema(editorialRevisions).omit({
+  id: true,
+  savedAt: true,
+});
+
+export const insertEditorialMediaSchema = createInsertSchema(editorialMedia).omit({
+  id: true,
+  uploadedAt: true,
+});
+
+export const insertContentMappingSchema = createInsertSchema(contentMapping).omit({
+  id: true,
+  updatedAt: true,
+});
 
 export const insertShowSchema = createInsertSchema(shows).omit({
   id: true,
@@ -605,6 +747,9 @@ export type AlbumVote = typeof albumVotes.$inferSelect;
 export type AlbumPick = typeof albumPicks.$inferSelect;
 export type AlbumPickItem = typeof albumPickItems.$inferSelect;
 export type AlbumSuggestionNote = typeof albumSuggestionNotes.$inferSelect;
+export type EditorialProject = typeof editorialProjects.$inferSelect;
+export type EditorialMedia = typeof editorialMedia.$inferSelect;
+export type ContentMapping = typeof contentMapping.$inferSelect;
 
 export type InsertShow = z.infer<typeof insertShowSchema>;
 export type InsertEpisode = z.infer<typeof insertEpisodeSchema>;
@@ -624,6 +769,9 @@ export type InsertAlbumVote = z.infer<typeof insertAlbumVoteSchema>;
 export type InsertAlbumPick = z.infer<typeof insertAlbumPickSchema>;
 export type InsertAlbumPickItem = z.infer<typeof insertAlbumPickItemSchema>;
 export type InsertAlbumSuggestionNote = z.infer<typeof insertAlbumSuggestionNoteSchema>;
+export type InsertEditorialProject = z.infer<typeof insertEditorialProjectSchema>;
+export type InsertEditorialMedia = z.infer<typeof insertEditorialMediaSchema>;
+export type InsertContentMapping = z.infer<typeof insertContentMappingSchema>;
 
 // =================
 // UNIFIED CONTENT ITEM TYPES - For /community unified gallery
@@ -635,10 +783,15 @@ export interface ContentItemBase {
   title: string;
   artworkUrl?: string | null;
   genre?: string | null;
-  submittedAt?: Date | null;
-  createdAt?: Date | null;
+  submittedAt?: Date | string | null;
+  createdAt?: Date | string | null;
   isFeatured?: boolean;
   url?: string | null;
+  // Optional cross-type display fields — present on at least one subtype
+  description?: string | null;
+  curatorName?: string | null;
+  hostName?: string | null;
+  handle?: string | null;
 }
 
 // Mix content type (from mixSubmissions)
@@ -717,8 +870,323 @@ export function isPlaylistContent(item: ContentItem): item is PlaylistContentIte
   return item.type === 'playlist';
 }
 
-// API Response Types
-// ==================
+// ─── MAGAZINE TABLES ──────────────────────────────────────────────────────────
+// Merged from magazine-mockup. Powers the editorial CMS, issues, open calls,
+// homepage curation, and editorial pitching workflow.
+
+// Open Calls — themed submission drives
+export const openCalls = pgTable("open_calls", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description").notNull(),
+  guidelines: text("guidelines"),
+  targetDate: timestamp("target_date"),
+  status: text("status").notNull().default("draft"), // 'draft' | 'active' | 'closed'
+  coverImageUrl: text("cover_image_url"),
+  createdAt: timestamp("created_at").defaultNow(),
+  publishedAt: timestamp("published_at"),
+});
+
+// Editorial Content — full magazine articles with block-based sections
+export const magazineContent = pgTable("magazine_content", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  excerpt: text("excerpt"),
+  body: text("body"),
+  authors: text("authors").array().default([]),
+  coverImageUrl: text("cover_image_url"),
+  videoUrl: text("video_url"),
+  status: text("status").notNull().default("draft"),
+  templateType: text("template_type"),               // 'article' | 'interview' | 'photo_essay' | 'playlist' | 'video' | 'pdf'
+  tier: text("tier").default("web_exclusive"),        // 'issue' | 'web_exclusive' | 'community'
+  editorialCategory: text("editorial_category"),      // 'essay' | 'review' | 'profile' | 'feature' | 'interview' | 'art'
+  sections: jsonb("sections"),                        // Array of editorial block objects
+  externalUrl: text("external_url"),
+  pdfUrl: text("pdf_url"),
+  artistCredit: text("artist_credit"),
+  credits: text("credits"),
+  gallery: text("gallery"),                           // JSON [{src, caption, credit, alt}]
+  files: text("files").array().default([]),
+  embedUrl: text("embed_url"),
+  featuredRank: integer("featured_rank"),
+  isHero: boolean("is_hero").default(false),
+  issueId: integer("issue_id"),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Magazine Issues — curated collections / season volumes
+export const magazineIssues = pgTable("magazine_issues", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  slug: text("slug").notNull().unique(),
+  description: text("description"),
+  season: text("season"),
+  editorialIntro: text("editorial_intro"),
+  coverImageUrl: text("cover_image_url"),
+  pdfUrl: text("pdf_url"),
+  status: text("status").notNull().default("draft"),
+  featured: boolean("featured").default(false),
+  publishedAt: timestamp("published_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Issue Contents — many-to-many: which articles belong to which issue
+export const magazineIssueContents = pgTable("magazine_issue_contents", {
+  id: serial("id").primaryKey(),
+  issueId: integer("issue_id").references(() => magazineIssues.id).notNull(),
+  contentId: integer("content_id").references(() => magazineContent.id).notNull(),
+  position: integer("position").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Features — homepage curation slots for editorial content
+export const magazineFeatures = pgTable("magazine_features", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // 'content' | 'issue'
+  entityId: text("entity_id").notNull(),
+  featureType: text("feature_type").notNull().default("main"), // 'hero' | 'main' | 'secondary'
+  position: integer("position").default(0),
+  isActive: boolean("is_active").default(true),
+  activeFrom: timestamp("active_from"),
+  activeUntil: timestamp("active_until"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Pitches — internal editorial planning (staff-only)
+export const magazinePitches = pgTable("magazine_pitches", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  concept: text("concept").notNull(),
+  targetLength: text("target_length"),
+  targetDate: timestamp("target_date"),
+  status: text("status").notNull().default("idea"), // 'idea' | 'in_progress' | 'published' | 'dropped'
+  assignedToContributorId: integer("assigned_to_contributor_id").references(() => contributors.id),
+  createdBy: text("created_by").notNull(),
+  notes: text("notes"),
+  contentId: integer("content_id").references(() => magazineContent.id),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Magazine Community Submissions — editorial-track community content
+export const magazineSubmissions = pgTable("magazine_submissions", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  submitterHandle: text("submitter_handle").notNull(),
+  submitterEmail: text("submitter_email"),
+  socialHandle: text("social_handle"),
+  contributorId: integer("contributor_id").references(() => contributors.id),
+  category: text("category").notNull(),
+  contentType: text("content_type").notNull().default("text"),
+  status: text("status").notNull().default("pending"),
+  files: text("files").array().default([]),
+  collaborationLinks: text("collaboration_links").array().default([]),
+  externalUrl: text("external_url"),
+  embedPlatform: text("embed_platform"),
+  embedUrl: text("embed_url"),
+  coverImageUrl: text("cover_image_url"),
+  editorialStatus: text("editorial_status").default("pending"),
+  feedbackNotes: text("feedback_notes"),
+  isCommunityVoice: boolean("is_community_voice").default(false),
+  section: text("section").default("community"),
+  contentUID: text("content_uid").unique(),
+  openCallId: integer("open_call_id").references(() => openCalls.id),
+  likes: integer("likes").default(0),
+  reviewedBy: text("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Insert/select types for magazine tables
+export const insertMagazineContentSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  excerpt: z.string().optional(),
+  body: z.string().optional(),
+  authors: z.array(z.string()).optional(),
+  coverImageUrl: z.string().optional(),
+  status: z.enum(["draft", "published"]).default("draft"),
+  templateType: z.string().optional(),
+  tier: z.string().optional(),
+  editorialCategory: z.string().optional(),
+  sections: z.any().optional(),
+  issueId: z.number().optional(),
+});
+
+export const insertMagazineIssueSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().optional(),
+  season: z.string().optional(),
+  editorialIntro: z.string().optional(),
+  coverImageUrl: z.string().optional(),
+  status: z.enum(["draft", "published"]).default("draft"),
+});
+
+export const insertOpenCallSchema = z.object({
+  title: z.string().min(1),
+  slug: z.string().min(1),
+  description: z.string().min(1),
+  guidelines: z.string().optional(),
+  targetDate: z.string().optional(),
+  status: z.enum(["draft", "active", "closed"]).default("draft"),
+  coverImageUrl: z.string().optional(),
+});
+
+export const insertMagazineSubmissionSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().min(1),
+  submitterHandle: z.string().min(1),
+  submitterEmail: z.string().email().optional(),
+  socialHandle: z.string().optional(),
+  category: z.string().min(1),
+  contentType: z.string().default("text"),
+  files: z.array(z.string()).optional(),
+  collaborationLinks: z.array(z.string()).optional(),
+  externalUrl: z.string().optional(),
+  openCallId: z.number().optional(),
+});
+
+export type MagazineContent    = typeof magazineContent.$inferSelect;
+export type MagazineIssue      = typeof magazineIssues.$inferSelect;
+export type OpenCall           = typeof openCalls.$inferSelect;
+export type MagazinePitch      = typeof magazinePitches.$inferSelect;
+export type MagazineSubmission = typeof magazineSubmissions.$inferSelect;
+
+// ─── EDITORIAL BLOCK TYPES (magazine block-renderer) ──────────────────────────
+
+export type TemplateType = 'article' | 'interview' | 'photo_essay' | 'playlist' | 'video' | 'pdf';
+
+export interface TextBlock {
+  _type: 'text';
+  id: string;
+  content: string;
+}
+
+export interface ImageBlock {
+  _type: 'image';
+  id: string;
+  src: string;
+  alt?: string;
+  caption?: string;
+  credit?: string;
+}
+
+export interface ImageRowBlock {
+  _type: 'imageRow';
+  id: string;
+  images: Array<{ src: string; alt?: string; caption?: string }>;
+  layout: '2-up' | '3-up';
+}
+
+export interface PullQuoteBlock {
+  _type: 'pullQuote';
+  id: string;
+  quote: string;
+  attribution?: string;
+}
+
+export interface CalloutBlock {
+  _type: 'callout';
+  id: string;
+  content: string;
+  backgroundColor: string;
+  textColor: string;
+}
+
+export interface EmbedBlock {
+  _type: 'embed';
+  id: string;
+  url: string;
+  embedHtml?: string;
+  platform?: string;
+}
+
+export interface QABlock {
+  _type: 'qa';
+  id: string;
+  questions: Array<{ question: string; answer: string }>;
+}
+
+export type EditorialSection =
+  | TextBlock
+  | ImageBlock
+  | ImageRowBlock
+  | PullQuoteBlock
+  | CalloutBlock
+  | EmbedBlock
+  | QABlock;
+
+// ─── FEATURED STORIES / RAW CONTENT ROW TYPES ─────────────────────────────────
+// Used by FeaturedStories component and magazine-editorials page.
+
+/** Flat content row shape returned by /api/features-with-content */
+export interface RawContentRow {
+  id: number | string;
+  title: string;
+  contentType?: string | null;
+  videoUrl?: string | null;
+  coverImageUrl?: string | null;
+  excerpt?: string | null;
+  authors?: string[] | null;
+  status?: string | null;
+  publishedAt?: string | Date | null;
+  templateType?: string | null;
+  slug?: string | null;
+  /** Issue association — used by magazine-admin-issues to group content by issue */
+  issueId?: number | string | null;
+}
+
+/** Feature with its associated content joined in — mirrors /api/features-with-content response */
+export interface FeatureWithContent {
+  feature: {
+    id: number;
+    entityType: string;
+    entityId: string;
+    featureType: 'hero' | 'main' | 'secondary';
+    position: number;
+    isActive: boolean;
+    activeFrom?: Date | string | null;
+    activeUntil?: Date | string | null;
+  };
+  content?: RawContentRow | null;
+}
+
+/** Alias — Submission maps to MagazineSubmission for backwards-compat imports */
+export type Submission = MagazineSubmission;
+
+/** Alias — Pitch maps to MagazinePitch for backwards-compat imports */
+export type Pitch = MagazinePitch;
+
+/** Alias — Issue maps to MagazineIssue for backwards-compat imports */
+export type Issue = MagazineIssue;
+
+/** insertPitchSchema — insert schema for magazine pitches */
+export const insertPitchSchema = z.object({
+  title: z.string().min(1),
+  concept: z.string().min(1),
+  targetLength: z.string().optional(),
+  targetDate: z.date().optional(),
+  status: z.enum(['idea', 'in_progress', 'published', 'dropped']).default('idea'),
+  assignedToContributorId: z.number().optional(),
+  createdBy: z.string().min(1),
+  notes: z.string().optional(),
+  contentId: z.number().optional(),
+});
+
+/**
+ * Alias — Content maps to MagazineContent for backwards-compat imports.
+ * Includes a `contentType` virtual field (mirrors `templateType`) so older
+ * components that used the magazine-mockup-4 API shape still compile.
+ */
+export type Content = MagazineContent & { contentType?: string | null };
+
+// ─── API RESPONSE TYPES ───────────────────────────────────────────────────────
 export type ApiOk<T = void> = { ok: true; data: T };
 export type ApiError = { ok: false; error: string; code?: string };
 export type ApiResult<T = void> = ApiOk<T> | ApiError;
@@ -729,4 +1197,74 @@ export class ErrorWithCode extends Error {
     this.name = 'ErrorWithCode';
   }
 }
+
+// ─── COMMUNITY / PUBLIC USER SYSTEM ───────────────────────────────────────────
+
+export const users = pgTable("users", {
+  id:            serial("id").primaryKey(),
+  email:         text("email").notNull().unique(),
+  passwordHash:  text("password_hash").notNull(),
+  handle:        text("handle").notNull().unique(),       // @handle, URL-safe
+  displayName:   text("display_name").notNull(),
+  role:          text("role").notNull().default("member"), // member | moderator
+  emailVerified: boolean("email_verified").default(false),
+  createdAt:     timestamp("created_at").defaultNow(),
+  updatedAt:     timestamp("updated_at").defaultNow(),
+});
+
+export const userProfiles = pgTable("user_profiles", {
+  id:           serial("id").primaryKey(),
+  userId:       integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
+  bio:          text("bio"),
+  avatarUrl:    text("avatar_url"),
+  avatarStatus: text("avatar_status").default("none"), // none | pending | approved | rejected
+  links:        jsonb("links").default([]),             // [{label, url}]
+  isPublic:     boolean("is_public").default(true),
+  updatedAt:    timestamp("updated_at").defaultNow(),
+});
+
+export const userAlbums = pgTable("user_albums", {
+  id:       serial("id").primaryKey(),
+  userId:   integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  rank:     integer("rank").notNull(),                  // 1-5
+  mbId:     text("mb_id").notNull(),                   // MusicBrainz release id
+  title:    text("title").notNull(),
+  artist:   text("artist").notNull(),
+  year:     text("year"),
+  coverUrl: text("cover_url"),
+});
+
+export const userContributions = pgTable("user_contributions", {
+  id:          serial("id").primaryKey(),
+  userId:      integer("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  type:        text("type").notNull(),                  // Article | Mix | Interview | Feature | Photo essay
+  title:       text("title").notNull(),
+  url:         text("url"),
+  isExternal:  boolean("is_external").default(false),
+  publishedAt: timestamp("published_at"),
+  status:      text("status").notNull().default("pending"), // pending | approved | rejected
+  approvedBy:  text("approved_by"),
+  approvedAt:  timestamp("approved_at"),
+  createdAt:   timestamp("created_at").defaultNow(),
+});
+
+export const insertUserSchema = z.object({
+  email:       z.string().email(),
+  password:    z.string().min(8),
+  handle:      z.string().min(2).max(32).regex(/^[a-zA-Z0-9_-]+$/),
+  displayName: z.string().min(1).max(64),
+});
+
+export const insertUserContributionSchema = z.object({
+  type:        z.enum(["Article", "Mix", "Interview", "Feature", "Photo essay"]),
+  title:       z.string().min(1),
+  url:         z.string().url().optional(),
+  isExternal:  z.boolean().optional(),
+  publishedAt: z.string().optional(),
+});
+
+export type User             = typeof users.$inferSelect;
+export type UserProfile      = typeof userProfiles.$inferSelect;
+export type UserAlbum        = typeof userAlbums.$inferSelect;
+export type UserContribution = typeof userContributions.$inferSelect;
 

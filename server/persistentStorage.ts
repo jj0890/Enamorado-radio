@@ -1,13 +1,14 @@
 import fs from 'fs/promises';
 import path from 'path';
 import {
-  Episode, 
+  Show,
+  Episode,
   Guide,
   HeroBanner,
   MixSubmission,
   PlaylistSubmission,
   EpisodeSubmission,
-  Schedule, 
+  Schedule,
   ResidentApplication,
   Resident,
   Admin,
@@ -20,6 +21,7 @@ import {
   AlbumSuggestionNote,
   Contributor,
   contributors,
+  InsertShow,
   InsertEpisode,
   InsertGuide,
   InsertHeroBanner,
@@ -67,6 +69,7 @@ export class FileStorage implements IStorage {
   private albumPickItems: AlbumPickItem[] = [];
   private albumSuggestionNotes: AlbumSuggestionNote[] = [];
   private contributorsList: Contributor[] = [];
+  private songSubmissions: any[] = [];
   private nextId = 1;
 
   constructor() {
@@ -308,6 +311,7 @@ export class FileStorage implements IStorage {
       status: episode.status || 'published',
       isLive: episode.isLive ?? false,
       isFeatured: episode.isFeatured ?? false,
+      tracklist: episode.tracklist ?? null,
     };
     this.episodes.push(newEpisode);
     await this.saveData('episodes', this.episodes);
@@ -407,7 +411,7 @@ export class FileStorage implements IStorage {
 
   // Hero Banners
   async getHeroBanners(): Promise<HeroBanner[]> {
-    return this.heroBanners.sort((a, b) => b.displayOrder - a.displayOrder);
+    return this.heroBanners.sort((a, b) => (b.displayOrder ?? 0) - (a.displayOrder ?? 0));
   }
 
   async getActiveBanner(): Promise<HeroBanner | undefined> {
@@ -423,6 +427,10 @@ export class FileStorage implements IStorage {
       ...banner,
       id: this.nextId++,
       createdAt: new Date(),
+      subtitle: banner.subtitle ?? null,
+      overlayText: banner.overlayText ?? null,
+      isActive: banner.isActive ?? null,
+      displayOrder: banner.displayOrder ?? null,
     };
     this.heroBanners.push(newBanner);
     await this.saveData('heroBanners', this.heroBanners);
@@ -558,6 +566,8 @@ export class FileStorage implements IStorage {
       uploadedAt: submission.uploadedAt || null,
       rescannedAt: submission.rescannedAt || null,
       playlistLinkedAt: submission.playlistLinkedAt || null,
+      handle: (submission as any).handle ?? null,
+      contributorId: (submission as any).contributorId ?? null,
     };
     this.mixSubmissions.push(newSubmission);
     await this.saveData('mixSubmissions', this.mixSubmissions);
@@ -705,6 +715,8 @@ export class FileStorage implements IStorage {
       rejectionReason: submission.rejectionReason || null,
       createdAt: new Date(),
       updatedAt: new Date(),
+      handle: (submission as any).handle ?? null,
+      contributorId: (submission as any).contributorId ?? null,
     };
     this.playlistSubmissions.push(newSubmission);
     await this.saveData('playlistSubmissions', this.playlistSubmissions);
@@ -975,7 +987,7 @@ export class FileStorage implements IStorage {
   }
 
   // Song Submissions
-  async getSongSubmissions(filters?: { status?: string; limit?: number }): Promise<SongSubmission[]> {
+  async getSongSubmissions(filters?: { status?: string; limit?: number }): Promise<any[]> {
     let filtered = [...this.songSubmissions];
     
     if (filters?.status) {
@@ -995,8 +1007,8 @@ export class FileStorage implements IStorage {
     return filtered;
   }
 
-  async createSongSubmission(submission: InsertSongSubmission): Promise<SongSubmission> {
-    const newSubmission: SongSubmission = {
+  async createSongSubmission(submission: any): Promise<any> {
+    const newSubmission: any = {
       ...submission,
       id: this.nextId++,
       approvalStatus: 'pending',
@@ -1011,7 +1023,7 @@ export class FileStorage implements IStorage {
     return newSubmission;
   }
 
-  async updateSongSubmissionStatus(id: number, status: string): Promise<SongSubmission> {
+  async updateSongSubmissionStatus(id: number, status: string): Promise<any> {
     const index = this.songSubmissions.findIndex(s => s.id === id);
     if (index === -1) throw new Error('Song submission not found');
     
@@ -1025,7 +1037,7 @@ export class FileStorage implements IStorage {
     return this.songSubmissions[index];
   }
 
-  async getSongSubmissionById(id: number): Promise<SongSubmission | undefined> {
+  async getSongSubmissionById(id: number): Promise<any | undefined> {
     return this.songSubmissions.find(s => s.id === id);
   }
 
@@ -1421,6 +1433,9 @@ export class FileStorage implements IStorage {
       isPublished: false,
       publishedAt: null,
       createdAt: new Date(),
+      listType: data.listType || 'monthly',
+      introText: data.introText ?? null,
+      outroText: data.outroText ?? null,
     };
     
     this.albumPicks.push(pick);
@@ -1460,8 +1475,14 @@ export class FileStorage implements IStorage {
       appleMusicUrl: data.appleMusicUrl || null,
       bandcampUrl: data.bandcampUrl || null,
       blurb: data.blurb || null,
+      writeUp: data.writeUp ?? null,
+      accentColor: data.accentColor ?? null,
+      addedBy: data.addedBy || '',
+      releaseDate: (data as any).releaseDate ?? null,
+      label: (data as any).label ?? null,
+      standoutTracks: (data as any).standoutTracks ?? null,
     };
-    
+
     this.albumPickItems.push(item);
     await this.saveData('albumPickItems', this.albumPickItems);
     return item;
@@ -1622,6 +1643,90 @@ export class FileStorage implements IStorage {
   async updateContributor(id: number, updates: Partial<Contributor>): Promise<Contributor | undefined> {
     const result = await db.update(contributors).set(updates).where(eq(contributors.id, id)).returning();
     return result[0];
+  }
+
+  // Shows - stubs (not stored in file storage)
+  async getShows(_filters?: { status?: string; limit?: number }): Promise<Show[]> { return []; }
+  async getShowById(_id: number): Promise<Show | undefined> { return undefined; }
+  async getShowBySlug(_slug: string): Promise<Show | undefined> { return undefined; }
+  async createShow(_show: InsertShow): Promise<Show> { throw new Error('Shows not implemented in file storage'); }
+  async updateShow(_id: number, _show: Partial<Show>): Promise<Show> { throw new Error('Shows not implemented in file storage'); }
+  async deleteShow(_id: number): Promise<void> { }
+
+  // Alias methods for routes.ts compatibility
+  async getPlaylistSubmission(id: number): Promise<PlaylistSubmission | undefined> {
+    return this.playlistSubmissions.find(p => p.id === id);
+  }
+
+  async getAlbumSuggestion(id: number): Promise<AlbumSuggestion | undefined> {
+    return this.albumSuggestions.find(s => s.id === id);
+  }
+
+  async updateMixRoutingStatus(id: number, updates: Partial<MixSubmission>): Promise<MixSubmission> {
+    return this.updateMixSubmission(id, updates);
+  }
+
+  // Radio stream service stubs
+  async getApprovedSongSubmissions(): Promise<any[]> {
+    return this.songSubmissions.filter(s => s.approvalStatus === 'approved');
+  }
+
+  async addTrackLike(_data: any): Promise<any> {
+    return {}; // stub — implement later
+  }
+
+  // Track metadata service stubs
+  async getTrackMetadata(_filename: string): Promise<any | undefined> {
+    return undefined; // stub — implement later
+  }
+
+  async saveTrackMetadata(_data: any): Promise<any> {
+    return {}; // stub — implement later
+  }
+
+  async updateTrackMetadata(_filename: string, _updates: any): Promise<any> {
+    return {}; // stub — implement later
+  }
+
+  // Radio Service stubs — not implemented in file storage
+  async getCurrentProgramState(): Promise<any | undefined> {
+    return undefined; // stub — implement later with radio state file
+  }
+
+  async updateProgramState(_state: any): Promise<any> {
+    return {}; // stub — implement later
+  }
+
+  async getLiveShow(_id: number): Promise<any | undefined> {
+    return undefined; // stub — implement later
+  }
+
+  async getAllLiveShows(): Promise<any[]> {
+    return []; // stub — implement later
+  }
+
+  async updateLiveShowStatus(_id: number, _isLive: boolean): Promise<void> {
+    // stub — implement later
+  }
+
+  async getRadioRotationTrack(_trackId: string): Promise<any | undefined> {
+    return undefined; // stub — implement later
+  }
+
+  async getApprovedRotationTracks(): Promise<any[]> {
+    return []; // stub — implement later
+  }
+
+  async incrementRotationPlayCount(_trackId: string): Promise<void> {
+    // stub — implement later
+  }
+
+  async createRadioRotationTrack(_data: any): Promise<any> {
+    return {}; // stub — implement later
+  }
+
+  async updateRotationTrackStatus(_trackId: string, _status: string, _approvedBy: string, _inRotation: boolean): Promise<void> {
+    // stub — implement later
   }
 
   // Emergency reset - clear all data

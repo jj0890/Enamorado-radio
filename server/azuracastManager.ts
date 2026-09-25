@@ -15,6 +15,7 @@ export class AzuraCastManager {
     port: number;
     username: string;
     password: string;
+    readyTimeout: number;
   };
 
   constructor() {
@@ -27,7 +28,8 @@ export class AzuraCastManager {
       host: process.env.SFTP_HOST || '24.199.109.18',
       port: parseInt(process.env.SFTP_PORT || '2022'),
       username: process.env.SFTP_USER || '',
-      password: process.env.SFTP_PASS || ''
+      password: process.env.SFTP_PASS || '',
+      readyTimeout: 10000, // 10s — fail fast if droplet is unreachable
     };
   }
 

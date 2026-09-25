@@ -77,6 +77,8 @@ interface DataTableProps<T extends { id: number | string }> {
   }[];
   pageSize?: number;
   isLoading?: boolean;
+  /** @deprecated Accepted for compatibility — search is enabled when searchKeys is provided */
+  searchable?: boolean;
   emptyMessage?: string;
   onRefresh?: () => void;
   getRowId?: (item: T) => string | number;

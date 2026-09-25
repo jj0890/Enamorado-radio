@@ -69,12 +69,12 @@ export default function MobileRadio() {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // API queries
-  const { data: tracksData } = useQuery({
+  const { data: tracksData } = useQuery<Track[]>({
     queryKey: ['/api/tracks'],
     queryFn: getQueryFn({ on401: 'throw' })
   });
 
-  const { data: showsData } = useQuery({
+  const { data: showsData } = useQuery<Show[]>({
     queryKey: ['/api/shows/mobile'],
     queryFn: getQueryFn({ on401: 'throw' })
   });
@@ -92,8 +92,8 @@ export default function MobileRadio() {
   });
 
   // Use API data when available, fallback to empty arrays
-  const tracks = tracksData || [];
-  const shows = showsData || [];
+  const tracks: Track[] = tracksData || [];
+  const shows: Show[] = showsData || [];
 
   useEffect(() => {
     const audio = audioRef.current;

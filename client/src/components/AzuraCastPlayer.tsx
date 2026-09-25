@@ -14,7 +14,10 @@ export function AzuraCastPlayer({ className = '' }: AzuraCastPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Get now playing info from AzuraCast
-  const { data: nowPlaying } = useQuery({
+  const { data: nowPlaying } = useQuery<{
+    now_playing?: { song?: { art?: string; title?: string; artist?: string } };
+    listeners?: { current?: number };
+  }>({
     queryKey: ['/api/azuracast/nowplaying'],
     refetchInterval: 15000, // Refresh every 15 seconds
   });

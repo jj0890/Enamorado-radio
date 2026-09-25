@@ -1,200 +1,250 @@
 /**
- * Design Tokens
- * Station Mode - Single accent color system with radiored/slate palette
+ * Enamorado — Unified Design Tokens
+ * Radio + Editorial platform
+ *
+ * Typographic identity: Barlow Condensed (display) + Inter (body) + IBM Plex Mono (metadata)
+ * Color identity: Olive green accent on near-white / near-black
  */
 
 :root {
-  /* --- ACCENT COLOR --- */
-  /* Single primary accent used throughout the site */
-  --accent-navy: hsl(213, 100%, 26%);
-  --accent-navy-dark: hsl(213, 100%, 22%);
-  --accent-navy-light: hsl(213, 100%, 32%);
-  
-  /* --- NEUTRAL PALETTE (SLATE) --- */
-  --slate-50: hsl(210, 40%, 98%);
-  --slate-100: hsl(210, 40%, 96.1%);
-  --slate-200: hsl(214, 32%, 91%);
-  --slate-300: hsl(213, 27%, 84%);
-  --slate-400: hsl(215, 20%, 65%);
-  --slate-500: hsl(215, 16%, 47%);
-  --slate-600: hsl(215, 19%, 35%);
-  --slate-700: hsl(215, 25%, 27%);
-  --slate-800: hsl(217, 33%, 17%);
-  --slate-900: hsl(222, 47%, 11%);
-  --slate-950: hsl(229, 84%, 5%);
-  
-  /* --- SEMANTIC TOKENS (LIGHT MODE) --- */
-  --background: hsl(42, 100%, 95%); /* Warm cream background */
-  --foreground: hsl(222, 47%, 11%);
-  
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(222, 47%, 11%);
-  
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(222, 47%, 11%);
-  
-  --muted: hsl(210, 40%, 96.1%);
-  --muted-foreground: hsl(215, 16%, 47%);
-  
-  /* Primary uses accent navy */
-  --primary: var(--accent-navy);
+  /* ─── ACCENT: BLUE ───────────────────────────────────────────── */
+  --blue:        hsl(218, 75%, 60%);   /* #4E86E8 — homepage / broadcast  */
+  --blue-dark:   hsl(218, 75%, 48%);   /* #2B6CD8 — hover/pressed         */
+  --blue-subtle: hsl(218, 65%, 94%);   /* light mode hover bg              */
+  --blue-bg:     hsl(218, 60%, 9%);    /* dark surface bg                  */
+
+  /* ─── ACCENT: OLIVE ──────────────────────────────────────────── */
+  --olive:        hsl(78, 38%, 32%);   /* #537A28 — primary accent */
+  --olive-dark:   hsl(78, 40%, 24%);   /* #3E5C1E — hover/pressed  */
+  --olive-light:  hsl(78, 36%, 42%);   /* #6B9E35 — lighter variant */
+  --olive-subtle: hsl(78, 30%, 92%);   /* #EAF0E0 — tint for hover bgs */
+  --olive-mid:    hsl(78, 28%, 60%);   /* #8FAE5E — muted olive     */
+
+  /* ─── NEUTRALS ───────────────────────────────────────────────── */
+  /* Warm near-black with the faintest olive tint */
+  --ink:          hsl(75, 8%, 10%);    /* #191E15 */
+  --ink-soft:     hsl(75, 6%, 22%);    /* #363D32 */
+  --ink-muted:    hsl(72, 5%, 40%);    /* #676E62 */
+  --ink-faint:    hsl(70, 4%, 58%);    /* #979D93 */
+
+  /* Warm near-white parchment */
+  --paper:        hsl(50, 14%, 96%);   /* #F6F4EF */
+  --paper-warm:   hsl(46, 18%, 93%);   /* #EFECe3 */
+  --paper-cool:   hsl(55, 8%, 90%);    /* #E8E9E3 */
+  --paper-border: hsl(56, 10%, 84%);   /* #DCDDD5 */
+
+  /* ─── SEMANTIC TOKENS (LIGHT MODE) ──────────────────────────── */
+  --background:   var(--paper);
+  --foreground:   var(--ink);
+
+  --card:              var(--paper);
+  --card-foreground:   var(--ink);
+
+  --popover:           hsl(0, 0%, 100%);
+  --popover-foreground: var(--ink);
+
+  --muted:             var(--paper-cool);
+  --muted-foreground:  var(--ink-muted);
+
+  --primary:           var(--olive);
   --primary-foreground: hsl(0, 0%, 100%);
-  
-  /* Secondary: Muted background */
-  --secondary: hsl(210, 40%, 96.1%);
-  --secondary-foreground: hsl(222, 47%, 11%);
-  
-  /* Accent: Muted variant */
-  --accent: hsl(210, 40%, 96.1%);
-  --accent-foreground: hsl(222, 47%, 11%);
-  
-  /* Destructive uses red (keep red for destructive actions) */
-  --destructive: hsl(0, 84%, 60%);
+
+  --secondary:         var(--paper-warm);
+  --secondary-foreground: var(--ink);
+
+  --accent:            var(--olive-subtle);
+  --accent-foreground: var(--olive-dark);
+
+  --destructive:       hsl(0, 72%, 51%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  
-  /* Input & Border */
-  --border: hsl(214, 32%, 91%);
-  --input: hsl(214, 32%, 91%);
-  
-  /* --- BUTTON TOKENS --- */
-  /* Primary: Solid navy background with white text */
-  --button-primary-bg: var(--accent-navy);
-  --button-primary-hover: var(--accent-navy-dark);
-  --button-primary-text: hsl(0, 0%, 100%);
-  
-  /* Secondary: Text-only with no background */
-  --button-secondary-bg: transparent;
-  --button-secondary-hover: hsl(210, 40%, 96.1%);
-  --button-secondary-text: var(--accent-navy);
-  
-  /* --- BORDERS & RADIUS --- */
-  --radius: 0.5rem; /* 8px - Editorial tightness (was 14px) */
-  
-  /* --- TYPOGRAPHY SCALE --- */
-  --heading-h1-size: 40px;
-  --heading-h1-lh: 1.1;
-  --heading-h2-size: 28px;
-  --heading-h2-lh: 1.2;
-  --heading-h3-size: 20px;
-  --heading-h3-lh: 1.25;
-  
-  /* --- FOCUS RINGS --- */
-  --ring: var(--accent-navy);
-  --ring-offset: hsl(0, 0%, 100%);
-  
-  /* --- CHARTS --- */
-  --chart-1: var(--accent-navy);
-  --chart-2: hsl(215, 19%, 35%);
-  --chart-3: hsl(215, 20%, 65%);
-  --chart-4: hsl(213, 27%, 84%);
-  --chart-5: hsl(210, 40%, 96.1%);
-  
-  /* --- SIDEBAR --- */
-  --sidebar-background: hsl(42, 100%, 98%);
-  --sidebar-foreground: hsl(222, 47%, 11%);
-  --sidebar-primary: var(--accent-navy);
+
+  --border:  var(--paper-border);
+  --input:   var(--paper-border);
+  --ring:    var(--olive);
+
+  /* ─── BUTTON TOKENS ─────────────────────────────────────────── */
+  --button-primary-bg:    var(--olive);
+  --button-primary-hover: var(--olive-dark);
+  --button-primary-text:  hsl(0, 0%, 100%);
+
+  --button-secondary-bg:    transparent;
+  --button-secondary-hover: var(--olive-subtle);
+  --button-secondary-text:  var(--olive);
+
+  /* ─── HOVER STATES ───────────────────────────────────────────── */
+  --hover-border:      var(--olive);
+  --hover-bg-subtle:   var(--olive-subtle);
+  --hover-bg-muted:    var(--paper-cool);
+  --hover-text:        var(--olive);
+
+  /* ─── PLAYER / LIVE ──────────────────────────────────────────── */
+  --live-dot:          hsl(6, 78%, 57%);   /* red dot for live indicator */
+  --player-bg:         var(--ink);
+  --player-fg:         var(--paper);
+  --player-accent:     var(--olive-light);
+  --player-muted:      var(--ink-muted);
+
+  /* ─── EDITORIAL ──────────────────────────────────────────────── */
+  --editorial-display: var(--ink);
+  --editorial-body:    var(--ink-soft);
+  --editorial-meta:    var(--ink-faint);
+  --editorial-rule:    var(--paper-border);
+  --editorial-accent:  var(--olive);
+
+  /* ─── TYPOGRAPHY SCALE ───────────────────────────────────────── */
+  /* Display — Barlow Condensed, condensed grotesque */
+  --display-2xl: clamp(3.5rem, 8vw, 6rem);   /* hero, masthead */
+  --display-xl:  clamp(2.5rem, 5vw, 4rem);   /* section headers */
+  --display-lg:  clamp(2rem, 4vw, 3rem);     /* article headlines */
+  --display-md:  clamp(1.5rem, 3vw, 2.25rem);
+
+  /* Body — Inter */
+  --text-xl: 1.25rem;
+  --text-lg: 1.125rem;
+  --text-base: 1rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+
+  /* Mono — IBM Plex Mono (tags, metadata, tracklist) */
+  --mono-sm: 0.75rem;
+  --mono-xs: 0.6875rem;
+
+  /* ─── SPACING / GRID ─────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-24: 96px;
+  --container-max: 1280px;
+  --container-editorial: 720px;   /* reading column width */
+
+  /* ─── RADIUS ─────────────────────────────────────────────────── */
+  --radius: 4px;                  /* tighter, more editorial than 8px */
+  --radius-sm: 2px;
+  --radius-pill: 999px;
+
+  /* ─── MOTION ─────────────────────────────────────────────────── */
+  --ease-default:    cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-entrance:   cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit:       cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring:     cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:   120ms;
+  --duration-base:   200ms;
+  --duration-slow:   350ms;
+
+  /* ─── ELEVATION / SHADOW ─────────────────────────────────────── */
+  --shadow-sm:   0 1px 2px rgba(25, 30, 21, 0.06);
+  --shadow-md:   0 2px 8px rgba(25, 30, 21, 0.10);
+  --shadow-lg:   0 8px 24px rgba(25, 30, 21, 0.14);
+  --shadow-card: 0 1px 3px rgba(25, 30, 21, 0.08), 0 1px 2px rgba(25, 30, 21, 0.06);
+
+  /* ─── SIDEBAR ────────────────────────────────────────────────── */
+  --sidebar-background:        var(--paper-warm);
+  --sidebar-foreground:        var(--ink);
+  --sidebar-primary:           var(--olive);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(210, 40%, 96.1%);
-  --sidebar-accent-foreground: hsl(222, 47%, 11%);
-  --sidebar-border: hsl(214, 32%, 91%);
-  --sidebar-ring: var(--accent-navy);
+  --sidebar-accent:            var(--olive-subtle);
+  --sidebar-accent-foreground: var(--olive-dark);
+  --sidebar-border:            var(--paper-border);
+  --sidebar-ring:              var(--olive);
+
+  /* ─── CHARTS ─────────────────────────────────────────────────── */
+  --chart-1: var(--olive);
+  --chart-2: var(--olive-light);
+  --chart-3: var(--olive-mid);
+  --chart-4: var(--ink-muted);
+  --chart-5: var(--paper-border);
+
+  /* ─── LEGACY ALIASES (keeps existing components working) ─────── */
+  --accent-navy:       var(--olive);
+  --accent-navy-dark:  var(--olive-dark);
+  --accent-navy-light: var(--olive-light);
 }
 
+/* ─── DARK MODE ──────────────────────────────────────────────────── */
 .dark {
-  /* --- SEMANTIC TOKENS (DARK MODE) --- */
-  --background: hsl(222, 47%, 11%);
-  --foreground: hsl(210, 40%, 98%);
-  
-  --card: hsl(217, 33%, 17%);
-  --card-foreground: hsl(210, 40%, 98%);
-  
-  --popover: hsl(217, 33%, 17%);
-  --popover-foreground: hsl(210, 40%, 98%);
-  
-  --muted: hsl(217, 33%, 17%);
-  --muted-foreground: hsl(215, 20%, 65%);
-  
-  /* Primary uses accent navy */
-  --primary: var(--accent-navy);
-  --primary-foreground: hsl(0, 0%, 100%);
-  
-  /* Secondary: Muted background */
-  --secondary: hsl(217, 33%, 17%);
-  --secondary-foreground: hsl(210, 40%, 98%);
-  
-  /* Accent: Muted variant */
-  --accent: hsl(217, 33%, 17%);
-  --accent-foreground: hsl(210, 40%, 98%);
-  
-  /* Destructive uses red (keep red for destructive actions) */
-  --destructive: hsl(0, 84%, 60%);
+  --background:   hsl(78, 10%, 8%);   /* #131A0F — deep olive-black  */
+  --foreground:   hsl(50, 14%, 93%);  /* #EEECe5 — warm cream        */
+
+  --card:              hsl(78, 8%, 12%);
+  --card-foreground:   hsl(50, 14%, 93%);
+
+  --popover:           hsl(78, 8%, 12%);
+  --popover-foreground: hsl(50, 14%, 93%);
+
+  --muted:             hsl(78, 7%, 16%);
+  --muted-foreground:  hsl(70, 6%, 56%);
+
+  --primary:           var(--olive-light);
+  --primary-foreground: hsl(78, 10%, 8%);
+
+  --secondary:         hsl(78, 7%, 16%);
+  --secondary-foreground: hsl(50, 14%, 93%);
+
+  --accent:            hsl(78, 15%, 20%);
+  --accent-foreground: var(--olive-light);
+
+  --destructive:       hsl(0, 72%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  
-  /* Input & Border */
-  --border: hsl(215, 25%, 27%);
-  --input: hsl(215, 25%, 27%);
-  
-  /* --- BUTTON TOKENS (DARK) --- */
-  --button-primary-bg: var(--accent-navy);
-  --button-primary-hover: var(--accent-navy-light);
-  --button-primary-text: hsl(0, 0%, 100%);
-  
-  --button-secondary-bg: transparent;
-  --button-secondary-hover: hsl(217, 33%, 17%);
-  --button-secondary-text: var(--accent-navy);
-  
-  /* --- FOCUS (DARK) --- */
-  --ring-offset: hsl(222, 47%, 11%);
-  
-  /* --- CHARTS (DARK) --- */
-  --chart-1: var(--accent-navy);
-  --chart-2: hsl(215, 20%, 65%);
-  --chart-3: hsl(213, 27%, 84%);
-  --chart-4: hsl(214, 32%, 91%);
-  --chart-5: hsl(210, 40%, 96.1%);
-  
-  /* --- SIDEBAR (DARK) --- */
-  --sidebar-background: hsl(217, 33%, 17%);
-  --sidebar-foreground: hsl(210, 40%, 98%);
-  --sidebar-primary: var(--accent-navy);
-  --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(217, 33%, 17%);
-  --sidebar-accent-foreground: hsl(210, 40%, 98%);
-  --sidebar-border: hsl(215, 25%, 27%);
-  --sidebar-ring: var(--accent-navy);
+
+  --border:  hsl(75, 6%, 20%);
+  --input:   hsl(75, 6%, 20%);
+  --ring:    var(--olive-light);
+
+  --button-primary-bg:    var(--olive-light);
+  --button-primary-hover: var(--olive-mid);
+  --button-primary-text:  hsl(78, 10%, 8%);
+
+  --hover-border:    var(--olive-light);
+  --hover-bg-subtle: hsl(78, 15%, 14%);
+  --hover-bg-muted:  hsl(78, 7%, 16%);
+  --hover-text:      var(--olive-light);
+
+  --player-bg:     hsl(78, 10%, 6%);
+  --player-fg:     hsl(50, 14%, 93%);
+  --player-accent: var(--olive-light);
+
+  --editorial-display: hsl(50, 14%, 93%);
+  --editorial-body:    hsl(50, 10%, 82%);
+  --editorial-meta:    hsl(70, 5%, 52%);
+  --editorial-rule:    hsl(75, 6%, 20%);
+
+  --shadow-sm:   0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md:   0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg:   0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+  --sidebar-background:  hsl(78, 8%, 12%);
+  --sidebar-foreground:  hsl(50, 14%, 93%);
+  --sidebar-border:      hsl(75, 6%, 20%);
+
+  --accent-navy:       var(--olive-light);
+  --accent-navy-dark:  var(--olive-mid);
+  --accent-navy-light: var(--olive-light);
 }
 
-/* --- BUTTON COMPONENT CLASSES --- */
+/* ─── BUTTON CLASSES ─────────────────────────────────────────────── */
 .btn-primary {
   background: var(--button-primary-bg);
   color: var(--button-primary-text);
   border: none;
   font-weight: 600;
-  transition: background 0.2s ease;
+  transition: background var(--duration-base) var(--ease-default);
 }
-
-.btn-primary:hover {
-  background: var(--button-primary-hover);
-}
-
-.btn-primary:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
+.btn-primary:hover        { background: var(--button-primary-hover); }
+.btn-primary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
 
 .btn-secondary {
   background: var(--button-secondary-bg);
   color: var(--button-secondary-text);
-  border: none;
+  border: 1px solid var(--olive);
   font-weight: 600;
-  transition: background 0.2s ease;
+  transition: background var(--duration-base) var(--ease-default),
+              color var(--duration-base) var(--ease-default);
 }
-
-.btn-secondary:hover {
-  background: var(--button-secondary-hover);
-}
-
-.btn-secondary:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
+.btn-secondary:hover        { background: var(--button-secondary-hover); }
+.btn-secondary:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }

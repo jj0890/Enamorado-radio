@@ -59,10 +59,7 @@ export default function EditorialWorkflow() {
 
   const updateWorkflowMutation = useMutation({
     mutationFn: async ({ id, stage, notes }: { id: number; stage: string; notes: string }) => {
-      return await apiRequest(`/api/editorial-workflow/${id}`, {
-        method: 'PATCH',
-        body: JSON.stringify({ workflowStage: stage, editorNotes: notes }),
-      });
+      return await apiRequest('PATCH', `/api/editorial-workflow/${id}`, { workflowStage: stage, editorNotes: notes });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/editorial-workflow'] });
@@ -73,9 +70,7 @@ export default function EditorialWorkflow() {
 
   const createIssuuDraftMutation = useMutation({
     mutationFn: async (submissionId: number) => {
-      return await apiRequest(`/api/editorial-workflow/${submissionId}/issuu-draft`, {
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/editorial-workflow/${submissionId}/issuu-draft`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/editorial-workflow'] });
@@ -84,9 +79,7 @@ export default function EditorialWorkflow() {
 
   const publishToIssuuMutation = useMutation({
     mutationFn: async (submissionId: number) => {
-      return await apiRequest(`/api/editorial-workflow/${submissionId}/issuu-publish`, {
-        method: 'POST',
-      });
+      return await apiRequest('POST', `/api/editorial-workflow/${submissionId}/issuu-publish`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/editorial-workflow'] });
@@ -95,10 +88,7 @@ export default function EditorialWorkflow() {
 
   const generatePhysicalMediaMutation = useMutation({
     mutationFn: async ({ submissionId, mediaType }: { submissionId: number; mediaType: string }) => {
-      return await apiRequest(`/api/physical-media`, {
-        method: 'POST',
-        body: JSON.stringify({ submissionId, mediaType }),
-      });
+      return await apiRequest('POST', `/api/physical-media`, { submissionId, mediaType });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/physical-media'] });

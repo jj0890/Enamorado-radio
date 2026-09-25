@@ -9,7 +9,7 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   // Initialize audio manager on mount
   useEffect(() => {
-    audioManager.initialize().catch(console.error);
+    audioManager.startAutoMode().catch(console.error);
   }, []);
 
   return (

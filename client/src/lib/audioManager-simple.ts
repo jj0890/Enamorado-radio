@@ -21,7 +21,7 @@ class AudioManager {
     return {
       title: mix.title,
       artist: mix.name,
-      artwork: mix.metadata?.thumbnail || null,
+      artwork: (mix.metadata as { thumbnail?: string } | null)?.thumbnail ?? undefined,
       trackUrl: mix.url,
       mixId: mix.id,
       source: 'manual' as const

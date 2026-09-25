@@ -27,7 +27,7 @@ export default function CommunityDetailPage() {
   });
 
   // Fetch enhanced oEmbed data
-  const { data: oembed, isLoading: oembedLoading } = useQuery({
+  const { data: oembed, isLoading: oembedLoading } = useQuery<{ html?: string; provider_name?: string } | null>({
     queryKey: ['/api/oembed/enhanced', item?.url],
     queryFn: async () => {
       if (!item?.url) return null;
@@ -91,25 +91,19 @@ export default function CommunityDetailPage() {
     }
   };
 
-  const getCreatorName = () => {
-    if ('name' in item) return item.name;
-    if ('hostName' in item) return item.hostName;
-    if ('authorName' in item) return item.authorName;
-    if ('artistName' in item) return item.artistName;
-    if ('curatorName' in item) return item.curatorName;
-    return 'Unknown';
+  const getCreatorName = (): string => {
+    const a = item as any;
+    return a.name || a.hostName || a.authorName || a.artistName || a.curatorName || 'Unknown';
   };
 
   const getCreatorHandle = (): string | null => {
-    if ('handle' in item && item.handle) return item.handle;
+    if ('handle' in item && (item as any).handle) return (item as any).handle as string;
     return null;
   };
 
-  const getDate = () => {
-    if ('submittedAt' in item) return item.submittedAt;
-    if ('airDate' in item) return item.airDate;
-    if ('publishedAt' in item) return item.publishedAt;
-    return null;
+  const getDate = (): string | Date | null => {
+    const a = item as any;
+    return a.submittedAt ?? a.airDate ?? a.publishedAt ?? null;
   };
 
   const getTracklist = (): Array<{artist: string; title: string; timestamp?: number}> | null => {
@@ -143,10 +137,10 @@ export default function CommunityDetailPage() {
           </a>
         </Link>
 
-        {/* Split Pane Layout - 35% meta / 65% viewer */}
-        <div className="flex flex-col md:flex-row gap-8 lg:gap-12">
-          {/* Left Pane: Metadata - 35% on desktop */}
-          <div className="w-full md:w-[35%] order-2 md:order-1">
+        {/* Split Pane Layout - Saint Heron inspired 12-column grid */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12 max-w-[2300px] mx-auto">
+          {/* Left Pane: Metadata - 5 columns (41.6%) on desktop */}
+          <div className="md:col-span-5 order-2 md:order-1">
             {/* Type Badge */}
             <div className="mb-4">
               <span className={`inline-block px-3 py-1 text-xs font-mono uppercase tracking-wider ${
@@ -226,8 +220,8 @@ export default function CommunityDetailPage() {
             )}
           </div>
 
-          {/* Right Pane: Player / Artwork - 65% on desktop */}
-          <div className="w-full md:w-[65%] order-1 md:order-2">
+          {/* Right Pane: Player / Artwork - 7 columns (58.3%) on desktop */}
+          <div className="md:col-span-7 order-1 md:order-2">
             {item.type === 'episode' && item.url && item.url.startsWith('/episodes/') ? (
               /* Episode Audio Player - uses shared audio context for persistent playback */
               (() => {

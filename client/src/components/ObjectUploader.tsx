@@ -11,7 +11,10 @@ import { Button } from "@/components/ui/button";
 interface ObjectUploaderProps {
   maxNumberOfFiles?: number;
   maxFileSize?: number;
-  onGetUploadParameters: () => Promise<{
+  /** Allowed file type extensions or MIME types, e.g. ['.mp3', 'audio/*'] */
+  allowedFileTypes?: string[];
+  /** Required for S3 uploads; optional when using without presigned URLs */
+  onGetUploadParameters?: () => Promise<{
     method: "PUT";
     url: string;
   }>;
@@ -53,29 +56,32 @@ interface ObjectUploaderProps {
 export function ObjectUploader({
   maxNumberOfFiles = 1,
   maxFileSize = 10485760, // 10MB default
+  allowedFileTypes = ['.mp3', '.wav', 'audio/*'],
   onGetUploadParameters,
   onComplete,
   buttonClassName,
   children,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
-  const [uppy] = useState(() =>
-    new Uppy({
+  const [uppy] = useState(() => {
+    const instance = new Uppy({
       restrictions: {
         maxNumberOfFiles,
         maxFileSize,
-        allowedFileTypes: ['.mp3', '.wav', 'audio/*'], // Restrict to audio files
+        allowedFileTypes,
       },
       autoProceed: false,
-    })
-      .use(AwsS3, {
+    });
+    // Only wire up S3 if upload params callback is provided
+    if (onGetUploadParameters) {
+      instance.use(AwsS3, {
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
-      })
-      .on("complete", (result) => {
-        onComplete?.(result);
-      })
-  );
+      });
+    }
+    instance.on("complete", (result) => { onComplete?.(result); });
+    return instance;
+  });
 
   return (
     <div>

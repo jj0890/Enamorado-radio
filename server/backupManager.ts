@@ -185,7 +185,7 @@ export class BackupManager {
       console.log(`📋 Found ${backups.length} backups in index`);
       return backups;
     } catch (error) {
-      console.log('📋 No backup index found, returning empty array:', error.message);
+      console.log('📋 No backup index found, returning empty array:', (error as Error).message);
       return [];
     }
   }

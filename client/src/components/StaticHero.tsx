@@ -48,7 +48,7 @@ export default function StaticHero({
   const isLive = nowPlaying?.live?.is_live || false;
   const streamerName = nowPlaying?.live?.streamer_name || 'Live DJ';
   const artist = nowPlaying?.now_playing?.song?.artist || '';
-  const title = nowPlaying?.now_playing?.song?.title || 'AutoDJ';
+  const title = nowPlaying?.now_playing?.song?.title || 'Enamorado Radio';
   const artwork = nowPlaying?.now_playing?.song?.art || '';
 
   const handlePlayPause = async () => {

@@ -84,11 +84,11 @@ export default function StickyRadioPlayer() {
     try {
       console.log('📡 StickyPlayer polling now playing...');
       const response = await fetch(NOWPLAYING_URL, { cache: 'no-store' });
-      
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
-      
+
       const data: NowPlayingData = await response.json();
       console.log('📡 StickyPlayer now playing response:', data);
 
@@ -103,7 +103,7 @@ export default function StickyRadioPlayer() {
       } else if (track && track !== 'Station Offline' && track !== 'Live Stream') {
         displayTitle = track;
       }
-      
+
       const isLive = data.live?.is_live;
       const subtitle = isLive
         ? `LIVE • ${data.live?.streamer_name || 'On Air'}`
@@ -188,13 +188,14 @@ export default function StickyRadioPlayer() {
 
   return (
     <>
-      {/* Bottom sticky player - Translucent NTS-style with collapse toggle */}
-      <div 
+      {/* Bottom sticky player - Premium NTS-style with enhanced backdrop */}
+      <div
         data-sticky-player
         data-testid="sticky-radio-player"
-        className="fixed bottom-0 left-0 right-0 z-50 bg-black/90 dark:bg-black/90 backdrop-blur-lg text-white border-t border-white/10 transition-transform duration-300 ease-in-out"
-        style={{ 
-          backdropFilter: 'blur(10px)',
+        className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 dark:bg-black/95 backdrop-blur-xl text-white border-t border-white/10 transition-transform duration-300 ease-in-out"
+        style={{
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.3)',
           transform: isCollapsed ? 'translateY(calc(100% - 40px))' : 'translateY(0)'
         }}
       >
@@ -239,52 +240,49 @@ export default function StickyRadioPlayer() {
 
         {/* Full Player - Hidden when collapsed */}
         <div className={isCollapsed ? 'hidden' : ''}>
-          <div className="flex items-center h-16 px-2 md:px-4 gap-2 md:gap-4">
-            {/* Play/Pause Button */}
+          <div className="flex items-center h-24 md:h-28 px-4 md:px-6 gap-4 md:gap-6">
+            {/* Album Artwork - LARGER and ALWAYS VISIBLE */}
+            {(artwork || previousArtwork) && (
+              <div className="w-16 h-16 md:w-24 md:h-24 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative shadow-lg">
+                {previousArtwork && previousArtwork !== artwork && (
+                  <img
+                    src={previousArtwork}
+                    alt="Previous artwork"
+                    className="absolute inset-0 w-full h-full object-cover"
+                  />
+                )}
+                {artwork && (
+                  <img
+                    src={artwork}
+                    alt="Album artwork"
+                    className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                    onError={() => setLiveArtwork(null)}
+                    onLoad={() => setPreviousArtwork(null)}
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Play/Pause Button - More prominent with rounded design */}
             <button
               onClick={handleToggle}
               data-testid="button-sticky-play-pause"
-              className="w-10 h-10 md:w-12 md:h-12 bg-white text-black flex items-center justify-center hover:bg-gray-200 transition-colors flex-shrink-0 rounded"
+              className="w-14 h-14 md:w-16 md:h-16 bg-white text-black rounded-full flex items-center justify-center hover:bg-gray-200 transition-all shadow-lg flex-shrink-0"
               title={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? '⏸' : '▶'}
             </button>
 
-            {/* Now Playing Info with Artwork */}
-            <div className="flex-1 flex items-center gap-2 min-w-0">
-              {/* Album Artwork - hidden on mobile */}
-              {(artwork || previousArtwork) && (
-                <div className="hidden md:block w-10 h-10 rounded overflow-hidden flex-shrink-0 bg-gray-800 relative">
-                  {previousArtwork && previousArtwork !== artwork && (
-                    <img 
-                      src={previousArtwork} 
-                      alt="Previous artwork" 
-                      className="absolute inset-0 w-full h-full object-cover"
-                    />
-                  )}
-                  {artwork && (
-                    <img 
-                      src={artwork} 
-                      alt="Album artwork" 
-                      className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
-                      onError={() => setLiveArtwork(null)}
-                      onLoad={() => setPreviousArtwork(null)}
-                    />
-                  )}
+            {/* Now Playing Info - Better typography */}
+            <div className="flex-1 min-w-0">
+              <div className="text-base md:text-lg font-semibold leading-tight truncate">
+                {nowPlaying.title}
+              </div>
+              {nowPlaying.subtitle && (
+                <div className="text-sm md:text-base text-gray-300 truncate mt-1">
+                  {nowPlaying.subtitle}
                 </div>
               )}
-              
-              {/* Track Info - Truncated */}
-              <div className="min-w-0 flex-1">
-                <div className="text-xs md:text-sm font-medium truncate">
-                  {nowPlaying.title}
-                </div>
-                {nowPlaying.subtitle && (
-                  <div className="text-[10px] md:text-xs text-gray-400 truncate">
-                    {nowPlaying.subtitle}
-                  </div>
-                )}
-              </div>
             </div>
 
             {/* Volume Control Popover - hidden on mobile */}
@@ -320,9 +318,9 @@ export default function StickyRadioPlayer() {
                     onChange={handleVolumeChange}
                     data-testid="volume-slider"
                     className="accent-white"
-                    orient="vertical"
+                    {...{ orient: "vertical" } as any}
                     style={{
-                      writingMode: 'bt-lr',
+                      writingMode: 'vertical-lr',
                       WebkitAppearance: 'slider-vertical',
                       width: '8px',
                       height: '100px',
@@ -334,8 +332,8 @@ export default function StickyRadioPlayer() {
             </div>
           </div>
 
-          {/* Progress Bar Row - Always visible for better UX */}
-          <div className="px-4 pb-2">
+          {/* Progress Bar Row - More prominent */}
+          <div className="px-4 md:px-6 pb-3">
             {/* Episodes are seekable, live streams are not */}
             <AudioProgressBar seekable={!!isPlayingEpisode} />
           </div>
@@ -343,7 +341,7 @@ export default function StickyRadioPlayer() {
       </div>
 
       {/* Spacer for fixed bottom bar - adjusts based on collapsed state */}
-      <div className={isCollapsed ? 'h-10' : 'h-20'} />
+      <div className={isCollapsed ? 'h-10' : 'h-28 md:h-32'} />
     </>
   );
 }

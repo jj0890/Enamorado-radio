@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'wouter';
 import { Play, Pause, Volume2, VolumeX, Music, Share2, Link2, Check } from 'lucide-react';
-import { SiX, SiFacebook } from 'react-icons/si';
+import { PlatformIcon } from '@/components/PlatformIcon';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
@@ -64,8 +64,35 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
   };
 
   // Parse tracklist from JSON string
-  const tracks: Array<{artist: string; title: string; timestamp?: number}> = 
-    episode.tracklist ? JSON.parse(episode.tracklist) : [];
+  const tracks: Array<{artist: string; title: string; timestamp?: number}> = (() => {
+    try { return episode.tracklist ? JSON.parse(episode.tracklist) : []; }
+    catch { return []; }
+  })();
+
+  const formatTimestamp = (seconds: number) => {
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const handleTrackSeek = async (track: typeof tracks[number]) => {
+    if (track.timestamp == null) return;
+    if (!isThisEpisodeLoaded) {
+      await actions.play(episode.audioUrl, {
+        title: episode.title,
+        artist: episode.hostName,
+        artwork: episode.artworkUrl || undefined,
+        isLive: false,
+      });
+    }
+    actions.seek(track.timestamp);
+  };
+
+  // Which track is currently active (highest timestamp ≤ currentTime)
+  const activeTrackIndex = tracks.reduce<number>((active, track, i) => {
+    if (track.timestamp != null && track.timestamp <= currentTime) return i;
+    return active;
+  }, -1);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -178,7 +205,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
                     className="justify-start text-white hover:bg-gray-800"
                     data-testid="button-share-twitter"
                   >
-                    <SiX className="h-4 w-4 mr-2" />
+                    <PlatformIcon platform="x" size={16} className="mr-2" />
                     Share on X
                   </Button>
                   <Button
@@ -188,7 +215,7 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
                     className="justify-start text-white hover:bg-gray-800"
                     data-testid="button-share-facebook"
                   >
-                    <SiFacebook className="h-4 w-4 mr-2" />
+                    <PlatformIcon platform="facebook" size={16} className="mr-2" />
                     Share on Facebook
                   </Button>
                 </div>
@@ -263,36 +290,72 @@ export function EpisodePlayer({ episode }: EpisodePlayerProps) {
       {/* Tracklist */}
       <div className="p-6 pb-32">
         <div className="max-w-4xl mx-auto">
-          <h3 className="text-2xl font-bold mb-6 font-mono">TRACKLIST</h3>
+          <div className="flex items-center gap-4 mb-6">
+            <h3 className="font-display font-black uppercase text-2xl tracking-wide text-white">Tracklist</h3>
+            {tracks.length > 0 && (
+              <span className="font-mono text-xs uppercase tracking-widest text-white/30">{tracks.length} tracks</span>
+            )}
+          </div>
+
           {tracks.length === 0 ? (
-            <div className="text-center py-12 bg-gray-900/50 rounded-xl border border-gray-800">
-              <Music className="w-12 h-12 mx-auto mb-4 text-gray-600" />
-              <p className="text-gray-500 font-mono">
-                No tracklist available for this episode
+            <div className="border border-white/10 py-12 flex flex-col items-center gap-3">
+              <Music className="w-8 h-8 text-white/20" />
+              <p className="font-mono text-xs uppercase tracking-widest text-white/30">
+                No tracklist for this episode
               </p>
             </div>
           ) : (
-            <div className="space-y-3">
-              {tracks.map((track, index) => (
-                <div
-                  key={index}
-                  className="bg-gray-900/50 border border-gray-700 hover:border-sky-500 p-4 rounded-lg transition-all duration-150 hover:bg-gray-900 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-sky-500/20 group cursor-default"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="text-sky-400 font-mono font-bold text-sm pt-0.5 min-w-[2rem]">
-                      #{String(index + 1).padStart(2, '0')}
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-base font-bold text-white font-mono group-hover:text-sky-400 transition-colors">
+            <div className="divide-y divide-white/[0.06]">
+              {tracks.map((track, index) => {
+                const isActive = index === activeTrackIndex;
+                const hasTimestamp = track.timestamp != null;
+                return (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => handleTrackSeek(track)}
+                    disabled={!hasTimestamp}
+                    className={[
+                      "w-full flex items-center gap-5 px-4 py-3 text-left transition-colors",
+                      hasTimestamp ? "hover:bg-white/[0.04] cursor-pointer group" : "cursor-default",
+                      isActive ? "bg-white/[0.06]" : "",
+                    ].join(" ")}
+                  >
+                    {/* Timestamp */}
+                    <span className={[
+                      "font-mono text-[11px] tabular-nums min-w-[36px] shrink-0 transition-colors",
+                      isActive ? "text-blue" : "text-white/25 group-hover:text-white/50",
+                    ].join(" ")}>
+                      {hasTimestamp ? formatTimestamp(track.timestamp!) : `${String(index + 1).padStart(2, '0')}`}
+                    </span>
+
+                    {/* Track info */}
+                    <div className="flex-1 min-w-0">
+                      <span className={[
+                        "font-mono text-[13px] font-medium transition-colors",
+                        isActive ? "text-blue" : "text-white group-hover:text-white",
+                      ].join(" ")}>
                         {track.artist}
-                      </div>
-                      <div className="text-sm text-gray-400 mt-1">
-                        {track.title}
-                      </div>
+                      </span>
+                      {track.title && (
+                        <span className="font-mono text-[13px] text-white/40 transition-colors group-hover:text-white/60">
+                          {" "}— {track.title}
+                        </span>
+                      )}
                     </div>
-                  </div>
-                </div>
-              ))}
+
+                    {/* Active waveform indicator */}
+                    {isActive && isPlaying && (
+                      <div className="flex items-end gap-[2px] h-3 shrink-0">
+                        {[5, 10, 7, 12, 4].map((h, i) => (
+                          <div key={i} className="w-[2px] bg-blue rounded-[1px] hero-wave-bar"
+                               style={{ height: h, animationDelay: `${[0,.1,.05,.15,.08][i]}s` }} />
+                        ))}
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>

@@ -35,7 +35,9 @@ const mixSubmissionSchema = z.object({
   additionalGenres: z.string().optional(),
   djExperience: z.string().optional(),
   musicDiscovery: z.string().optional(),
-  socialMedia: z.string().optional()
+  socialMedia: z.string().optional(),
+  url: z.string().optional(),
+  fileUrl: z.string().optional()
 });
 
 type MixSubmissionForm = z.infer<typeof mixSubmissionSchema>;

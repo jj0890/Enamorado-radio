@@ -38,7 +38,8 @@ export default function AdminDangerZone({
 
   const clearPendingMixesMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/admin/danger/clear-pending-mixes', {});
+      const res = await apiRequest('POST', '/api/admin/danger/clear-pending-mixes', {});
+      return res.json() as Promise<{ deletedCount?: number }>;
     },
     onSuccess: (data) => {
       toast({
@@ -82,7 +83,8 @@ export default function AdminDangerZone({
 
   const resetApprovalsMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/danger/reset-approvals', 'POST', {});
+      const res = await apiRequest('POST', '/api/admin/danger/reset-approvals', {});
+      return res.json() as Promise<{ resetCount?: number }>;
     },
     onSuccess: (data) => {
       toast({
@@ -103,7 +105,7 @@ export default function AdminDangerZone({
 
   const emergencyResetMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest('/api/admin/danger/emergency-reset', 'POST', {});
+      return apiRequest('POST', '/api/admin/danger/emergency-reset', {});
     },
     onSuccess: () => {
       toast({

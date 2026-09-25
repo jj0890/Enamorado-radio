@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useRoute } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play, Calendar, User, Music, Clock, ListMusic, ExternalLink } from "lucide-react";
-import { SiSpotify, SiApplemusic, SiSoundcloud, SiYoutube } from "react-icons/si";
+import { PlatformIcon } from "@/components/PlatformIcon";
 import StickyRadioPlayer from "@/components/StickyRadioPlayer";
 import Navigation from "@/components/Navigation";
 import PublicMixCard from "@/components/PublicMixCard";
@@ -72,12 +72,14 @@ function EpisodeCard({ episode }: { episode: any }) {
 // Playlist Card Component
 function PlaylistCard({ playlist }: { playlist: any }) {
   const getPlatformIcon = () => {
-    const platform = playlist.platform?.toLowerCase();
-    if (platform === 'spotify') return <SiSpotify className="w-4 h-4" />;
-    if (platform === 'apple' || platform === 'apple music') return <SiApplemusic className="w-4 h-4" />;
-    if (platform === 'soundcloud') return <SiSoundcloud className="w-4 h-4" />;
-    if (platform === 'youtube') return <SiYoutube className="w-4 h-4" />;
-    return <ListMusic className="w-4 h-4" />;
+    const p = (playlist.platform ?? playlist.playlistUrl ?? '').toLowerCase();
+    const platform = p.includes('spotify') ? 'spotify'
+      : p.includes('apple') ? 'apple-music'
+      : p.includes('soundcloud') ? 'soundcloud'
+      : p.includes('youtube') ? 'youtube'
+      : p.includes('mixcloud') ? 'mixcloud'
+      : 'unknown';
+    return <PlatformIcon platform={platform} size={16} branded />;
   };
 
   const artwork = playlist.artworkUrl || `https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=400&h=400&fit=crop`;
@@ -141,15 +143,30 @@ function PlaylistCard({ playlist }: { playlist: any }) {
 }
 
 export default function LatestPage() {
+  const [, params] = useRoute('/latest/:section?');
+  const section = params?.section || 'all'; // featured, recent, staff-picks, or all
+
   const [filter, setFilter] = useState<'all' | 'episodes' | 'mixes' | 'playlists'>('all');
 
   // Fetch latest content
-  const { data: latestContent = [], isLoading } = useQuery({
+  const { data: latestContent = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/latest", { limit: 24 }],
     refetchInterval: 30000,
   });
 
-  const filteredContent = latestContent.filter((item: any) => {
+  // Filter by section (featured, recent, staff-picks)
+  let sectionFiltered = latestContent;
+  if (section === 'featured') {
+    sectionFiltered = latestContent.filter((item: any) => item.isFeatured);
+  } else if (section === 'staff-picks') {
+    sectionFiltered = latestContent.filter((item: any) => item.isFeatured);
+  } else if (section === 'recent') {
+    // Recent is default sorting, just use all
+    sectionFiltered = latestContent;
+  }
+
+  // Then filter by content type
+  const filteredContent = sectionFiltered.filter((item: any) => {
     if (filter === 'all') return true;
     if (filter === 'episodes') return item.type === 'episode';
     if (filter === 'mixes') return item.type === 'mix';
@@ -189,9 +206,16 @@ export default function LatestPage() {
 
         {/* Page Header */}
         <div className="pt-16 pb-8 mb-8">
-          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">LATEST</h1>
+          <h1 className="text-6xl font-bold mb-4 font-mono text-navy">
+            {section === 'featured' ? 'FEATURED' :
+             section === 'staff-picks' ? 'STAFF PICKS' :
+             section === 'recent' ? 'RECENT' : 'LATEST'}
+          </h1>
           <p className="text-xl text-gray-600 max-w-2xl font-mono">
-            The most recent episodes, shows, and mixes from our community
+            {section === 'featured' ? 'Our hand-picked featured content' :
+             section === 'staff-picks' ? 'Curated selections from our team' :
+             section === 'recent' ? 'The newest additions to our catalog' :
+             'The most recent episodes, shows, and mixes from our community'}
           </p>
         </div>
 

@@ -55,7 +55,7 @@ export function NowPlayingCard() {
 
   const subtitle = isLive
     ? `LIVE • ${data?.live?.streamer_name || 'On Air'}`
-    : track === 'Station Offline' ? 'Station Offline' : 'AutoDJ';
+    : track === 'Station Offline' ? 'Station Offline' : null;
 
   return (
     <Card className="w-full">
@@ -80,18 +80,19 @@ export function NowPlayingCard() {
             <h3 className="font-medium text-gray-900 dark:text-white truncate">
               {displayTitle}
             </h3>
-            <div className="flex items-center gap-2 mt-1">
-              {isLive && (
-                <Badge variant="destructive" className="text-xs">
-                  {subtitle}
-                </Badge>
-              )}
-              {!isLive && (
-                <span className="text-sm text-gray-500 dark:text-gray-400">
-                  {subtitle}
-                </span>
-              )}
-            </div>
+            {subtitle && (
+              <div className="flex items-center gap-2 mt-1">
+                {isLive ? (
+                  <Badge variant="destructive" className="text-xs">
+                    {subtitle}
+                  </Badge>
+                ) : (
+                  <span className="text-sm text-gray-500 dark:text-gray-400">
+                    {subtitle}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </CardContent>

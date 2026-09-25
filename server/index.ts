@@ -1,5 +1,18 @@
 import 'express-async-errors';
 import 'dotenv/config';
+
+// Prevent EPIPE / WebSocket errors from crashing the process
+process.on('uncaughtException', (err: any) => {
+  if (err?.code === 'EPIPE' || err?.message?.includes('EPIPE') || err?.type === 'error') {
+    console.error('[server] Non-fatal uncaught exception:', err.message ?? err);
+    return;
+  }
+  console.error('[server] Fatal uncaught exception — exiting:', err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (reason: any) => {
+  console.error('[server] Unhandled promise rejection:', reason?.message ?? reason);
+});
 import express, { type Request, Response, NextFunction } from "express";
 // @ts-ignore - No type definitions available
 import cors from 'cors';
@@ -74,6 +87,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     message: process.env.NODE_ENV === 'development' ? err.message : 'Something went wrong'
   });
 });
+
+// Serve editorial uploaded media
+app.use('/uploads', express.static('uploads'));
 
 // Serve audio files statically from attached_assets directory (before routes)
 app.use('/attached_assets', express.static('attached_assets', {
@@ -322,15 +338,10 @@ validateAdminCredentials();
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on port 5000
+  // Serve the app (port 5001 to avoid macOS AirPlay Receiver on 5000)
   // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = 5000;
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
+  const port = process.env.PORT ? parseInt(process.env.PORT) : 5001;
+  server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
   });
 })();

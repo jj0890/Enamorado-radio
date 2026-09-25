@@ -289,7 +289,7 @@ export default function EnhancedRadioPlayer({ isActive, onClose }: EnhancedRadio
         </div>
       </div>
 
-      <style jsx>{`
+      <style>{`
         .slider::-webkit-slider-thumb {
           appearance: none;
           width: 16px;

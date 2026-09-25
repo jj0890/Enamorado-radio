@@ -67,39 +67,28 @@ export default function MixCard({
       if (!hasPlaceholderArt || !mix.url?.includes('soundcloud.com')) return;
       
       try {
-        console.log('Fetching artwork for mix:', mix.id, mix.url);
         const response = await fetch(`/api/oembed?url=${encodeURIComponent(mix.url)}`);
-        if (!response.ok) {
-          console.warn('Failed to fetch artwork, status:', response.status);
-          return;
-        }
+        if (!response.ok) return;
         const data = await response.json();
-        console.log('Received artwork data for mix:', mix.id, data);
         if (!ignore && (data?.thumbnail_url || data?.artUrl)) {
           const artworkUrl = data.thumbnail_url || data.artUrl;
           setArtwork(artworkUrl);
-          
-          // Persist the fetched artwork back to the server
+
           try {
             const updateResponse = await fetch(`/api/mixes/${mix.id}/artwork`, {
               method: 'PATCH',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ artUrl: artworkUrl })
             });
-            
             if (updateResponse.ok) {
-              console.log('Successfully saved artwork for mix:', mix.id);
-              // Update the local mix object to avoid refetching
               (mix as any).artUrl = artworkUrl;
-            } else {
-              console.warn('Failed to save artwork for mix:', mix.id, updateResponse.status);
             }
-          } catch (error) {
-            console.error('Error saving artwork for mix:', mix.id, error);
+          } catch {
+            // swallow — artwork persistence is best-effort
           }
         }
-      } catch (error) {
-        console.error('Failed to fetch SoundCloud artwork for mix:', mix.id, error);
+      } catch {
+        // swallow — artwork fetch is best-effort
       }
     }
     
@@ -114,14 +103,11 @@ export default function MixCard({
   // Admin toggle functions
   async function toggleApprove() {
     if (onApprove) {
-      console.log('Using AdminPanel approve handler for mix:', mix.id);
       onApprove(mix.id);
     } else {
-      console.log('Calling approve API directly for mix:', mix.id);
       try {
         const response = await fetch(`/api/admin/mixes/${mix.id}/approve`, { method: 'POST' });
         const result = await response.json();
-        console.log('Approve response:', response.status, result);
         if (response.ok) {
           (mix as any).approved = result.approved;
           mix.status = result.approved ? 'approved' : 'pending';
@@ -143,14 +129,11 @@ export default function MixCard({
     }
     
     if (onFeature) {
-      console.log('Using AdminPanel feature handler for mix:', mix.id);
       onFeature(mix.id);
     } else {
-      console.log('Calling feature API directly for mix:', mix.id);
       try {
         const response = await fetch(`/api/admin/mixes/${mix.id}/feature`, { method: 'POST' });
         const result = await response.json();
-        console.log('Feature response:', response.status, result);
         if (response.ok) {
           (mix as any).featured = result.featured;
           rerender();
@@ -182,7 +165,7 @@ export default function MixCard({
             className="w-full h-48 object-cover"
             onError={(e) => {
               e.currentTarget.style.display = 'none';
-              e.currentTarget.nextElementSibling!.style.display = 'flex';
+              (e.currentTarget.nextElementSibling! as HTMLElement).style.display = 'flex';
             }}
           />
         ) : null}

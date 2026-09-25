@@ -47,14 +47,39 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
     refetchInterval: 30000,
   });
 
-  // Mock activity data for now (will be replaced with API)
-  const mockActivities: ActivityItem[] = [
-    { id: 1, type: 'mix_approved', description: 'approved mix', actor: currentUser, targetName: 'Deep House Session', createdAt: new Date(Date.now() - 1000 * 60 * 5).toISOString() },
-    { id: 2, type: 'episode_uploaded', description: 'uploaded episode', actor: currentUser, targetName: 'Weekly Show #42', createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString() },
-    { id: 3, type: 'application_approved', description: 'approved application from', actor: currentUser, targetName: 'DJ Pulse', createdAt: new Date(Date.now() - 1000 * 60 * 60).toISOString() },
-    { id: 4, type: 'mix_featured', description: 'featured mix', actor: currentUser, targetName: 'Summer Vibes Mix', createdAt: new Date(Date.now() - 1000 * 60 * 120).toISOString() },
-    { id: 5, type: 'login', description: 'logged in', actor: currentUser, createdAt: new Date(Date.now() - 1000 * 60 * 180).toISOString() },
-  ];
+  // Build real activity from recent submissions
+  const { data: recentMixes = [] } = useQuery<any[]>({
+    queryKey: ['/api/mix-submissions'],
+    select: (data) => data.slice(0, 5),
+    refetchInterval: 60000,
+  });
+  const { data: recentApplications = [] } = useQuery<any[]>({
+    queryKey: ['/api/admin/applications'],
+    select: (data) => data.slice(0, 3),
+    refetchInterval: 60000,
+  });
+
+  const recentActivities: ActivityItem[] = [
+    ...recentMixes.map((m: any): ActivityItem => ({
+      id: m.id,
+      type: m.status === 'featured' ? 'mix_featured' : 'mix_approved',
+      description: m.status === 'featured' ? 'featured mix' : 'submitted mix',
+      actor: m.reviewedBy || m.name || 'community',
+      targetName: m.title,
+      createdAt: m.reviewedAt || m.submittedAt || m.createdAt || new Date().toISOString(),
+    })),
+    ...recentApplications.map((a: any): ActivityItem => ({
+      id: a.id + 10000,
+      type: 'application_approved',
+      description: 'applied for residency',
+      actor: a.djName || a.name || 'applicant',
+      targetName: '',
+      createdAt: a.submittedAt || a.createdAt || new Date().toISOString(),
+    })),
+  ]
+    .filter((a) => a.createdAt)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 10);
 
   return (
     <AdminShell
@@ -183,13 +208,22 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
                   </Button>
                 </Link>
                 <Link href="/admin/residents">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
                     data-testid="quick-action-manage-residents"
                   >
                     <Users className="w-5 h-5" />
                     <span className="text-xs font-medium">Residents</span>
+                  </Button>
+                </Link>
+                <Link href="/admin/community">
+                  <Button
+                    variant="outline"
+                    className="w-full h-20 flex-col gap-2 hover:bg-navy hover:text-white hover:border-navy transition-all"
+                  >
+                    <Users className="w-5 h-5" />
+                    <span className="text-xs font-medium">Community</span>
                   </Button>
                 </Link>
               </div>
@@ -287,7 +321,7 @@ export default function AdminDashboard({ onLogout, currentUser = "admin" }: Admi
 
         {/* Right Column - Activity Feed */}
         <div className="space-y-6">
-          <ActivityFeed activities={mockActivities} maxItems={10} />
+          <ActivityFeed activities={recentActivities} maxItems={10} />
 
           {/* Alerts Card */}
           {stats && stats.pendingMixReviews > 5 && (

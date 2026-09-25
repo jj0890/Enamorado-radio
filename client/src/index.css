@@ -1,9 +1,33 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&display=swap');
+/* ─── TYPOGRAPHY ─────────────────────────────────────────────────────
+   Barlow Condensed  — display / headlines (NTS-style condensed grotesque)
+   Inter             — body / UI
+   IBM Plex Mono     — metadata / tracklist / tags
+   ─────────────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Barlow+Condensed:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,700&family=Inter:wght@300;400;500;600;700&family=IBM+Plex+Mono:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,600&display=swap');
 @import './tokens.css';
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Announcement bar ticker ─────────────────────────────────────── */
+@keyframes announce-ticker {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.animate-ticker {
+  animation: announce-ticker 32s linear infinite;
+}
+.animate-ticker:hover { animation-play-state: paused; }
+
+/* ── Hero waveform bars ───────────────────────────────────────────── */
+@keyframes hero-wave {
+  0%, 100% { transform: scaleY(1); }
+  50%       { transform: scaleY(0.2); }
+}
+.hero-wave-bar {
+  animation: hero-wave 1s ease-in-out infinite;
+}
 
 /* Moving banner animation */
 @keyframes marquee {
@@ -46,13 +70,60 @@
     @apply border-border;
   }
 
-  body {
-    @apply font-sans antialiased bg-background text-foreground;
-    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', sans-serif;
-  }
-
   html {
     scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-size: var(--text-base);
+    line-height: 1.6;
+  }
+
+  /* Display headings — Barlow Condensed */
+  h1, h2, h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
+    color: var(--foreground);
+  }
+
+  h4, h5, h6 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--foreground);
+  }
+
+  /* Editorial body text — EB Garamond for all reading/prose contexts */
+  .prose p, .editorial-body, .reading-body {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 1.125rem;   /* 18px — comfortable editorial reading size */
+    line-height: 1.85;
+    color: var(--editorial-body);
+  }
+
+  /* Prose section headers keep the condensed display identity */
+  .prose h2, .prose h3 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: -0.01em;
+    color: var(--editorial-display);
+  }
+
+  /* Pull quotes get large EB Garamond italic */
+  .prose blockquote, .editorial-pullquote {
+    font-family: 'EB Garamond', Georgia, serif;
+    font-style: italic;
+    font-size: 1.3rem;
+    line-height: 1.65;
+    border-left: 3px solid var(--olive);
+    padding-left: 1.25rem;
+    color: var(--ink-soft);
   }
 }
 
