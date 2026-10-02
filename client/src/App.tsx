@@ -43,6 +43,7 @@ import ResidentsPage from "./pages/ResidentsPage";
 import CommunityPage from "./pages/CommunityPage";
 import CommunityDetailPageEnhanced from "./pages/CommunityDetailPageEnhanced";
 import ContributorProfile from "./pages/ContributorProfile";
+import ProfilePage from "./pages/ProfilePage";
 import LatestPage from "./pages/LatestPage";
 import SSENSEFeedPage from "./pages/SSENSEFeedPage";
 import EditorialLanding from "./pages/EditorialLanding";
@@ -143,6 +144,7 @@ function Router() {
       <Route path="/submit-playlist" component={SubmitPlaylist} />
       <Route path="/community" component={CommunityPage} />
       <Route path="/community/@:handle" component={ContributorProfile} />
+      <Route path="/profile/:handle" component={ProfilePage} />
       <Route path="/community/:id" component={CommunityDetailPageEnhanced} />
       <Route path="/contributors/:handle" component={ContributorProfile} />
       <Route path="/about/:section?" component={AboutPageEnhanced} />

@@ -1,10 +1,12 @@
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, useRef, FormEvent } from 'react';
 import { useLocation } from 'wouter';
 import { useUser } from '@/contexts/UserContext';
-import { Plus, Trash2, Upload, ExternalLink } from 'lucide-react';
+import { Plus, Trash2, X, ExternalLink, Search } from 'lucide-react';
 
 interface Album { rank: number; mbId: string; title: string; artist: string; year?: string; coverUrl?: string; }
 interface Contribution { id: number; type: string; title: string; url?: string; publishedAt?: string; status: string; }
+
+const GRID_SIZE = 5;
 
 export default function UserSettingsPage() {
   const { user, loading, refresh, logout } = useUser();
@@ -19,9 +21,11 @@ export default function UserSettingsPage() {
 
   // Albums state
   const [albums, setAlbums] = useState<Album[]>([]);
+  const [activeSlot, setActiveSlot] = useState<number | null>(null); // which slot is being picked
   const [albumSearch, setAlbumSearch] = useState('');
   const [searchResults, setSearchResults] = useState<Album[]>([]);
   const [searching, setSearching] = useState(false);
+  const searchRef = useRef<HTMLInputElement>(null);
 
   // Contributions state
   const [contribs, setContribs] = useState<Contribution[]>([]);
@@ -68,17 +72,31 @@ export default function UserSettingsPage() {
     setSearching(false);
   }
 
-  function addAlbum(album: Album) {
-    if (albums.length >= 5 || albums.find(a => a.mbId === album.mbId)) return;
-    const updated = [...albums, { ...album, rank: albums.length + 1 }];
-    setAlbums(updated);
-    setSearchResults([]);
+  function openSlot(slot: number) {
+    setActiveSlot(slot);
     setAlbumSearch('');
-    saveAlbums(updated);
+    setSearchResults([]);
+    setTimeout(() => searchRef.current?.focus(), 50);
   }
 
-  function removeAlbum(mbId: string) {
-    const updated = albums.filter(a => a.mbId !== mbId).map((a, i) => ({ ...a, rank: i + 1 }));
+  function closeSlot() {
+    setActiveSlot(null);
+    setAlbumSearch('');
+    setSearchResults([]);
+  }
+
+  function pickAlbum(album: Album) {
+    if (activeSlot === null) return;
+    const rank = activeSlot;
+    const updated = albums.filter(a => a.rank !== rank);
+    updated.push({ ...album, rank });
+    setAlbums(updated);
+    saveAlbums(updated);
+    closeSlot();
+  }
+
+  function removeAlbum(rank: number) {
+    const updated = albums.filter(a => a.rank !== rank);
     setAlbums(updated);
     saveAlbums(updated);
   }
@@ -160,60 +178,112 @@ export default function UserSettingsPage() {
               {saveMsg && <span className="font-mono text-[10px] text-green-400">{saveMsg}</span>}
             </div>
             <p className="font-mono text-[10px] text-white/30">
-              Public profile: <a href={`/community/@${user?.handle}`} className="text-blue hover:underline">/@{user?.handle}</a>
+              Public profile: <a href={`/profile/${user?.handle}`} className="text-blue hover:underline">/profile/@{user?.handle}</a>
             </p>
           </form>
         )}
 
         {/* Albums tab */}
         {tab === 'albums' && (
-          <div className="space-y-6">
-            <p className="font-mono text-[10px] text-white/40">Up to 5 favourite albums on your profile.</p>
+          <div className="space-y-8">
+            <p className="font-mono text-[10px] text-white/30">Pick up to 9 albums. Click any slot to choose or replace.</p>
 
-            <div className="space-y-2">
-              {albums.map((a, i) => (
-                <div key={a.mbId} className="flex items-center gap-4 bg-[#13141A] border border-[#25272E] px-4 py-3">
-                  {a.coverUrl && <img src={a.coverUrl} alt="" className="w-10 h-10 object-cover flex-shrink-0" />}
-                  <div className="flex-1 min-w-0">
-                    <div className="font-mono text-sm text-white truncate">{a.title}</div>
-                    <div className="font-mono text-[11px] text-white/40">{a.artist}{a.year ? ` · ${a.year}` : ''}</div>
+            {/* 5-slot horizontal row */}
+            <div className="grid grid-cols-5 gap-1.5" style={{ maxWidth: 500 }}>
+              {Array.from({ length: GRID_SIZE }, (_, i) => {
+                const rank = i + 1;
+                const album = albums.find(a => a.rank === rank) ?? null;
+                const isActive = activeSlot === rank;
+                return (
+                  <div key={rank} className="relative">
+                    <button
+                      onClick={() => isActive ? closeSlot() : openSlot(rank)}
+                      className={`relative aspect-square w-full overflow-hidden transition-all ${
+                        isActive ? 'ring-2 ring-white/40' : 'hover:ring-1 hover:ring-white/20'
+                      } ${album ? 'bg-[#141414]' : 'bg-[#141414] border border-dashed border-white/10 hover:border-white/20'}`}
+                    >
+                      {album ? (
+                        <>
+                          {album.coverUrl
+                            ? <img src={album.coverUrl} alt="" className="w-full h-full object-cover" />
+                            : <div className="w-full h-full flex items-center justify-center p-2">
+                                <span className="font-mono text-[9px] text-white/40 text-center leading-tight">{album.title}</span>
+                              </div>
+                          }
+                          <span className="absolute top-1.5 left-2 font-mono text-[9px] text-white/40">
+                            {String(rank).padStart(2, '0')}
+                          </span>
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex flex-col items-center justify-center gap-1">
+                          <Plus className="w-4 h-4 text-white/20" />
+                          <span className="font-mono text-[9px] text-white/20">{String(rank).padStart(2, '0')}</span>
+                        </div>
+                      )}
+                    </button>
+
+                    {/* Remove button — shows when slot is filled */}
+                    {album && (
+                      <button
+                        onClick={e => { e.stopPropagation(); removeAlbum(rank); }}
+                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 group-hover:opacity-100 text-white/70 hover:text-red-400 transition-opacity z-10"
+                        title="Remove"
+                      >
+                        <X className="w-2.5 h-2.5" />
+                      </button>
+                    )}
                   </div>
-                  <button onClick={() => removeAlbum(a.mbId)} className="text-white/20 hover:text-red-400 transition-colors">
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
-              ))}
-              {albums.length === 0 && (
-                <p className="font-mono text-[11px] text-white/20 text-center py-6">No albums added yet</p>
-              )}
+                );
+              })}
             </div>
 
-            {albums.length < 5 && (
-              <div className="flex gap-2">
-                <input value={albumSearch} onChange={e => setAlbumSearch(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), searchAlbums())}
-                  placeholder="Search for an album…"
-                  className="flex-1 bg-[#13141A] border border-[#25272E] focus:border-blue/60 text-white font-mono text-sm px-3 py-2.5 outline-none placeholder:text-white/20 transition-colors" />
-                <button onClick={searchAlbums} disabled={searching}
-                  className="bg-white/10 hover:bg-white/20 text-white font-mono text-xs uppercase tracking-widest px-4 py-2.5 transition-colors">
-                  {searching ? '…' : 'Search'}
-                </button>
-              </div>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="border border-[#25272E] divide-y divide-[#25272E]">
-                {searchResults.map(r => (
-                  <button key={r.mbId} onClick={() => addAlbum(r)}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/[0.04] text-left transition-colors">
-                    {r.coverUrl && <img src={r.coverUrl} alt="" className="w-8 h-8 object-cover flex-shrink-0" />}
-                    <div className="flex-1 min-w-0">
-                      <div className="font-mono text-sm text-white truncate">{r.title}</div>
-                      <div className="font-mono text-[10px] text-white/40">{r.artist}</div>
-                    </div>
-                    <Plus className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+            {/* Search panel — appears when a slot is active */}
+            {activeSlot !== null && (
+              <div className="border border-[#25272E] bg-[#0e0e0e]">
+                <div className="flex items-center gap-2 px-3 py-2.5 border-b border-[#25272E]">
+                  <Search className="w-3.5 h-3.5 text-white/30 flex-shrink-0" />
+                  <input
+                    ref={searchRef}
+                    value={albumSearch}
+                    onChange={e => setAlbumSearch(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') { e.preventDefault(); searchAlbums(); }
+                      if (e.key === 'Escape') closeSlot();
+                    }}
+                    placeholder={`Search for slot ${String(activeSlot).padStart(2, '0')}…`}
+                    className="flex-1 bg-transparent text-white font-mono text-sm outline-none placeholder:text-white/20"
+                  />
+                  <button onClick={searchAlbums} disabled={searching}
+                    className="font-mono text-[10px] uppercase tracking-widest text-white/40 hover:text-white transition-colors px-2">
+                    {searching ? '…' : 'Go'}
                   </button>
-                ))}
+                  <button onClick={closeSlot} className="text-white/20 hover:text-white/60 transition-colors ml-1">
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                {searchResults.length > 0 ? (
+                  <div className="divide-y divide-[#1a1a1a] max-h-64 overflow-y-auto">
+                    {searchResults.map(r => (
+                      <button key={r.mbId} onClick={() => pickAlbum(r)}
+                        className="w-full flex items-center gap-3 px-3 py-2.5 hover:bg-white/[0.04] text-left transition-colors">
+                        {r.coverUrl
+                          ? <img src={r.coverUrl} alt="" className="w-9 h-9 object-cover flex-shrink-0" />
+                          : <div className="w-9 h-9 bg-[#1e1e1e] flex-shrink-0" />
+                        }
+                        <div className="flex-1 min-w-0">
+                          <div className="font-mono text-sm text-white truncate">{r.title}</div>
+                          <div className="font-mono text-[10px] text-white/40">{r.artist}{r.year ? ` · ${r.year}` : ''}</div>
+                        </div>
+                        <Plus className="w-3.5 h-3.5 text-white/20 flex-shrink-0" />
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="font-mono text-[11px] text-white/20 text-center py-4">
+                    {albumSearch ? 'No results — try a different search' : 'Type to search albums'}
+                  </p>
+                )}
               </div>
             )}
           </div>
