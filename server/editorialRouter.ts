@@ -15,31 +15,16 @@ import { eq, desc, sql, gte, lte, or } from "drizzle-orm";
 import fetch from "node-fetch";
 import multer from "multer";
 import path from "path";
-import fs from "fs";
+import { uploadToR2, isR2Configured } from "./storage/r2";
+import { notifyMediaUpload, notifyStatusChange } from "./notifications/discord";
 
-// File upload configuration
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(process.cwd(), "uploads", "editorial");
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    cb(null, `${uniqueSuffix}${path.extname(file.originalname)}`);
-  },
-});
-
+// Use memory storage — files go to R2, never touch disk
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB — full-res editorial photos
   fileFilter: (req, file, cb) => {
-    const allowedTypes = /jpeg|jpg|png|gif|webp/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    if (extname && mimetype) {
+    const allowed = /jpeg|jpg|png|gif|webp/;
+    if (allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype)) {
       cb(null, true);
     } else {
       cb(new Error("Only image files are allowed"));
@@ -239,6 +224,10 @@ export function registerEditorialRoutes(app: Express) {
       if (!updatedProject) {
         return res.status(404).json({ error: "Project not found" });
       }
+
+      // Fire Discord notification (non-blocking)
+      const changedBy = (req as any).admin?.user ?? "unknown";
+      notifyStatusChange(updatedProject.title, status, changedBy, updatedProject.id).catch(() => {});
 
       res.json(updatedProject);
     } catch (error) {
@@ -529,15 +518,29 @@ export function registerEditorialRoutes(app: Express) {
       const uploadedMedia = [];
 
       for (const file of files) {
-        const url = `/uploads/editorial/${file.filename}`;
-        const thumbnailUrl = url; // TODO: Generate actual thumbnails
+        let url: string;
+
+        if (isR2Configured() && file.buffer) {
+          url = await uploadToR2(file.buffer, {
+            folder:      "editorial",
+            contentType: file.mimetype,
+          });
+          await notifyMediaUpload(
+            req.params.id ? `project #${req.params.id}` : "editorial",
+            file.originalname,
+            uploadedBy
+          );
+        } else {
+          // Fallback: base64 data URL (dev only — not for production)
+          url = `data:${file.mimetype};base64,${file.buffer?.toString("base64") ?? ""}`;
+        }
 
         const [media] = await db
           .insert(editorialMedia)
           .values({
             filename: file.originalname,
             url,
-            thumbnailUrl,
+            thumbnailUrl: url,
             type: "image",
             size: file.size,
             uploadedBy,
@@ -565,12 +568,9 @@ export function registerEditorialRoutes(app: Express) {
         .from(editorialMedia)
         .where(eq(editorialMedia.id, parseInt(id)));
 
-      if (media) {
-        // Delete the physical file
-        const filePath = path.join(process.cwd(), media.url);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
+      if (media?.url?.startsWith("http")) {
+        const { deleteFromR2 } = await import("./storage/r2");
+        await deleteFromR2(media.url).catch(() => {});
       }
 
       // Delete from database

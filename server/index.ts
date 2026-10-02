@@ -27,6 +27,7 @@ import { uploadViaSftp, rescanLibrary, ensurePlaylist, addMediaToPlaylist, creat
 import fetch from 'node-fetch';
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { startScheduler } from "./cron/scheduler";
 import { validateAdminCredentials } from "./adminAuth";
 
 const logger = pino();
@@ -343,5 +344,6 @@ validateAdminCredentials();
   const port = process.env.PORT ? parseInt(process.env.PORT) : 5001;
   server.listen(port, "0.0.0.0", () => {
     log(`serving on port ${port}`);
+    startScheduler();
   });
 })();
