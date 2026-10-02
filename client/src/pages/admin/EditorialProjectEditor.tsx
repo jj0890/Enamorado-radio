@@ -27,11 +27,7 @@ import {
 } from "@/components/ui/dialog";
 import { diffWords } from "diff";
 import { useToast } from "@/hooks/use-toast";
-import { useEditor, EditorContent } from "@tiptap/react";
-import StarterKit from "@tiptap/starter-kit";
-import Placeholder from "@tiptap/extension-placeholder";
-import ImageExtension from "@tiptap/extension-image";
-import LinkExtension from "@tiptap/extension-link";
+import { BlockEditor } from "@/components/editor/BlockEditor";
 
 type ProjectType = "photoshoot" | "interview" | "essay" | "community-spotlight";
 type WorkflowStatus = "planning" | "in-progress" | "copy-edit" | "ready" | "published" | "featured";
@@ -120,61 +116,24 @@ const LICENSE_OPTIONS = [
 ];
 
 // ─── Rich Text Editor ───────────────────────────────────────────────────────
+// Delegates to BlockEditor: slash commands, drag handles, image upload to R2
 
-function RichTextEditor({ content, onChange }: { content: string; onChange: (html: string) => void }) {
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Placeholder.configure({ placeholder: "Start writing..." }),
-      ImageExtension,
-      LinkExtension.configure({ openOnClick: false, autolink: true }),
-    ],
-    content,
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
-    editorProps: { attributes: { class: "prose prose-sm max-w-none focus:outline-none min-h-[400px] px-4 py-3" } },
-  });
-
-  if (!editor) return null;
-
-  function handleLinkToggle() {
-    if (editor.isActive("link")) {
-      editor.chain().focus().unsetLink().run();
-    } else {
-      const url = window.prompt("Enter URL:");
-      if (url) editor.chain().focus().setLink({ href: url }).run();
-    }
-  }
-
+function RichTextEditor({
+  content,
+  onChange,
+  projectId,
+}: {
+  content: string;
+  onChange: (json: string) => void;
+  projectId?: number | null;
+}) {
   return (
-    <div className="border border-gray-300 rounded-lg overflow-hidden">
-      <div className="bg-gray-50 border-b border-gray-300 p-2 flex gap-1 flex-wrap">
-        {[
-          ["B", () => editor.chain().focus().toggleBold().run(), editor.isActive("bold")],
-          ["I", () => editor.chain().focus().toggleItalic().run(), editor.isActive("italic")],
-          ["H2", () => editor.chain().focus().toggleHeading({ level: 2 }).run(), editor.isActive("heading", { level: 2 })],
-          ["H3", () => editor.chain().focus().toggleHeading({ level: 3 }).run(), editor.isActive("heading", { level: 3 })],
-          ["• List", () => editor.chain().focus().toggleBulletList().run(), editor.isActive("bulletList")],
-          ['" Quote', () => editor.chain().focus().toggleBlockquote().run(), editor.isActive("blockquote")],
-        ].map(([label, fn, active]) => (
-          <Button key={label as string} type="button" variant="ghost" size="sm"
-            onClick={fn as () => void}
-            className={`font-mono text-xs ${active ? "bg-gray-200" : ""}`}>
-            {label as string}
-          </Button>
-        ))}
-        <Button type="button" variant="ghost" size="sm"
-          onClick={handleLinkToggle}
-          className={`font-mono text-xs ${editor.isActive("link") ? "bg-gray-200" : ""}`}>
-          Link
-        </Button>
-        <Button type="button" variant="ghost" size="sm"
-          onClick={() => editor.chain().focus().setHorizontalRule().run()}
-          className="font-mono text-xs">
-          HR
-        </Button>
-      </div>
-      <EditorContent editor={editor} className="bg-white" />
-    </div>
+    <BlockEditor
+      content={content}
+      onChange={onChange}
+      projectId={projectId}
+      placeholder="Write something… or type / for blocks, drag to reorder"
+    />
   );
 }
 
@@ -1471,7 +1430,7 @@ export default function EditorialProjectEditor() {
               {!useExternalLink && (
                 <div>
                   <Label>Content</Label>
-                  <RichTextEditor content={formData.content || ""} onChange={html => updateForm({ content: html })} />
+                  <RichTextEditor content={formData.content || ""} onChange={json => updateForm({ content: json })} projectId={project?.id ?? null} />
                 </div>
               )}
               {useExternalLink && (

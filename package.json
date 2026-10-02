@@ -13,6 +13,11 @@
     "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1145.0",
+    "@aws-sdk/lib-storage": "^3.1145.0",
+    "@blocknote/core": "^0.55.0",
+    "@blocknote/react": "^0.55.0",
+    "@blocknote/shadcn": "^0.55.0",
     "@google-cloud/storage": "^7.17.0",
     "@hookform/resolvers": "^3.10.0",
     "@jridgewell/trace-mapping": "^0.3.25",
@@ -93,6 +98,7 @@
     "mime-types": "^3.0.1",
     "multer": "^2.0.2",
     "next-themes": "^0.4.6",
+    "node-cron": "^4.6.0",
     "node-id3": "^0.2.9",
     "openid-client": "^6.6.4",
     "passport": "^0.7.0",
